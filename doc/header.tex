@@ -1,0 +1,49 @@
+\renewenvironment{quote}{%
+        \list{}{%
+                \leftmargin0.0cm
+                \rightmargin\leftmargin
+        }
+        \item\relax
+}
+{\endlist}
+\newtheorem{exc}{}[chapter]
+\newenvironment{ex}{\begin{exc}\normalfont}{\end{exc}}
+\newtheorem{pr}{Prog.}[chapter]
+\newcommand{\p}{Prog.}
+\newcommand{\bpr}[2]{\begin{pr}[\texttt{#1}]\label{#2}
+  \textcolor{white}{}
+}
+\newcommand{\epr}{\end{pr}}
+\newtheorem{pa}{Package}[chapter]
+\newcommand{\bpa}[2]{\begin{pa}[\texttt{#1}]\label{#2}
+  \textcolor{white}{}
+}
+\newcommand{\epa}{\end{pa}}
+
+
+\usepackage{graphics,color,eurosym,latexsym}
+\usepackage{algorithm,algorithmic}
+\usepackage{times}
+\newcommand{\cm}{C_{\rm m}}
+\newcommand{\ty}{\texttt}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{pst-all}
+\usepackage{noweb}
+%% \def\nwendcode{\endtrivlist \endgroup} %% prevent too much whitespace
+%% \let\nwdocspar=\par                    %%   at end of pages
+\def\nwendcode{\endtrivlist \endgroup \vfil\penalty10\vfilneg} %% alternative for
+\let\nwdocspar=\smallbreak                                     %%   preventing spurious whitespace
+
+
+\usepackage{psfrag}
+\usepackage{inconsolata}
+\bibliographystyle{plain}
+
+
+\usepackage{colortbl}
+    \newcommand{\cell}[4]{%
+      \begin{tabular}{c!{\color{lightgray}\vrule}c}#1 &
+        #2\\\arrayrulecolor{lightgray}\hline 
+        #3 & #4\\
+    \end{tabular}}

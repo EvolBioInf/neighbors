@@ -1,0 +1,25 @@
+\begin{pspicture}(-1.8,0)(10.9,4)
+  \psset{xunit=0.9cm}
+  %% Entities
+  \rput(1,1){\rnode{genome}{\psframebox{\ty{genome}}}}
+  \rput(4.5,1){\dianode{belongs}{\ty{belongs\_to}}}
+  \rput(8.0,1){\rnode{taxon}{\psframebox{\ty{taxon}}}}
+  \ncline{genome}{belongs}
+  \ncline{->}{belongs}{taxon}
+
+  %% Attributes of genome
+  \rput(0,0){\ovalnode{replicons}{\ty{replicons}}}
+  \rput(-0.5,2){\ovalnode{size}{\ty{size}}}
+  \rput(1.5,2){\ovalnode{taxid}{\ty{taxid}}}
+  \ncline{replicons}{genome}
+  \ncline{size}{genome}
+  \ncline{taxid}{genome}
+
+  %% Attributes of taxon
+  \rput(7.7,2){\ovalnode{name}{\ty{name}}}
+  \rput(10.0,1.7){\ovalnode{taxid}{\underline{\ty{taxid}}}}
+  \rput(10.0,0.5){\ovalnode{parent}{\ty{parent}}}
+  \ncline{name}{taxon}
+  \ncline{taxid}{taxon}
+  \ncline{parent}{taxon}
+\end{pspicture}

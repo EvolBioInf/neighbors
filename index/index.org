@@ -1,0 +1,108 @@
+#+begin_src latex
+  \section{Program \ty{index}}
+  The outline of \ty{index} provides hooks for imports and the
+  logic of the main function.
+  \bpr{index}{pr:idx}
+#+end_src
+#+begin_src go <<index.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr.~\ref{pr:idx}>>
+  )
+
+  func main() {
+	  //<<Main function, Pr.~\ref{pr:idx}>>
+  }
+#+end_src
+#+begin_src latex
+  \epr
+  In the main function we declare the options, set the usage, parse the
+  options, and compute the taxonomy.
+#+end_src
+#+begin_src go <<Main function, Pr.~\ref{pr:idx}>>=
+  //<<Declare options, Pr.~\ref{pr:idx}>>
+  //<<Set usage, Pr.~\ref{pr:idx}>>
+  //<<Parse options, Pr.~\ref{pr:idx}>>
+  //<<Compute taxonomy, Pr.~\ref{pr:idx}>>
+  //<<Output taxonomy, Pr.~\ref{pr:idx}>>
+#+end_src
+#+begin_src latex
+  There is only one option, \ty{-v} for printing the version.
+#+end_src
+#+begin_src go <<Declare options, Pr.~\ref{pr:idx}>>=
+  var optV = flag.Bool("v", false, "print version & " +
+	  "program information")
+#+end_src
+#+begin_src latex
+  We import \ty{flag}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:idx}>>=
+  "flag"
+#+end_src
+#+begin_src latex
+  The program runs on two input files for nodes and names. This is
+  reflected in the usage line. There is also an explanation of the
+  program's purpose and an example command.
+#+end_src
+#+begin_src go <<Set usage, Pr.~\ref{pr:idx}>>=
+  u := "index [-h] [-v] <nodesFile> <namesFile>"
+  p := "Index the the NCBI taxonomy using nodes.dmp and names.dmp in"
+  p += "\n\tftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz"
+  e := "index nodes.dmp names.dmp > taxonomy.idx"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_src latex
+  We import \ty{clio}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:idx}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_src latex
+  We parse the options and respond to \ty{-v}. We also check there are
+  two input files, assumed to contain the nodes and their names.
+#+end_src
+#+begin_src go <<Parse options, Pr.~\ref{pr:idx}>>=
+  flag.Parse()
+  if *optV { util.PrintInfo("index") }
+  files := flag.Args()
+  if len(files) < 2 {
+	  fmt.Fprint(os.Stderr, "please provide the " +
+		  "nodes and names files\n")
+	  os.Exit(1)
+  }
+  nodes := files[0]
+  names := files[1]
+#+end_src
+#+begin_src latex
+  We import \ty{util}, \ty{fmt}, and \ty{os}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:idx}>>=
+  "github.com/evolbioinf/neighbors/util"
+  "fmt"
+  "os"
+#+end_src
+#+begin_src latex
+  We open the nodes and names files, compute the taxonomy, and close the
+  files again.
+#+end_src
+#+begin_src go <<Compute taxonomy, Pr.~\ref{pr:idx}>>=
+  nodesF := util.Open(nodes)
+  namesF := util.Open(names)
+  taxonomy := tax.NewTaxonomy(nodesF, namesF)
+  nodesF.Close()
+  namesF.Close()
+#+end_src
+#+begin_src latex
+  We encode the taxonomy and print it to the standard output
+  stream. This is encapsulated in a single function call.
+#+end_src
+#+begin_src go <<Output taxonomy, Pr.~\ref{pr:idx}>>=
+tax.Encode(os.Stdout, taxonomy)
+#+end_src
+#+begin_src latex
+  We import \ty{tax}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:idx}>>=
+  "github.com/evolbioinf/neighbors/tax"
+#+end_src

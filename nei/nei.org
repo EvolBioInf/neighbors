@@ -1,0 +1,274 @@
+#+begin_src latex
+  \section{Program \ty{nei}}
+  The outline of \ty{nei} contains hooks for imports, functions,
+  and the logic of the main function.
+  \bpr{nei}{pr:nei}
+#+end_src
+#+begin_src go <<nei.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr.~\ref{pr:nei}>>
+  )
+  //<<Functions, Pr.~\ref{pr:nei}>>
+  func main() {
+	  //<<Main function, Pr.~\ref{pr:nei}>>
+  }
+#+end_src
+#+begin_src latex
+  \epr
+  In the main function we set the usage, declare the options, parse
+  the options, and parse the input files.
+#+end_src
+#+begin_src go <<Main function, Pr.~\ref{pr:nei}>>=
+  //<<Set usage, Pr.~\ref{pr:nei}>>
+  //<<Declare options, Pr.~\ref{pr:nei}>>
+  //<<Parse options, Pr.~\ref{pr:nei}>>
+  //<<Parse input, Pr.~\ref{pr:nei}>>
+#+end_src
+#+begin_src latex
+  The program should read a comma-delimited list of taxon-IDs from the
+  command line and analyze a list index files, for example,
+  \begin{verbatim}
+  $ ./nei t1,t2 tax.idx
+  \end{verbatim}
+  If there are no input files, the input is assumed to come from the
+  standard input stream. As an alternative to passing the taxon-IDs on
+  the command line, they can also be read from a file.
+#+end_src
+#+begin_src go <<Set usage, Pr.~\ref{pr:nei}>>=
+  u := "nei [-h] [option]... t1,t2,... [index]..."
+  p := "Given a set of target taxon-IDs, find their closest " +
+	  "taxonomic nei."
+  e := "nei 1376 ncbiTax.idx"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_src latex
+  We import \ty{clio}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:nei}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_src latex
+  We declare an option for reading the taxon-IDs from file, and for
+  printing the program version.
+#+end_src
+#+begin_src go <<Declare options, Pr.~\ref{pr:nei}>>=
+  var optF = flag.String("f", "", "file of taxon-IDs, one per line")
+  var optV = flag.Bool("v", false, "print version & " +
+	  "other program information")
+#+end_src
+#+begin_src latex
+  We import \ty{flag}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:nei}>>=
+  "flag"
+#+end_src
+#+begin_src latex
+  We parse the options and respond to them.
+#+end_src
+#+begin_src go <<Parse options, Pr.~\ref{pr:nei}>>=
+  flag.Parse()
+  //<<Respond to \ty{-f}, Pr.~\ref{pr:nei}>>
+  //<<Respond to \ty{-v}, Pr.~\ref{pr:nei}>>
+#+end_src
+#+begin_src latex
+  If \ty{-f} was not set, we need at least one command line argument to
+  go on.
+#+end_src
+#+begin_src go <<Respond to \ty{-f}, Pr.~\ref{pr:nei}>>=
+  args := flag.Args()
+  var taxa []int
+  if *optF == "" {
+	  if len(args) > 0 {
+		  //<<Read taxon-IDs from command line, Pr.~\ref{pr:nei}>>
+	  } else {
+		  //<<Abort, Pr.~\ref{pr:nei}>>
+	  }
+  } else {
+	  //<<Read taxon-IDs from file, Pr.~\ref{pr:nei}>>
+  }
+#+end_src
+#+begin_src latex
+  If we get the taxon-IDs from the command line, we split the first
+  entry in \ty{args} at the comma and convert the
+  substrings to integers. Having used the first entry in \ty{args}, we
+  discard it.
+#+end_src
+#+begin_src go <<Read taxon-IDs from command line, Pr.~\ref{pr:nei}>>=
+  str := strings.Split(args[0], ",")
+  for _, s := range str {
+	  i, err := strconv.Atoi(s)
+	  if err != nil {
+		  fmt.Fprintf(os.Stderr, "couldn't convert %q\n", s)
+		  os.Exit(1)
+	  }
+	  taxa = append(taxa, i)
+  }
+  args = args[1:]
+#+end_src
+#+begin_src latex
+  We import \ty{strings}, \ty{fmt}, \ty{os}, and \ty{strconv}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:nei}>>=
+  "strings"
+  "fmt"
+  "os"
+  "strconv"
+#+end_src
+#+begin_src latex
+  If we have to abort, we explain why.
+#+end_src
+#+begin_src go <<Abort, Pr.~\ref{pr:nei}>>=
+  fmt.Fprint(os.Stderr, "please provide at least one taxon-ID\n")
+  os.Exit(1)
+#+end_src
+#+begin_src latex
+  In case we read the taxon-IDs from a file, we use a scanner and
+  convert the strings to integers.
+#+end_src
+#+begin_src go <<Read taxon-IDs from file, Pr.~\ref{pr:nei}>>=
+  f := util.Open(*optF)
+  sc := bufio.NewScanner(f)
+  for sc.Scan() {
+	  s := sc.Text()
+	  i, err := strconv.Atoi(s)
+	  if err != nil { log.Fatalf("couldn't convert %q\n", s) }
+	  taxa = append(taxa, i)
+  }
+  f.Close()
+#+end_src
+#+begin_src latex
+  We import \ty{util}, \ty{bufio}, and \ty{log}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:nei}>>=
+  "github.com/evolbioinf/neighbors/util"
+  "bufio"
+  "log"
+#+end_src
+#+begin_src latex
+  If requested, we print the version.
+#+end_src
+#+begin_src go <<Respond to \ty{-v}, Pr.~\ref{pr:nei}>>=
+  if *optV {
+	  util.PrintInfo("nei")
+  }
+#+end_src
+#+begin_src latex
+  The input files are parsed using the function \ty{clio.ParseFiles},
+  which takes as argument the function \ty{parse}. In turn, \ty{parse}
+  has the slice of taxon-IDs as argument.
+#+end_src
+#+begin_src go <<Parse input, Pr.~\ref{pr:nei}>>=
+  clio.ParseFiles(args, parse, taxa)
+#+end_src
+#+begin_src latex
+  In \ty{parse}, we retrieve the taxon-IDs, decode the taxonomy, check
+  that the taxon-IDs are legitimate, compute the nei, and output
+  them.
+#+end_src
+#+begin_src go <<Functions, Pr.~\ref{pr:nei}>>=
+  func parse(r io.Reader, args ...interface{}) {
+	  taxa := args[0].([]int)
+	  t := tax.Decode(r)
+	  //<<Check taxon-IDs are legitimate, Pr.~\ref{pr:nei}>>
+	  //<<Compute neighbors, Pr.~\ref{pr:nei}>>
+	  //<<Output neighbors, Pr.~\ref{pr:nei}>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{io} and \ty{tax}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:nei}>>=
+  "io"
+  "github.com/evolbioinf/neighbors/tax"
+#+end_src
+#+begin_src latex
+  Legitimate taxon-IDs have entries in the taxonomy. If we find a
+  taxon-ID without an entry, we abort.
+#+end_src
+#+begin_src go <<Check taxon-IDs are legitimate, Pr.~\ref{pr:nei}>>=
+  for _, taxon := range taxa {
+	  if t[taxon] == nil {
+		  log.Fatalf("couldn't find taxon %d\n", taxon)
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We compute the neighbors, by finding the most recent common ancestors
+  of the target taxa. It's parent's leaves minus its own leaves are the
+  neighbors, as summarized in equation~(\ref{eq:nei}).
+#+end_src
+#+begin_src go <<Compute neighbors, Pr.~\ref{pr:nei}>>=
+  m := t.MRCA(taxa)
+  l1 := t.Leaves(t[m].Parent.ID)
+  l2 := t.Leaves(m)
+  n := make(map[int]bool)
+  for _, l := range l1 { n[l] = true }
+  for _, l := range l2 { delete(n, l) }
+#+end_src
+#+begin_src latex
+  In the output we recap the input and print the neighbors in four
+  columns: type (target or neighbor), taxon-ID, sequence data (yes or
+  no), and name. We format the columns with a tab writer.
+#+end_src
+#+begin_src go <<Output neighbors, Pr.~\ref{pr:nei}>>=
+  w := new(tabwriter.Writer)
+  w.Init(os.Stdout, 1, 0, 2, ' ', 0)
+  //<<Recap input, Pr.~\ref{pr:nei}>>
+  fmt.Fprintf(w, "# Neighbors\n")
+  w.Flush()
+  fmt.Fprint(w, "# Type\tTaxon-ID\tName\n")
+  for k, _ := range n {
+	  fmt.Fprintf(w, "n\t%d\t%s\n", k, t[k].Name)
+  }
+  w.Flush()
+#+end_src
+#+begin_src latex
+  We import \ty{tabwriter}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:nei}>>=
+  "text/tabwriter"
+#+end_src
+#+begin_src latex
+  To recap the input, we print the table of the leaves of the most
+  common ancestor. In this table, we'd like to mark the target
+  taxa, so we save them first in a map for easy lookup.
+#+end_src
+#+begin_src go <<Recap input, Pr.~\ref{pr:nei}>>=
+  //<<Store target taxa in map, Pr.~\ref{pr:nei}>>
+  //<<Write table of MRCA leaves, Pr.~\ref{pr:nei}>>
+#+end_src
+#+begin_src latex
+  We make a map and store the target taxa in it.
+#+end_src
+#+begin_src go <<Store target taxa in map, Pr.~\ref{pr:nei}>>=
+  targets := make(map[int]bool)
+  for _, taxon := range taxa {
+	  targets[taxon] = true
+  }
+#+end_src
+#+begin_src latex
+  The table of MRCA leaves consists of five columns: type (target or
+  neighbor), taxon-ID, input (yes or no), sequence data (yes or no), and
+  name.
+#+end_src
+#+begin_src go <<Write table of MRCA leaves, Pr.~\ref{pr:nei}>>=
+  fmt.Printf("# MRCA(targets): %s (%d^%d)\n", t[m].Name, t[m].ID, t[m].Parent.ID)
+  fmt.Fprintf(w,"# Type\tTaxon-ID\tInput?\tName\n")
+  for _, l := range l2 {
+	  fmt.Fprintf(w, "t\t%d", l)
+	  if targets[l] {
+		  fmt.Fprintf(w, "\ty")
+	  } else {
+		  fmt.Fprintf(w, "\tn")
+	  }
+	  fmt.Fprintf(w, "\t%s\n", t[l].Name)
+  }
+#+end_src
+  
+
+
+
+
+

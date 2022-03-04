@@ -1,0 +1,771 @@
+#+begin_src latex
+  \section{Package \ty{tax}}
+  Package \ty{tax} builds the taxonomy from \ty{nodes.dmp} and
+  \ty{names.dmp}, which are part of the dump of th NCBI taxonomy
+  database.  To see how this construction works, consider again the toy
+  taxonomy in Figure~\ref{fig:tax}, where the numbers are taxon-IDs. The
+  corresponding table of child/parent pairs in \ty{nodes.dmp} is shown
+  in Table~\ref{tab:nodes}. I have ordered the table of taxaxon-IDs, but
+  taxa may appear in any order.
+
+  The names of taxa are listed in Table~\ref{tab:names}. They come in
+  several types, of which we store only the scientific name.
+
+  \begin{table}
+    \caption{Nodes of the toy
+      taxonomy in Figure~\ref{fig:tax}.}\label{tab:nodes}
+    \begin{center}
+	\begin{tabular}{cc}
+	  \hline
+	  Taxon-ID & Parent\\\hline
+	  1 & 1\\
+	  2 & 1\\
+	  3 & 1\\
+	  4 & 3\\
+	  5 & 3\\
+	  6 & 3\\
+	  7 & 5\\
+	  8 & 2\\
+	  9 & 2\\\hline
+	\end{tabular}
+    \end{center}
+  \end{table}
+
+  \begin{table}
+    \caption{Names of the toy taxonomy in
+      Figure~\ref{fig:tax}.}\label{tab:names}
+    \begin{center}
+	\begin{tabular}{cl}
+	  \hline
+	  Taxon-ID & Name\\\hline
+	  1 & root\\
+	  2 & Viruses\\
+	  3 & cellular organisms\\
+	  4 & Bacteria\\
+	  5 & Archaea\\
+	  6 & Eukaryota\\
+	  7 & Euryarchaeota\\
+	  8 & Plasmaviridae\\
+	  9 & Fuselloviridae\\\hline
+	\end{tabular}
+  \end{center}
+  \end{table}
+
+
+  %%\subsection{Implementation}
+  The outline of \ty{tax} contains hooks for imports, types, and
+  functions.
+#+end_src
+#+begin_src go <<tax.go>>=
+  // Package tax provides functions for navigating the NCBI taxonomy
+  // database.
+  package tax
+
+  import (
+	  //<<Imports>>
+  )
+  //<<Types>>
+  //<<Methods>>
+  //<<Functions>>
+#+end_src
+#+begin_src latex
+  \subsection{\ty{Taxonomy}}
+  A taxonomy is a tree of taxon-IDs.  This tree can be quite large, the
+  NCBI taxonomy currently contains 2.3 million entries. To make it
+  possible to directly access its nodes, we store the taxonomic tree in a
+  map of nodes indexed by taxon-IDs.
+#+end_src
+#+begin_src go <<Types>>=
+  // Taxonomy holds the hierarchical structure of the taxonomy database.
+  type Taxonomy map[int]*Node
+#+end_src
+#+begin_src latex
+  A node is the fundamental unit of a taxonomy.
+#+end_src
+#+begin_src go <<Types>>=
+  // Node is the unit of the taxonomy tree.
+  type Node struct {
+	  //<<Node fields>>
+  }
+#+end_src
+#+begin_src latex
+  It holds a taxon-ID, the scientific name, and pointers to
+  its child, sibling, and parent.
+#+end_src
+#+begin_src go <<Node fields>>=
+  // ID stores the taxon-ID.
+  ID int
+  // Name stores the scientific name.
+  Name string
+  Child, Sib, Parent *Node
+#+end_src
+#+begin_src latex
+  \subsection{\ty{NewTaxonomy}}
+  We construct a new taxonomy in three steps, parse the nodes file,
+  construct the tree, and parse the names file.
+#+end_src
+#+begin_src go <<Functions>>=
+  func NewTaxonomy(nodes, names io.Reader) Taxonomy {
+	  tax := make(map[int]*Node)
+	  //<<Parse nodes file>>
+	  //<<Construct tree>>
+	  //<<Parse names file>>
+	  return tax
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{io}.
+#+end_src
+#+begin_src go <<Imports>>=
+  "io"
+#+end_src
+#+begin_src latex
+  We parse the rows in the nodes file using a scanner. A node is split
+  and the corresponding taxon stored.
+#+end_src
+#+begin_src go <<Parse nodes file>>=
+  parents := make(map[int]int)
+  sc := bufio.NewScanner(nodes)
+  for sc.Scan() {
+	  row := sc.Text()
+	  //<<Split row>>
+	  //<<Store taxon>>
+  }
+#+end_src
+#+begin_src latex
+  Columns are delimited by \verb+\t|\t+. The first and second column
+  contain the taxon/parent pair of taxon-IDs, which we convert to
+  integers. Conversion returns an error variable, which we check using
+  the as yet unwritten function \ty{check}.
+#+end_src
+#+begin_src go <<Split row>>=
+  fields := strings.SplitN(row, "\t|\t", 3)
+  taxonID, err := strconv.Atoi(fields[0])
+  check(err, fields[0])
+  parentID, err := strconv.Atoi(fields[1])
+  check(err, fields[1])
+#+end_src
+#+begin_src latex
+  We import \ty{bufio}, \ty{strings}, and \ty{strconv}.
+#+end_src
+#+begin_src go <<Imports>>=
+  "bufio"
+  "strings"
+  "strconv"
+#+end_src
+#+begin_src latex
+  The function \ty{check} tests for a conversion error and aborts with a
+  friendly message, if one occurred.
+#+end_src
+#+begin_src go <<Functions>>=
+  func check(e error, s string) {
+	  if e != nil {
+		  fmt.Fprintf(os.Stderr, "couldn't convert " +
+			  "%q to an integer\n", s)
+		  os.Exit(1)
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{fmt} and \ty{os}.
+#+end_src
+#+begin_src go <<Imports>>=
+  "fmt"
+  "os"
+#+end_src
+#+begin_src latex
+  For each taxon-ID we store a node and the taxon-ID of its parent.
+#+end_src
+#+begin_src go <<Store taxon>>=
+  v := new(Node)
+  v.ID = taxonID
+  tax[taxonID] = v
+  parents[taxonID] = parentID
+#+end_src
+#+begin_src latex
+  The tree topology is now implicit in the map of parents. To construct
+  an explicit tree from this, we iterate over all taxa and access the
+  corresponding child/parent pairs. As the parent of the root is the
+  root itself, we might be dealing with two roots at this
+  point. Treating them like an ordinary child/parent pair would lead to
+  the construction of a loop, so we check for this before setting the
+  links between parent and child.
+#+end_src
+#+begin_src go <<Construct tree>>=
+  for k, v := range parents {
+	  if k != v {
+		  child := tax[k]
+		  parent := tax[v]
+		  //<<Set links between parent and child>>
+	  } else {
+		tax[k].Parent = tax[k]
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We set the child's parent link and add it to its parent's list of
+  children.
+#+end_src
+#+begin_src go <<Set links between parent and child>>=
+  child.Parent = parent
+  if parent.Child == nil {
+	  parent.Child = child
+  } else {
+	  cp := parent.Child
+	  for cp.Sib != nil {
+		  cp = cp.Sib
+	  }
+	  cp.Sib = child
+  }
+#+end_src
+#+begin_src latex
+  The names file consists of four columns. The taxon-ID is in the first
+  column, the name in the second, and the name type in the fourth and
+  last. The last row is terminated by \verb+\t|\n+, so we remove the
+  last to bytes from the name types.
+#+end_src
+#+begin_src go <<Parse names file>>=
+  sc = bufio.NewScanner(names)
+  for sc.Scan() {
+	  row := sc.Text()
+	  fields := strings.Split(row, "\t|\t")
+	  taxonID, err := strconv.Atoi(fields[0])
+	  check(err, fields[0])
+	  name := fields[1]
+	  f := fields[3]
+	  nameType := f[0:len(f)-2]
+	  //<<Store name>>
+  }
+#+end_src
+#+begin_src latex
+  If the name we've just read is a scientific name, we store it.
+#+end_src
+#+begin_src go <<Store name>>=
+  if nameType == "scientific name" {
+	  tax[taxonID].Name = name
+  }
+#+end_src
+#+begin_src latex
+  \subsection{\ty{Root}}
+  The root of the tree has taxon-ID 1 and is returned by the method
+  \ty{Root}.
+#+end_src
+#+begin_src go <<Methods>>=
+  func (t Taxonomy) Root() *Node {
+	  return t[1]
+  }
+#+end_src
+#+begin_src latex
+  \subsection{\ty{String}}
+  To visualize a taxonomy, we implement the \ty{String} method. This
+  writes the tree of taxon-IDs and the table of names to a string.
+#+end_src
+#+begin_src go <<Methods>>=
+  func (t Taxonomy) String() string {
+	  str := ""
+	  //<<Write tree of taxon-IDs>>
+	  //<<Write table of names>>
+	  return str
+  }
+#+end_src
+#+begin_src latex
+  In preparation of their conversion to string, we write the tree of
+  taxon-IDs to a buffer using the function \ty{writeTree}.
+#+end_src
+#+begin_src go <<Write tree of taxon-IDs>>=
+  var b []byte
+  buf := bytes.NewBuffer(b)
+  writeTree(t.Root(), buf, 0)
+  str = buf.String()
+  buf.Reset()
+#+end_src
+#+begin_src latex
+  We import \ty{bytes}.
+#+end_src
+#+begin_src go <<Imports>>=
+  "bytes"
+#+end_src
+#+begin_src latex
+  The function \ty{writeTree} is a recursive tree traversal. We write
+  the tree in indentation notation, with levels two blanks
+  wide~\cite[p. 312]{knu97:ar1}.
+#+end_src
+#+begin_src go <<Functions>>=
+  func writeTree(v *Node, w io.Writer, h int) {
+	  if v == nil { return }
+	  for i := 0; i < h; i++ {
+		  fmt.Fprint(w, "     ")
+	  }
+	  fmt.Fprintf(w, "%d->%d\n", v.ID, v.Parent.ID)
+	  writeTree(v.Child, w, h+1)
+	  writeTree(v.Sib, w, h)
+  }
+#+end_src
+#+begin_src latex
+  We write the table of names using a tab writer and the function
+  \ty{writeNames}. The first thing we write to the table is the header.
+#+end_src
+#+begin_src go <<Write table of names>>=
+  w := new(tabwriter.Writer)
+  w.Init(buf, 1, 0, 2, ' ', 0)
+  fmt.Fprintf(w, "# TaxonID\tName")
+  writeNames(t.Root(), w)
+  w.Flush()
+  str += buf.String()
+#+end_src
+#+begin_src latex
+  We import \ty{tabwriter}.
+#+end_src
+#+begin_src go <<Imports>>=
+  "text/tabwriter"
+#+end_src
+#+begin_src latex
+  The function \ty{writeNames} runs recursively across the tree and
+  prints pairs of taxon-ID and name.
+#+end_src
+#+begin_src go <<Functions>>=
+  func writeNames(v *Node, w io.Writer) {
+	  if v == nil { return }
+	  fmt.Fprintf(w, "\n%d\t%s",
+		  v.ID, v.Name)
+	  writeNames(v.Sib, w)
+	  writeNames(v.Child, w)
+
+  }
+#+end_src
+#+begin_src latex
+  \subsection{\ty{MRCA}}
+  Given a set of taxon-IDs, we might ask, what is their most recent
+  common ancestor? For example, in Figure~\ref{fig:tax}, the most recent
+  common ancestor of taxa 4 and 7 is 3. The method \ty{MRCA} gives this
+  answer.
+
+  There is a long history of MRCA queries in computer
+  science~\cite[ch. 3]{ohl13:bio}. However, instead of using the general
+  solution to the problem, I construct a simpler solution that involves
+  climbing to the common ancestor of a set of taxa. If these taxa are
+  closely related, the climb is short.
+
+  To be more precise, in each step of our climb, we increment a
+  descendant counter in each node. If one of these counters is equal to
+  the size of the set of input taxa, the corresponding node is the
+  MRCA. Otherwise, we climb to the parents and repeat. So we declare a
+  count of descendants.
+#+end_src
+#+begin_src go <<Node fields>>=
+  numDesc int
+#+end_src
+#+begin_src latex
+  To see an example of how this counter is used, consider again the tree
+  taxa 4 and 7 in Figure~\ref{fig:tax}. We set their descendant counters
+  to 1 and climb to nodes 3 and 5. We increment their descendant
+  counters to 1, and since node of the counters is equal to 2, we climb
+  to nodes 1 and 3. Now the counter of 3 is incremented to 2 and we have
+  found the MRCA.
+
+  To carry out this climb, we convert the slice of taxon-IDs to a slice
+  of nodes, which I think of as children, as we are looking for their
+  ancestor. Then we search for the MRCA. Once we've found it, we reset
+  the descendant counters.
+#+end_src
+#+begin_src go <<Methods>>=
+  // The method MRCA finds the most recent common ancestor of a set of
+  // taxon-IDs.
+  func (t Taxonomy) MRCA(taxa []int) int {
+	  var mrca *Node
+	  //<<Convert taxon-IDs to children>>
+	  //<<Search for MRCA>>
+	  //<<Reset descendant counters>>
+	  return mrca.ID
+  }
+#+end_src
+#+begin_src latex
+  We convert the taxon-IDs to a slice of nodes, the children.
+#+end_src
+#+begin_src go <<Convert taxon-IDs to children>>=
+  var children []*Node
+  for _, taxon := range taxa {
+	  child := t[taxon]
+	  children = append(children, child)
+  }
+#+end_src
+#+begin_src latex
+  We search for the MRCA by repeatedly incrementing the descendants
+  count and climbing one step in the tree.
+#+end_src
+#+begin_src go <<Search for MRCA>>=
+  for mrca == nil {
+	  //<<Increment descendant counter>>
+	  //<<Climb tree>>
+  }
+#+end_src
+#+begin_src latex
+  When incrementing the number of descendants, we also check whether
+  we've found the MRCA.
+#+end_src
+#+begin_src go <<Increment descendant counter>>=
+  for _, child := range children {
+	  child.numDesc++
+	  if child.numDesc == len(taxa) {
+		  mrca = child
+		  break
+	  }
+  }
+#+end_src
+#+begin_src latex
+  When climbing one step up in the tree, we reach a set of parents. We
+  shouldn't try to climb from the root, which we recognize by its
+  taxon-ID of one. After the climbing step, the parents become the
+  children for the next round.
+#+end_src
+#+begin_src go <<Climb tree>>=
+  var parents []*Node
+  for _, child := range children {
+	  if child.ID > 1 {
+		  parents = append(parents, child.Parent)
+	  }
+  }
+  children = parents
+#+end_src
+#+begin_src latex
+  Resetting the descendant counters is done by calling the as yet
+  undefined function \ty{resetNumDesc}.
+#+end_src
+#+begin_src go <<Reset descendant counters>>=
+  resetNumDesc(mrca)
+#+end_src
+#+begin_src latex
+  The function \ty{resetNumDesc} implements a recursive tree traversal.
+#+end_src
+#+begin_src go <<Functions>>=
+  func resetNumDesc(v *Node) {
+	  if v ==  nil { return }
+	  v.numDesc = 0
+	  resetNumDesc(v.Child)
+	  resetNumDesc(v.Sib)
+  }
+#+end_src
+#+begin_src latex
+  \subsection{\ty{Leaves}}
+  The leaves of a taxonomy are particularly interesting as they
+  correspond to the organism names in genbank. Given a taxon-ID, we'd
+  therefore like to be able to collect all leaves in the subtree rooted
+  on the corresponding node. The method \ty{Leaves} does that by calling
+  the function \ty{countLeaves}. In the example tree shown in
+  Figure~\ref{fig:tax}, the leaves of node 3 are 4, 7, and 6. When
+  calling \ty{Leaves} on some node $v$, we first check whether $v$ is a
+  leaf. In that case we return its ID. Otherwise, we call
+  \ty{collectLeaves} on $v$'s child.
+#+end_src
+#+begin_src go <<Methods>>=
+  // Leaves collects the taxon-IDs of the leaves in the subtree rooted
+  // on its argument taxon-ID.
+  func (t Taxonomy) Leaves(taxon int) []int {
+	  var leaves []int
+	  v := t[taxon]
+	  if v.Child == nil {
+		  leaves = append(leaves, v.ID)
+		  return leaves
+	  }
+	  leaves = collectLeaves(v.Child, leaves)
+	  return leaves
+  }
+#+end_src
+#+begin_src latex
+  The the function \ty{collectLeaves} runs recursively across the tree
+  and returns the leaves.
+#+end_src
+#+begin_src go <<Functions>>=
+  func collectLeaves(v *Node, leaves []int) []int {
+	  if v == nil { return leaves }
+	  if v.Child == nil {
+		  leaves = append(leaves, v.ID)
+	  }
+	  leaves = collectLeaves(v.Child, leaves)
+	  leaves = collectLeaves(v.Sib, leaves)
+	  return leaves
+  }
+#+end_src
+#+begin_src latex
+  \subsection{\ty{Encode} and \ty{Decode}}
+  A taxonomy is a complex structure and to save the effort of computing
+  it from scratch, we write functions for encoding and decoding it. We
+  cannot directly the standard library functions \ty{Encode} and
+  \ty{Decode} to the taxonomy, as the pointers of its tree structure
+  cannot be converted. Instead, we rewrite the tree as a slice of
+  structures without pointers. This slice can then be encoded.
+#+end_src
+#+begin_src go <<Functions>>=
+  func Encode(w io.Writer, t Taxonomy) {
+	  //<<Remove pointers>>
+	  //<<Encode>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{io}.
+#+end_src
+#+begin_src go <<Imports>>=
+  "io"
+#+end_src
+#+begin_src latex
+  We define a simple node where the pointers are replaced by the
+  corresponding taxon-IDs.
+#+end_src
+#+begin_src go <<Types>>=
+  type Snode struct {
+	  Id, Ch, Si, Pa  int
+	  Na string
+  }
+#+end_src
+#+begin_src latex
+  Now we can write the tree without pointers.
+#+end_src
+#+begin_src go <<Remove pointers>>=
+  var snodes []Snode
+  var id, ch, si, pa int
+  var na string
+  for k, v := range t {
+	  id = k
+	  na = v.Name
+	  //<<Convert topology>>
+	  s := Snode{Id:id, Ch:ch, Si:si, Pa:pa, Na:na}
+	  snodes = append(snodes, s)
+  }
+#+end_src
+#+begin_src latex
+  We convert the topology pointers to integers.
+#+end_src
+#+begin_src go <<Convert topology>>=
+  pa = v.Parent.ID
+  if v.Child != nil {
+	  ch = v.Child.ID
+  } else {
+	  ch = -1
+  }
+  if v.Sib != nil {
+	  si = v.Sib.ID
+  } else {
+	  si = -1
+  }
+#+end_src
+#+begin_src latex
+  Now we can use the standard library for encoding.
+#+end_src
+#+begin_src go <<Encode>>=
+  enc := gob.NewEncoder(w)
+  err := enc.Encode(snodes)
+  if err != nil {
+	  log.Fatal("encode error:", err)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{gob} and \ty{log}.
+#+end_src
+#+begin_src go <<Imports>>=
+  "encoding/gob"
+  "log"
+#+end_src
+#+begin_src latex
+  In \ty{Decode} we decode the slice of simple nodes and reconstruct the
+  taxonomy.
+#+end_src
+#+begin_src go <<Functions>>=
+  func Decode(r io.Reader) Taxonomy {
+	  t := make(map[int]*Node)
+	  dec := gob.NewDecoder(r)
+	  var snodes []Snode
+	  err := dec.Decode(&snodes)
+	  if err != nil {
+		  log.Fatal("decode error:", err)
+	  }
+	  //<<Reconstruct taxonomy>>
+	  return t
+  }
+#+end_src
+#+begin_src latex
+  We reconstruct the taxonomy by reconstructing all the nodes and then
+  the topology.
+#+end_src
+#+begin_src go <<Reconstruct taxonomy>>=
+  //<<Reconstruct nodes>>
+  //<<Reconstruct topology>>
+#+end_src
+#+begin_src latex
+  To get the nodes, we iterate over the slice of simple nodes and for
+  each one add a tree node to the taxonomy.
+#+end_src
+#+begin_src go <<Reconstruct nodes>>=
+  for _, snode := range snodes {
+	  node := new(Node)
+	  node.ID = snode.Id
+	  node.Name = snode.Na
+	  t[node.ID] = node
+  }
+#+end_src
+#+begin_src latex
+  We reconstruct the topology in a second traversal of the slice of
+  simple nodes.
+#+end_src
+#+begin_src go <<Reconstruct topology>>=
+  for _, snode := range snodes {
+	  v := t[snode.Id]
+	  v.Parent = t[snode.Pa]
+	  if snode.Ch != -1 { v.Child = t[snode.Ch] }
+	  if snode.Si != -1 { v.Sib = t[snode.Si] }
+  }
+#+end_src
+#+begin_src latex
+  \subsection{Testing}
+  We are done with the \ty{tax} package, time to test it. Our testing
+  framework provides hooks for imports and the testing logic.
+#+end_src
+#+begin_src go <<tax_test.go>>=
+  package tax
+
+  import (
+	  "testing"
+	  //<<Testing imports>>
+  )
+  //<<Testing functions>>
+#+end_src
+#+begin_src latex
+  We declare a function for testing, in which we read a taxonomy and
+  test its five central methods, \ty{String}, \ty{MRCA}, 
+  \ty{Leaves}, \ty{Encode}, and \ty{Decode}.
+#+end_src
+#+begin_src go <<Testing functions>>=
+  func TestMethods(t *testing.T) {
+	  //<<Read taxonomy>>
+	  //<<Test \ty{String}>>
+	  //<<Test \ty{MRCA}>>
+	  //<<Test \ty{Leaves}>>
+	  //<<Test \ty{Encode}>>
+	  //<<Test \ty{Decode}>>
+  }
+#+end_src
+#+begin_src latex
+  To read a taxonomy, we open two files of test data using the function
+  \ty{open} and call \ty{NewTaxonomy}. Then we close the files.
+#+end_src
+#+begin_src go <<Read taxonomy>>=
+  nodes := open("nodesTest.dmp")
+  names := open("namesTest.dmp")
+  tax := NewTaxonomy(nodes, names)
+  nodes.Close()
+  names.Close()
+#+end_src
+#+begin_src latex
+  The function \ty{open} opens a file and checks for errors.
+#+end_src
+#+begin_src go <<Testing functions>>=
+  func open(file string) *os.File {
+	  f, err := os.Open(file)
+	  if err != nil {
+		  fmt.Fprintf(os.Stderr, "couldn't open %s\n", file)
+		  os.Exit(1)
+	  }
+	  return f
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{os} and \ty{fmt}.
+#+end_src
+#+begin_src go <<Testing imports>>=
+  "os"
+  "fmt"
+#+end_src
+#+begin_src latex
+  To test \ty{String}, we just print the taxonomy.
+#+end_src
+#+begin_src go <<Test \ty{String}>>=
+  fmt.Println(tax)
+#+end_src
+#+begin_src latex
+  To test \ty{MRCA}, we construct several tests and run them in a loop.
+#+end_src
+#+begin_src go <<Test \ty{MRCA}>>=
+  //<<Construct tests of \ty{MRCA}>>
+  //<<Run tests of \ty{MRCA}>>
+#+end_src
+#+begin_src latex
+  We look for the MRCAs of the following five sets of taxa:
+  \begin{itemize}
+  \item $\{4, 7\}$
+  \item $\{4\}$
+  \item $\{2, 7\}$
+  \item $\{2, 2\}$
+  \item $\{4, 7, 6\}$
+  \end{itemize}
+#+end_src
+#+begin_src go <<Construct tests of \ty{MRCA}>>=
+  taxa := make([][]int, 0)
+  var res []int
+  taxa = append(taxa, []int{4, 7})
+  res = append(res, 3)
+  taxa = append(taxa, []int{4})
+  res = append(res, 4)
+  taxa = append(taxa, []int{2, 7})
+  res = append(res, 1)
+  taxa = append(taxa, []int{2, 2})
+  res = append(res, 2)
+  taxa = append(taxa, []int{4, 7, 6})
+  res = append(res, 3)
+#+end_src
+#+begin_src latex
+  We loop over the tests.
+#+end_src
+#+begin_src go <<Run tests of \ty{MRCA}>>=
+  for i, taxon := range taxa {
+	  get := tax.MRCA(taxon)
+	  want := res[i]
+	  if get != want {
+		  t.Errorf("get: %d\nwant: %d\n", get, want)
+	  }
+  }
+#+end_src
+#+begin_src latex
+  To test \ty{Leaves}, we request the leaves of node 3 and check we get
+  4, 7, and 6.
+#+end_src
+#+begin_src go <<Test \ty{Leaves}>>=
+  leaves := tax.Leaves(3)
+  s := 0
+  for _, leaf := range leaves {
+	  s += leaf
+  }
+  if s != 17 || len(leaves) != 3 {
+	  t.Errorf("get: %v\nwant: {4, 7, 6}\n", leaves)
+  }
+#+end_src
+#+begin_src latex
+  We test \ty{Encode} and by writing an encoded version of the taxonomy
+  to a unique temporary file.
+#+end_src
+#+begin_src go <<Test \ty{Encode}>>=
+  f, err := ioutil.TempFile(os.TempDir(), "tmp_")
+  if err != nil {
+	  t.Errorf("couldn't open temporary file")
+  }
+  Encode(f, tax)
+  f.Close()
+#+end_src
+#+begin_src latex
+  We import \ty{ioutil}.
+#+end_src
+#+begin_src go <<Testing imports>>=
+  "io/ioutil"
+#+end_src
+#+begin_src latex
+  We decode the taxonomy from the unique file and print it. Then we
+  close the file and delete it.
+#+end_src
+#+begin_src go <<Test \ty{Decode}>>=
+  f, err = os.Open(f.Name())
+  if err != nil {
+	  t.Errorf("couldn't open %s", f.Name())
+  }
+  tax = Decode(f)
+  fmt.Println(tax)
+  f.Close()
+  os.Remove(f.Name())
+#+end_src

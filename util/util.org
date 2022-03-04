@@ -1,0 +1,71 @@
+#+begin_src latex
+  \section{Package \ty{util}}
+  The package \ty{util} collects auxiliary functions common to
+  \ty{indexNodes} and \ty{neighbors}. Its outline provides hooks for
+  imports, variables, and functions.
+  \bpa{util}{pa:util}
+#+end_src
+#+begin_src go <<util.go>>=
+  // Package util provides utility functions for the programs
+  // indexNeighbors and neighbors.
+  package util
+
+  import (
+	  //<<Imports, Pa.~\ref{pa:util}>>
+  )
+  //<<Variables, Pa.~\ref{pa:util}>>
+  //<<Functions, Pa.~\ref{pa:util}>>
+#+end_src
+#+begin_src latex
+  \epa
+  \subsection*{\ty{PrintInfo}}
+  The function \ty{PrintInfo} prints information about the calling program.
+#+end_src
+#+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
+  // PrintInfo prints program information and exits.
+  func PrintInfo(program string) {
+	  author := "Bernhard Haubold"
+	  email := "haubold@evolbio.mpg.de"
+	  license := "Gnu General Public License, " +
+		  "https://www.gnu.org/licenses/gpl.html"
+	  clio.PrintInfo(program, version, date,
+		  author, email, license)
+	  os.Exit(0)
+  }
+#+end_src
+#+begin_src latex
+  We declare the variables \ty{version} and \ty{date}, which ought to be
+  injected at compile time.
+#+end_src
+#+begin_src go <<Variables, Pa.~\ref{pa:util}>>=
+  var version, date string
+#+end_src
+#+begin_src latex 
+  We import \ty{clio} and \ty{os}.
+#+end_src
+#+begin_src go <<Imports, Pa.~\ref{pa:util}>>=
+  "github.com/evolbioinf/clio"
+  "os"
+#+end_src
+#+begin_src latex
+  \subsection*{\ty{Open}}
+  When a file is opened, we quit gracefully if an error occurred.
+#+end_src
+#+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
+  // Open opens a file with error checking.
+  func Open(file string) *os.File {
+	  f, err := os.Open(file)
+	  if err != nil {
+		  fmt.Fprintf(os.Stderr, "couldn't open %s\n", file)
+		  os.Exit(1)
+	  }
+	  return f
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{fmt} and \ty{os}.
+#+end_src
+#+begin_src go <<Imports, Pa.~\ref{pa:util}>>=
+  "fmt"
+  "os"
+#+end_src

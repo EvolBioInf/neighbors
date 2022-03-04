@@ -1,0 +1,102 @@
+#+begin_src latex
+  \section{Program \ty{makeNeiDb}}
+  Neigbor genomes are discovered by querying a database that combines
+  taxonomy and genome information. The program \ty{makeNeiDb} constructs
+  this database. The outline of \ty{makeNeiDb} contains hooks for
+  imports, types, and the logic of the main function.
+  \bpr{makeNeiDb}{pr:db}
+#+end_src
+#+begin_src go <<makeNeiDb.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr.~\ref{pr:db}>>
+  )
+  func main() {
+	  //<<Main function, Pr.~\ref{pr:db}>>
+  }
+#+end_src
+#+begin_src latex
+  \epr
+  In the main function, we declare the options, set the usage, parse the
+  options, and construct the database.
+#+end_src
+#+begin_src go <<Main function, Pr.~\ref{pr:db}>>=
+  //<<Declare options, Pr.~\ref{pr:db}>>
+  //<<Set usage, Pr.~\ref{pr:db}>>
+  //<<Parse options, Pr.~\ref{pr:db}>>
+  //<<Construct database, Pr.~\ref{pr:db}>>
+#+end_src
+#+begin_src latex
+  The program takes as input three files of genome information and two
+  files of taxonomy information. Hence we declare five options for these
+  five files. In addition, we declare \ty{-d} to set the database name
+  and \ty{-v} for printing the version.
+#+end_src
+#+begin_src go <<Declare options, Pr.~\ref{pr:db}>>=
+  var optP = flag.String("p", "prokaryotes.txt", "prokaryote genomes")
+  var optE = flag.String("e", "eukaryotes.txt", "eukaryote genomes")
+  var optI = flag.String("i", "viruses.txt", "virus genomes")
+  var optA = flag.String("a", "names.dmp", "taxonomic names")
+  var optO = flag.String("o", "nodes.dmp", "node information")
+  var optD = flag.String("d", "nei.db", "database name")
+  var optV = flag.Bool("v", false, "print version & " +
+	  "program information")
+#+end_src
+#+begin_src latex
+  We import \ty{flag}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:db}>>=
+  "flag"
+#+end_src
+#+begin_src latex
+  The usage consists of three statements. The actual usage statement,
+  an explanation of the program's purpose, and an example command. In
+  the explanation we cite the data sources.
+#+end_src
+#+begin_src go <<Set usage, Pr.~\ref{pr:db}>>=
+  u := "makeNeiDb [option]..."
+  p := "Construct a database for discovering neighbor genomes." +
+	  "\n\tGenomes:  <ftp>/genomes/GENOME_REPORTS/" +
+	  "((pro|eu)karyotes|viruses).txt" +
+	  "\n\tTaxonomy: <ftp>/pub/taxonomy/taxdump.tar.gz" +
+	  "\n\t<ftp>=ftp.ncbi.nlm.nih.gov"
+  e := "makeNeiDb -d myNew.db"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_src latex
+  We import \ty{clio}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:db}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_src latex
+  We parse the options and respond to \ty{-v}.
+#+end_src
+#+begin_src go <<Parse options, Pr.~\ref{pr:db}>>=
+  flag.Parse()
+  if *optV {
+	  util.PrintInfo("makeNeiDb")
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{util}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:db}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_src latex
+  The database construction is delegated to \ty{NewTaxonomyDB}.
+#+end_src
+#+begin_src go <<Construct database, Pr.~\ref{pr:db}>>=
+  tdb.NewTaxonomyDB(*optO, *optA, *optP, *optE, *optI, *optD)
+#+end_src
+#+begin_src latex
+  We import \ty{tdb}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:db}>>=
+  "github.com/evolbioinf/neighbors/tdb"
+#+end_src
+#+begin_src latex
+  We are done with \ty{makeNeiDb}.
+#+end_src

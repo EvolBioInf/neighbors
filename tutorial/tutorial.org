@@ -1,0 +1,86 @@
+#+begin_src latex
+  In this Tutorial we construct a binary version of the NCBI taxonomy
+  database, which I call ``index''. Then we query the database via this
+  index to find the neighbors of \emph{Aerococcus urinae}, a rare
+  pathogen that may causes urinary tract infections in humans.
+  \section{Construct Index}
+  We download the current dump of the taxonomy database from the NCBI
+  web site,
+#+end_src
+#+begin_src sh <<construct.sh>>=
+  wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+#+end_src
+#+begin_src latex
+  and unpack it.
+#+end_src
+#+begin_src sh <<construct.sh>>=
+  tar -xvzf taxdump.tar.gz
+#+end_src
+#+begin_src latex
+  This generates two files that are important for us, \ty{nodes.dmp}
+  with the nodes of the taxonomic tree, and \ty{names.dmp} with the
+  taxon names. These are text files and we can analyze them with
+  standard UNIX tools. The first step is to find the taxon-ID of
+  \emph{Aerococcus urinae}.
+#+end_src
+#+begin_src sh <<construct.sh>>=
+  grep "Aerococcus urinae" names.dmp | cut -f 1,3
+#+end_src
+#+begin_src latex
+  This shows that the taxon-ID of \emph{A. urinae} is 1376. To find its
+  neighbors, we index the taxonomy, which takes approximately 10
+  minutes.
+#+end_src
+#+begin_src sh <<construct.sh>>=
+  index nodes.dmp names.dmp > ncbiTax.idx
+#+end_src
+#+begin_src latex
+  \section{Query Index}
+  We search for the neighbors of \emph{A. urinae}, which takes
+  approximately 2 s, and write the results to file.
+#+end_src
+#+begin_src sh <<query.sh>>=
+  nei 1376 ncbiTax.idx > res1376.txt
+#+end_src
+#+begin_src latex
+  We take a look at the results file, yours might be ordered differently.
+  \begin{verbatim}
+  $ head res1376.txt
+  # MRCA(targets): Aerococcus urinae (1376^1375)
+  # Type  Taxon-ID  Input?  Name
+  t       1216979   n       Aerococcus urinae NBRC 15544 = CCUG 36881
+  t       866775    n       Aerococcus urinae ACS-120-V-Col10a
+  # Neighbors
+  # Type  Taxon-ID  Name
+  n       1116523   Aerococcus sp. X42-CRBM-E14
+  n       1794329   Aerococcus sp. 307B4_12EGalle
+  n       1329219   Aerococcus sp. RS-BIG-35
+  n       741108    Aerococcus sp. 1C
+  \end{verbatim}
+  The first line states the most recent common ancestor of the
+  targets. Since there was only one target, that most recent common
+  ancestor is just repeated, with the taxon-ID of its parent,
+  1375. This is followed by a table of targets and a table of neighbors.
+  We count the neighbors,
+  \begin{verbatim}
+  $ grep '^n' res1376.txt | wc -l
+  \end{verbatim}
+  to find there are 199.
+
+  A few of the taxa returned have complete genomes. These are extracted
+  using the program \ty{esearch.awk}, which queries the NCBI-ENTERZ
+  database once for each result. A query takes about one second, so
+  checking the whole results set takes about 200 s.
+  \begin{verbatim}
+  $ awk -f esearch.awk res1376.txt
+  \end{verbatim}
+
+  A quicker alternative is to use our own \ty{sqlite} database:
+  \begin{verbatim}
+  $ awk -f searchDb.awk -v db=<db> res1376.txt
+  \end{verbatim}
+
+  It might be interesting to repeat this procedure starting from the
+  parent of 1376, 1375.
+#+end_src
+

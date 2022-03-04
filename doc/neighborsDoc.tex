@@ -1,0 +1,27 @@
+\documentclass[a4paper]{report}
+\input{header}
+\begin{document}
+\pagestyle{noweb}
+
+\title{\ty{Neighbors}: Finding the Genomes of Taxonomic Neighbors in
+  the NCBI Taxonomy Database}
+\author{Bernhard Haubold}
+\maketitle
+\tableofcontents
+\chapter{Introduction}
+\input{introduction}
+\chapter{Implementation}
+\input{makeNeiDb}
+\input{index}
+\input{nei}
+\input{tax}
+\input{tdb}
+\input{util}
+\chapter{Tutorial}
+\input{tutorial}
+
+%\chapter{List of code chunks}
+% \nowebchunks
+\bibliography{/home/haubold/References/references}
+\end{document}
+

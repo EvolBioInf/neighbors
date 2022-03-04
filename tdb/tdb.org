@@ -1,0 +1,448 @@
+#+begin_src latex
+  \section{Package \ty{tdb}}
+  The package \ty{tdb} provides code for constructing and navigating
+  \ty{taxonDb} (Figure~\ref{fig:db}). Its outline has hooks for imports,
+  types, methods, and functions.
+  \bpa{tdb}{pa:tdb}
+#+end_src
+#+begin_src go <<tdb.go>>=
+  // Package tdb constructs and queries the taxonomy database.
+  package tdb
+
+  import (
+	  //<<Imports, Pa.~\ref{pa:tdb}>>
+  )
+  //<<Types, Pa.~\ref{pa:tdb}>>
+  //<<Methods, Pa.~\ref{pa:tdb}>>
+  //<<Functions, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_src latex
+  \epa
+  The central type of \ty{tdb} is \ty{TaxonDB}, which wraps a database
+  defined in the standard library.
+#+end_src
+#+begin_src go <<Types, Pa.~\ref{pa:tdb}>>=
+  type TaxonomyDB struct {
+	  db *sql.DB
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{sql}. In addition, we import a driver for \ty{sqlite3},
+  \ty{go-sqlite3}, using a blank import.
+#+end_src
+#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+  "database/sql"
+  _ "github.com/mattn/go-sqlite3"
+#+end_src
+#+begin_src latex
+  \subsection{\ty{NewTaxonomyDB}}
+  The function \ty{NewTaxonomyDB} takes as parameters the names of the
+  five input files and the name of the database. It opens these files,
+  opens a new database, constructs the database, closes the files, and
+  closes the database.
+#+end_src
+#+begin_src go <<Functions, Pa.~\ref{pa:tdb}>>=
+  // NewTaxonomyDB takes as parameters the names of the five data files
+  // and the database name, and constructs the database from them.
+  func NewTaxonomyDB(nodes, names, prokaryotes,
+	  eukaryotes, viruses, dbName string) {
+	  //<<Open files, Pa.~\ref{pa:tdb}>>
+	  //<<Open database, Pa.~\ref{pa:tdb}>>
+	  //<<Construct database, Pa.~\ref{pa:tdb}>>
+	  //<<Close database, Pa.~\ref{pa:tdb}>>
+	  //<<Close files, Pa.~\ref{pa:tdb}>>
+  }
+#+end_src
+#+begin_src latex
+  We open the five input tables.
+#+end_src
+#+begin_src go <<Open files, Pa.~\ref{pa:tdb}>>=
+  of := util.Open(nodes)
+  af := util.Open(names)
+  pf := util.Open(prokaryotes)
+  ef := util.Open(eukaryotes)
+  vf := util.Open(viruses)
+#+end_src
+#+begin_src latex
+  We import \ty{util}.
+#+end_src
+#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_src latex
+  Before opening the database, we check whether it already exists. If we
+  cannot open the database, we abort.
+#+end_src
+#+begin_src go <<Open database, Pa.~\ref{pa:tdb}>>=
+  //<<Does database exist? Pa.~\ref{pa:tdb}>>
+  db, err := sql.Open("sqlite3", dbName)
+  if err != nil { log.Fatal(err) }
+#+end_src
+#+begin_src latex
+  We import \ty{log}.
+#+end_src
+#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+  "log"
+#+end_src
+#+begin_src latex
+  If we are asked to build a new database on top of an existing one, the
+  user has probably made a mistake, so we bow out.
+#+end_src
+#+begin_src go <<Does database exist? Pa.~\ref{pa:tdb}>>=
+  _, err := os.Stat(dbName)
+  if err == nil {
+	  fmt.Fprintf(os.Stderr, "database %s already exists\n",
+		  dbName)
+	  os.Exit(1)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{os} and \ty{fmt}.
+#+end_src
+#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+  "os"
+  "fmt"
+#+end_src
+#+begin_src latex
+  To construct the database, we construct the input tables, and load
+  their counterparts in the database.
+#+end_src
+#+begin_src go <<Construct database, Pa.~\ref{pa:tdb}>>=
+  //<<Construct tables, Pa.~\ref{pa:tdb}>>
+  //<<Load tables, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_src latex
+  As illustrated in Figure~\ref{fig:db}, we construct two tables,
+  \ty{taxon} and \ty{genome}.
+#+end_src
+#+begin_src go <<Construct tables, Pa.~\ref{pa:tdb}>>=
+  //<<Construct table \ty{taxon}, Pa.~\ref{pa:tdb}>>
+  //<<Construct table \ty{genome}, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_src latex
+  Table \ty{taxon} has the attributes \ty{taxid}, \ty{parent}, and
+  \ty{name}. Taxon-IDs are integers, names are text. Taxon-IDs also
+  functions as primary key. As there are currently over two million
+  taxa, we index all three attributes to ensure quick queries.
+#+end_src
+#+begin_src go <<Construct table \ty{taxon}, Pa.~\ref{pa:tdb}>>=
+  sqlStmt := `create table taxon (
+  taxid int, parent int, name text, primary key(taxid));
+  create index taxon_taxid_idx on taxon(taxid);
+  create index taxon_parent_idx on taxon(parent);
+  create index taxon_name_idx on taxon(name);
+  `
+  if _, err := db.Exec(sqlStmt); err != nil {
+	  log.Fatal(err)
+  }
+#+end_src
+#+begin_src latex
+  Table \ty{genome} has attributes \ty{taxid}, \ty{size}, and
+  \ty{replicons}. To stress that every genome belongs to exactly one
+  taxon, we declare \ty{taxid} as foreign key into \ty{taxon}. We also
+  index the taxon-ID.
+#+end_src
+#+begin_src go <<Construct table \ty{genome}, Pa.~\ref{pa:tdb}>>=
+  sqlStmt = `create table genome (
+  taxid int, size real, replicons text,
+  foreign key(taxid) references taxon(taxid));
+  create index genome_taxid_idx on genome(taxid);
+  `
+  if _, err := db.Exec(sqlStmt); err != nil {
+	  log.Fatal(err)
+  }
+#+end_src
+#+begin_src latex
+  Since \ty{genome} has a foreign key referring to \ty{taxon}, we load
+  \ty{taxon} before \ty{genome}.
+#+end_src
+#+begin_src go <<Load tables, Pa.~\ref{pa:tdb}>>=
+  //<<Load table \ty{taxon}, Pa.~\ref{pa:tdb}>>
+  //<<Load table \ty{genome}, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_src latex 
+  To load \ty{taxon}, we simulate a join of \ty{nodes.dmp} and
+  \ty{names.dmp} on taxon-ID. For this we create the type \ty{taxon}
+  with the same three fields as the three attributes in
+  Figure~\ref{fig:db}.
+#+end_src
+#+begin_src go <<Types, Pa.~\ref{pa:tdb}>>=
+  type taxon struct {
+	  taxid, parent int
+	  name string
+  }
+#+end_src
+#+begin_src latex
+  We read the taxa into a map and insert them into the table \ty{taxon}.
+#+end_src
+#+begin_src go <<Load table \ty{taxon}, Pa.~\ref{pa:tdb}>>=
+  taxa := make(map[int]*taxon)
+  //<<Read taxa, Pa.~\ref{pa:tdb}>>
+  //<<Insert taxa, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_src latex
+  To read the taxa, we first parse the nodes file, then the names file.
+#+end_src
+#+begin_src go <<Read taxa, Pa.~\ref{pa:tdb}>>=
+  //<<Parse nodes file, Pa.~\ref{pa:tdb}>>
+  //<<Parse names file, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_src latex
+  We traverse the nodes file using a scanner. The first column contains
+  the taxon-ID, the second the parent's ID. Columns are delimited by
+  \verb+\t|\t+ and we convert the strings denoting IDs to integers
+  before storing them.
+#+end_src
+#+begin_src go <<Parse nodes file, Pa.~\ref{pa:tdb}>>=
+  scanner := bufio.NewScanner(of)
+  for scanner.Scan() {
+	  row := scanner.Text()
+	  fields := strings.SplitN(row, "\t|\t", 3)
+	  t := new(taxon)
+	  t.taxid, err = strconv.Atoi(fields[0])
+	  if err != nil { log.Fatal(err) }
+	  t.parent, err = strconv.Atoi(fields[1])
+	  if err != nil { log.Fatal(err) }
+	  taxa[t.taxid] = t
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{bufio}, \ty{strings}, and \ty{strconv}.
+#+end_src
+#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+  "bufio"
+  "strings"
+  "strconv"
+#+end_src
+#+begin_src latex
+  We are done with the nodes file and close it.
+#+end_src
+#+begin_src go <<Close files, Pa.~\ref{pa:tdb}>>=
+  of.Close()
+#+end_src
+#+begin_src latex
+  The names file contains the taxon-ID in the first column and the name
+  in the second. Now, there are several kinds of names, scientific,
+  common, and more. We store the scientific names. To parse the file, we
+  again use a scanner and split the columns at \verb+\t|\t+.
+#+end_src
+#+begin_src go <<Parse names file, Pa.~\ref{pa:tdb}>>=
+  scanner = bufio.NewScanner(af)
+  for scanner.Scan() {
+	  row := scanner.Text()
+	  fields := strings.Split(row, "\t|\t")
+	  id, err := strconv.Atoi(fields[0])
+	  if err != nil { log.Fatal(err) }
+	  if fields[3][:3] == "sci" {
+		  taxa[id].name = fields[1]
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We are done with the names file and close it.
+#+end_src
+#+begin_src go <<Close files, Pa.~\ref{pa:tdb}>>=
+  af.Close()
+#+end_src
+#+begin_src latex
+  Having read the taxa from the input files, we insert them in the
+  \ty{taxon} table. We do this with a transaction, which takes a
+  statement and prepares it, before we insert the individual rows into
+  \ty{taxon}.
+#+end_src
+#+begin_src go <<Insert taxa, Pa.~\ref{pa:tdb}>>=
+  tx, err := db.Begin()
+  if err != nil { log.Fatal(err) }
+  sqlStmt = "insert into taxon(taxid, parent, name) " +
+	  "values(?, ?, ?)"
+  stmt, err := tx.Prepare(sqlStmt)
+  if err != nil { log.Fatal(err) }
+  //<<Insert rows into table \ty{taxon}, Pa.~\ref{pa:tdb}>>
+  tx.Commit()
+  stmt.Close()
+#+end_src
+#+begin_src latex
+  Each entry in the \ty{taxa} map corresponds to a row in the table.
+#+end_src
+#+begin_src go <<Insert rows into table \ty{taxon}, Pa.~\ref{pa:tdb}>>=
+  for _, v := range taxa {
+	  _, err = stmt.Exec(v.taxid, v.parent, v.name)
+	  if err != nil { log.Fatal(err) }
+  }
+#+end_src
+#+begin_src latex
+  The next table to load is \ty{genome}. So we also read the genomes
+  from input and insert them.
+#+end_src
+#+begin_src go <<Load table \ty{genome}, Pa.~\ref{pa:tdb}>>=
+  //<<Read genomes, Pa.~\ref{pa:tdb}>>
+  //<<Insert genomes, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_src latex
+  We read each genome into a struct that holds the three attributes
+  shown in Figure~\ref{fig:db}, \ty{taxid}, \ty{replicons}, and
+  \ty{size}.
+#+end_src
+#+begin_src go <<Types, Pa.~\ref{pa:tdb}>>=
+  type genome struct {
+	  taxid int
+	  replicons string
+	  size float64
+  }
+#+end_src
+#+begin_src latex
+  We save genomes in a slice and read them from the three files that
+  correspond to three deep divisions of life, prokaryotes, eukaryotes,
+  and viruses.
+#+end_src
+#+begin_src go <<Read genomes, Pa.~\ref{pa:tdb}>>=
+  var genomes []genome
+  //<<Read prokaryote genomes, Pa.~\ref{pa:tdb}>>
+  //<<Read eukaryote genomes, Pa.~\ref{pa:tdb}>>
+  //<<Read virus genomes, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_src latex
+  In the prokaryote genomes file, we skip the header, split the columns
+  at tabs, generate the genomes and save them.
+#+end_src
+#+begin_src go <<Read prokaryote genomes, Pa.~\ref{pa:tdb}>>=
+  scanner = bufio.NewScanner(pf)
+  var gen genome
+  for scanner.Scan() {
+	  row := scanner.Text()
+	  if row[0] == '#' { continue }
+	  fields := strings.Split(row, "\t")
+	  //<<Generate a genome, Pa.~\ref{pa:tdb}>>
+	  genomes = append(genomes, gen)
+  }
+#+end_src
+#+begin_src latex
+  In an individual row, the second column contains the taxon-ID, the
+  seventh the size in Mb, and the nineth the replicons. Unfortunately,
+  it is possible that no genome size is given, in which case we set it
+  to -1.
+#+end_src
+#+begin_src go <<Generate a genome, Pa.~\ref{pa:tdb}>>=
+  gen.taxid, err = strconv.Atoi(fields[1])
+  if err != nil { log.Fatal(err) }
+  gen.size, err = strconv.ParseFloat(fields[6], 64)
+  if err != nil { gen.size = -1.0 }
+  gen.replicons = fields[8]
+#+end_src
+#+begin_src latex
+  We close the prokaryote genomes file.
+#+end_src
+#+begin_src go <<Close files, Pa.~\ref{pa:tdb}>>=
+  pf.Close()
+#+end_src
+#+begin_src latex
+  Similarly, we read the file for the eukaryote genomes, which has the
+  same structure as that of the prokaryotes.
+#+end_src
+#+begin_src go <<Read eukaryote genomes, Pa.~\ref{pa:tdb}>>=
+  scanner = bufio.NewScanner(ef)
+  for scanner.Scan() {
+	  row := scanner.Text()
+	  if row[0] == '#' { continue }
+	  fields := strings.Split(row, "\t")
+	  //<<Generate a genome, Pa.~\ref{pa:tdb}>>
+	  genomes = append(genomes, gen)
+  }
+#+end_src
+#+begin_src latex
+  We close the eukaryote genomes file.
+#+end_src
+#+begin_src go <<Close files, Pa.~\ref{pa:tdb}>>=
+  ef.Close()
+#+end_src
+#+begin_src latex
+  We scan the file of viral genomes.
+#+end_src
+#+begin_src go <<Read virus genomes, Pa.~\ref{pa:tdb}>>=
+  scanner = bufio.NewScanner(vf)
+  for scanner.Scan() {
+	  row := scanner.Text()
+	  if row[0] == '#' { continue }
+	  fields := strings.Split(row, "\t")
+	  //<<Generate a viral genome, Pa.~\ref{pa:tdb}>>
+	  genomes = append(genomes, gen)
+  }
+#+end_src
+#+begin_src latex
+  The file describing the genomes of viruses has a slightly different
+  structure from that of prokaryotes and eukaryotes. Replicons are now
+  in the tenth column, and genome size is given in kb. We convert that
+  to Mb to have all genome lengths on the same scale.
+#+end_src
+#+begin_src go <<Generate a viral genome, Pa.~\ref{pa:tdb}>>=
+  gen.taxid, err = strconv.Atoi(fields[1])
+  if err != nil { log.Fatal(err) }
+  gen.size, err = strconv.ParseFloat(fields[6], 64)
+  if err != nil { gen.size = -1.0 }
+  if gen.size > 0 { gen.size /= 1000.0 }
+  gen.replicons = fields[9]
+#+end_src
+#+begin_src latex
+  We close the virus genomes file.
+#+end_src
+#+begin_src go <<Close files, Pa.~\ref{pa:tdb}>>=
+  vf.Close()
+#+end_src
+#+begin_src latex
+  To insert the genomes into the \ty{genomes} table, we use a
+  transaction like we did for the \ty{taxon} table.
+#+end_src
+#+begin_src go <<Insert genomes, Pa.~\ref{pa:tdb}>>=
+  tx, err = db.Begin()
+  if err != nil { log.Fatal(err) }
+  sqlStmt = "insert into genome(taxid, replicons, size) " +
+	  "values(?, ?, ?)"
+  stmt, err = tx.Prepare(sqlStmt)
+  if err != nil { log.Fatal(err) }
+  //<<Insert rows into table \ty{genome}, Pa.~\ref{pa:tdb}>>
+  tx.Commit()
+  stmt.Close()
+#+end_src
+#+begin_src latex
+  We insert each entry in the \ty{genomes} slice into table \ty{genome}.
+#+end_src
+#+begin_src go <<Insert rows into table \ty{genome}, Pa.~\ref{pa:tdb}>>=
+  for _, g := range genomes {
+	  _, err = stmt.Exec(g.taxid, g.replicons, g.size)
+	  if err != nil { log.Fatal(err) }
+  }
+#+end_src
+#+begin_src latex
+  The database is constructed, so we close it.
+#+end_src
+#+begin_src go <<Close database, Pa.~\ref{pa:tdb}>>=
+  db.Close()
+#+end_src
+#+begin_src latex
+  \subsection{\ty{OpenTaxonomyDB}}
+  The function \ty{OpenTaxonomyDB} opens an existing taxonomy database
+  and returns a pointer to it.
+#+end_src
+#+begin_src go <<Functions, Pa.~\ref{pa:tdb}>>=
+  // OpenTaxonomyDB opens an existing taxonomy database and returns a
+  // pointer to it.
+  func OpenTaxonomyDB(name string) *TaxonomyDB {
+	  db := new(TaxonomyDB)
+	  var err error
+	  db.db, err = sql.Open("sqlite3", name)
+	  if err != nil { log.Fatal(err) }
+	  return db
+  }
+#+end_src
+#+begin_src latex
+  \subsection{\ty{Close}}
+  The function \ty{Close} closes a taxonomy database.
+#+end_src
+#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+  // Close closes the taxonomy database.
+  func (t *TaxonomyDB) Close() {
+	  t.db.Close()
+  }
+#+end_src
+#+begin_src latex
+#+end_src
