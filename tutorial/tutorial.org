@@ -1,86 +1,182 @@
 #+begin_src latex
-  In this Tutorial we construct a binary version of the NCBI taxonomy
-  database, which I call ``index''. Then we query the database via this
-  index to find the neighbors of \emph{Aerococcus urinae}, a rare
-  pathogen that may causes urinary tract infections in humans.
-  \section{Construct Index}
-  We download the current dump of the taxonomy database from the NCBI
-  web site,
+  \section*{Introduction}
+  In this Tutorial we construct a relational database from the NCBI
+  taxonomy data. Then we query the database in SQL to find the taxon-IDs
+  for our target organism. Based on these taxon-IDs, we carry out the
+  search for neighbors using \ty{neighbors}.
+  \section*{Construct Database}
+  We download the taxonomy database files and the genome reports from
+  the NCBI.
 #+end_src
 #+begin_src sh <<construct.sh>>=
-  wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+  rsync --copy-links --times --verbose \
+	rsync://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz .
+  rsync --copy-links --times --verbose \
+	rsync://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt .
+  rsync --copy-links --times --verbose \
+	rsync://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/eukaryotes.txt .
+  rsync --copy-links --times --verbose \
+	rsync://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/viruses.txt .
 #+end_src
 #+begin_src latex
-  and unpack it.
+  We unpack the taxonomy database.
 #+end_src
 #+begin_src sh <<construct.sh>>=
   tar -xvzf taxdump.tar.gz
 #+end_src
 #+begin_src latex
-  This generates two files that are important for us, \ty{nodes.dmp}
-  with the nodes of the taxonomic tree, and \ty{names.dmp} with the
-  taxon names. These are text files and we can analyze them with
-  standard UNIX tools. The first step is to find the taxon-ID of
-  \emph{Aerococcus urinae}.
+  This generates nine files, two of which are important for us,
+  \ty{nodes.dmp} with the nodes of the taxonomic tree, and
+  \ty{names.dmp} with the taxon names. We construct the taxonomy
+  database \ty{tax.db} by running \ty{makeNeiDb} in default mode. This
+  takes less than a minute.
 #+end_src
 #+begin_src sh <<construct.sh>>=
-  grep "Aerococcus urinae" names.dmp | cut -f 1,3
+  makeNeiDb
 #+end_src
 #+begin_src latex
-  This shows that the taxon-ID of \emph{A. urinae} is 1376. To find its
-  neighbors, we index the taxonomy, which takes approximately 10
-  minutes.
-#+end_src
-#+begin_src sh <<construct.sh>>=
-  index nodes.dmp names.dmp > ncbiTax.idx
-#+end_src
-#+begin_src latex
-  \section{Query Index}
-  We search for the neighbors of \emph{A. urinae}, which takes
-  approximately 2 s, and write the results to file.
+  \section*{Query Database}
+  The next step is to find the taxon-IDs for our target organisms. Say,
+  our target organism is \emph{Aerococcus urinae}. We query the database
+  for the taxon-ID, the parent's taxon-ID, and the names of all taxa
+  starting with \emph{Aerococcus urinae} that also have genome sequences
+  (replicons). Missing replicons are marked by a dash in the
+  database. We order the result by taxon-ID to make it easier to
+  read.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  nei 1376 ncbiTax.idx > res1376.txt
+  sqlite3 tax.db \
+	  "select taxon.taxid, parent, name, replicons
+	   from taxon join genome
+	   where taxon.taxid = genome.taxid
+	   and replicons <> '-'
+	   and name like 'Aerococcus urinae%'
+	   order by taxon.taxid"
 #+end_src
 #+begin_src latex
-  We take a look at the results file, yours might be ordered differently.
+  Here is a slightly abridged version of the result:
   \begin{verbatim}
-  $ head res1376.txt
-  # MRCA(targets): Aerococcus urinae (1376^1375)
-  # Type  Taxon-ID  Input?  Name
-  t       1216979   n       Aerococcus urinae NBRC 15544 = CCUG 36881
-  t       866775    n       Aerococcus urinae ACS-120-V-Col10a
-  # Neighbors
-  # Type  Taxon-ID  Name
-  n       1116523   Aerococcus sp. X42-CRBM-E14
-  n       1794329   Aerococcus sp. 307B4_12EGalle
-  n       1329219   Aerococcus sp. RS-BIG-35
-  n       741108    Aerococcus sp. 1C
+  1376|1375|Aerococcus urinae|CP014161
+  1376|1375|Aerococcus urinae|CP065662
+  51665|1375|Aerococcus urinaeequi|CP013988
+  51665|1375|Aerococcus urinaeequi|CP014162
+  51665|1375|Aerococcus urinaeequi|CP063065
+  128944|1375|Aerococcus urinaehominis|CP014163
+  866775|1376|Aerococcus urinae ACS-120-V-Col10a|CP002512
   \end{verbatim}
-  The first line states the most recent common ancestor of the
-  targets. Since there was only one target, that most recent common
-  ancestor is just repeated, with the taxon-ID of its parent,
-  1375. This is followed by a table of targets and a table of neighbors.
-  We count the neighbors,
-  \begin{verbatim}
-  $ grep '^n' res1376.txt | wc -l
-  \end{verbatim}
-  to find there are 199.
-
-  A few of the taxa returned have complete genomes. These are extracted
-  using the program \ty{esearch.awk}, which queries the NCBI-ENTERZ
-  database once for each result. A query takes about one second, so
-  checking the whole results set takes about 200 s.
-  \begin{verbatim}
-  $ awk -f esearch.awk res1376.txt
-  \end{verbatim}
-
-  A quicker alternative is to use our own \ty{sqlite} database:
-  \begin{verbatim}
-  $ awk -f searchDb.awk -v db=<db> res1376.txt
-  \end{verbatim}
-
-  It might be interesting to repeat this procedure starting from the
-  parent of 1376, 1375.
+  We learn that \emph{A. urinae} has taxon-ID 1376 and two genome
+  sequences, CP014161 and CP065662. We also learn that taxon-ID
+  866775 in the last row has 1376 as parent, which means it is also an
+  \emph{A. urinae}. Its genome sequence is CP002512. So we fetch these
+  three genomes from Genbank, mark their names with prefix ``t'', and
+  store them in the directory \ty{targets}.
 #+end_src
+#+begin_src sh <<query.sh>>=
+  efetch -db nucleotide -format fasta \
+	 -id CP014161 > tCP014161.fasta
+  efetch -db nucleotide -format fasta \
+	 -id CP065662 > tCP065662.fasta
+  efetch -db nucleotide -format fasta \
+	 -id CP002512 > tCP002512.fasta
+  mkdir targets
+  mv CP*.fasta targets
+#+end_src
+#+begin_src latex
+  Now se search for the neighbors of taxon-IDs 1376 and 866775.
+#+end_src
+#+begin_src sh <<query.sh>>=
+  printf "1376\n866775" | neighbors tax.db
+#+end_src
+#+begin_src latex
+  \begin{verbatim}
+  # MRCA(targets): 1376, Aerococcus urinae
+  # MRCA(targets+neighbors): 1375, Aerococcus
+  # Type  Taxon-ID  Name                      Genomes
+  t       1376      Aerococcus urinae         CP014161|CP065662
+  t       866775    Aerococcus urinae ACS     CP002512
+  tt      1216979   Aerococcus urinae NBRC    -
+  n       1375      Aerococcus                -
+  n       1377      Aerococcus viridans       CP014164
+  n       51665     Aerococcus urinaeequi     CP013988|CP014162|CP063065
+  n       79233     Aerococcus sp. LV65.5:W1  -
+  n       87541     Aerococcus christensenii  CP014159
+  n       119206    Aerococcus sanguinicola   CP014160
+  n       128944    Aerococcus urinaehominis  CP014163
+  ...
+  \end{verbatim}
+  The output begins with three hashed lines. The first states the most
+  recent common ancestor of the targets, \emph{A. urinae} with taxon-ID
+  1376. The second states the most recent common ancestor of the
+  neighbors and the targets, \emph{Aerococcus}, with taxon-ID 1375. The
+  third hashed row is the header of the subsequent table, which I have
+  abridged for legibility.
 
+  The table consists of four columns, type, taxon-ID, name, and
+  genomes. There are three possible types, ``t'' for known target,
+  ``tt'' for new target, and ``n'' for neighbor. We see that there is
+  one new target, but its genome hasn't been sequenced yet. Among the
+  neighbors there are seven genomes. We fetch them, mark their names
+  with prefix ``n'', and store them in the directory \ty{neighbors}.
+#+end_src
+#+begin_src sh <<query.sh>>=
+  mkdir neighbors
+  for a in CP014164 CP013988 CP014162 CP063065 CP014159 CP014160 CP014163
+  do
+      efetch -db nucleotide -format fasta \
+	     -id $a > neighbors/n${a}.fasta
+  done
+#+end_src
+#+begin_src latex
+  We compute a quick phylogeny for the target and neighbor genomes using
+  \ty{phylonium}\footnote{\ty{github.com/evolbioinf/phylonium}} and
+  programs form the
+  \ty{biobox}\footnote{\ty{github.com/evolbioinf/biobox}}. The result in
+  Figure~\ref{fig:auTree} shows that the targets are monophyletic, which
+  is necessary for a successful \ty{fur} run.
+  \begin{figure}
+    \begin{center}
+      \scalebox{0.75}{\includegraphics{../tutorial/au}}
+    \end{center}
+    \caption{Phylogeny of target and neighbor genomes; targets are
+      prefixed ``t'', neighbors ``n''.}\label{fig:auTree}
+  \end{figure}
+#+end_src
+#+begin_src sh <<query.sh>>=
+  phylonium targets/* neighbors/* | nj | midRoot | plotTree
+#+end_src
+#+begin_src latex
+  Now we can construct the \ty{fur} database with \ty{makeFurDb} and run
+  \ty{fur}\footnote{\ty{github.com/evolbioinf/fur}} on it to get
+  approximately 474 kb potential marker sequences. The program \ty{cres}
+  for quantifying the output of \ty{fur} is also part of the
+  \ty{biobox}.
+#+end_src
+#+begin_src sh <<query.sh>>=
+  makeFurDb -t targets/ -n neighbors/ -d au.db
+  fur -d au.db | cleanSeq > au.fasta
+  cres au.fasta
+#+end_src
+#+begin_src latex
+  If we look again at the phylogeny in Figure~\ref{fig:auTree}, we might
+  want to rethink the position of CP002512. Perhaps it should be a
+  neighbor rather than a target? This of course depends on the details
+  of our test system. But let's say we make CP002512 a neighbor; then
+  our set of potential markers shrinks to 105 kb.
+#+end_src
+#+begin_src sh <<query.sh>>=
+  mv targets/tCP002512.fasta neighbors/
+  makeFurDb -t targets/ -n neighbors/ -d au2.db
+  fur -d au2.db/ | cleanSeq > au2.fasta
+  cres au2.fasta
+#+end_src
+#+begin_src latex
+  We might extend this analysis by making CP002512 the target and
+  everything else the neighors. This returns 190 kb marker material.
+#+end_src
+#+begin_src sh <<query.sh>>=
+  mv targets/* neighbors/
+  mv neighbors/tCP002512.fasta targets/
+  makeFurDb -t targets/ -n neighbors/ -d au3.db
+  fur -d au3.db/ | cleanSeq > au3.fasta
+  cres au3.fasta
+#+end_src

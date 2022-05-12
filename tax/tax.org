@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{Package \ty{tax}}
+  \section{\ty{tax}}
   Package \ty{tax} builds the taxonomy from \ty{nodes.dmp} and
   \ty{names.dmp}, which are part of the dump of th NCBI taxonomy
   database.  To see how this construction works, consider again the toy
@@ -90,14 +90,15 @@
 #+end_src
 #+begin_src latex
   It holds a taxon-ID, the scientific name, and pointers to
-  its child, sibling, and parent.
+  its child, sibling, last sibling, and parent. Last sibling is an
+  auxiliary node that points to the end of the sibling list.
 #+end_src
 #+begin_src go <<Node fields>>=
   // ID stores the taxon-ID.
   ID int
   // Name stores the scientific name.
   Name string
-  Child, Sib, Parent *Node
+  Child, Sib, LastSib, Parent *Node
 #+end_src
 #+begin_src latex
   \subsection{\ty{NewTaxonomy}}
@@ -210,12 +211,11 @@
   child.Parent = parent
   if parent.Child == nil {
 	  parent.Child = child
+	  parent.Child.LastSib = child
   } else {
-	  cp := parent.Child
-	  for cp.Sib != nil {
-		  cp = cp.Sib
-	  }
-	  cp.Sib = child
+	  c := parent.Child
+	  c.LastSib.Sib = child
+	  c.LastSib = child
   }
 #+end_src
 #+begin_src latex
@@ -348,7 +348,7 @@
 
   To be more precise, in each step of our climb, we increment a
   descendant counter in each node. If one of these counters is equal to
-  the size of the set of input taxa, the corresponding node is the
+  the number of input taxa, the corresponding node is the
   MRCA. Otherwise, we climb to the parents and repeat. So we declare a
   count of descendants.
 #+end_src
@@ -359,7 +359,7 @@
   To see an example of how this counter is used, consider again the tree
   taxa 4 and 7 in Figure~\ref{fig:tax}. We set their descendant counters
   to 1 and climb to nodes 3 and 5. We increment their descendant
-  counters to 1, and since node of the counters is equal to 2, we climb
+  counters to 1, and since none of the counters is equal to 2, we climb
   to nodes 1 and 3. Now the counter of 3 is incremented to 2 and we have
   found the MRCA.
 
@@ -451,7 +451,7 @@
   correspond to the organism names in genbank. Given a taxon-ID, we'd
   therefore like to be able to collect all leaves in the subtree rooted
   on the corresponding node. The method \ty{Leaves} does that by calling
-  the function \ty{countLeaves}. In the example tree shown in
+  the function \ty{collectLeaves}. In the example tree shown in
   Figure~\ref{fig:tax}, the leaves of node 3 are 4, 7, and 6. When
   calling \ty{Leaves} on some node $v$, we first check whether $v$ is a
   leaf. In that case we return its ID. Otherwise, we call
@@ -487,10 +487,43 @@
   }
 #+end_src
 #+begin_src latex
+  \subsection{\ty{Subtree}}
+  It is possible that genomes are associated with internal nodes, not
+  just with leaves. So we write the method \ty{Subtree} for collecting
+  all the nodes in the subtree rooted on a given node. For example, the
+  subtree of node 3 in Figure~\ref{fig:tax} consists of
+  $\{3,4,5,6,7\}$. The method \ty{Subtree} calls the recursive function
+  \ty{subtree}.
+#+end_src
+#+begin_src go <<Methods>>=
+  // Subtree collectes the taxon-IDs of the nodes in the subtree
+  // rooted on its argument.
+  func (t Taxonomy) Subtree(taxon int) []int {
+	  sub := make([]int, 0)
+	  v := t[taxon]
+	  sub = append(sub, v.ID)
+	  sub = subtree(v.Child, sub)
+	  return sub
+  }
+#+end_src
+#+begin_src latex
+  The function \ty{subtree} traverses the given subtree and collects all
+  node-IDs it encounters.
+#+end_src
+#+begin_src go <<Functions>>=
+  func subtree(v *Node, sub []int) []int {
+	  if v == nil { return sub }
+	  sub = subtree(v.Child, sub)
+	  sub = subtree(v.Sib, sub)
+	  sub = append(sub, v.ID)
+	  return sub
+  }
+#+end_src
+#+begin_src latex
   \subsection{\ty{Encode} and \ty{Decode}}
   A taxonomy is a complex structure and to save the effort of computing
   it from scratch, we write functions for encoding and decoding it. We
-  cannot directly the standard library functions \ty{Encode} and
+  cannot directly use the standard library functions \ty{Encode} and
   \ty{Decode} to the taxonomy, as the pointers of its tree structure
   cannot be converted. Instead, we rewrite the tree as a slice of
   structures without pointers. This slice can then be encoded.
@@ -639,6 +672,7 @@
 	  //<<Test \ty{String}>>
 	  //<<Test \ty{MRCA}>>
 	  //<<Test \ty{Leaves}>>
+	  //<<Test \ty{Subtree}>>
 	  //<<Test \ty{Encode}>>
 	  //<<Test \ty{Decode}>>
   }
@@ -648,8 +682,8 @@
   \ty{open} and call \ty{NewTaxonomy}. Then we close the files.
 #+end_src
 #+begin_src go <<Read taxonomy>>=
-  nodes := open("nodesTest.dmp")
-  names := open("namesTest.dmp")
+  nodes := open("../data/nodesTest.dmp")
+  names := open("../data/namesTest.dmp")
   tax := NewTaxonomy(nodes, names)
   nodes.Close()
   names.Close()
@@ -735,6 +769,20 @@
   }
   if s != 17 || len(leaves) != 3 {
 	  t.Errorf("get: %v\nwant: {4, 7, 6}\n", leaves)
+  }
+#+end_src
+#+begin_src latex
+  To test \ty{Subtree}, we request the subtree of node 3 and check that
+  we get 3, 4, 5, 6, and 7.
+#+end_src
+#+begin_src go <<Test \ty{Subtree}>>=
+  sub := tax.Subtree(3)
+  s = 0
+  for _, t := range sub {
+	  s += t
+  }
+  if s != 25 || len(sub) != 5 {
+	  t.Errorf("get %v\nwant: {3, 4, 5, 7, 6}", sub)
   }
 #+end_src
 #+begin_src latex

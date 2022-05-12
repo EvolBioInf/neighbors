@@ -10,13 +10,13 @@ sensifivity~\cite{hau21:fur}.
 To use \ty{fur}, users need to know the neighbors of their
 targets. But how can neighbors be discovered, if they aren't already
 known? To answer this question, consider the toy taxonomy in
-Figure~\ref{fig:tax}. The numbers are taxon-IDs, and we assume that we
-have a mapping from taxon-IDs to the genome accessions. Let taxa 7 and
-4 be our targets. Then we look up the most recent common ancestor of 4
-and 7, which is 3. This would imply that 6 also belongs to the target
-set. The neighbors are the nodes in the subtree rooted on 3's parent,
-that is, taxa 8 through 11. Notice that we look up all nodes in a
-subtree, not just the leaves, as we do not want to assume that genome
+Figure~\ref{fig:tax}, where the numbers are taxon-IDs, and we assume
+that we have a mapping from taxon-IDs to genome accessions. Let taxa 7
+and 4 be our targets. Then we look up the most recent common ancestor
+of 4 and 7, which is 3. This would imply that 6 also belongs to the
+target set. The neighbors are the nodes in the subtree rooted on 3's
+parent, that is, taxa 8 through 11. Notice that we look up all nodes
+in a subtree, not just the leaves, as we cannot assume that genome
 sequences are only associated with taxa in terminal nodes. In the case
 of bacteria, for example, species-level and strain-level taxa can be
 associated with genomes.
@@ -36,21 +36,21 @@ its parent's subtree
 \mathcal{N} = s(p(m)) - s(m),
 \end{equation}
 where $s(v)$ returns the nodes in the subtree rooted on $v$, and
-$p(v)$ the parent of $v$.
+$p(v)$ the parent of $v$. This set subtraction is implemented in the
+program \ty{neighbors}.
 
-The package \ty{neighbors} provides programs to support the search for
-suitable neighbor genome sequences. It is centered on an \ty{sqlite}
+The module \ty{neighbors} provides programs to support the search for
+suitable neighbor genome sequences. It is centered on an \ty{sqlite3}
 database that combines taxonomy and genome information. The database
 is build using the program \ty{makeNeiDb}, which is based on the
-packages \ty{tdb}.
+packages \ty{tdb}, \ty{tax}, and \ty{util}, also part of the module.
 
-Let's call the central database \ty{taxonomyDb}, even though the user
-can give it any name. As shown in Figure~\ref{fig:db}, \ty{taxonomyDb}
-consists of two tables, \ty{genome} and \ty{taxon}. Each genome comes
-from an organism identified by its taxon-ID, has a size, and one or
-more replicons, which are lumped in one attribute. Each genome belongs
-to a taxon. A taxon has a taxon-ID, a parent in the phylogenetic tree,
-and a name.
+Let's call the central database \ty{taxonomyDb}; as shown in
+Figure~\ref{fig:db}, \ty{taxonomyDb} consists of two
+tables, \ty{genome} and \ty{taxon}. Each genome comes from an organism
+identified by its taxon-ID, has a size, and one or more replicons,
+which are lumped in one attribute. Each genome belongs to a taxon. A
+taxon has a taxon-ID, a parent in the phylogenetic tree, and a name.
 
 \begin{figure}
   \begin{center}
@@ -59,51 +59,34 @@ and a name.
   \caption{Diagram of \ty{taxonomyDb}.}\label{fig:db}
 \end{figure}
 
-The program \ty{makeNeiDb} constructs this database using the free
-relational database management system \ty{sqlite3}. Several Go-drivers
-are available for \ty{sqlite3}, I installed mine with the following
-command.
-\begin{verbatim}
-$ go get github.com/mattn/go-sqlite3
-\end{verbatim}
-
-The database is built from tables supplied by the NCBI. Two types of
-data go into its construction, taxonomy information from the NCBI
-taxonomy database and genome lists extracted from GenBank. The NCBI
+The program \ty{makeNeiDb} constructs this database from tables
+supplied by the NCBI. Two types of data go into the construction
+of \ty{taxonomyDb}, taxonomy information from the NCBI taxonomy
+database and genome lists, also supplied by the NCBI. The NCBI
 taxonomy database can be downloaded and unpackged with
 \begin{verbatim}
-wget ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+rsync --copy-links --times --verbose \
+      rsync://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz .
 tar -xvzf taxdump.tar.gz
 \end{verbatim}
 The genome lists are divided into prokaryotes, eukaryotes, and
 viruses. They can be downloaded with
 \begin{verbatim}
-wget ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt
-wget ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/eukaryotes.txt
-wget ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/viruses.txt
+rsync --copy-links --times --verbose \
+      rsync://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt .
+rsync --copy-links --times --verbose \
+      rsync://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/eukaryotes.txt .
+rsync --copy-links --times --verbose \
+      rsync://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/viruses.txt .
 \end{verbatim}
 
 Once \ty{taxonomyDb} is constructed, we can query it. For example, we
-can count the number of taxa in the database.
+can list the taxon-IDs associated with \emph{Aerococcus urinae}.
 \begin{verbatim}
-$ sqlite3 taxonomyDb "select count(*) from taxon"
+$ sqlite3 taxonomyDb \
+  "select taxid, name from genome where name like 'Aerococcus urinae%'"
 \end{verbatim}
 
-A more pertinent query might be to look up the genomes associated
-with \emph{Aerococcus urinae}.
-\begin{verbatim}
-select genome.taxid, replicons, name 
-from genome join taxon 
-where name like 'Aerococcus urinae%' 
-and genome.taxid=taxon.taxid 
-and replicons <> '-'"
-\end{verbatim}
-
-The plan is, to write a dedicated program for discovering neighbors
-and their genomes from this database. At the moment, this program
-doesn't exist yet. Instead, we have the program \ty{nei}, which
-discovers neighbors from an index of the NCBI taxonomy database. The
-index is computed using \ty{index} based on the package \ty{tax}. The
-genomes associated with the neighbors discovered by \ty{nei} can then
-be looked up from the database using the script \ty{searchDb.awk}. See
-the Tutorial for further details.
+We can submit the taxon-IDs of interes to \ty{neighbors}, which finds
+their closest neighbors and the associates genome sequences. The
+Tutorial shows how this is done.

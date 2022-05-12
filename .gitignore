@@ -11,16 +11,13 @@ doc/neighborsDoc.pdf
 doc/neighborsDoc.ps
 doc/*.toc
 doc/makeNeiDb.tex
-doc/index.tex
-doc/nei.tex
+doc/neighbors.tex
 doc/tax.tex
 doc/tdb.tex
 doc/tutorial.tex
 doc/util.tex
 
 # Programs
-index/index
 makeNeiDb/makeNeiDb
-makeNeiDb/*.db
-nei/db
-nei/nei
+neighbors/neighbors
+neighbors/makeRes.sh

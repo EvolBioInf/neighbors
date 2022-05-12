@@ -1,0 +1,397 @@
+#+begin_src latex
+  \section{\ty{neighbors}}
+  The program \ty{neighbors} takes as input a set of target
+  taxonomy-IDs. It finds their most recent common ancestor, and from
+  there calculates two new sets of taxon-IDs, the complete set of
+  targets, which comprises at least the input taxa, and the
+  neighbors. For each of taxon in these two sets it also returns the
+  accessions of the corresponding genome sequences.
+
+  \subsection*{Implementation}
+  The outline of \ty{neighbors} contains hooks for imports, functions,
+  and the logic of the main function.
+  \bpr{neighbors}{pr:neig}
+#+end_src
+#+begin_src go <<neighbors.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr.~\ref{pr:neig}>>
+  )
+  //<<Functions, Pr.~\ref{pr:neig}>>
+  func main() {
+	  //<<Main function, Pr.~\ref{pr:neig}>>
+  }
+#+end_src
+#+begin_src latex
+  \epr
+  In the main function we set the usage, declare the options, parse
+  the options, and parse the input files.
+#+end_src
+#+begin_src go <<Main function, Pr.~\ref{pr:neig}>>=
+  //<<Set usage, Pr.~\ref{pr:neig}>>
+  //<<Declare options, Pr.~\ref{pr:neig}>>
+  //<<Parse options, Pr.~\ref{pr:neig}>>
+  //<<Parse input files, Pr.~\ref{pr:neig}>>
+#+end_src
+#+begin_src latex
+  The usage consists of the actual usage message, an explanation of the
+  purpose of \ty{neighbors}, and an example command.  In the usage we
+  clarify that the first argument of \ty{neighbors} is the name of the
+  taxonomy database.
+#+end_src
+#+begin_src go <<Set usage, Pr.~\ref{pr:neig}>>=
+  u := "neighbors [-h] [option]... tax.db [targets.txt]..."
+  p := "Given a taxonomy database computed with makeNeiDb and " +
+	  "a set of target taxon-IDs, find their closest " +
+	  "taxonomic neighbors."
+  e := "neighbors tax.db targetIds.txt"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_src latex
+  We import \ty{clio}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_src latex
+  Apart from the version, we declare only one option, to restrict the
+  output to taxa with genomes.
+#+end_src
+#+begin_src go <<Declare options, Pr.~\ref{pr:neig}>>=
+  var optV = flag.Bool("v", false, "version")
+  var optG = flag.Bool("g", false, "genome sequences only")
+#+end_src
+#+begin_src latex
+  We import \ty{flag}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "flag"
+#+end_src
+#+begin_src latex
+  We parse the options and respond to \ty{-v} as this stops
+  \ty{neighbors}. The remaining tokes on the command line are taken as
+  file names, the first of which is the mandatory database. If it isn't
+  provided, we kindly request it. Then we construct the taxonomy and
+  remove the database name from the list of input files.
+#+end_src
+#+begin_src go <<Parse options, Pr.~\ref{pr:neig}>>=
+  flag.Parse()
+  if *optV {
+	  util.PrintInfo("neighbors")
+  }
+  files := flag.Args()
+  if len(files) == 0 {
+	  fmt.Fprintf(os.Stderr,
+		  "please provide a database name\n")
+	  os.Exit(0)
+  }
+  //<<Construct taxonomy, Pr.~\ref{pr:neig}>>
+  files = files[1:]
+#+end_src
+#+begin_src latex
+  We import \ty{util}, \ty{fmt}, and \ty{os}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "github.com/evolbioinf/neighbors/util"
+  "fmt"
+  "os"
+#+end_src
+#+begin_src latex
+  We open a connection to the taxonomy database and calculate the
+  taxonomy tree from it.
+#+end_src
+#+begin_src go <<Construct taxonomy, Pr.~\ref{pr:neig}>>=
+  taxdb := tdb.OpenTaxonomyDB(files[0])
+  taxonomy := taxdb.NewTaxonomy()
+#+end_src
+#+begin_src latex
+  We import \ty{tdb}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "github.com/evolbioinf/neighbors/tdb"
+#+end_src
+#+begin_src latex
+  The input files are parsed using the function \ty{clio.ParseFiles},
+  which takes as argument the function \ty{parse}. In turn, \ty{parse}
+  takes the database connection, the taxonomy, and the genomes option as
+  arguments.
+#+end_src
+#+begin_src go <<Parse input files, Pr.~\ref{pr:neig}>>=
+  clio.ParseFiles(files, parse, taxdb, taxonomy, *optG)
+#+end_src
+#+begin_src latex
+  Inside \ty{parse}, we retrieve the arguments just passed. Then we read
+  the taxon-IDs and compute two new sets of taxon-IDs, the targets, and
+  the neighbors. For each element of these sets we also look up the
+  genome accessions. Then we print the combined result.
+#+end_src
+#+begin_src go <<Functions, Pr.~\ref{pr:neig}>>=
+  func parse(r io.Reader, args ...interface{}) {
+	  taxdb := args[0].(*tdb.TaxonomyDB)
+	  taxonomy := args[1].(tax.Taxonomy)
+	  optG := args[2].(bool)
+	  //<<Read taxon-IDs, Pr.~\ref{pr:neig}>>
+	  //<<Compute targets, Pr.~\ref{pr:neig}>>
+	  //<<Compute neighbors, Pr.~\ref{pr:neig}>>
+	  //<<Look up genomes, Pr.~\ref{pr:neig}>>
+	  //<<Print result, Pr.~\ref{pr:neig}>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{io} and \ty{tax}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "io"
+  "github.com/evolbioinf/neighbors/tax"
+#+end_src
+#+begin_src latex
+  We read the taxon-IDs as a slice of integers from the input file. We
+  ignore blank lines and lines starting with a hash.
+#+end_src
+#+begin_src go <<Read taxon-IDs, Pr.~\ref{pr:neig}>>=
+  var taxa []int
+  sc := bufio.NewScanner(r)
+  for sc.Scan() {
+	  s := sc.Text()
+	  if s == "" || s[0] == '#' { continue }
+	  i, err := strconv.Atoi(s)
+	  if err != nil {
+		  log.Fatalf("couldn't convert %q", s)
+	  }
+	  taxa = append(taxa, i)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{bufio}, \ty{strconv}, and \ty{log}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "bufio"
+  "strconv"
+  "log"
+#+end_src
+#+begin_src latex
+  The targets are nodes of the subtree of the most recent common
+  ancestor of the taxon-IDs we just read. We call this MRCA the
+  target-MRCA, \ty{mrcaT}. We also make a map of the new targets we've
+  found.
+#+end_src
+#+begin_src go <<Compute targets, Pr.~\ref{pr:neig}>>=
+  mrcaT := taxonomy.MRCA(taxa)
+  targets := taxonomy.Subtree(mrcaT)
+  //<<Mark new targets, Pr.~\ref{pr:neig}>>
+#+end_src
+#+begin_src latex
+  The new targets are put in a map.
+#+end_src
+#+begin_src go <<Mark new targets, Pr.~\ref{pr:neig}>>=
+  newTargets := make(map[int]bool)
+  sort.Ints(taxa)
+  l := len(taxa)
+  for _, t := range targets {
+	  i := sort.SearchInts(taxa, t)
+	  if !(i < l && taxa[i] == t) {
+		  newTargets[t] = true
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{sort}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "sort"
+#+end_src
+#+begin_src latex
+  The neighbors are the nodes in the subtree of the parent of the
+  target-MRCA, minus the targets. We call the parent of the target-MRC
+  the analysis-MRCA, \ty{mrcaA}. If the analysis-MRCA has no nodes
+  other than the target(s), we keep moving it up the tree until we've
+  found at least one neighbor.
+#+end_src
+#+begin_src go <<Compute neighbors, Pr.~\ref{pr:neig}>>=
+  var neighbors []int
+  mrcaA := mrcaT
+  for len(neighbors) == 0 {
+	  mrcaA = taxonomy[mrcaA].Parent.ID
+	  nodes := taxonomy.Subtree(mrcaA)
+	  //<<Subtract targets from the nodes, Pr.~\ref{pr:neig}>>
+  }
+#+end_src
+#+begin_src latex
+  Nodes that are not targets must be neighbors.
+#+end_src
+#+begin_src go <<Subtract targets from the nodes, Pr.~\ref{pr:neig}>>=
+  sort.Ints(targets)
+  l = len(targets)
+  for _, node := range nodes {
+	  i := sort.SearchInts(targets, node)
+	  if !(i < l && node == targets[i]) {
+		  neighbors = append(neighbors, node)
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We look up the genomes, or \emph{replicons}, that belong to each
+  taxon-ID through a method call on the database. The genomes are stored
+  in a map between taxon-IDs and string slices.
+#+end_src
+#+begin_src go <<Look up genomes, Pr.~\ref{pr:neig}>>=
+  genomes := make(map[int][]string)
+  for _, t := range targets {
+	  genomes[t] = taxdb.Replicons(t)
+  }
+  for _, t := range neighbors {
+	  genomes[t] = taxdb.Replicons(t)
+  }
+#+end_src
+
+#+begin_src latex
+  We start the results section with the taxon-IDs and scientific names
+  of the most recent common ancestors of the targets and of the while
+  analysis, that is, the MRCA of the targets and neighbors
+  combined. Then we print a table of results consisting of four columns:
+  the taxon type---neighbor or target, the taxon-ID, taxon name, and the
+  genome accessions. We typeset the table using a tab writer, which we
+  flush at the end.
+#+end_src
+#+begin_src go <<Print result, Pr.~\ref{pr:neig}>>=
+  mrcaTname := taxonomy[mrcaT].Name
+  mrcaAname := taxonomy[mrcaA].Name
+  fmt.Printf("# MRCA(targets): %d, %s\n", mrcaT, mrcaTname)
+  fmt.Printf("# MRCA(targets+neighbors): %d, %s\n", mrcaA, mrcaAname)
+  w := new(tabwriter.Writer)
+  w.Init(os.Stdout, 1, 0, 2, ' ', 0)
+  fmt.Fprint(w, "# Type\tTaxon-ID\tName\tGenomes\n")
+  //<<Print targets, Pr.~\ref{pr:neig}>>
+  //<<Print neighbors, Pr.~\ref{pr:neig}>>
+  w.Flush()
+#+end_src
+#+begin_src latex
+  We import \ty{tabwriter}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "text/tabwriter"
+#+end_src
+#+begin_src latex
+  Targets that were already in the input are marked as type ``t'', new
+  targets as ``tt''. To make it easy to retrieve the genomes, we print
+  their accessions in a single string punctuated by pipe symbols. If the
+  user requested only taxa with genomes, we restrict our output to them.
+#+end_src
+#+begin_src go <<Print targets, Pr.~\ref{pr:neig}>>=
+  for _, target := range targets {
+	  t := "t"
+	  if newTargets[target] { t = "tt" }
+	  g := "-"
+	  if len(genomes[target]) > 0 {
+		  g = strings.Join(genomes[target], "|")
+	  }
+	  if optG && g == "-" { continue }
+	  fmt.Fprintf(w, "%s\t%d\t%s\t%s\n", t, target,
+		  taxonomy[target].Name, g)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{strings}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "strings"
+#+end_src
+#+begin_src latex
+  Neighbors are marked as type ``n''. Since the targets were already
+  sorted, we sort the neighbors, too.
+#+end_src
+#+begin_src go <<Print neighbors, Pr.~\ref{pr:neig}>>=
+  sort.Ints(neighbors)
+  for _, neighbor := range neighbors {
+	  g := "-"
+	  if len(genomes[neighbor]) > 0 {
+		  g = strings.Join(genomes[neighbor], "|")
+	  }
+	  if optG && g == "-" { continue }
+	  n := taxonomy[neighbor].Name
+	  fmt.Fprintf(w, "n\t%d\t%s\t%s\n", neighbor, n, g)
+  }
+#+end_src
+#+begin_src latex
+  We've written \ty{neighbors}, time to test it. 
+
+  \subsection*{Testing}
+  The outline for testing \ty{neighbors} has hooks for imports and the
+  testing logic.
+#+end_src
+#+begin_src go <<neighbors_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr.~\ref{pr:neig}>>
+  )
+
+  func TestNeighbors(t *testing.T) {
+	  //<<Testing, Pr.~\ref{pr:neig}>>
+  }
+#+end_src
+#+begin_src latex
+  We construct a set of tests and then iterate over them to run each
+  one.
+#+end_src
+#+begin_src go <<Testing, Pr.~\ref{pr:neig}>>=
+  var tests []*exec.Cmd
+  //<<Construct tests, Pr.~\ref{pr:neig}>>
+  for i, test := range tests {
+	  //<<Run test, Pr.~\ref{pr:neig}>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{exec}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:neig}>>=
+  "os/exec"
+#+end_src
+#+begin_src latex
+  We run \ty{neighbors} on the full database with four sets of
+  target-IDs, \ty{tid1.txt}, \ty{tid2.txt}, and so on. On \ty{tid4.txt}
+  we also test the genomes option, \ty{-g}.
+#+end_src
+#+begin_src go <<Construct tests, Pr.~\ref{pr:neig}>>=
+  db := "../data/tax.db"
+  for i := 1; i <= 4; i++ {
+	  in := "tid" + strconv.Itoa(i) + ".txt"
+	  test := exec.Command("./neighbors", db, in)
+	  tests = append(tests, test)
+  }
+  test := exec.Command("./neighbors", "-g", db, "tid4.txt")
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  We import \ty{strconv}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:neig}>>=
+  "strconv"
+#+end_src
+#+begin_src latex
+  For a given test we compare the result we get with the result we want,
+  which is contained in files \ty{r1.txt}, \ty{r2.txt}, and so on.
+#+end_src
+#+begin_src go <<Run test, Pr.~\ref{pr:neig}>>=
+  get, err := test.Output()
+  if err != nil {
+	  t.Errorf("couldn't run %q", test)
+  }
+  f := "r" + strconv.Itoa(i+1) + ".txt"
+  want, err := ioutil.ReadFile(f)
+  if err != nil {
+	  t.Errorf("couldn't open %q", f)
+  }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{ioutil} and \ty{bytes}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:neig}>>=
+  "io/ioutil"
+  "bytes"
+#+end_src

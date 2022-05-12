@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{Package \ty{tdb}}
+  \section{\ty{tdb}}
   The package \ty{tdb} provides code for constructing and navigating
   \ty{taxonDb} (Figure~\ref{fig:db}). Its outline has hooks for imports,
   types, methods, and functions.
@@ -306,6 +306,7 @@
   at tabs, generate the genomes and save them.
 #+end_src
 #+begin_src go <<Read prokaryote genomes, Pa.~\ref{pa:tdb}>>=
+  fn := pf.Name()
   scanner = bufio.NewScanner(pf)
   var gen genome
   for scanner.Scan() {
@@ -320,9 +321,15 @@
   In an individual row, the second column contains the taxon-ID, the
   seventh the size in Mb, and the nineth the replicons. Unfortunately,
   it is possible that no genome size is given, in which case we set it
-  to -1.
+  to -1. It is also possible that the row is incomplete, in which case
+  we skip it and send a warning.
 #+end_src
 #+begin_src go <<Generate a genome, Pa.~\ref{pa:tdb}>>=
+  if len(fields) < 9 {
+	  fmt.Fprintf(os.Stderr,
+		  "skipping truncated line in %q\n", fn)
+	  continue
+  }
   gen.taxid, err = strconv.Atoi(fields[1])
   if err != nil { log.Fatal(err) }
   gen.size, err = strconv.ParseFloat(fields[6], 64)
@@ -340,6 +347,7 @@
   same structure as that of the prokaryotes.
 #+end_src
 #+begin_src go <<Read eukaryote genomes, Pa.~\ref{pa:tdb}>>=
+  fn = ef.Name()
   scanner = bufio.NewScanner(ef)
   for scanner.Scan() {
 	  row := scanner.Text()
@@ -359,6 +367,7 @@
   We scan the file of viral genomes.
 #+end_src
 #+begin_src go <<Read virus genomes, Pa.~\ref{pa:tdb}>>=
+  fn = vf.Name()
   scanner = bufio.NewScanner(vf)
   for scanner.Scan() {
 	  row := scanner.Text()
@@ -372,9 +381,15 @@
   The file describing the genomes of viruses has a slightly different
   structure from that of prokaryotes and eukaryotes. Replicons are now
   in the tenth column, and genome size is given in kb. We convert that
-  to Mb to have all genome lengths on the same scale.
+  to Mb to have all genome lengths on the same scale. Again, if a line
+  is incomplete, we skip it with message.
 #+end_src
 #+begin_src go <<Generate a viral genome, Pa.~\ref{pa:tdb}>>=
+  if len(fields) < 10 {
+	  fmt.Fprintf(os.Stderr,
+		  "skipping truncated line in %q", fn)
+	  continue
+  }
   gen.taxid, err = strconv.Atoi(fields[1])
   if err != nil { log.Fatal(err) }
   gen.size, err = strconv.ParseFloat(fields[6], 64)
@@ -436,7 +451,7 @@
 #+end_src
 #+begin_src latex
   \subsection{\ty{Close}}
-  The function \ty{Close} closes a taxonomy database.
+  The method \ty{Close} closes a taxonomy database.
 #+end_src
 #+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
   // Close closes the taxonomy database.
@@ -445,4 +460,231 @@
   }
 #+end_src
 #+begin_src latex
+  \subsection{\ty{NewTaxonomy}}
+  The method \ty{NewTaxonomy} reads the taxonomy from the database. For
+  this, we first parse the taxon table and store its contents in two
+  maps, \ty{tax} and \ty{parents}. \ty{tax} maps a taxon-ID, which is an
+  integer, to a taxon node. \ty{parents} maps a taxon's ID to that of
+  its parent. From these two maps we then construct the tree.
 #+end_src
+#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+  // NewTaxonomy reads the taxonomy from the database.
+  func (t *TaxonomyDB) NewTaxonomy() tax.Taxonomy {
+	  ta := make(map[int]*tax.Node)
+	  parents := make(map[int]int)
+	  //<<Parse taxon table, Pa.~\ref{pa:tdb}>>
+	  //<<Construct tree, Pa.~\ref{pa:tdb}>>
+	  return ta
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{tax}.
+#+end_src
+#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+  "github.com/evolbioinf/neighbors/tax"
+#+end_src
+#+begin_src latex
+  We query the \ty{taxon} table, store the taxa, and check for errors at the
+  end.
+#+end_src
+#+begin_src go <<Parse taxon table, Pa.~\ref{pa:tdb}>>=
+  //<<Query taxon table, Pa.~\ref{pa:tdb}>>
+  //<<Store taxa, Pa.~\ref{pa:tdb}>>
+  //<<Check for errors in taxon query, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_src latex
+  Our query of the \ty{taxon} table returns the full table.
+#+end_src
+#+begin_src go <<Query taxon table, Pa.~\ref{pa:tdb}>>=
+  q := "select name, taxid, parent from taxon"
+  rows, err := t.db.Query(q)
+  if err != nil {
+	  log.Fatalf("couldn't run %q", q)
+  }
+  defer rows.Close()
+#+end_src
+#+begin_src latex
+  We iterate over the rows of the query and store each row as a
+  taxon. We also store its parent.
+#+end_src
+#+begin_src go <<Store taxa, Pa.~\ref{pa:tdb}>>=
+  var taxid, parent int
+  var name string
+  for rows.Next() {
+	  err = rows.Scan(&name, &taxid, &parent)
+	  if err != nil {
+		  log.Fatal(err)
+	  }
+	  v := &(tax.Node{ID: taxid, Name: name})
+	  ta[taxid] = v
+	  parents[taxid] = parent
+  }
+#+end_src
+#+begin_src latex
+  The query table might be left in an error state, in which case we
+  bail.
+#+end_src
+#+begin_src go <<Check for errors in taxon query, Pa.~\ref{pa:tdb}>>=
+  err = rows.Err()
+  if err != nil {
+	  log.Fatal(err)
+  }
+#+end_src
+#+begin_src latex
+  The tree topology is now implicit in the map of parents. To construct
+  an explicit tree from this, we iterate over all taxa and access the
+  corresponding child/parent pairs. As the parent of the root is the
+  root itself, we might be dealing with two roots at this
+  point. Treating them like an ordinary child/parent pair would lead to
+  the construction of a loop, so we check for this before setting the
+  links between parent and child.
+#+end_src
+#+begin_src go <<Construct tree, Pa.~\ref{pa:tdb}>>=
+  for k, v := range parents {
+	  if k != v {
+		  child := ta[k]
+		  parent := ta[v]
+		  //<<Set links between parent and child, Pa.~\ref{pa:tdb}>>
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We set the child's parent link and add it to its parent's list of
+  children.
+#+end_src
+#+begin_src go <<Set links between parent and child, Pa.~\ref{pa:tdb}>>=
+  child.Parent = parent
+  if parent.Child == nil {
+	  parent.Child = child
+	  parent.Child.LastSib = child
+  } else {
+	  c := parent.Child
+	  c.LastSib.Sib = child
+	  c.LastSib = child
+  }
+#+end_src
+#+begin_src latex
+  !The method \ty{Replicons} takes as parameter a taxon-ID and returns a
+  !slice of genome accessions.
+
+  We query for replicons and then store them in the string slice we
+  return.
+#+end_src
+#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+  func (t *TaxonomyDB) Replicons(tid int) []string {
+	  var reps []string
+	  //<<Query for replicions, Pa.~\ref{pa:tdb}>>
+	  //<<Store replicons, Pa.~\ref{pa:tdb}>>
+	  return reps
+  }
+#+end_src
+#+begin_src latex
+  We generate the query and execute it, which returns a set of table
+  rows. The rows are later closed again.
+#+end_src
+#+begin_src go <<Query for replicions, Pa.~\ref{pa:tdb}>>=
+  tmpl := "select replicons from genome where taxid=%d " +
+	  "and replicons <> '-'"
+  q := fmt.Sprintf(tmpl, tid)
+  rows, err := t.db.Query(q)
+  if err != nil {
+	  log.Fatal(err)
+  }
+  defer rows.Close()
+#+end_src
+#+begin_src latex
+  We import \ty{fmt}.
+#+end_src
+#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+  "fmt"
+#+end_src
+#+begin_src latex
+  We append each replicon to our slice of replicons.
+#+end_src
+#+begin_src go <<Store replicons, Pa.~\ref{pa:tdb}>>=
+  s := ""
+  for rows.Next() {
+	  err := rows.Scan(&s)
+	  if err != nil {
+		  log.Fatal(err)
+	  }
+	  reps = append(reps, s)
+  }
+#+end_src
+#+begin_src latex
+  \subsection{Testing}
+  The outline of our code for testing \ty{tdb} has a hook for the
+  testing logic.
+#+end_src
+#+begin_src go <<tdb_test.go>>=
+  package tdb
+
+  import (
+	  "testing"
+  )
+
+  func TestTdb(t *testing.T) {
+	  //<<Testing, Pa.~\ref{pa:tdb}>>
+  }
+#+end_src
+#+begin_src latex
+  We test the function \ty{NewTaxonomyDB}, and the methods
+  \ty{NewTaxonomy} and \ty{Replicons}.
+#+end_src
+#+begin_src go <<Testing, Pa.~\ref{pa:tdb}>>=
+  //<<Test \ty{NewTaxonomyDB}, Pa.~\ref{pa:tdb}>>
+  //<<Test \ty{NewTaxonomy}, Pa.~\ref{pa:tdb}>>
+  //<<Test \ty{Replicons}, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_src latex
+  We build a small database, \ty{taxSmall.db}.
+#+end_src
+#+begin_src go <<Test \ty{NewTaxonomyDB}, Pa.~\ref{pa:tdb}>>=
+  p := "../data/"
+  no := p + "nodesTest.dmp"
+  na := p + "namesTest.dmp"
+  pr := p + "prokaryotes.txt"
+  eu := p + "eukaryotes.txt"
+  vi := p + "viruses.txt"
+  d1 := p + "taxSmall.db"
+  NewTaxonomyDB(no, na, pr, eu, vi, d1)
+#+end_src
+#+begin_src latex
+  We've built the small database, now we extract the taxonomy from it
+  and check it has 9 entries.
+#+end_src
+#+begin_src go <<Test \ty{NewTaxonomyDB}, Pa.~\ref{pa:tdb}>>=
+  taxdb := OpenTaxonomyDB(d1)
+  ta := taxdb.NewTaxonomy()
+  if len(ta) != 9 {
+	  t.Errorf("get %d rows, want 9", len(ta))
+  }
+#+end_src
+#+begin_src latex
+  We open a complete taxonomy database, get a new taxonomy from it, and
+  the name of one entry.
+#+end_src
+#+begin_src go <<Test \ty{NewTaxonomy}, Pa.~\ref{pa:tdb}>>=
+  d2 := p + "tax.db"
+  taxdb = OpenTaxonomyDB(d2)
+  ta = taxdb.NewTaxonomy()
+  want := "Bernardetia litoralis"
+  get := ta[999].Name
+  if get != want {
+	  t.Errorf("get: %q; want: %q", get, want)
+  }
+#+end_src
+#+begin_src latex 
+  We submit three taxon-IDs to the method \ty{Replicons} and print out the
+  result.
+#+end_src
+#+begin_src go <<Test \ty{Replicons}, Pa.~\ref{pa:tdb}>>=
+  tid := 866775
+  reps := taxdb.Replicons(tid)
+  get = reps[0]
+  want = "chromosome:NC_015278.1/CP002512.1"
+  if get != want {
+	  t.Errorf("get: %q; want: %q", get, want)
+  }
+#+end_src
+

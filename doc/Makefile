@@ -1,4 +1,4 @@
-SRC1 =   makeNeiDb.tex index.tex nei.tex tax.tex tdb.tex tutorial.tex util.tex
+SRC1 =   makeNeiDb.tex neighbors.tex tax.tex tdb.tex tutorial.tex util.tex
 SRC2 =   header.tex introduction.tex neighborsDoc.tex
 
 all: neighborsDoc.pdf
@@ -18,8 +18,10 @@ tax.tex: ../tax/tax.org
 	bash ../scripts/org2nw ../tax/tax.org | noweave -n -x | sed 's/_test/\\_test/g' > tax.tex
 nei.tex: ../nei/nei.org
 	bash ../scripts/org2nw ../nei/nei.org | noweave -n -x > nei.tex
+neighbors.tex: ../neighbors/neighbors.org
+	bash ../scripts/org2nw ../neighbors/neighbors.org | noweave -n -x  | sed 's/_test/\\_test/g' > neighbors.tex
 tdb.tex: ../tdb/tdb.org
-	bash ../scripts/org2nw ../tdb/tdb.org | noweave -n -x > tdb.tex	
+	bash ../scripts/org2nw ../tdb/tdb.org | noweave -n -x | sed 's/_test/\\_test/g' > tdb.tex	
 tutorial.tex: ../tutorial/tutorial.org
 	bash ../scripts/org2nw ../tutorial/tutorial.org | noweave -n -x > tutorial.tex
 util.tex: ../util/util.org

@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{Package \ty{util}}
+  \section{\ty{util}}
   The package \ty{util} collects auxiliary functions common to
   \ty{indexNodes} and \ty{neighbors}. Its outline provides hooks for
   imports, variables, and functions.
