@@ -1,0 +1,209 @@
+#+begin_src latex
+  \section{\ty{dree}: Draw Tree in Dot Language} 
+    The program \ty{dree} takes as input the name of the taxonomy
+    database and a set of taxon-IDs. For each taxon-ID it returns the
+    tree of the taxa rooted on it. The tree is written in the dot
+    language ready for layout with \ty{dot}, which is part of the
+    graphviz package. Taxa are either labeled by taxon-ID or by
+    scientific name. Taxa with one or more genome sequences are colored.
+
+    \subsection*{Implementation}
+    The outline of \ty{dree} has hooks for imports, functions, and
+    the logic of the main function.
+#+end_src
+#+begin_src go <<dree.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr.~\ref{pr:dr}>>
+  )
+
+  //<<Functions, Pr.~\ref{pr:dr}>>
+  func main() {
+	  //<<Main function, Pr.~\ref{pr:dr}>>
+  }
+#+end_src
+#+begin_src latex
+  In the main function we set the usage, declare the options, parse the
+  options, and parse the input files.
+#+end_src
+#+begin_src go <<Main function, Pr.~\ref{pr:dr}>>=
+  //<<Set usage, Pr.~\ref{pr:dr}>>
+  //<<Declare options, Pr.~\ref{pr:dr}>>
+  //<<Parse options, Pr.~\ref{pr:dr}>>
+  //<<Parse input files, Pr.~\ref{pr:dr}>>
+#+end_src
+#+begin_src latex
+  The usage consists of the actual usage message, an explanation of the
+  purpose of \ty{dree}, and an example command.
+#+end_src
+#+begin_src go <<Set usage, Pr.~\ref{pr:dr}>>=
+  u := "dree [-h] [option]... tax.db [taxid.txt]..."
+  p := "Get the taxonomic tree rooted on a taxon-ID."
+  e := "dree tax.db taxid.txt | dot -T x11"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_src latex
+  We import \ty{clio}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_src latex
+  Apart from the version, we declare one option, to print the scientific
+  names instead of the default taxon-ID.
+#+end_src
+#+begin_src go <<Declare options, Pr.~\ref{pr:dr}>>=
+  var optV = flag.Bool("v", false, "version")
+  var optS = flag.Bool("s", false, "scientific name")
+#+end_src
+#+begin_src latex
+  We import \ty{flag}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+  "flag"
+#+end_src
+#+begin_src latex
+  We parse the options and respond to \ty{-v}, as this stops
+  \ty{dree}. The remaining tokens on the command line are
+  interpreted as file names. The first one of these is the database
+  name, unless no name was given at all, in which case we bail with
+  message. Then we construct the taxonomy, which we use to read the
+  subtrees from.
+#+end_src
+#+begin_src go <<Parse options, Pr.~\ref{pr:dr}>>=
+  flag.Parse()
+  if *optV {
+	  util.PrintInfo("dree")
+  }
+  files := flag.Args()
+  if len(files) == 0 {
+	  fmt.Fprintf(os.Stderr,
+		  "please provide a database name\n")
+	  os.Exit(0)
+  }
+  //<<Construct taxonomy, Pr.~\ref{pr:dr}>>
+  files = files[1:]
+#+end_src
+#+begin_src latex
+  We import \ty{util}, \ty{fmt}, and \ty{os}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+  "github.com/evolbioinf/neighbors/util"
+  "fmt"
+  "os"
+#+end_src
+#+begin_src latex
+  We open a connection to the taxonomy database and calculate the
+  taxonomy tree from it.
+#+end_src
+#+begin_src go <<Construct taxonomy, Pr.~\ref{pr:dr}>>=
+  taxdb := tdb.OpenTaxonomyDB(files[0])
+  taxonomy := taxdb.NewTaxonomy()
+#+end_src
+#+begin_src latex
+  We import \ty{tdb}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+  "github.com/evolbioinf/neighbors/tdb"
+#+end_src
+#+begin_src latex
+  The input files are parsed using the function \ty{clio.ParseFiles},
+  which takes as argument the function \ty{scan}. In turn, \ty{scan}
+  takes the database connection, the taxonomy, and the names option as
+  arguments.
+#+end_src
+#+begin_src go <<Parse input files, Pr.~\ref{pr:dr}>>=
+  clio.ParseFiles(files, scan, taxdb, taxonomy, *optS)
+#+end_src
+#+begin_src latex
+  Inside \ty{scan} we retrieve the arguments we just passed. Then
+  we read the taxon-IDs and draw the trees.
+#+end_src
+#+begin_src go <<Functions, Pr.~\ref{pr:dr}>>=
+  func scan(r io.Reader, args ...interface{}) {
+	  //<<Retrieve arguments, Pr.~\ref{pr:dr}>>
+	  //<<Read taxon-IDs, Pr.~\ref{pr:dr}>>
+	  //<<Draw trees, Pr.~\ref{pr:dr}>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{io}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+  "io"
+#+end_src
+#+begin_src latex
+  We retrieve the three arguments passed, the database connection, the
+  taxonomy, and the name argument.
+#+end_src
+#+begin_src go <<Retrieve arguments, Pr.~\ref{pr:dr}>>=
+  taxdb := args[0].(*tdb.TaxonomyDB)
+  taxonomy := args[1].(tax.Taxonomy)
+  optS := args[2].(bool)
+#+end_src
+#+begin_src latex
+  We import \ty{tdb}, and \ty{tax}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+  "github.com/evolbioinf/neighbors/tdb"
+  "github.com/evolbioinf/neighbors/tax"
+#+end_src
+#+begin_src latex
+  We read the taxon-IDs and store them in a slice of integers.
+#+end_src
+#+begin_src go <<Read taxon-IDs, Pr.~\ref{pr:dr}>>=
+  var taxa []int
+  sc := bufio.NewScanner(r)
+  for sc.Scan() {
+	  s := sc.Text()
+	  if s == "" || s[0] == '#' { continue }
+	  i, err := strconv.Atoi(s)
+	  if err != nil {
+		  log.Fatalf("couldn't convert %q", s)
+	  }
+	  taxa = append(taxa, i)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{bufio}, \ty{strconv}, and \ty{log}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+  "bufio"
+  "strconv"
+  "log"
+#+end_src
+#+begin_src latex
+  We draw the header and footer of the graph. Sandwiched between them is
+  a subtree for every taxon. We iterate over the children of the subtree
+  and for each print the parent/child pair.
+#+end_src
+#+begin_src go <<Draw trees, Pr.~\ref{pr:dr}>>=
+  fmt.Printf("digraph g {\n")
+  for _, taxon := range taxa {
+	  sub := taxonomy.Subtree(taxon)[1:]
+	  for _, c := range sub {
+		  p := taxonomy[c].Parent.ID
+		  fmt.Printf("%d -> %d\n", p, c)
+		  //<<Print parent/child pair, Pr.~\ref{pr:dr}>>
+	  }
+  }
+  fmt.Printf("}\n")
+#+end_src
+#+begin_src latex
+  We print the parent and the child using the same pattern.
+#+end_src
+#+begin_src go <<Print parent/child pair, Pr.~\ref{pr:dr}>>=
+  v := c
+  //<<Print node, Pr.~\ref{pr:dr}>>
+  v = p
+  //<<Print node, Pr.~\ref{pr:dr}>>
+#+end_src
+#+begin_src go <<Print node, Pr.~\ref{pr:dr}>>=
+  if optS {
+	  fmt.Printf("%d [label=\"%s\"]\n", v, taxonomy[v].Name)
+  }
+  if len(taxdb.Replicons(v)) > 0 {
+	  fmt.Printf("%d [color=\"lightsalmon\",style=filled]\n", v)
+  }
+#+end_src
