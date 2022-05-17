@@ -9,14 +9,10 @@
   NCBI.
 #+end_src
 #+begin_src sh <<construct.sh>>=
-  rsync --copy-links --times --verbose \
-	rsync://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz .
-  rsync --copy-links --times --verbose \
-	rsync://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt .
-  rsync --copy-links --times --verbose \
-	rsync://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/eukaryotes.txt .
-  rsync --copy-links --times --verbose \
-	rsync://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/viruses.txt .
+  wget ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+  wget ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt
+  wget ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/eukaryotes.txt
+  wget ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/viruses.txt
 #+end_src
 #+begin_src latex
   We unpack the taxonomy database.
@@ -150,14 +146,12 @@
   them in the directory \ty{targets}
 #+end_src
 #+begin_src sh <<query.sh>>=
-  efetch -db nucleotide -format fasta \
-	 -id CP014161 > tCP014161.fasta
-  efetch -db nucleotide -format fasta \
-	 -id CP065662 > tCP065662.fasta
-  efetch -db nucleotide -format fasta \
-	 -id CP002512 > tCP002512.fasta
   mkdir targets
-  mv CP*.fasta targets
+  for a in CP014161 CP065662 CP002512
+  do
+      efetch -db nucleotide -format fasta \
+	     -id $a > targets/t${a}.fasta
+  done
 #+end_src
 #+begin_src latex
   Now se search for the neighbors of taxon-IDs 1376 and 866775.
