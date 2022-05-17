@@ -1,12 +1,12 @@
 #+begin_src latex
   \section*{Introduction}
-  In this Tutorial we construct a relational database from the NCBI
-  taxonomy data. Then we query the database in SQL to find the taxon-IDs
-  for our target organism. Based on these taxon-IDs, we carry out the
-  search for neighbors using \ty{neighbors}.
+  In this Tutorial we construct an \ty{sqlite} database from the NCBI
+  taxonomy data. Then we query the database to find the taxon-IDs for
+  our target organism. Based on these taxon-IDs, we carry out the search
+  for neighbors using \ty{neighbors}.
   \section*{Construct Database}
-  We download the taxonomy database files and the genome reports from
-  the NCBI.
+  We download the taxonomy database and the genome reports from the
+  NCBI.
 #+end_src
 #+begin_src sh <<construct.sh>>=
   rsync --copy-links --times --verbose \
@@ -25,11 +25,10 @@
   tar -xvzf taxdump.tar.gz
 #+end_src
 #+begin_src latex
-  This generates nine files, two of which are important for us,
-  \ty{nodes.dmp} with the nodes of the taxonomic tree, and
-  \ty{names.dmp} with the taxon names. We construct the taxonomy
-  database \ty{tax.db} by running \ty{makeNeiDb} in default mode. This
-  takes less than a minute.
+  This generates nine files, of which we use two, \ty{nodes.dmp} with
+  the nodes of the taxonomic tree, and \ty{names.dmp} with the taxon
+  names. We construct the taxonomy database \ty{tax.db} by running
+  \ty{makeNeiDb} in default mode. This takes less than a minute.
 #+end_src
 #+begin_src sh <<construct.sh>>=
   makeNeiDb
@@ -37,39 +36,118 @@
 #+begin_src latex
   \section*{Query Database}
   The next step is to find the taxon-IDs for our target organisms. Say,
-  our target organism is \emph{Aerococcus urinae}. We query the database
-  for the taxon-ID, the parent's taxon-ID, and the names of all taxa
-  starting with \emph{Aerococcus urinae} that also have genome sequences
-  (replicons). Missing replicons are marked by a dash in the
-  database. We order the result by taxon-ID to make it easier to
-  read.
+  our target organism is \emph{Aerococcus urinae}. We look at the
+  database diagram in Figure~\ref{fig:tax} and construct a query for the
+  the names of all taxa starting with \emph{Aerococcus urinae} that also
+  have sequenced genomes, or replicons. Missing replicons are marked by
+  dashes in the database.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  sqlite3 tax.db \
-	  "select taxon.taxid, parent, name, replicons
+  sqlite tax.db \
+	  "select distinct(name)
 	   from taxon join genome
 	   where taxon.taxid = genome.taxid
 	   and replicons <> '-'
-	   and name like 'Aerococcus urinae%'
-	   order by taxon.taxid"
+	   and name like 'Aerococcus urinae%'"
 #+end_src
 #+begin_src latex
-  Here is a slightly abridged version of the result:
   \begin{verbatim}
-  1376|1375|Aerococcus urinae|CP014161
-  1376|1375|Aerococcus urinae|CP065662
-  51665|1375|Aerococcus urinaeequi|CP013988
-  51665|1375|Aerococcus urinaeequi|CP014162
-  51665|1375|Aerococcus urinaeequi|CP063065
-  128944|1375|Aerococcus urinaehominis|CP014163
-  866775|1376|Aerococcus urinae ACS-120-V-Col10a|CP002512
+  Aerococcus urinae
+  Aerococcus urinae ACS-120-V-Col10a
+  Aerococcus urinaeequi
+  Aerococcus urinaehominis
   \end{verbatim}
-  We learn that \emph{A. urinae} has taxon-ID 1376 and two genome
-  sequences, CP014161 and CP065662. We also learn that taxon-ID
-  866775 in the last row has 1376 as parent, which means it is also an
-  \emph{A. urinae}. Its genome sequence is CP002512. So we fetch these
-  three genomes from Genbank, mark their names with prefix ``t'', and
-  store them in the directory \ty{targets}.
+#+end_src
+#+begin_src latex
+  The query result contains four taxa, \emph{A. urinae}, its strain
+  ACS-120-V-Col10a, \emph{A. urinaequi}, and
+  \emph{A. urinaehominis}. Strain ACS-120-V-Col10a seems to belong to
+  the \emph{A. urinae}, so next we add the child/parent relationship to
+  the query. To make the output easier to read, we also sort it by
+  taxon-ID.
+#+end_src
+#+begin_src sh <<query.sh>>=
+  sqlite tax.db \
+	 "select taxon.taxid, parent, name
+	  from taxon join genome
+	  where taxon.taxid = genome.taxid
+	  and replicons <> '-'
+	  and name like 'Aerococcus urinae%'
+	  order by taxon.taxid"
+#+end_src
+#+begin_src latex
+  \begin{table}
+    \begin{center}
+      \begin{tabular}{ccl}
+	\hline
+	Taxon & Parent & Name\\\hline
+	\input{../tutorial/au1}
+	\hline
+      \end{tabular}
+    \end{center}
+    \caption{Result of query for the topology of the taxonomy of
+      \emph{Aerococcus urinae} with sequenced
+      genomes.}\label{tab:au1}
+  \end{table}
+  The result in Table~\ref{tab:au1} shows that the taxon-ID of
+  \emph{A. urinae} is 1376 and that the parent-ID of strain
+  ACS-120-V-Col10a is also 1376, which makes it a \emph{A. urinae}, no
+  surprise there. Taxon 1376 in turn has parent 1375, which is also the
+  ancestor of the other two taxa in our list, \emph{A. urinaeequi} and
+  \emph{A. urinaehominis}.
+
+  We can visualize the tree implicit in Table~\ref{tab:au1} with the
+  program \ty{dree}. It takes one or more taxon-IDs as input and draws
+  the subtrees rooted on these taxa. Let's draw the tree rooted on 1375,
+  the ancestor we just discovered through our SQL query
+  (Table~\ref{tab:au1}). By default, \ty{dree} labels nodes with
+  taxon-IDs, but we request names (\ty{-n}). Also, by default, \ty{dree}
+  draws the full tree, but this happens to be very large (feel free to
+  try), so we reduce it to the taxa with sequenced genomes
+  (\ty{-g}). The tree itself is drawn with the \ty{dot} program, which
+  is part of the \ty{graphviz} package. Figure~\ref{fig:auTaxTree} shows
+  that the taxonomic neighborhood of \emph{A. urinae} includes a few
+  more taxa with sequenced genomes than we had seen with our SQL query.
+#+end_src
+#+begin_src sh <<query.sh>>=
+  printf "1375\n" | dree -n -g tax.db | dot -T x11
+#+end_src
+#+begin_src latex
+  \begin{figure}
+    \begin{center}
+      \resizebox{\textwidth}{!}{\includegraphics{../tutorial/1375_n_g.ps}}
+    \end{center}
+    \caption{The taxonomy tree of \emph{Aerococcus} reduced to taxa with
+    sequenced genomes}\label{fig:auTaxTree}
+  \end{figure}
+
+  Now we add the genome accessions to our query.
+#+end_src
+#+begin_src sh <<query.sh>>=
+  sqlite tax.db \
+	 "select taxon.taxid, parent, name, replicons
+	  from taxon join genome
+	  where taxon.taxid = genome.taxid
+	  and replicons <> '-'
+	  and name like 'Aerococcus urinae%'
+	  order by taxon.taxid"
+#+end_src
+#+begin_src latex
+  \begin{table}
+    \begin{center}
+      \begin{tabular}{ccll}
+      \hline
+      Taxon & Parent & Name & Genome\\\hline
+      \input{../tutorial/au2}
+      \hline
+      \end{tabular}
+    \end{center}
+    \caption{Results of \emph{Aerococcus} query with genome accessions.}\label{tab:au2}
+  \end{table}
+  Form the results in Table~\ref{tab:au2} we learn that \emph{A. urinae}
+  has three genome sequences, CP014161, CP065662, and CP002512. So we
+  fetch them from Genbank, mark their names with prefix ``t'', and store
+  them in the directory \ty{targets}
 #+end_src
 #+begin_src sh <<query.sh>>=
   efetch -db nucleotide -format fasta \
@@ -85,7 +163,7 @@
   Now se search for the neighbors of taxon-IDs 1376 and 866775.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  printf "1376\n866775" | neighbors tax.db
+  printf "1376\n866775\n" | neighbors tax.db
 #+end_src
 #+begin_src latex
   \begin{verbatim}
@@ -108,19 +186,19 @@
   recent common ancestor of the targets, \emph{A. urinae} with taxon-ID
   1376. The second states the most recent common ancestor of the
   neighbors and the targets, \emph{Aerococcus}, with taxon-ID 1375. The
-  third hashed row is the header of the subsequent table, which I have
-  abridged for legibility.
-
-  The table consists of four columns, type, taxon-ID, name, and
-  genomes. There are three possible types, ``t'' for known target,
-  ``tt'' for new target, and ``n'' for neighbor. We see that there is
-  one new target, but its genome hasn't been sequenced yet. Among the
-  neighbors there are seven genomes. We fetch them, mark their names
-  with prefix ``n'', and store them in the directory \ty{neighbors}.
+  third hashed row is the header of the subsequent table, which consists
+  of four columns, type, taxon-ID, name, and genomes. There are three
+  possible types, ``t'' for known target, ``tt'' for new target, and
+  ``n'' for neighbor. We see that there is one new target, but its
+  genome hasn't been sequenced yet. Among the neighbors there are seven
+  genomes. We fetch them using a loop over their accessions, mark their
+  names with prefix ``n'', and store them in the directory
+  \ty{neighbors}.
 #+end_src
 #+begin_src sh <<query.sh>>=
   mkdir neighbors
-  for a in CP014164 CP013988 CP014162 CP063065 CP014159 CP014160 CP014163
+  for a in CP014164 CP013988 CP014162 CP063065
+	   CP014159 CP014160 CP014163
   do
       efetch -db nucleotide -format fasta \
 	     -id $a > neighbors/n${a}.fasta
@@ -147,7 +225,7 @@
 #+begin_src latex
   Now we can construct the \ty{fur} database with \ty{makeFurDb} and run
   \ty{fur}\footnote{\ty{github.com/evolbioinf/fur}} on it to get
-  approximately 474 kb potential marker sequences. The program \ty{cres}
+  approximately 474 kb potential marker material. The program \ty{cres}
   for quantifying the output of \ty{fur} is also part of the
   \ty{biobox}.
 #+end_src

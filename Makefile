@@ -1,4 +1,4 @@
-progs = index makeNeiDb nei
+progs = makeNeiDb neighbors dree
 packs = tax util tdb # Order matters
 
 all:

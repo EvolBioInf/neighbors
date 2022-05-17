@@ -1,0 +1,31 @@
+digraph g {
+	1376 -> 866775
+	866775 [color="lightsalmon",style=filled]
+	866775 [label="Aerococcus urinae ACS-120-V-Col10a"]
+	1376 [color="lightsalmon",style=filled]
+	1376 [label="Aerococcus urinae"]
+	1375 -> 119206
+	119206 [color="lightsalmon",style=filled]
+	119206 [label="Aerococcus sanguinicola"]
+	1375 [label="Aerococcus"]
+	1375 -> 87541
+	87541 [color="lightsalmon",style=filled]
+	87541 [label="Aerococcus christensenii"]
+	1375 [label="Aerococcus"]
+	1375 -> 51665
+	51665 [color="lightsalmon",style=filled]
+	51665 [label="Aerococcus urinaeequi"]
+	1375 [label="Aerococcus"]
+	1375 -> 1377
+	1377 [color="lightsalmon",style=filled]
+	1377 [label="Aerococcus viridans"]
+	1375 [label="Aerococcus"]
+	1375 -> 128944
+	128944 [color="lightsalmon",style=filled]
+	128944 [label="Aerococcus urinaehominis"]
+	1375 [label="Aerococcus"]
+	1375 -> 1376
+	1376 [color="lightsalmon",style=filled]
+	1376 [label="Aerococcus urinae"]
+	1375 [label="Aerococcus"]
+}

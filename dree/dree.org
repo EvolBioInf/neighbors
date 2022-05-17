@@ -1,15 +1,45 @@
 #+begin_src latex
-  \section{\ty{dree}: Draw Tree in Dot Language} 
-    The program \ty{dree} takes as input the name of the taxonomy
-    database and a set of taxon-IDs. For each taxon-ID it returns the
-    tree of the taxa rooted on it. The tree is written in the dot
-    language ready for layout with \ty{dot}, which is part of the
-    graphviz package. Taxa are either labeled by taxon-ID or by
-    scientific name. Taxa with one or more genome sequences are colored.
+  \section{\ty{dree}} 
+    The program \ty{dree} takes as input a taxon-ID and the name of the taxonomy
+    database. It returns the subtree rooted on the focal taxon. The
+    tree is written in the dot language ready for rendering with \ty{dot},
+    which is part of the graphviz package. For example, we can draw the
+    tree for the \emph{Homininae}, taxon-ID 207598, which include human,
+    chimp, and gorilla. By default, \ty{dree} labels taxa with their
+    IDs, but with \ty{-n} we get names instead. Taxa with sequenced genomes
+    are colored.
+  \begin{verbatim}
+  $ ./dree -n 207598 tax.db | dot -T x11
+  \end{verbatim}
+  The resulting tree in Figure~\ref{fig:homininaeFull} is pretty
+  crowded, so we use \ty{-g} to to reduce it to the taxa with sequenced
+  genomes and their ancestors.
+  \begin{verbatim}
+  $ ./dree -n -g 207598 tax.db | dot -T x11
+  \end{verbatim}
+  This gives the more
+  legible Figure~\ref{fig:homininaeG}.
+    \begin{figure}
+      \begin{center}
+	\resizebox{\textwidth}{!}{\includegraphics{../dree/homininae_full_n}}
+      \end{center}
+      \caption{Taxonomy of the \emph{Homininae}, taxa with sequenced
+	genomes are colored.}\label{fig:homininaeFull}
+    \end{figure}
+
+    \begin{figure}
+      \begin{center}
+	\resizebox{\textwidth}{!}{\includegraphics{../dree/homininae_g_n}}
+      \end{center}
+      \caption{Taxonomy of the \emph{Homininae} reduced to taxa with
+	sequenced genomes and their ancestors; taxa with genomes are
+	colored.}\label{fig:homininaeG}
+    \end{figure}
 
     \subsection*{Implementation}
     The outline of \ty{dree} has hooks for imports, functions, and
     the logic of the main function.
+    \bpr{dree}{pr:dr}
 #+end_src
 #+begin_src go <<dree.go>>=
   package main
@@ -24,23 +54,26 @@
   }
 #+end_src
 #+begin_src latex
-  In the main function we set the usage, declare the options, parse the
-  options, and parse the input files.
+  \epr
+  In the main function we set the usage, declare the options, and parse
+  them. Then we get the subtree we're after, annotate it, and print it.
 #+end_src
 #+begin_src go <<Main function, Pr.~\ref{pr:dr}>>=
   //<<Set usage, Pr.~\ref{pr:dr}>>
   //<<Declare options, Pr.~\ref{pr:dr}>>
   //<<Parse options, Pr.~\ref{pr:dr}>>
-  //<<Parse input files, Pr.~\ref{pr:dr}>>
+  //<<Get subtree, Pr.~\ref{pr:dr}>>
+  //<<Annotate subtree, Pr.~\ref{pr:dr}>>
+  //<<Draw subtree, Pr.~\ref{pr:dr}>>
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
   purpose of \ty{dree}, and an example command.
 #+end_src
 #+begin_src go <<Set usage, Pr.~\ref{pr:dr}>>=
-  u := "dree [-h] [option]... tax.db [taxid.txt]..."
-  p := "Get the taxonomic tree rooted on a taxon-ID."
-  e := "dree tax.db taxid.txt | dot -T x11"
+  u := "dree [-h] [option]... taxonID tax.db..."
+  p := "Get the taxonomy rooted on a specific taxon."
+  e := "dree -n -g 207598 tax.db | dot -T x11"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -50,12 +83,16 @@
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  Apart from the version, we declare one option, to print the scientific
-  names instead of the default taxon-ID.
+  Apart from the version, we declare two options, one to print the name
+  instead of the default taxon-ID, \ty{-n}, the other to print only taxa
+  with genome sequences, \ty{-g}.
 #+end_src
 #+begin_src go <<Declare options, Pr.~\ref{pr:dr}>>=
   var optV = flag.Bool("v", false, "version")
-  var optS = flag.Bool("s", false, "scientific name")
+  var optN = flag.Bool("n", false,
+	  "print names instead of taxon-IDs")
+  var optG = flag.Bool("g", false,
+	  "only taxa with genome sequences")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -65,40 +102,68 @@
 #+end_src
 #+begin_src latex
   We parse the options and respond to \ty{-v}, as this stops
-  \ty{dree}. The remaining tokens on the command line are
-  interpreted as file names. The first one of these is the database
-  name, unless no name was given at all, in which case we bail with
-  message. Then we construct the taxonomy, which we use to read the
-  subtrees from.
+  \ty{dree}. Then we get the taxon-ID and the database name. From the
+  database name we construct the taxonomy.
 #+end_src
 #+begin_src go <<Parse options, Pr.~\ref{pr:dr}>>=
   flag.Parse()
   if *optV {
 	  util.PrintInfo("dree")
   }
-  files := flag.Args()
-  if len(files) == 0 {
-	  fmt.Fprintf(os.Stderr,
-		  "please provide a database name\n")
-	  os.Exit(0)
-  }
+  //<<Get taxon-ID, Pr.~\ref{pr:dr}>>
+  //<<Get database name, Pr.~\ref{pr:dr}>>
   //<<Construct taxonomy, Pr.~\ref{pr:dr}>>
-  files = files[1:]
 #+end_src
 #+begin_src latex
-  We import \ty{util}, \ty{fmt}, and \ty{os}.
+  We import \ty{util}.
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
   "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_src latex
+  The remaining tokens on the command line are interpreted as taxon-ID
+  and database, in that order. If we don't have two tokens, we bail with
+  a friendly message. We convert the taxonomy-ID to an integer.
+#+end_src
+#+begin_src latex
+  We import \ty{util}.
+#+end_src
+#+begin_src go <<Import Pr.~\ref{pr:dr}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_src go <<Get taxon-ID, Pr.~\ref{pr:dr}>>=
+  tokens := flag.Args()
+  if len(tokens) != 2 {
+	  fmt.Fprintf(os.Stderr,
+		  "please provide a taxon-ID and a database\n")
+	  os.Exit(0)
+  }
+  tid, err := strconv.Atoi(tokens[0])
+  if err != nil {
+	  log.Fatalf("couldn't convert %q", tokens[0])
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{fmt}, \ty{os}, \ty{strconv}, and \ty{log}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
   "fmt"
   "os"
+  "strconv"
+  "log"
+#+end_src
+#+begin_src latex
+  The database name is the second token.
+#+end_src
+#+begin_src go <<Get database name, Pr.~\ref{pr:dr}>>=
+  dbname := tokens[1]
 #+end_src
 #+begin_src latex
   We open a connection to the taxonomy database and calculate the
   taxonomy tree from it.
 #+end_src
 #+begin_src go <<Construct taxonomy, Pr.~\ref{pr:dr}>>=
-  taxdb := tdb.OpenTaxonomyDB(files[0])
+  taxdb := tdb.OpenTaxonomyDB(dbname)
   taxonomy := taxdb.NewTaxonomy()
 #+end_src
 #+begin_src latex
@@ -108,23 +173,105 @@
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
-  The input files are parsed using the function \ty{clio.ParseFiles},
-  which takes as argument the function \ty{scan}. In turn, \ty{scan}
-  takes the database connection, the taxonomy, and the names option as
-  arguments.
+  We get the subtree we're looking for.
 #+end_src
-#+begin_src go <<Parse input files, Pr.~\ref{pr:dr}>>=
-  clio.ParseFiles(files, scan, taxdb, taxonomy, *optS)
+#+begin_src go <<Get subtree, Pr.~\ref{pr:dr}>>=
+  subtree := taxonomy[tid]
 #+end_src
 #+begin_src latex
-  Inside \ty{scan} we retrieve the arguments we just passed. Then
-  we read the taxon-IDs and draw the trees.
+  We annotate each node, $v$, of our subtree with two kinds of
+  information: whether or not $v$ has at least one genome associated
+  with it, and whether or not $v$ has at least one genome in the subtree
+  rooted on it. The actual annotation is done through a recursive
+  traversal of the subtree implemented in the function
+  \ty{annotateSubtree}.
+#+end_src
+#+begin_src go <<Annotate subtree, Pr.~\ref{pr:dr}>>=
+  hasGenome := make(map[int]bool)
+  hasGsub := make(map[int]bool)
+  annotateSubtree(subtree, taxdb, hasGenome, hasGsub)
+#+end_src
+#+begin_src latex
+  Inside \ty{annotateSubtree} we traverse the tree from the leaves
+  upwards and annotate each node.
 #+end_src
 #+begin_src go <<Functions, Pr.~\ref{pr:dr}>>=
-  func scan(r io.Reader, args ...interface{}) {
-	  //<<Retrieve arguments, Pr.~\ref{pr:dr}>>
-	  //<<Read taxon-IDs, Pr.~\ref{pr:dr}>>
-	  //<<Draw trees, Pr.~\ref{pr:dr}>>
+  func annotateSubtree(v *tax.Node, taxdb *tdb.TaxonomyDB,
+	  hasGenome, hasGsub map[int]bool) {
+	  if v == nil { return }
+	  annotateSubtree(v.Child, taxdb, hasGenome, hasGsub)
+	  annotateSubtree(v.Sib, taxdb, hasGenome, hasGsub)
+	  //<<Annotate node, Pr.~\ref{pr:dr}>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{tax} and \ty{tdb}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+  "github.com/evolbioinf/neighbors/tax"
+  "github.com/evolbioinf/neighbors/tdb"
+#+end_src
+#+begin_src latex
+  We check whether the current node has one or more genomes (replicons)
+  associated with it. If so, we mark its as having a genome and as
+  having a genome in its subtree. Having a genome in the subtree is a
+  property that propagates up the tree.
+#+end_src
+#+begin_src go <<Annotate node, Pr.~\ref{pr:dr}>>=
+  if len(taxdb.Replicons(v.ID)) > 0 {
+	  hasGenome[v.ID] = true
+	  hasGsub[v.ID] = true
+  }
+  if v.Parent != nil && hasGsub[v.ID] {
+	  hasGsub[v.Parent.ID] = true
+  }
+#+end_src
+#+begin_src latex
+  We draw the header and footer of the graph, and the actual subtree
+  sandwiched in between. The subtree is written to a buffer so we can
+  sort the lines it contains before printing them to achieve
+  reproducible output.
+#+end_src
+#+begin_src go <<Draw subtree, Pr.~\ref{pr:dr}>>=
+  fmt.Printf("digraph g {\n")
+  //<<Construct buffer, Pr.~\ref{pr:dr}>>
+  //<<Iterate over nodes in subtree, Pr.~\ref{pr:dr}>>
+  //<<Print buffer, Pr.~\ref{pr:dr}>>
+  fmt.Printf("}\n")
+#+end_src
+#+begin_src latex
+  We construct our output with a string builder.
+#+end_src
+#+begin_src go <<Construct buffer, Pr.~\ref{pr:dr}>>=
+  w := new(strings.Builder)
+#+end_src
+#+begin_src latex
+  We import \ty{strings}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+  "strings"
+#+end_src
+#+begin_src latex
+  We delegate the traversal of the subtree to the recursive function
+  \ty{traverseSubtree}. Inside that function we plan to print all
+  parent/child pairs, except for that of the root, so we start at its
+  child node.
+#+end_src
+#+begin_src go <<Iterate over nodes in subtree, Pr.~\ref{pr:dr}>>=
+  traverseSubtree(w, subtree.Child, hasGenome, hasGsub, *optN, *optG)
+#+end_src
+#+begin_src latex
+  Inside \ty{traverseSubtree}, we print the current node and its
+  parent.
+#+end_src
+#+begin_src go <<Functions, Pr.~\ref{pr:dr}>>=
+  func traverseSubtree(w io.Writer, v *tax.Node,
+	  hasGenome, hasGsub map[int]bool,
+	  optN, optG bool) {
+	  if v == nil { return }
+	  //<<Print child/parent pair, Pr.~\ref{pr:dr}>>
+	  traverseSubtree(w, v.Child, hasGenome, hasGsub, optN, optG)
+	  traverseSubtree(w, v.Sib, hasGenome, hasGsub, optN, optG)
   }
 #+end_src
 #+begin_src latex
@@ -134,76 +281,128 @@
   "io"
 #+end_src
 #+begin_src latex
-  We retrieve the three arguments passed, the database connection, the
-  taxonomy, and the name argument.
+  For a given node, $v$, we print the pair $(\mbox{parent}(v),v)$, if
+  one of two conditions holds. Either the user did not restrict the
+  output to genomes-only, or the user did make this restriction and $v$
+  has a genome in its subtree. We print the edge between the two taxa
+  and delegate the printing of the parent and child to \ty{printNode}.
 #+end_src
-#+begin_src go <<Retrieve arguments, Pr.~\ref{pr:dr}>>=
-  taxdb := args[0].(*tdb.TaxonomyDB)
-  taxonomy := args[1].(tax.Taxonomy)
-  optS := args[2].(bool)
-#+end_src
-#+begin_src latex
-  We import \ty{tdb}, and \ty{tax}.
-#+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
-  "github.com/evolbioinf/neighbors/tdb"
-  "github.com/evolbioinf/neighbors/tax"
-#+end_src
-#+begin_src latex
-  We read the taxon-IDs and store them in a slice of integers.
-#+end_src
-#+begin_src go <<Read taxon-IDs, Pr.~\ref{pr:dr}>>=
-  var taxa []int
-  sc := bufio.NewScanner(r)
-  for sc.Scan() {
-	  s := sc.Text()
-	  if s == "" || s[0] == '#' { continue }
-	  i, err := strconv.Atoi(s)
-	  if err != nil {
-		  log.Fatalf("couldn't convert %q", s)
-	  }
-	  taxa = append(taxa, i)
+#+begin_src go <<Print child/parent pair, Pr.~\ref{pr:dr}>>=
+  p := v.Parent
+  if !optG || (optG && hasGsub[v.ID]) {
+	  fmt.Fprintf(w, "\t%d -> %d\n", p.ID, v.ID)
+	  printNode(w, v, hasGenome[v.ID], optN)
+	  printNode(w, p, hasGenome[p.ID], optN)
   }
 #+end_src
 #+begin_src latex
-  We import \ty{bufio}, \ty{strconv}, and \ty{log}.
+  If a node has a genome attached, it is colored. If, in addition, the 
+  user opted for names, we print that of the current taxon.
+#+end_src
+#+begin_src go <<Functions, Pr.~\ref{pr:dr}>>=
+  func printNode(w io.Writer, v *tax.Node,
+	  hasGenome, withName bool) {
+	  t1 := "\t%d [color=\"lightsalmon\",style=filled]\n"
+	  t2 := "\t%d [label=\"%s\"]\n"
+	  if hasGenome {
+		  fmt.Fprintf(w, t1, v.ID)
+	  }
+	  if withName {
+		  fmt.Fprintf(w, t2, v.ID, v.Name)
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We split the builder into lines, sort them, and print the sorted lines.
+#+end_src
+#+begin_src go <<Print buffer, Pr.~\ref{pr:dr}>>=
+  strings := strings.Split(w.String(), "\n")
+  sort.Strings(strings)
+  for _, string := range strings {
+	  if len(string) > 0 {
+		  fmt.Printf("%s\n", string)
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{sort}.
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
-  "bufio"
+  "sort"
+#+end_src
+#+begin_src latex
+  We've finished writing \ty{dree}, now we test it.
+
+  \subsection*{Testing}
+  Our outline for testing \ty{dree} contains hooks for imports and the
+  testing logic.
+#+end_src
+#+begin_src go <<dree_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr.~\ref{pr:dr}>>
+  )
+
+  func TestDree(t *testing.T) {
+	  //<<Testing, Pr.~\ref{pr:dr}>>
+  }
+#+end_src
+#+begin_src latex
+  We construct tests and run them in a loop.
+#+end_src
+#+begin_src go <<Testing, Pr.~\ref{pr:dr}>>=
+  var tests []*exec.Cmd
+  //<<Construct tests, Pr.~\ref{pr:dr}>>
+  for i, test := range tests {
+	  //<<Run test, Pr.~\ref{pr:dr}>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{exec}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:dr}>>=
+  "os/exec"
+#+end_src
+#+begin_src latex
+  In our tests, we draw the \emph{Homininae} which have taxon-ID
+  207598. First with no options, then with names, and finally with
+  genomes.
+#+end_src
+#+begin_src go <<Construct tests, Pr.~\ref{pr:dr}>>=
+  n := "207598"
+  d := "../data/tax.db"
+  test := exec.Command("./dree", n, d)
+  tests = append(tests, test)
+  test = exec.Command("./dree", "-n", n, d)
+  tests = append(tests, test)
+  test = exec.Command("./dree", "-g", n, d)
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  For each test we compare the output we get with the output we want,
+  which is contained in \ty{r1.dot}, \ty{r2.dot}, and \ty{r3.dot}.
+#+end_src
+#+begin_src go <<Run test, Pr.~\ref{pr:dr}>>=
+  get, err := test.Output()
+  if err != nil {
+	  t.Errorf("couldn't run %q", test)
+  }
+  f := "r" + strconv.Itoa(i+1) + ".dot"
+  want, err := ioutil.ReadFile(f)
+  if err != nil {
+	  t.Errorf("couldn't open %q", f)
+  }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s", get, want)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:dr}>>=
   "strconv"
-  "log"
-#+end_src
-#+begin_src latex
-  We draw the header and footer of the graph. Sandwiched between them is
-  a subtree for every taxon. We iterate over the children of the subtree
-  and for each print the parent/child pair.
-#+end_src
-#+begin_src go <<Draw trees, Pr.~\ref{pr:dr}>>=
-  fmt.Printf("digraph g {\n")
-  for _, taxon := range taxa {
-	  sub := taxonomy.Subtree(taxon)[1:]
-	  for _, c := range sub {
-		  p := taxonomy[c].Parent.ID
-		  fmt.Printf("%d -> %d\n", p, c)
-		  //<<Print parent/child pair, Pr.~\ref{pr:dr}>>
-	  }
-  }
-  fmt.Printf("}\n")
-#+end_src
-#+begin_src latex
-  We print the parent and the child using the same pattern.
-#+end_src
-#+begin_src go <<Print parent/child pair, Pr.~\ref{pr:dr}>>=
-  v := c
-  //<<Print node, Pr.~\ref{pr:dr}>>
-  v = p
-  //<<Print node, Pr.~\ref{pr:dr}>>
-#+end_src
-#+begin_src go <<Print node, Pr.~\ref{pr:dr}>>=
-  if optS {
-	  fmt.Printf("%d [label=\"%s\"]\n", v, taxonomy[v].Name)
-  }
-  if len(taxdb.Replicons(v)) > 0 {
-	  fmt.Printf("%d [color=\"lightsalmon\",style=filled]\n", v)
-  }
+  "io/ioutil"
+  "bytes"
 #+end_src

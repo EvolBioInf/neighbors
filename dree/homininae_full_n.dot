@@ -1,0 +1,91 @@
+digraph g {
+	9598 -> 37010
+	37010 [label="Pan troglodytes schweinfurthii"]
+	9598 [color="lightsalmon",style=filled]
+	9598 [label="Pan troglodytes"]
+	9598 -> 91950
+	91950 [label="Pan troglodytes vellerosus"]
+	9598 [color="lightsalmon",style=filled]
+	9598 [label="Pan troglodytes"]
+	9598 -> 37011
+	37011 [label="Pan troglodytes troglodytes"]
+	9598 [color="lightsalmon",style=filled]
+	9598 [label="Pan troglodytes"]
+	9598 -> 37012
+	37012 [color="lightsalmon",style=filled]
+	37012 [label="Pan troglodytes verus"]
+	9598 [color="lightsalmon",style=filled]
+	9598 [label="Pan troglodytes"]
+	9598 -> 756884
+	756884 [label="Pan troglodytes ellioti"]
+	9598 [color="lightsalmon",style=filled]
+	9598 [label="Pan troglodytes"]
+	9598 -> 1294088
+	1294088 [label="Pan troglodytes verus x troglodytes"]
+	9598 [color="lightsalmon",style=filled]
+	9598 [label="Pan troglodytes"]
+	9596 -> 9597
+	9597 [color="lightsalmon",style=filled]
+	9597 [label="Pan paniscus"]
+	9596 [label="Pan"]
+	9596 -> 9598
+	9598 [color="lightsalmon",style=filled]
+	9598 [label="Pan troglodytes"]
+	9596 [label="Pan"]
+	2665952 -> 2665953
+	2665953 [label="Homo sapiens environmental sample"]
+	2665952 [label="environmental samples"]
+	9606 -> 741158
+	741158 [label="Homo sapiens subsp. 'Denisova'"]
+	9606 [color="lightsalmon",style=filled]
+	9606 [label="Homo sapiens"]
+	9606 -> 63221
+	63221 [label="Homo sapiens neanderthalensis"]
+	9606 [color="lightsalmon",style=filled]
+	9606 [label="Homo sapiens"]
+	9605 -> 1425170
+	1425170 [label="Homo heidelbergensis"]
+	9605 [label="Homo"]
+	9605 -> 9606
+	9606 [color="lightsalmon",style=filled]
+	9606 [label="Homo sapiens"]
+	9605 [label="Homo"]
+	9605 -> 2665952
+	2665952 [label="environmental samples"]
+	9605 [label="Homo"]
+	499232 -> 1159185
+	1159185 [label="Gorilla beringei beringei"]
+	499232 [label="Gorilla beringei"]
+	499232 -> 46359
+	46359 [label="Gorilla beringei graueri"]
+	499232 [label="Gorilla beringei"]
+	9593 -> 183511
+	183511 [label="Gorilla gorilla uellensis"]
+	9593 [color="lightsalmon",style=filled]
+	9593 [label="Gorilla gorilla"]
+	9593 -> 406788
+	406788 [label="Gorilla gorilla diehli"]
+	9593 [color="lightsalmon",style=filled]
+	9593 [label="Gorilla gorilla"]
+	9593 -> 9595
+	9595 [color="lightsalmon",style=filled]
+	9595 [label="Gorilla gorilla gorilla"]
+	9593 [color="lightsalmon",style=filled]
+	9593 [label="Gorilla gorilla"]
+	9592 -> 9593
+	9593 [color="lightsalmon",style=filled]
+	9593 [label="Gorilla gorilla"]
+	9592 [label="Gorilla"]
+	9592 -> 499232
+	499232 [label="Gorilla beringei"]
+	9592 [label="Gorilla"]
+	207598 -> 9592
+	9592 [label="Gorilla"]
+	207598 [label="Homininae"]
+	207598 -> 9605
+	9605 [label="Homo"]
+	207598 [label="Homininae"]
+	207598 -> 9596
+	9596 [label="Pan"]
+	207598 [label="Homininae"]
+}

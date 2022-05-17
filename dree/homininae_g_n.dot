@@ -1,0 +1,37 @@
+digraph g {
+	9593 -> 9595
+	9595 [color="lightsalmon",style=filled]
+	9595 [label="Gorilla gorilla gorilla"]
+	9593 [color="lightsalmon",style=filled]
+	9593 [label="Gorilla gorilla"]
+	9592 -> 9593
+	9593 [color="lightsalmon",style=filled]
+	9593 [label="Gorilla gorilla"]
+	9592 [label="Gorilla"]
+	9605 -> 9606
+	9606 [color="lightsalmon",style=filled]
+	9606 [label="Homo sapiens"]
+	9605 [label="Homo"]
+	9598 -> 37012
+	37012 [color="lightsalmon",style=filled]
+	37012 [label="Pan troglodytes verus"]
+	9598 [color="lightsalmon",style=filled]
+	9598 [label="Pan troglodytes"]
+	9596 -> 9597
+	9597 [color="lightsalmon",style=filled]
+	9597 [label="Pan paniscus"]
+	9596 [label="Pan"]
+	9596 -> 9598
+	9598 [color="lightsalmon",style=filled]
+	9598 [label="Pan troglodytes"]
+	9596 [label="Pan"]
+	207598 -> 9596
+	9596 [label="Pan"]
+	207598 [label="Homininae"]
+	207598 -> 9605
+	9605 [label="Homo"]
+	207598 [label="Homininae"]
+	207598 -> 9592
+	9592 [label="Gorilla"]
+	207598 [label="Homininae"]
+}
