@@ -231,7 +231,6 @@ n       137730    Facklamia ignava                                  -
 n       171412    Eremococcus                                       -
 n       171413    Dolosicoccus                                      -
 n       178214    Facklamia hominis                                 -
-n       186827    Aerococcaceae                                     -
 n       189669    environmental samples                             -
 n       189670    uncultured Globicatella sp.                       -
 n       189673    environmental samples                             -

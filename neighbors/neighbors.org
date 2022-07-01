@@ -218,7 +218,7 @@
   }
 #+end_src
 #+begin_src latex
-  Nodes that are not targets must be neighbors.
+  Nodes that are not targets or \ty{mrcaA} must be neighbors.
 #+end_src
 #+begin_src go <<Subtract targets from the nodes, Pr.~\ref{pr:neig}>>=
   sort.Ints(targets)
@@ -226,7 +226,9 @@
   for _, node := range nodes {
 	  i := sort.SearchInts(targets, node)
 	  if !(i < l && node == targets[i]) {
-		  neighbors = append(neighbors, node)
+		  if node != mrcaA {
+			  neighbors = append(neighbors, node)
+		  }
 	  }
   }
 #+end_src

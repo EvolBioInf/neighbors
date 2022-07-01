@@ -154,7 +154,7 @@
   done
 #+end_src
 #+begin_src latex
-  Now se search for the neighbors of taxon-IDs 1376 and 866775.
+  Now we search for the neighbors of taxon-IDs 1376 and 866775.
 #+end_src
 #+begin_src sh <<query.sh>>=
   printf "1376\n866775\n" | neighbors tax.db
@@ -167,7 +167,6 @@
   t       1376      Aerococcus urinae         CP014161|CP065662
   t       866775    Aerococcus urinae ACS     CP002512
   tt      1216979   Aerococcus urinae NBRC    -
-  n       1375      Aerococcus                -
   n       1377      Aerococcus viridans       CP014164
   n       51665     Aerococcus urinaeequi     CP013988|CP014162|CP063065
   n       79233     Aerococcus sp. LV65.5:W1  -

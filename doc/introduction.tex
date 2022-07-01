@@ -15,9 +15,10 @@ that we have a mapping from taxon-IDs to genome accessions. Let taxa 7
 and 4 be our targets. Then we look up the most recent common ancestor
 of 4 and 7, which is 3. This would imply that 6 also belongs to the
 target set. The neighbors are the nodes in the subtree rooted on 3's
-parent, that is, taxa 8 through 11. Notice that we look up all nodes
-in a subtree, not just the leaves, as we cannot assume that genome
-sequences are only associated with taxa in terminal nodes.
+parent, that is, the five taxa 2, 8, 9, 10, and 11. Notice that we
+look up all nodes in a subtree minus its root, not just the leaves, as
+we cannot assume that genome sequences are only associated with taxa
+in terminal nodes.
 
 \begin{figure}
 \begin{center}

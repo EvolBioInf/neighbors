@@ -4,7 +4,6 @@
 tt      1376      Aerococcus urinae                                 chromosome:NZ_CP014161.1/CP014161.1|chromosome:NZ_CP065662.1/CP065662.1
 t       866775    Aerococcus urinae ACS-120-V-Col10a                chromosome:NC_015278.1/CP002512.1
 t       1216979   Aerococcus urinae NBRC 15544 = CCUG 36881         -
-n       1375      Aerococcus                                        -
 n       1377      Aerococcus viridans                               chromosome:NZ_CP014164.1/CP014164.1
 n       51665     Aerococcus urinaeequi                             chromosome:NZ_CP013988.1/CP013988.1|chromosome:NZ_CP014162.1/CP014162.1|chromosome:NZ_CP063065.1/CP063065.1; plasmid pT4302:NZ_CP063066.1/CP063066.1; plasmid pT4303:NZ_CP063067.1/CP063067.1
 n       79233     Aerococcus sp. LV65.5:W1                          -

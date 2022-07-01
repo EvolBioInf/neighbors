@@ -2,5 +2,4 @@
 # MRCA(targets+neighbors): 1376, Aerococcus urinae
 # Type  Taxon-ID  Name                                       Genomes
 t       866775    Aerococcus urinae ACS-120-V-Col10a         chromosome:NC_015278.1/CP002512.1
-n       1376      Aerococcus urinae                          chromosome:NZ_CP014161.1/CP014161.1|chromosome:NZ_CP065662.1/CP065662.1
 n       1216979   Aerococcus urinae NBRC 15544 = CCUG 36881  -
