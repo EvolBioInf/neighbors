@@ -72,7 +72,7 @@
   We parse the options and respond to \ty{-v} as this stops
   \ty{neighbors}. The remaining tokes on the command line are taken as
   file names, the first of which is the mandatory database. If it isn't
-  provided, we kindly request it. Then we construct the taxonomy and
+  provided, we kindly request it. Then we open the taxonomy database and
   remove the database name from the list of input files.
 #+end_src
 #+begin_src go <<Parse options, Pr.~\ref{pr:neig}>>=
@@ -86,7 +86,7 @@
 		  "please provide a database name\n")
 	  os.Exit(0)
   }
-  //<<Construct taxonomy, Pr.~\ref{pr:neig}>>
+  //<<Open taxonomy database, Pr.~\ref{pr:neig}>>
   files = files[1:]
 #+end_src
 #+begin_src latex
@@ -98,12 +98,10 @@
   "os"
 #+end_src
 #+begin_src latex
-  We open a connection to the taxonomy database and calculate the
-  taxonomy tree from it.
+  We open a connection to the taxonomy database.
 #+end_src
-#+begin_src go <<Construct taxonomy, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Open taxonomy database, Pr.~\ref{pr:neig}>>=
   taxdb := tdb.OpenTaxonomyDB(files[0])
-  taxonomy := taxdb.NewTaxonomy()
 #+end_src
 #+begin_src latex
   We import \ty{tdb}.
@@ -114,23 +112,22 @@
 #+begin_src latex
   The input files are parsed using the function \ty{clio.ParseFiles},
   which takes as argument the function \ty{parse}. In turn, \ty{parse}
-  takes the database connection, the taxonomy, and the genomes option as
-  arguments.
+  takes the database connection, and the genomes option as arguments.
 #+end_src
 #+begin_src go <<Parse input files, Pr.~\ref{pr:neig}>>=
-  clio.ParseFiles(files, parse, taxdb, taxonomy, *optG)
+  clio.ParseFiles(files, parse, taxdb, *optG)
 #+end_src
 #+begin_src latex
-  Inside \ty{parse}, we retrieve the arguments just passed. Then we read
-  the taxon-IDs and compute two new sets of taxon-IDs, the targets, and
-  the neighbors. For each element of these sets we also look up the
-  genome accessions. Then we print the combined result.
+  Inside \ty{parse}, we retrieve the taxonomy database and the genomes
+  option. Then we read the taxon-IDs and compute two new sets of
+  taxon-IDs, the targets, and the neighbors. For each element of these
+  sets we also look up the genome accessions. Then we print the combined
+  result.
 #+end_src
 #+begin_src go <<Functions, Pr.~\ref{pr:neig}>>=
   func parse(r io.Reader, args ...interface{}) {
 	  taxdb := args[0].(*tdb.TaxonomyDB)
-	  taxonomy := args[1].(tax.Taxonomy)
-	  optG := args[2].(bool)
+	  optG := args[1].(bool)
 	  //<<Read taxon-IDs, Pr.~\ref{pr:neig}>>
 	  //<<Compute targets, Pr.~\ref{pr:neig}>>
 	  //<<Compute neighbors, Pr.~\ref{pr:neig}>>
@@ -139,11 +136,10 @@
   }
 #+end_src
 #+begin_src latex
-  We import \ty{io} and \ty{tax}.
+  We import \ty{io}.
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
   "io"
-  "github.com/evolbioinf/neighbors/tax"
 #+end_src
 #+begin_src latex
   We read the taxon-IDs as a slice of integers from the input file. We
@@ -173,12 +169,16 @@
 #+begin_src latex
   The targets are nodes of the subtree of the most recent common
   ancestor of the taxon-IDs we just read. We call this MRCA the
-  target-MRCA, \ty{mrcaT}. We also make a map of the new targets we've
-  found.
+  target-MRCA, \ty{mrcaT}, and calculate it from the partial taxonomy of
+  the targets. The subtree rooted on the \ty{mrcaT} contains the
+  complete set of targets. This complete set of targets might contain
+  new targets not contained in the taxa submitted. We mark these new
+  targets.
 #+end_src
 #+begin_src go <<Compute targets, Pr.~\ref{pr:neig}>>=
+  taxonomy := taxdb.NewTaxonomy(taxa)
   mrcaT := taxonomy.MRCA(taxa)
-  targets := taxonomy.Subtree(mrcaT)
+  targets := taxdb.Subtree(mrcaT)
   //<<Mark new targets, Pr.~\ref{pr:neig}>>
 #+end_src
 #+begin_src latex
@@ -212,8 +212,8 @@
   var neighbors []int
   mrcaA := mrcaT
   for len(neighbors) == 0 {
-	  mrcaA = taxonomy[mrcaA].Parent.ID
-	  nodes := taxonomy.Subtree(mrcaA)
+	  mrcaA = taxdb.Parent(mrcaA)
+	  nodes := taxdb.Subtree(mrcaA)
 	  //<<Subtract targets from the nodes, Pr.~\ref{pr:neig}>>
   }
 #+end_src
@@ -257,8 +257,8 @@
   flush at the end.
 #+end_src
 #+begin_src go <<Print result, Pr.~\ref{pr:neig}>>=
-  mrcaTname := taxonomy[mrcaT].Name
-  mrcaAname := taxonomy[mrcaA].Name
+  mrcaTname := taxdb.Name(mrcaT)
+  mrcaAname := taxdb.Name(mrcaA)
   fmt.Printf("# MRCA(targets): %d, %s\n", mrcaT, mrcaTname)
   fmt.Printf("# MRCA(targets+neighbors): %d, %s\n", mrcaA, mrcaAname)
   w := new(tabwriter.Writer)
@@ -290,7 +290,7 @@
 	  }
 	  if optG && g == "-" { continue }
 	  fmt.Fprintf(w, "%s\t%d\t%s\t%s\n", t, target,
-		  taxonomy[target].Name, g)
+		  taxdb.Name(target), g)
   }
 #+end_src
 #+begin_src latex
@@ -311,7 +311,7 @@
 		  g = strings.Join(genomes[neighbor], "|")
 	  }
 	  if optG && g == "-" { continue }
-	  n := taxonomy[neighbor].Name
+	  n := taxdb.Name(neighbor)
 	  fmt.Fprintf(w, "n\t%d\t%s\t%s\n", neighbor, n, g)
   }
 #+end_src
