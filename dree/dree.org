@@ -160,11 +160,15 @@
 #+end_src
 #+begin_src latex
   We open a connection to the taxonomy database and calculate the
-  taxonomy tree from it.
+  taxonomy tree from it. The taxonomy tree is the subtree rooted on the
+  taxon supplied. Since the taxonomy returned by \ty{NewTaxonomy}
+  reaches up to the root, we truncate it at the supplied taxon.
 #+end_src
 #+begin_src go <<Construct taxonomy, Pr.~\ref{pr:dr}>>=
   taxdb := tdb.OpenTaxonomyDB(dbname)
-  taxonomy := taxdb.NewTaxonomy()
+  taxa := taxdb.Subtree(tid)
+  taxonomy := taxdb.NewTaxonomy(taxa)
+  taxonomy[tid].Parent = nil
 #+end_src
 #+begin_src latex
   We import \ty{tdb}.
