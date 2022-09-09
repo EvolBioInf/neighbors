@@ -290,7 +290,8 @@
 	  }
 	  if optG && g == "-" { continue }
 	  fmt.Fprintf(w, "%s\t%d\t%s\t%s\n", t, target,
-		  taxdb.Name(target), g)
+		  taxdb.Name(target),
+		  strings.TrimPrefix(g, " "))
   }
 #+end_src
 #+begin_src latex
@@ -312,7 +313,8 @@
 	  }
 	  if optG && g == "-" { continue }
 	  n := taxdb.Name(neighbor)
-	  fmt.Fprintf(w, "n\t%d\t%s\t%s\n", neighbor, n, g)
+	  fmt.Fprintf(w, "n\t%d\t%s\t%s\n", neighbor, n,
+		  strings.TrimPrefix(g, " "))
   }
 #+end_src
 #+begin_src latex
