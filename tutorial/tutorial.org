@@ -23,7 +23,7 @@
 #+begin_src latex
   This generates nine files, of which we use two, \ty{nodes.dmp} with
   the nodes of the taxonomic tree, and \ty{names.dmp} with the taxon
-  names. We construct the taxonomy database \ty{tax.db} by running
+  names. We construct the taxonomy database, \ty{tax.db}, by running
   \ty{makeNeiDb} in default mode. This takes less than a minute.
 #+end_src
 #+begin_src sh <<construct.sh>>=
@@ -31,12 +31,12 @@
 #+end_src
 #+begin_src latex
   \section*{Query Database}
-  The next step is to find the taxon-IDs for our target organisms. Say,
-  our target organism is \emph{Aerococcus urinae}. We look at the
-  database diagram in Figure~\ref{fig:tax} and construct a query for the
-  the names of all taxa starting with \emph{Aerococcus urinae} that also
-  have sequenced genomes, or replicons. Missing replicons are marked by
-  dashes in the database.
+  The next step is to find the taxon-IDs for our target organism or
+  target organisms. Say, our target organism is \emph{Aerococcus
+  urinae}. We look at the database diagram in Figure~\ref{fig:tax} and
+  construct a query for the the names of all taxa starting with
+  \emph{Aerococcus urinae} that also have sequenced genomes, or
+  replicons. Missing replicons are marked by dashes in the database.
 #+end_src
 #+begin_src sh <<query.sh>>=
   sqlite tax.db \
@@ -97,13 +97,14 @@
   the subtrees rooted on these taxa. Let's draw the tree rooted on 1375,
   the ancestor we just discovered through our SQL query
   (Table~\ref{tab:au1}). By default, \ty{dree} labels nodes with
-  taxon-IDs, but we request names (\ty{-n}). Also, by default, \ty{dree}
-  draws the full tree, but this happens to be very large (feel free to
-  try), so we reduce it to the taxa with sequenced genomes
+  taxon-IDs, but we request names (\ty{-n}) instead. Also, by default,
+  \ty{dree} draws the full tree, but this happens to be very large (feel
+  free to try), so we reduce it to the taxa with sequenced genomes
   (\ty{-g}). The tree itself is drawn with the \ty{dot} program, which
   is part of the \ty{graphviz} package. Figure~\ref{fig:auTaxTree} shows
   that the taxonomic neighborhood of \emph{A. urinae} includes a few
-  more taxa with sequenced genomes than we had seen with our SQL query.
+  more taxa with sequenced genomes than we had already seen with our SQL
+  query.
 #+end_src
 #+begin_src sh <<query.sh>>=
   printf "1375\n" | dree -n -g tax.db | dot -T x11
@@ -168,7 +169,7 @@
   t       866775    Aerococcus urinae ACS     CP002512
   tt      1216979   Aerococcus urinae NBRC    -
   n       1377      Aerococcus viridans       CP014164
-  n       51665     Aerococcus urinaeequi     CP013988|CP014162|CP063065
+  n       51665     Aerococcus urinqeequi     CP013988|CP014162|...
   n       79233     Aerococcus sp. LV65.5:W1  -
   n       87541     Aerococcus christensenii  CP014159
   n       119206    Aerococcus sanguinicola   CP014160

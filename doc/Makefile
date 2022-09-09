@@ -11,7 +11,7 @@ neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2)
 	ps2pdf -dALLOWPSTRANSPARENCY neighborsDoc.ps
 
 makeNeiDb.tex: ../makeNeiDb/makeNeiDb.org 
-	bash ../scripts/org2nw ../makeNeiDb/makeNeiDb.org | noweave -n -x > makeNeiDb.tex
+	bash ../scripts/org2nw ../makeNeiDb/makeNeiDb.org | noweave -n -x | sed 's/_test/\\_test/g' > makeNeiDb.tex
 neighbors.tex: ../neighbors/neighbors.org
 	bash ../scripts/org2nw ../neighbors/neighbors.org | noweave -n -x  | sed 's/_test/\\_test/g' > neighbors.tex
 dree.tex: ../dree/dree.org

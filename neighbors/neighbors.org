@@ -4,7 +4,7 @@
   taxonomy-IDs. It finds their most recent common ancestor, and from
   there calculates two new sets of taxon-IDs, the complete set of
   targets, which comprises at least the input taxa, and the
-  neighbors. For each of taxon in these two sets it also returns the
+  neighbors. For each taxon in these two sets it also returns the
   accessions of the corresponding genome sequences.
 
   \subsection*{Implementation}
@@ -55,7 +55,7 @@
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  Apart from the version, we declare only one option, to restrict the
+  Apart from the version, we declare only the option to restrict the
   output to taxa with genomes.
 #+end_src
 #+begin_src go <<Declare options, Pr.~\ref{pr:neig}>>=
@@ -70,7 +70,7 @@
 #+end_src
 #+begin_src latex
   We parse the options and respond to \ty{-v} as this stops
-  \ty{neighbors}. The remaining tokes on the command line are taken as
+  \ty{neighbors}. The remaining token on the command line are taken as
   file names, the first of which is the mandatory database. If it isn't
   provided, we kindly request it. Then we open the taxonomy database and
   remove the database name from the list of input files.
@@ -112,7 +112,7 @@
 #+begin_src latex
   The input files are parsed using the function \ty{clio.ParseFiles},
   which takes as argument the function \ty{parse}. In turn, \ty{parse}
-  takes the database connection, and the genomes option as arguments.
+  takes the database connection and the genomes option as arguments.
 #+end_src
 #+begin_src go <<Parse input files, Pr.~\ref{pr:neig}>>=
   clio.ParseFiles(files, parse, taxdb, *optG)
@@ -203,10 +203,10 @@
 #+end_src
 #+begin_src latex
   The neighbors are the nodes in the subtree of the parent of the
-  target-MRCA, minus the targets. We call the parent of the target-MRC
-  the analysis-MRCA, \ty{mrcaA}. If the analysis-MRCA has no nodes
-  other than the target(s), we keep moving it up the tree until we've
-  found at least one neighbor.
+  target-MRCA, minus the targets and the parent. We call the parent of
+  the target-MRC the analysis-MRCA, \ty{mrcaA}. If the analysis-MRCA has
+  no nodes other than the target(s), we keep moving it up the tree until
+  we've found at least one neighbor.
 #+end_src
 #+begin_src go <<Compute neighbors, Pr.~\ref{pr:neig}>>=
   var neighbors []int
@@ -249,7 +249,7 @@
 
 #+begin_src latex
   We start the results section with the taxon-IDs and scientific names
-  of the most recent common ancestors of the targets and of the while
+  of the most recent common ancestors of the targets and of the whole
   analysis, that is, the MRCA of the targets and neighbors
   combined. Then we print a table of results consisting of four columns:
   the taxon type---neighbor or target, the taxon-ID, taxon name, and the

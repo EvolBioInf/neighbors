@@ -1,13 +1,13 @@
 #+begin_src latex
   \section{\ty{dree}} 
-    The program \ty{dree} takes as input a taxon-ID and the name of the taxonomy
-    database. It returns the subtree rooted on the focal taxon. The
-    tree is written in the dot language ready for rendering with \ty{dot},
-    which is part of the graphviz package. For example, we can draw the
-    tree for the \emph{Homininae}, taxon-ID 207598, which include human,
-    chimp, and gorilla. By default, \ty{dree} labels taxa with their
-    IDs, but with \ty{-n} we get names instead. Taxa with sequenced genomes
-    are colored.
+    The program \ty{dree} takes as input a taxon-ID and the name of the
+    taxonomy database. It returns the subtree rooted on the focal
+    taxon. The subtree is written in the dot language ready for
+    rendering with \ty{dot}, which is part of the graphviz package. For
+    example, we can draw the tree for the \emph{Homininae}, taxon-ID
+    207598, which include human, chimp, and gorilla. By default,
+    \ty{dree} labels taxa with their IDs, but with \ty{-n} we get names
+    instead. Taxa with sequenced genomes are colored.
   \begin{verbatim}
   $ ./dree -n 207598 tax.db | dot -T x11
   \end{verbatim}
@@ -162,7 +162,7 @@
   We open a connection to the taxonomy database and calculate the
   taxonomy tree from it. The taxonomy tree is the subtree rooted on the
   taxon supplied. Since the taxonomy returned by \ty{NewTaxonomy}
-  reaches up to the root, we truncate it at the supplied taxon.
+  reaches up to the root, we truncate it at the taxon supplied.
 #+end_src
 #+begin_src go <<Construct taxonomy, Pr.~\ref{pr:dr}>>=
   taxdb := tdb.OpenTaxonomyDB(dbname)
@@ -317,7 +317,7 @@
   }
 #+end_src
 #+begin_src latex
-  We split the builder into lines, sort them, and print the sorted lines.
+  We split the buffer into lines, sort them, and print the sorted lines.
 #+end_src
 #+begin_src go <<Print buffer, Pr.~\ref{pr:dr}>>=
   strings := strings.Split(w.String(), "\n")

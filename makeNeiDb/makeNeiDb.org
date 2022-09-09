@@ -98,5 +98,87 @@
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
-  We are done with \ty{makeNeiDb}.
+  We are done with \ty{makeNeiDb}, time to test it.
+
+  \subsection*{Testing}
+  The outline for testing \ty{makeNeiDb} has hooks for imports and the
+  testing logic.
 #+end_src
+#+begin_src go <<makeNeiDb_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr.~\ref{pr:db}>>
+  )
+
+  func TestMakeNeiDb(t *testing.T) {
+	  //<<Testing, Pr.~\ref{pr:db}>>
+  }
+#+end_src
+#+begin_src latex
+  We construct a set of tests and them in a loop.
+#+end_src
+#+begin_src go <<Testing, Pr.~\ref{pr:db}>>=
+  var tests []*exec.Cmd
+  //<<Construct tests, Pr.~\ref{pr:db}>>
+  for i, test := range tests {
+	  //<<Run test, Pr.~\ref{pr:db}>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{exec}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:db}>>=
+  "os/exec"
+#+end_src
+#+begin_src latex
+  We construct a small database.
+#+end_src
+#+begin_src go <<Construct tests, Pr.~\ref{pr:db}>>=
+  test := exec.Command("./makeNeiDb",
+	  "-a", "../data/namesTest.dmp",
+	  "-d", "test.db",
+	  "-e", "../data/eukaryotes.txt",
+	  "-i", "../data/viruses.txt",
+	  "-o", "../data/nodesTest.dmp",
+	  "-p", "../data/prokaryotes.txt")
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  Now we query the new database.
+#+end_src
+#+begin_src go <<Construct tests, Pr.~\ref{pr:db}>>=
+  test = exec.Command("/usr/bin/sqlite3",
+	  "test.db",
+	  "select * from taxon order by taxid")
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  We run the test and compare the result we get with the result we
+  want. The results we want are contained in files \ty{r1.txt} and
+  \ty{r2.txt}.
+#+end_src
+#+begin_src go <<Run test, Pr.~\ref{pr:db}>>=
+  get, err := test.Output()
+  if err != nil {
+	  t.Errorf("couldn't run %q", test)
+  }
+  f := "r" + strconv.Itoa(i + 1) + ".txt"
+  want, err := ioutil.ReadFile(f)
+  if err != nil {
+	  t.Errorf("couldn't open %q", f)
+  }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:db}>>=
+  "strconv"
+  "io/ioutil"
+  "bytes"
+#+end_src
+

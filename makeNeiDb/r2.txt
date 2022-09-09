@@ -1,0 +1,9 @@
+1|1|root
+2|1|Viruses
+3|1|cellular organisms
+4|3|Bacteria
+5|3|Archaea
+6|3|Eukaryota
+7|5|Euryarchaeota
+8|2|Plasmaviridae
+9|2|Fuselloviridae

@@ -7,7 +7,7 @@ unique across the board. The program \ty{fur} implements this idea,
 and markers constructed from its output have excellent specificity and
 sensifivity~\cite{hau21:fur}.
 
-To use \ty{fur}, users need to know the neighbors of their
+Users of \ty{fur} need to know the neighbors of their
 targets. But how can neighbors be discovered, if they aren't already
 known? To answer this question, consider the toy taxonomy in
 Figure~\ref{fig:tax}, where the numbers are taxon-IDs. We also assume
@@ -30,9 +30,9 @@ in terminal nodes.
 To put this a bit more formally, let $m$ be the most recent common
 ancestor of the targets. Their neighbors, $\mathcal{N}$, are then
 computed by subtracting the nodes in $m$'s subtree from the nodes in
-its parent's subtree
+its parent's subtree, minus the parent
 \begin{equation}\label{eq:nei}
-\mathcal{N} = s(p(m)) - s(m),
+\mathcal{N} = s(p(m)) - s(m) - p(m),
 \end{equation}
 where $s(v)$ returns the nodes in the subtree rooted on $v$, and
 $p(v)$ the parent of $v$. This set subtraction is implemented in the
@@ -41,7 +41,8 @@ program \ty{neighbors}.
 \ty{neighbors} is centered on an \ty{sqlite}
 database that combines taxonomy and genome information. The database
 is built using the program \ty{makeNeiDb}, which is based on the
-packages \ty{tdb}, \ty{tax}, and \ty{util}, also part of the module.
+packages \ty{tdb}, \ty{tax}, and \ty{util}, which are also part of the
+\ty{neighbors} module.
 
 Let's call the central database \ty{taxonomyDb}; as shown in
 Figure~\ref{fig:db}, \ty{taxonomyDb} consists of two
