@@ -8,7 +8,7 @@ neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2)
 	latex neighborsDoc.tex
 	latex neighborsDoc.tex
 	dvips neighborsDoc -o -q
-	ps2pdf neighborsDoc.ps
+	ps2pdf -dALLOWPSTRANSPARENCY neighborsDoc.ps
 
 makeNeiDb.tex: ../makeNeiDb/makeNeiDb.org 
 	bash ../scripts/org2nw ../makeNeiDb/makeNeiDb.org | noweave -n -x > makeNeiDb.tex

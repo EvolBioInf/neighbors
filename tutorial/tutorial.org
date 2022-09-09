@@ -77,7 +77,7 @@
       \begin{tabular}{ccl}
 	\hline
 	Taxon & Parent & Name\\\hline
-	\input{../tutorial/au1}
+	\input{../tutorial/au1}\\
 	\hline
       \end{tabular}
     \end{center}
@@ -134,7 +134,7 @@
       \begin{tabular}{ccll}
       \hline
       Taxon & Parent & Name & Genome\\\hline
-      \input{../tutorial/au2}
+      \input{../tutorial/au2}\\
       \hline
       \end{tabular}
     \end{center}
