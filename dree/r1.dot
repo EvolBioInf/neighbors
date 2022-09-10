@@ -12,9 +12,6 @@ digraph g {
 	9593 -> 406788
 	9593 -> 9595
 	9593 [color="lightsalmon",style=filled]
-	9593 [color="lightsalmon",style=filled]
-	9593 [color="lightsalmon",style=filled]
-	9593 [color="lightsalmon",style=filled]
 	9595 [color="lightsalmon",style=filled]
 	9596 -> 9597
 	9596 -> 9598
@@ -26,18 +23,10 @@ digraph g {
 	9598 -> 756884
 	9598 -> 91950
 	9598 [color="lightsalmon",style=filled]
-	9598 [color="lightsalmon",style=filled]
-	9598 [color="lightsalmon",style=filled]
-	9598 [color="lightsalmon",style=filled]
-	9598 [color="lightsalmon",style=filled]
-	9598 [color="lightsalmon",style=filled]
-	9598 [color="lightsalmon",style=filled]
 	9605 -> 1425170
 	9605 -> 2665952
 	9605 -> 9606
 	9606 -> 63221
 	9606 -> 741158
-	9606 [color="lightsalmon",style=filled]
-	9606 [color="lightsalmon",style=filled]
 	9606 [color="lightsalmon",style=filled]
 }

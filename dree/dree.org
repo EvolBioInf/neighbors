@@ -258,11 +258,10 @@
 #+begin_src latex
   We delegate the traversal of the subtree to the recursive function
   \ty{traverseSubtree}. Inside that function we plan to print all
-  parent/child pairs, except for that of the root, so we start at its
-  child node.
+  parent/child pairs.
 #+end_src
 #+begin_src go <<Iterate over nodes in subtree, Pr.~\ref{pr:dr}>>=
-  traverseSubtree(w, subtree.Child, hasGenome, hasGsub, *optN, *optG)
+  traverseSubtree(w, subtree, hasGenome, hasGsub, *optN, *optG)
 #+end_src
 #+begin_src latex
   Inside \ty{traverseSubtree}, we print the current node and its
@@ -285,36 +284,54 @@
   "io"
 #+end_src
 #+begin_src latex
-  For a given node, $v$, we print the pair $(\mbox{parent}(v),v)$, if
-  one of two conditions holds. Either the user did not restrict the
-  output to genomes-only, or the user did make this restriction and $v$
-  has a genome in its subtree. We print the edge between the two taxa
-  and delegate the printing of the parent and child to \ty{printNode}.
+  For a given node, $v$, we first check it isn't the subtree's root, in
+  which case it has no parent. Otherwise, we print the pair
+  $(\mbox{parent}(v),v)$, if one of two conditions holds. Either the
+  user did not restrict the output to genomes-only, or the user did make
+  this restriction and $v$ has a genome in its subtree. We print the
+  edge between the two taxa and delegate the printing of the attributes
+  of $v$ to \ty{printAttr}.
 #+end_src
 #+begin_src go <<Print child/parent pair, Pr.~\ref{pr:dr}>>=
   p := v.Parent
-  if !optG || (optG && hasGsub[v.ID]) {
+  if p != nil && (!optG || (optG && hasGsub[v.ID])) {
 	  fmt.Fprintf(w, "\t%d -> %d\n", p.ID, v.ID)
-	  printNode(w, v, hasGenome[v.ID], optN)
-	  printNode(w, p, hasGenome[p.ID], optN)
+  }
+  printAttr(w, v, hasGenome[v.ID], optN)
+#+end_src
+#+begin_src latex
+  If the user did not ask for any attributes, we do nothing. Otherwise
+  we print the node ID followed by the genome attribute and the name
+  attribute.
+#+end_src
+#+begin_src go <<Functions, Pr.~\ref{pr:dr}>>=
+  func printAttr(w io.Writer, v *tax.Node, g, n bool) {
+	  if !g && !n { return }
+	  fmt.Fprintf(w, "\t%d [", v.ID)
+	  if g {
+		  //<<Print genome attribute, Pr.~\ref{pr:dr}>>
+	  }
+	  if n {
+		  //<<Print name attribute, Pr.~\ref{pr:dr}>>
+	  }
+	  fmt.Fprintf(w, "]\n")
   }
 #+end_src
 #+begin_src latex
-  If a node has a genome attached, it is colored. If, in addition, the 
-  user opted for names, we print that of the current taxon.
+  Genomes are colored ``lightsalmon''.
 #+end_src
-#+begin_src go <<Functions, Pr.~\ref{pr:dr}>>=
-  func printNode(w io.Writer, v *tax.Node,
-	  hasGenome, withName bool) {
-	  t1 := "\t%d [color=\"lightsalmon\",style=filled]\n"
-	  t2 := "\t%d [label=\"%s\"]\n"
-	  if hasGenome {
-		  fmt.Fprintf(w, t1, v.ID)
-	  }
-	  if withName {
-		  fmt.Fprintf(w, t2, v.ID, v.Name)
-	  }
+#+begin_src go <<Print genome attribute, Pr.~\ref{pr:dr}>>=
+  fmt.Fprintf(w, "color=\"lightsalmon\",style=filled")
+#+end_src
+#+begin_src latex
+  We print the name, which we separate from the color---if present---by
+  a color.
+#+end_src
+#+begin_src go <<Print name attribute, Pr.~\ref{pr:dr}>>=
+  if g {
+	  fmt.Fprintf(w, ",")
   }
+  fmt.Fprintf(w, "label=\"%s\"", v.Name)
 #+end_src
 #+begin_src latex
   We split the buffer into lines, sort them, and print the sorted lines.
