@@ -284,54 +284,34 @@
   "io"
 #+end_src
 #+begin_src latex
-  For a given node, $v$, we first check it isn't the subtree's root, in
-  which case it has no parent. Otherwise, we print the pair
-  $(\mbox{parent}(v),v)$, if one of two conditions holds. Either the
-  user did not restrict the output to genomes-only, or the user did make
-  this restriction and $v$ has a genome in its subtree. We print the
-  edge between the two taxa and delegate the printing of the attributes
-  of $v$ to \ty{printAttr}.
+  We print a node , $v$, if one of two conditions holds. Either the user
+  did not restrict the output to genomes-only, or the user did make this
+  restriction and $v$ has a genome in its subtree. If one of these two
+  conditions holds and $v$ has a parent, $p$, we also print the pair
+  $(v,p)$ with connecting edge.
 #+end_src
 #+begin_src go <<Print child/parent pair, Pr.~\ref{pr:dr}>>=
-  p := v.Parent
-  if p != nil && (!optG || (optG && hasGsub[v.ID])) {
-	  fmt.Fprintf(w, "\t%d -> %d\n", p.ID, v.ID)
-  }
-  printAttr(w, v, hasGenome[v.ID], optN)
-#+end_src
-#+begin_src latex
-  If the user did not ask for any attributes, we do nothing. Otherwise
-  we print the node ID followed by the genome attribute and the name
-  attribute.
-#+end_src
-#+begin_src go <<Functions, Pr.~\ref{pr:dr}>>=
-  func printAttr(w io.Writer, v *tax.Node, g, n bool) {
-	  if !g && !n { return }
-	  fmt.Fprintf(w, "\t%d [", v.ID)
-	  if g {
-		  //<<Print genome attribute, Pr.~\ref{pr:dr}>>
+  if !optG || (optG && hasGsub[v.ID]) {
+	  //<<Print node, Pr.~\ref{pr:dr}>>
+	  p := v.Parent
+	  if p != nil {
+		  fmt.Fprintf(w, "\t%d -> %d\n", p.ID, v.ID)
 	  }
-	  if n {
-		  //<<Print name attribute, Pr.~\ref{pr:dr}>>
-	  }
-	  fmt.Fprintf(w, "]\n")
   }
 #+end_src
 #+begin_src latex
-  Genomes are colored ``lightsalmon''.
+  If the node has a genome attached, or the user asked for names, we
+  print an attribute line for $v$. Genomes are colored ``lightsalmon''. 
 #+end_src
-#+begin_src go <<Print genome attribute, Pr.~\ref{pr:dr}>>=
-  fmt.Fprintf(w, "color=\"lightsalmon\",style=filled")
-#+end_src
-#+begin_src latex
-  We print the name, which we separate from the color---if present---by
-  a color.
-#+end_src
-#+begin_src go <<Print name attribute, Pr.~\ref{pr:dr}>>=
-  if g {
-	  fmt.Fprintf(w, ",")
+#+begin_src go <<Print node, Pr.~\ref{pr:dr}>>=
+  t1 := "\t%d [color=\"lightsalmon\",style=filled]\n"
+  t2 := "\t%d [label=\"%s\"]\n"
+  if hasGenome[v.ID] {
+	  fmt.Fprintf(w, t1, v.ID)
   }
-  fmt.Fprintf(w, "label=\"%s\"", v.Name)
+  if optN {
+	  fmt.Fprintf(w, t2, v.ID, v.Name)
+  }
 #+end_src
 #+begin_src latex
   We split the buffer into lines, sort them, and print the sorted lines.
