@@ -1,0 +1,234 @@
+#+begin_src latex
+  \section{\ty{ants}}
+  Given a taxon-ID, \ty{ants} returns the ancestor. It can also return
+  \emph{all} ancestors.
+
+  \subsection*{Implementation}
+  The program \ty{ants} contains hooks for imports and the logic of the
+  main function.
+  \bpr{ants}{pr:ant}
+#+end_src
+#+begin_src go <<ants.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr.~\ref{pr:ant}>>
+  )
+
+  func main() {
+	  //<<Main function, Pr.~\ref{pr:ant}>>
+  }
+#+end_src
+#+begin_src latex
+  \epr
+  In the main function we set the usage, declare the options, parse the
+  options, get the ancestors, and print them.
+#+end_src
+#+begin_src go <<Main function, Pr.~\ref{pr:ant}>>=
+  //<<Set usage, Pr.~\ref{pr:ant}>>
+  //<<Declare options, Pr.~\ref{pr:ant}>>
+  //<<Parse options, Pr.~\ref{pr:ant}>>
+  //<<Get ancestors, Pr.~\ref{pr:ant}>>
+  //<<Print ancestors, Pr.~\ref{pr:ant}>>
+#+end_src
+#+begin_src latex
+  The usage consists of the actual usage message, an explanation of the
+  purpose of \ty{ants}, and an example command.
+#+end_src
+#+begin_src go <<Set usage, Pr.~\ref{pr:ant}>>=
+  u := "ants [option] <taxon-ID> <db>"
+  p := "Get a taxon's ancestor or all of its ancestors."
+  e := "ants -a 9606 tax.db"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_src latex
+  We import \ty{clio}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_src latex
+  Apart from the version option, we declare the option for printing all
+  ancestors.
+#+end_src
+#+begin_src go <<Declare options, Pr.~\ref{pr:ant}>>=
+  var optV = flag.Bool("v", false, "version")
+  var optA = flag.Bool("a", false, "all ancestors")
+#+end_src 
+#+begin_src latex
+  We import \ty{flag}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+  "flag"
+#+end_src
+#+begin_src latex
+  We parse the options and respond to \ty{-v} as this might stop the
+  program. Then we extract the remaining arguments, check there are two
+  of them, and store the taxon-ID and the database.
+#+end_src
+#+begin_src go <<Parse options, Pr.~\ref{pr:ant}>>=
+  flag.Parse()
+  if *optV {
+	  util.PrintInfo("ants")
+  }
+  args := flag.Args()
+  //<<Check arguments, Pr.~\ref{pr:ant}>>
+  tid, err := strconv.Atoi(args[0])
+  if err != nil { log.Fatal(err) }
+  db := args[1]
+#+end_src
+#+begin_src latex
+  We import \ty{util}, \ty{strconv}, and \ty{log}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+  "github.com/evolbioinf/neighbors/util"
+  "strconv"
+  "log"
+#+end_src
+#+begin_src latex
+  If the user didn't submit two arguments, something is bound to have
+  gone wrong and we bail with a friendly message.
+#+end_src
+#+begin_src go <<Check arguments, Pr.~\ref{pr:ant}>>=
+  if len(args) != 2 {
+	  m := "please provide a taxon and a database"
+	  fmt.Fprintf(os.Stderr, "%s\n", m)
+	  os.Exit(-1)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{fmt} and \ty{os}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+  "fmt"
+  "os"
+#+end_src
+#+begin_src latex
+  We open a database connection and get the first ancestor. If the user
+  opted to see all ancestors, we also get the remaining ancestors.
+#+end_src
+#+begin_src go <<Get ancestors, Pr.~\ref{pr:ant}>>=
+  taxdb := tdb.OpenTaxonomyDB(db)
+  //<<Get first ancestor, Pr.~\ref{pr:ant}>>
+  if *optA {
+	  //<<Get remaining ancestors, Pr.~\ref{pr:ant}>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{tdb}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+  "github.com/evolbioinf/neighbors/tdb"
+#+end_src
+#+begin_src latex
+  We store the input taxon and get its first ancestor.
+#+end_src
+#+begin_src go <<Get first ancestor, Pr.~\ref{pr:ant}>>=
+  var ants []int
+  ants = append(ants, tid)
+  a := taxdb.Parent(tid)
+  ants = append(ants, a)
+#+end_src
+#+begin_src latex
+  We climb towards the root to collect the remaining ancestors.
+#+end_src
+#+begin_src go <<Get remaining ancestors, Pr.~\ref{pr:ant}>>=
+  tid = a
+  a = taxdb.Parent(tid)	
+  for tid != a {
+	  ants = append(ants, a)
+	  tid = a
+	  a = taxdb.Parent(tid)
+  }
+#+end_src
+#+begin_src latex
+  We print the ancestors starting with the most remote. To make the
+  result look nice, we print a table and lay it out with a
+  \ty{tabwriter}.
+#+end_src
+#+begin_src go <<Print ancestors, Pr.~\ref{pr:ant}>>=
+  w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
+  defer w.Flush()
+  fmt.Fprintf(w, "# Back\tID\tName\n")
+  for i := len(ants) - 1; i >= 0; i-- {
+	  a := ants[i]
+	  n := taxdb.Name(a)
+	  fmt.Fprintf(w, "  %d\t%d\t%s\n", i, a, n)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{tabwriter}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+  "text/tabwriter"
+#+end_src
+#+begin_src latex
+  We have finished \ty{ants}, so let's test it.
+  \subsection*{Testing}
+  The program for testing \ty{ants} has hooks for imports and for the
+  testing logic.
+#+end_src
+#+begin_src go <<ants_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr.~\ref{pr:ant}>>
+  )
+
+  func TestAnts(t *testing.T) {
+	  //<<Testing, Pr.~\ref{pr:ant}>>
+  }
+#+end_src
+#+begin_src latex
+  We construct a set of tests and iterate over them.
+#+end_src
+#+begin_src go <<Testing, Pr.~\ref{pr:ant}>>=
+  var tests []*exec.Cmd
+  //<<Construct tests, Pr.~\ref{pr:ant}>>
+  for i, test := range tests {
+	  //<<Run test, Pr.~\ref{pr:ant}>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{exec}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:ant}>>=
+  "os/exec"
+#+end_src
+#+begin_src latex
+  We run \ty{ants} starting from \emph{Homo sapiens} (9606), first with
+  only a single ancestor, then with all ancestors.
+#+end_src
+#+begin_src go <<Construct tests, Pr.~\ref{pr:ant}>>=
+  tid := "9606"
+  db := "../data/tax.db"
+  test := exec.Command("./ants", tid, db)
+  tests = append(tests, test)
+  test = exec.Command("./ants", "-a", tid, db)
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  When running a test, we compare the result we get with the result we
+  want. The results we want are contained in \ty{r1.txt} and
+  \ty{r2.txt}.
+#+end_src
+#+begin_src go <<Run test, Pr.~\ref{pr:ant}>>=
+  get, err := test.Output()
+  if err != nil { t.Error(err) }
+  f := "r" + strconv.Itoa(i + 1) + ".txt"
+  want, err := ioutil.ReadFile(f)
+  if err != nil { t.Error(err) }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:ant}>>=
+  "strconv"
+  "io/ioutil"
+  "bytes"
+#+end_src
+

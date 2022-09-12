@@ -10,6 +10,7 @@ doc/*.log
 doc/neighborsDoc.pdf
 doc/neighborsDoc.ps
 doc/*.toc
+doc/ants.tex
 doc/dree.tex
 doc/makeNeiDb.tex
 doc/neighbors.tex
@@ -20,11 +21,13 @@ doc/tutorial.tex
 doc/util.tex
 
 # Programs
+ants/ants
+dree/dree
 makeNeiDb/makeNeiDb
 makeNeiDb/test.db
 neighbors/neighbors
 neighbors/makeRes.sh
-dree/dree
+taxi/taxi
 
 # Misc
 dree/makeRes.sh
