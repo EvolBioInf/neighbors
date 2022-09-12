@@ -830,6 +830,54 @@
   }
 #+end_src
 #+begin_src latex
+  \subsection{\ty{Taxids}}
+  Given a taxon name, \ty{Taxids} returns the corresponding
+  taxon-IDs. We construct and execute the query for taxon-IDS, extract
+  the IDs, and return them.
+#+end_src
+#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+  // Taxids matches the name of a taxon and returns the corresponding
+  // taxon-IDs.
+  func (t *TaxonomyDB) Taxids(name string) []int {
+	  taxids := make([]int, 0)
+	  //<<Construct taxids query, Pa.~\ref{pa:tdb}>>
+	  //<<Execute taxids query, Pa.~\ref{pa:tdb}>>
+	  //<<Extract taxids, Pa.~\ref{pa:tdb}>>
+	  return taxids
+  }
+#+end_src
+#+begin_src latex
+  We construct the query for taxon-IDs.
+#+end_src
+#+begin_src go <<Construct taxids query, Pa.~\ref{pa:tdb}>>=
+  q := "select taxid from taxon where name like '%s'"
+  q = fmt.Sprintf(q, name)
+#+end_src
+#+begin_src latex
+  We execute the query for taxon-IDs and catch potential errors. We also
+  make sure the result table is eventually closed again.
+#+end_src
+#+begin_src go <<Execute taxids query, Pa.~\ref{pa:tdb}>>=
+  rows , err := t.db.Query(q)
+  if err != nil {
+	  log.Fatal(err)
+  }
+  defer rows.Close()
+#+end_src
+#+begin_src latex
+  We extract and store the taxon-IDs.
+#+end_src
+#+begin_src go <<Extract taxids, Pa.~\ref{pa:tdb}>>=
+  taxid := 0
+  for rows.Next() {
+	  err = rows.Scan(&taxid)
+	  if err != nil {
+		  log.Fatal(err)
+	  }
+	  taxids = append(taxids, taxid)
+  }
+#+end_src
+#+begin_src latex
   \subsection{Testing}
   The outline of our code for testing \ty{tdb} has a hook for the
   testing logic.
@@ -848,7 +896,7 @@
 #+begin_src latex
   We test the function \ty{NewTaxonomyDB}, and the methods
   \ty{NewTaxonomy}, \ty{Replicons}, \ty{Name}, \ty{Parent},
-  \ty{Children}, and \ty{Subtree}.
+  \ty{Children}, \ty{Subtree}, and \ty{Taxids}.
 #+end_src
 #+begin_src go <<Testing, Pa.~\ref{pa:tdb}>>=
   //<<Test \ty{NewTaxonomyDB}, Pa.~\ref{pa:tdb}>>
@@ -858,6 +906,7 @@
   //<<Test \ty{Parent}, Pa.~\ref{pa:tdb}>>
   //<<Test \ty{Children}, Pa.~\ref{pa:tdb}>>
   //<<Test \ty{Subtree}, Pa.~\ref{pa:tdb}>>
+  //<<Test \ty{Taxids}, Pa.~\ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   We build a small database, \ty{taxSmall.db}.
@@ -978,3 +1027,17 @@
 	  t.Errorf("get %d nodes in subtree; want %d", g, w)
   }
 #+end_src
+#+begin_src latex
+  To test \ty{Taxids}, we get the ten taxa whose names contain
+  \emph{homo sapiens}. Notice the lower-case ``h'' in \emph{homo}, which
+  SQL matches to the upper-case ``H'' in the actual names.
+#+end_src
+#+begin_src go <<Test \ty{Taxids}, Pa.~\ref{pa:tdb}>>=
+  w = 10
+  taxa = taxdb.Taxids("%homo sapiens%")
+  g = len(taxa)
+  if g != w {
+	  t.Errorf("get %d taxa for homo sapiens; want %d", g, w)
+  }
+#+end_src
+
