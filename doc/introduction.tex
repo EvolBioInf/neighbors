@@ -61,15 +61,18 @@ declare an explicit primary key on that table.
   \caption{Diagram of \ty{taxonomyDb}.}\label{fig:db}
 \end{figure}
 
-Once the database is constructed, we can query it. For example, we
-can list the taxon-IDs associated with \emph{Aerococcus urinae}.
+Once the database is constructed, we can query it. A typical
+investigation would start from the target organism of interest,
+say \emph{Aerococcus urinae}. The first thing we'd need is its
+taxon-ID. We get this using the program \ty{taxi}, which is also part
+of \ty{neighbors}.
 \begin{verbatim}
-$ sqlite taxonomyDb \
-  "select taxid, name from genome where name like 'Aerococcus urinae%'"
+$ taxi -s "Aerococcus urinae"
 \end{verbatim}
 Next, the program \ty{dree} can draw the taxonomic tree rooted on a
-taxon. Finally, we can submit the taxa of interes to \ty{neighbors},
-which finds their closest neighbors and the associates genome
-sequences. The Tutorial shows how the
-programs \ty{makeNeiDb}, \ty{dree}, and \ty{neighbors} can be used to
-discover diagnostic regions.
+taxon. The program \ty{ants} lets us walk in the opposite direction,
+from a taxon to its ancestors. Finally, we can submit the taxa of
+interes to \ty{neighbors}, which finds their closest neighbors and the
+associates genome sequences. The Tutorial shows how the
+programs \ty{makeNeiDb}, \ty{taxi}, \ty{dree}, \ty{ants},
+and \ty{neighbors} can be used to discover diagnostic regions.

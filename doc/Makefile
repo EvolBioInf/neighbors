@@ -1,4 +1,4 @@
-SRC1 =   makeNeiDb.tex neighbors.tex dree.tex tax.tex tdb.tex tutorial.tex util.tex
+SRC1 =   makeNeiDb.tex taxi.tex neighbors.tex dree.tex tax.tex tdb.tex tutorial.tex util.tex
 SRC2 =   header.tex introduction.tex neighborsDoc.tex
 
 all: neighborsDoc.pdf
@@ -12,6 +12,8 @@ neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2)
 
 makeNeiDb.tex: ../makeNeiDb/makeNeiDb.org 
 	bash ../scripts/org2nw ../makeNeiDb/makeNeiDb.org | noweave -n -x | sed 's/_test/\\_test/g' > makeNeiDb.tex
+taxi.tex: ../taxi/taxi.org 
+	bash ../scripts/org2nw ../taxi/taxi.org | noweave -n -x | sed 's/_test/\\_test/g' > taxi.tex
 neighbors.tex: ../neighbors/neighbors.org
 	bash ../scripts/org2nw ../neighbors/neighbors.org | noweave -n -x  | sed 's/_test/\\_test/g' > neighbors.tex
 dree.tex: ../dree/dree.org

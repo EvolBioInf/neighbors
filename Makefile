@@ -1,4 +1,4 @@
-progs = makeNeiDb neighbors dree
+progs = makeNeiDb taxi neighbors dree
 packs = tax util tdb # Order matters
 
 all:
