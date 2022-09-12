@@ -1,11 +1,11 @@
-# ID     Parent   Name
-1383439  1002697  Homo sapiens/Mus musculus xenograft
-1849111  1002697  Homo sapiens x Cricetulus griseus hybrid cell line
-1035824  2603576  Trichuris sp. ex Homo sapiens JP-2011
-741158   9606     Homo sapiens subsp. 'Denisova'
-1131344  1002697  Homo sapiens x Mus musculus hybrid cell line
-2665953  2665952  Homo sapiens environmental sample
-9606     9605     Homo sapiens
-63221    9606     Homo sapiens neanderthalensis
-2045059  1002697  Homo sapiens x Rattus norvegicus fusion cell line
-1573476  1002697  Homo sapiens/Rattus norvegicus xenograft
+# ID       Parent   Name
+  1383439  1002697  Homo sapiens/Mus musculus xenograft
+  1849111  1002697  Homo sapiens x Cricetulus griseus hybrid cell line
+  1035824  2603576  Trichuris sp. ex Homo sapiens JP-2011
+  741158   9606     Homo sapiens subsp. 'Denisova'
+  1131344  1002697  Homo sapiens x Mus musculus hybrid cell line
+  2665953  2665952  Homo sapiens environmental sample
+  9606     9605     Homo sapiens
+  63221    9606     Homo sapiens neanderthalensis
+  2045059  1002697  Homo sapiens x Rattus norvegicus fusion cell line
+  1573476  1002697  Homo sapiens/Rattus norvegicus xenograft

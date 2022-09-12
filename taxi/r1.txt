@@ -1,2 +1,2 @@
-# ID  Parent  Name
-9606  9605    Homo sapiens
+# ID    Parent  Name
+  9606  9605    Homo sapiens

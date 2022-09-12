@@ -40,7 +40,7 @@
   explanation of the purpose of \ty{taxi}, and an example command.
 #+end_src
 #+begin_src go <<Set usage, Pr.~\ref{pr:tax}>>=
-  u := "taxi <scientific-name> <db>"
+  u := "taxi [option] <scientific-name> <db>"
   p := "Take user from scientific name to taxon-ID."
   e := "taxi \"homo sapiens\" tax.db"
   clio.Usage(u, p, e)
@@ -134,7 +134,7 @@
   for _, taxon := range taxa {
 	  name := taxdb.Name(taxon)
 	  p := taxdb.Parent(taxon)
-	  fmt.Fprintf(w, "%d\t%d\t%s\n", taxon, p, name)
+	  fmt.Fprintf(w, "  %d\t%d\t%s\n", taxon, p, name)
   }
 #+end_src
 #+begin_src latex
@@ -197,19 +197,18 @@
 #+end_src
 #+begin_src go <<Run test, Pr.~\ref{pr:tax}>>=
   get, err := test.Output()
-  if err != nil { log.Fatal(err) }
+  if err != nil { t.Error(err) }
   f := "r" + strconv.Itoa(i + 1) + ".txt"
   want, err := ioutil.ReadFile(f)
-  if err != nil { log.Fatal(err) }
+  if err != nil { t.Error(err) }
   if !bytes.Equal(get, want) {
 	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
   }
 #+end_src
 #+begin_src latex
-  We import \ty{log}, \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
+  We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
 #+end_src
 #+begin_src go <<Testing imports, Pr.~\ref{pr:tax}>>=
-  "log"
   "strconv"
   "io/ioutil"
   "bytes"
