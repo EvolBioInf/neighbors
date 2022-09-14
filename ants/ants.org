@@ -1,7 +1,6 @@
 #+begin_src latex
   \section{\ty{ants}}
-  Given a taxon-ID, \ty{ants} returns the ancestor. It can also return
-  \emph{all} ancestors.
+  Given a taxon-ID, \ty{ants} returns all ancestors.
 
   \subsection*{Implementation}
   The program \ty{ants} contains hooks for imports and the logic of the
@@ -38,7 +37,7 @@
 #+begin_src go <<Set usage, Pr.~\ref{pr:ant}>>=
   u := "ants [option] <taxon-ID> <db>"
   p := "Get a taxon's ancestor or all of its ancestors."
-  e := "ants -a 9606 tax.db"
+  e := "ants 9606 tax.db"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -48,12 +47,10 @@
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  Apart from the version option, we declare the option for printing all
-  ancestors.
+  There's only one option, the version.
 #+end_src
 #+begin_src go <<Declare options, Pr.~\ref{pr:ant}>>=
   var optV = flag.Bool("v", false, "version")
-  var optA = flag.Bool("a", false, "all ancestors")
 #+end_src 
 #+begin_src latex
   We import \ty{flag}.
@@ -104,14 +101,20 @@
   "os"
 #+end_src
 #+begin_src latex
-  We open a database connection and get the first ancestor. If the user
-  opted to see all ancestors, we also get the remaining ancestors.
+  We open a database connection and store the taxon-ID as the first
+  ``ancestor''.  Then we get its parent. As long as the parent differs
+  from the current taxon, we haven't yet reached the root and keep
+  climbing.
 #+end_src
 #+begin_src go <<Get ancestors, Pr.~\ref{pr:ant}>>=
   taxdb := tdb.OpenTaxonomyDB(db)
-  //<<Get first ancestor, Pr.~\ref{pr:ant}>>
-  if *optA {
-	  //<<Get remaining ancestors, Pr.~\ref{pr:ant}>>
+  var ants []int
+  ants = append(ants, tid)
+  a := taxdb.Parent(tid)
+  for tid != a {
+	  ants = append(ants, a)
+	  tid = a
+	  a = taxdb.Parent(tid)
   }
 #+end_src
 #+begin_src latex
@@ -119,27 +122,6 @@
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
   "github.com/evolbioinf/neighbors/tdb"
-#+end_src
-#+begin_src latex
-  We store the input taxon and get its first ancestor.
-#+end_src
-#+begin_src go <<Get first ancestor, Pr.~\ref{pr:ant}>>=
-  var ants []int
-  ants = append(ants, tid)
-  a := taxdb.Parent(tid)
-  ants = append(ants, a)
-#+end_src
-#+begin_src latex
-  We climb towards the root to collect the remaining ancestors.
-#+end_src
-#+begin_src go <<Get remaining ancestors, Pr.~\ref{pr:ant}>>=
-  tid = a
-  a = taxdb.Parent(tid)	
-  for tid != a {
-	  ants = append(ants, a)
-	  tid = a
-	  a = taxdb.Parent(tid)
-  }
 #+end_src
 #+begin_src latex
   We print the ancestors starting with the most remote. To make the
@@ -197,21 +179,18 @@
   "os/exec"
 #+end_src
 #+begin_src latex
-  We run \ty{ants} starting from \emph{Homo sapiens} (9606), first with
-  only a single ancestor, then with all ancestors.
+  A single test should suffice for now, for which we start from
+  \emph{Homo sapiens} (9606).
 #+end_src
 #+begin_src go <<Construct tests, Pr.~\ref{pr:ant}>>=
   tid := "9606"
   db := "../data/tax.db"
   test := exec.Command("./ants", tid, db)
   tests = append(tests, test)
-  test = exec.Command("./ants", "-a", tid, db)
-  tests = append(tests, test)
 #+end_src
 #+begin_src latex
-  When running a test, we compare the result we get with the result we
-  want. The results we want are contained in \ty{r1.txt} and
-  \ty{r2.txt}.
+  When running the test, we compare the result we get with the result we
+  want contained in \ty{r1.txt}.
 #+end_src
 #+begin_src go <<Run test, Pr.~\ref{pr:ant}>>=
   get, err := test.Output()
@@ -231,4 +210,3 @@
   "io/ioutil"
   "bytes"
 #+end_src
-
