@@ -122,16 +122,20 @@
 #+begin_src latex
   Table \ty{taxon} has the attributes \ty{taxid}, \ty{parent}, and
   \ty{name}. Taxon-IDs are integers, names are text. Taxon-IDs also
-  functions as primary key. As there are currently over two million
-  taxa, we index all three attributes to ensure quick queries.
+  functions as primary key. As there are currently 2.4 million taxa, and
+  this number is bound to grow, we ensure that queries are quick by
+  using indexes. The primary key, \ty{taxid}, is automatically indexed
+  and we might be tempted to index the remaining two attributes,
+  \ty{parent} and \ty{name}. However, \ty{sqlite} does not make use of
+  indexes on text columns. You can check this on an existing database by
+  prefacing a query with \ty{explain query plan}. Since creating an
+  index takes time, we have no time for an index that won't actually be
+  used, so we only index \ty{parent}.
 #+end_src
 #+begin_src go <<Construct table \ty{taxon}, Pa.~\ref{pa:tdb}>>=
   sqlStmt := `create table taxon (
   taxid int, parent int, name text, primary key(taxid));
-  create index taxon_taxid_idx on taxon(taxid);
-  create index taxon_parent_idx on taxon(parent);
-  create index taxon_name_idx on taxon(name);
-  `
+  create index taxon_parent_idx on taxon(parent);`
   if _, err := db.Exec(sqlStmt); err != nil {
 	  log.Fatal(err)
   }
@@ -140,14 +144,14 @@
   Table \ty{genome} has attributes \ty{taxid}, \ty{size}, and
   \ty{replicons}. To stress that every genome belongs to exactly one
   taxon, we declare \ty{taxid} as foreign key into \ty{taxon}. We also
-  index the taxon-ID.
+  index \ty{taxid} and \ty{size}.
 #+end_src
 #+begin_src go <<Construct table \ty{genome}, Pa.~\ref{pa:tdb}>>=
   sqlStmt = `create table genome (
   taxid int, size real, replicons text,
   foreign key(taxid) references taxon(taxid));
   create index genome_taxid_idx on genome(taxid);
-  `
+  create index genome_size_idx on genome(size);`
   if _, err := db.Exec(sqlStmt); err != nil {
 	  log.Fatal(err)
   }
