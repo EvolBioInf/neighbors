@@ -1,0 +1,236 @@
+#+begin_src latex
+  \section{\ty{lads}}
+  The program \ty{lads} labels the internal nodes of a Newick tree. This
+  makes it easy to subsequently pick individual clades in the tree with
+  \ty{pickle}.
+
+  \subsection*{Implementation}
+  \ty{lads} contains hooks for imports, functions, and the logic of the
+  main function.  \bpr{lads}{pr:lad}
+#+end_src
+#+begin_src go <<lads.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr.~\ref{pr:lad}>>
+  )
+  //<<Functions, Pr.~\ref{pr:lad}>>
+  func main() {
+	  //<<Main function, Pr.~\ref{pr:lad}>>
+  }
+#+end_src
+#+begin_src latex
+  \epr In the main function of \ty{lads} we set the usage, declare the
+  options, parse the options, and parse the input files.
+#+end_src
+#+begin_src go <<Main function, Pr.~\ref{pr:lad}>>=
+  //<<Set usage, Pr.~\ref{pr:lad}>>
+  //<<Declare options, Pr.~\ref{pr:lad}>>
+  //<<Parse options, Pr.~\ref{pr:lad}>>
+  //<<Parse input files, Pr.~\ref{pr:lad}>>
+#+end_src
+#+begin_src latex
+  The usage consists of the actual usage message, an explanation of the
+  purpose of \ty{lads}, and an example command.
+#+end_src
+#+begin_src go <<Set usage, Pr.~\ref{pr:lad}>>=
+  u := "lads [option]... [treeFile]..."
+  p := "Label the internal nodes in Newick trees."
+  e := "lads -p n foo.nwk"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_src latex
+  We import \ty{clio}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:lad}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_src latex
+  The user can request the version (\ty{-v}), set a label prefix
+  (\ty{-p}), or set a label suffix (\ty{-s}).
+#+end_src
+#+begin_src go <<Declare options, Pr.~\ref{pr:lad}>>=
+  var optV = flag.Bool("v", false, "version")
+  var optP = flag.String("p", "", "prefix")
+  var optS = flag.String("s", "", "suffix")
+#+end_src
+#+begin_src latex
+  We import \ty{flag}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:lad}>>=
+  "flag"
+#+end_src
+#+begin_src latex
+  We parse the options and respond to a request for the version, as this
+  would terminate the program.
+#+end_src
+#+begin_src go <<Parse options, Pr.~\ref{pr:lad}>>=
+  flag.Parse()
+  if *optV {
+	  util.PrintInfo("lads")
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{util}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:lad}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_src latex
+  The remaining tokens on the command line are interpreted as the names
+  of input files. These are the argument of the function
+  \ty{ParseFiles}. In addition, \ty{ParseFiles} takes as argument the
+  function \ty{parse}, which in turn takes as arguments the prefix and
+  the suffix.
+#+end_src
+#+begin_src go <<Parse input files, Pr.~\ref{pr:lad}>>=
+  files := flag.Args()
+  clio.ParseFiles(files, parse, *optP, *optS)
+#+end_src
+#+begin_src latex
+  Inside \ty{parse}, we retrieve the arguments we just passed and
+  iterate over the input file.
+#+end_src
+#+begin_src go <<Functions, Pr.~\ref{pr:lad}>>=
+  func parse(r io.Reader, args ...interface{}) {
+	  //<<Retrieve arguments, Pr.~\ref{pr:lad}>>
+	  //<<Iterate over input, Pr.~\ref{pr:lad}>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{io}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:lad}>>=
+  "io"
+#+end_src
+#+begin_src latex
+  We retrieve the prefix and the suffix.
+#+end_src
+#+begin_src go <<Retrieve arguments, Pr.~\ref{pr:lad}>>=
+  pr := args[0].(string)
+  su := args[1].(string)
+#+end_src
+#+begin_src latex
+  Nodes are labeled with numbers starting from 1, so we declare a
+  counter and initialize it to 1. We use a scanner to iterate over the
+  lines of the input file and print each line, unless it is
+  commented-out with a hashtag.
+#+end_src
+#+begin_src go <<Iterate over input, Pr.~\ref{pr:lad}>>=
+  c := 1
+  sc := bufio.NewScanner(r)
+  for sc.Scan() {
+	  bytes := sc.Bytes()
+	  if bytes[0] != '#' {
+		  //<<Print line, Pr.~\ref{pr:lad}>>
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{bufio}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:lad}>>=
+  "bufio"
+#+end_src
+#+begin_src latex
+  We print every bye in the input. Internal nodes are terminated by a
+  closing parenthesis, which is followed by an optional label. So
+  whenever we encounter a closing parenthesis, we construct the label
+  and print it in double quotes. The label consists of the prefix, a
+  counter that we increment, and the suffix. We terminate each line by a
+  carriage return.
+#+end_src
+#+begin_src go <<Print line, Pr.~\ref{pr:lad}>>=
+  for _, b := range bytes {
+	  fmt.Printf("%c", b)
+	  if b == ')' {
+		  l := fmt.Sprintf("%s%d%s", pr, c, su)
+		  fmt.Printf("%q", l)
+		  c++
+	  }
+  }
+  fmt.Printf("\n")
+#+end_src
+#+begin_src latex
+  We import \ty{fmt}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:lad}>>=
+  "fmt"
+#+end_src
+#+begin_src latex
+  We're done writing \ty{lads}, let's test it.
+
+  \subsection*{Testing}
+  The code for testing \ty{lads} has hooks for imports and the testing
+  logic.
+#+end_src
+#+begin_src go <<lads_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr.~\ref{pr:lad}>>
+  )
+
+  func TestLads(t *testing.T) {
+	  //<<Testing, Pr.~\ref{pr:lad}>>
+  }
+#+end_src
+#+begin_src latex
+  We construct a set of tests, iterate over them, and run each one.
+#+end_src
+#+begin_src go <<Testing, Pr.~\ref{pr:lad}>>=
+  var tests []*exec.Cmd
+  //<<Construct tests, Pr.~\ref{pr:lad}>>
+  for i, test := range tests {
+	  //<<Run test, Pr.~\ref{pr:lad}>>
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{exec}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:lad}>>=
+  "os/exec"
+#+end_src
+#+begin_src latex
+  We construct three tests, one with default options, one where we set a
+  prefix, and one where we set a suffix. Each test works on the tree
+  contained in \ty{test.nwk}.
+#+end_src
+#+begin_src go <<Construct tests, Pr.~\ref{pr:lad}>>=
+  f := "test.nwk"
+  test := exec.Command("./lads", f)
+  tests = append(tests, test)
+  test = exec.Command("./lads", "-p", "p", f)
+  tests = append(tests, test)
+  test = exec.Command("./lads", "-s", "s", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  For a given tests, we compare the result we get with the result we
+  want. The results we want are contained in files \ty{r1.txt},
+  \ty{r2.txt}, and \ty{r3.txt}.
+#+end_src
+#+begin_src go <<Run test, Pr.~\ref{pr:lad}>>=
+  get, err := test.Output()
+  if err != nil {
+	  t.Error(err)
+  }
+  f := "r" + strconv.Itoa(i+1) + ".txt"
+  want, err := ioutil.ReadFile(f)
+  if err != nil {
+	  t.Error(err)
+  }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:lad}>>=
+  "strconv"
+  "io/ioutil"
+  "bytes"
+#+end_src
+

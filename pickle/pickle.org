@@ -1,0 +1,256 @@
+#+begin_src latex
+  \section{\ty{pickle}}
+  In Newick trees with labeled nodes, \ty{pickle} picks the clades
+  requested by the user and prints their leaf labels.
+
+  \subsection*{Implementation}
+  \ty{pickle} contains hooks for imports, functions, and the logic of the
+  main function.  \bpr{pickle}{pr:pic}
+#+end_src
+#+begin_src go <<pickle.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr.~\ref{pr:pic}>>
+  )
+  //<<Functions, Pr.~\ref{pr:pic}>>
+  func main() {
+	  //<<Main function, Pr.~\ref{pr:pic}>>
+  }
+#+end_src
+#+begin_src latex
+  \epr In the main function we set the usage, declare the options, parse
+  the options, and parse the input files.
+#+end_src
+#+begin_src go <<Main function, Pr.~\ref{pr:pic}>>=
+  //<<Set usage, Pr.~\ref{pr:pic}>>
+  //<<Declare options, Pr.~\ref{pr:pic}>>
+  //<<Parse options, Pr.~\ref{pr:pic}>>
+  //<<Parse input files, Pr.~\ref{pr:pic}>>
+#+end_src
+#+begin_src latex
+  The usage consists of three parts, the usage message proper, an
+  explanation of the purpose of \ty{pickle}, and an example command.
+#+end_src
+#+begin_src go <<Set usage, Pr.~\ref{pr:pic}>>=
+  u := "pickle [option]... [foo.nwk]..."
+  p := "Pick clades in Newick trees."
+  e := "pickle 3,5 foo.nwk"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_src latex
+  We import \ty{clio}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:pic}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_src latex
+  There is only one option, the version.
+#+end_src
+#+begin_src go <<Declare options, Pr.~\ref{pr:pic}>>=
+  var optV = flag.Bool("v", false, "version")
+#+end_src
+#+begin_src latex
+  We import \ty{flag}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:pic}>>=
+  "flag"
+#+end_src
+#+begin_src latex
+  We parse the one option, \ty{-v}, and respond to it, as it would
+  terminate \ty{pickle}. The first entry in the argument array is the
+  labels string. If the user hasn't supplied one, we bail with a
+  friendly message. Otherwise we split the labels at commas.
+#+end_src
+#+begin_src go <<Parse options, Pr.~\ref{pr:pic}>>=
+  flag.Parse()
+  if *optV {
+	  util.PrintInfo("pickle")
+  }
+  args := flag.Args()
+  if len(args) < 1 {
+	  fmt.Fprintf(os.Stderr, "please enter a clade identifier")
+  }
+  labels := strings.Split(args[0],",")
+#+end_src
+#+begin_src latex
+  We import \ty{util}, \ty{fmt}, \ty{os}, and \ty{strings}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:pic}>>=
+  "github.com/evolbioinf/neighbors/util"
+  "fmt"
+  "os"
+  "strings"
+#+end_src
+#+begin_src latex
+  The remaining command line arguments are taken as file names. The
+  files are parsed with \ty{ParseFiles}, which calls \ty{parse} on every
+  input file. The function \ty{parse} in turn takes the slice of labels
+  as argument.
+#+end_src
+#+begin_src go <<Parse input files, Pr.~\ref{pr:pic}>>=
+  clio.ParseFiles(args[1:], parse, labels)
+#+end_src
+#+begin_src latex
+  Inside \ty{parse}, we retrieve the labels, iterate over the input
+  trees, and for each tree print a header and iterate over the labels.
+#+end_src
+#+begin_src go <<Functions, Pr.~\ref{pr:pic}>>=
+  func parse(r io.Reader, args ...interface{}) {
+	  labels := args[0].([]string)
+	  sc := nwk.NewScanner(r)
+	  for sc.Scan() {
+		  t := sc.Tree()
+		  fmt.Printf("# Selected clades\n")
+		  //<<Iterate over labels, Pr.~\ref{pr:pic}>>
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{io}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:pic}>>=
+  "io"
+#+end_src
+#+begin_src latex
+  For each label we write a header, find the corresponding clade, and
+  print it.
+#+end_src
+#+begin_src go <<Iterate over labels, Pr.~\ref{pr:pic}>>=
+  for _, label := range labels {
+	  fmt.Printf("## %s\n", label)
+	  //<<Find clade, Pr.~\ref{pr:pic}>>
+	  //<<Print clade, Pr.~\ref{pr:pic}>>
+  }
+#+end_src
+#+begin_src latex
+  We find the desired clade by converting the tree into a node slice
+  using \ty{tree2slice} and then looking up the first node with a
+  matching label.
+#+end_src
+#+begin_src go <<Find clade, Pr.~\ref{pr:pic}>>=
+  var nodes []*nwk.Node
+  nodes = tree2slice(t, nodes)
+  var clade *nwk.Node
+  for _, node := range nodes {
+	  if node.Label == label {
+		  clade = node
+		  break
+	  }
+  }
+#+end_src
+#+begin_src latex
+  \ty{tree2slice} is  a recursive function that collects the nodes it
+  encounters into a slice.
+#+end_src
+#+begin_src go <<Functions, Pr.~\ref{pr:pic}>>=
+  func tree2slice(v *nwk.Node, ns []*nwk.Node) []*nwk.Node {
+	  if v == nil { return ns }
+	  ns = append(ns, v)
+	  ns = tree2slice(v.Child, ns)
+	  ns = tree2slice(v.Sib, ns)
+	  return ns
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{nwk}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:pic}>>=
+  "github.com/evolbioinf/nwk"
+#+end_src
+#+begin_src latex
+  To print the clade, we call the function \ty{printClade}.
+#+end_src
+#+begin_src go <<Print clade, Pr.~\ref{pr:pic}>>=
+  printClade(clade)
+#+end_src
+#+begin_src latex
+  \ty{printClade} is a recursive function that prints leaf labels.
+#+end_src
+#+begin_src go <<Functions, Pr.~\ref{pr:pic}>>=
+  func printClade(v *nwk.Node) {
+	  if v == nil { return }
+	  if v.Child == nil {
+		  fmt.Printf("%s\n", v.Label)
+	  }
+	  printClade(v.Child)
+	  printClade(v.Sib)
+  }
+#+end_src
+#+begin_src latex
+  We've finished \ty{pickle}, so let's test it.
+
+  \subsection*{Testing}
+  Our program for testing \ty{pickle} contains hooks for imports and the
+  testing logic.
+#+end_src
+#+begin_src go <<pickle_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr.~\ref{pr:pic}>>
+  )
+
+  func TestPickle(t *testing.T) {
+	  //<<Testing, Pr.~\ref{pr:pic}>>
+  }
+#+end_src
+#+begin_src latex
+  We construct a set of tests and then iterate over them.
+#+end_src
+#+begin_src go <<Testing, Pr.~\ref{pr:pic}>>=
+  var tests []*exec.Cmd
+  //<<Construct tests, Pr.~\ref{pr:pic}>>
+  for i, test := range tests {
+	  //<<Run test, Pr.~\ref{pr:pic}>>
+  }
+#+end_src
+#+begin_src latex
+  There are three tests, all based on the tree contained in the file
+  \ty{test.nwk}. The first test picks clade 7, the second picks clades 7
+  and 3, and the third picks clade 9, which is the root.
+#+end_src
+#+begin_src go <<Construct tests, Pr.~\ref{pr:pic}>>=
+  f := "test.nwk"
+  test := exec.Command("./pickle", "7", f)
+  tests = append(tests, test)
+  test = exec.Command("./pickle", "7,3", f)
+  tests = append(tests, test)
+  test = exec.Command("./pickle", "9", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  We import \ty{exec}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:pic}>>=
+  "os/exec"
+#+end_src
+#+begin_src latex
+  For a given test we compare the result we get with the result we
+  want. The results we want are contained in the files \ty{r1.txt},
+  \ty{r2.txt}, and \ty{r3.txt}.
+#+end_src
+#+begin_src go <<Run test, Pr.~\ref{pr:pic}>>=
+  get, err := test.Output()
+  if err != nil {
+	  t.Error(err)
+  }
+  f := "r" + strconv.Itoa(i+1) + ".txt"
+  want, err := ioutil.ReadFile(f)
+  if err != nil {
+	  t.Error(err)
+  }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
+#+end_src
+#+begin_src go <<Testing imports, Pr.~\ref{pr:pic}>>=
+  "strconv"
+  "io/ioutil"
+  "bytes"
+#+end_src
+

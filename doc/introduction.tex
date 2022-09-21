@@ -73,6 +73,14 @@ Next, the program \ty{dree} can draw the taxonomic tree rooted on a
 taxon. The program \ty{ants} lets us walk in the opposite direction,
 from a taxon to its ancestors. Finally, we can submit the taxa of
 interes to \ty{neighbors}, which finds their closest neighbors and the
-associates genome sequences. The Tutorial shows how the
+associates genome sequences. 
+
+The genome sequences of targets and neighbors are best analyzed
+further by converting them into a phylogeny. Such phylogenies are
+often large and need to be broken down into individual clades. We can
+pick individual clades from a Newick tree by first labeling the
+internal nodes with \ty{lads} and then picking individual clades
+with \ty{pickle}. The Tutorial shows how the seven
 programs \ty{makeNeiDb}, \ty{taxi}, \ty{dree}, \ty{ants},
-and \ty{neighbors} can be used to discover diagnostic regions.
+\ty{neighbors}, \ty{lads}, and \ty{pickle} can be used to discover
+diagnostic regions from bacterial genomes.
