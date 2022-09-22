@@ -134,7 +134,7 @@
   var clade *nwk.Node
   for _, node := range nodes {
 	  if node.Label == label {
-		  clade = node
+		  clade = node.Child
 		  break
 	  }
   }
@@ -207,9 +207,11 @@
   }
 #+end_src
 #+begin_src latex
-  There are three tests, all based on the tree contained in the file
+  There are four tests, all based on the tree contained in the file
   \ty{test.nwk}. The first test picks clade 7, the second picks clades 7
-  and 3, and the third picks clade 9, which is the root.
+  and 3, the third picks clade 9, which is the root, and the fourth test
+  picks clade 4, which, in contrast to clades 7 and 3, is not at the end
+  of a sibling chain.
 #+end_src
 #+begin_src go <<Construct tests, Pr.~\ref{pr:pic}>>=
   f := "test.nwk"
@@ -218,6 +220,8 @@
   test = exec.Command("./pickle", "7,3", f)
   tests = append(tests, test)
   test = exec.Command("./pickle", "9", f)
+  tests = append(tests, test)
+  test = exec.Command("./pickle", "4", f)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -229,7 +233,7 @@
 #+begin_src latex
   For a given test we compare the result we get with the result we
   want. The results we want are contained in the files \ty{r1.txt},
-  \ty{r2.txt}, and \ty{r3.txt}.
+  \ty{r2.txt}, and so on.
 #+end_src
 #+begin_src go <<Run test, Pr.~\ref{pr:pic}>>=
   get, err := test.Output()
