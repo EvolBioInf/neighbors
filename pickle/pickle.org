@@ -69,7 +69,8 @@
   }
   args := flag.Args()
   if len(args) < 1 {
-	  fmt.Fprintf(os.Stderr, "please enter a clade identifier")
+	  fmt.Fprintf(os.Stderr, "please enter a clade identifier\n")
+	  os.Exit(-1)
   }
   labels := strings.Split(args[0],",")
 #+end_src
