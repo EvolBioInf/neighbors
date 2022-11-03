@@ -1,32 +1,42 @@
 #+begin_src latex
   \section*{Introduction}
-  In this Tutorial we construct an \ty{sqlite} database from the NCBI
+  In this Tutorial we construct an \ty{sqlite3} database from the NCBI
   taxonomy data. Then we query the database to find the taxon-IDs for
   our target organism. Based on these taxon-IDs, we carry out the search
   for target and neighbor genomes using \ty{neighbors}. We subject these
   genomes to two connected analyses, phylogeny reconstruction and
   identification of diagnostic markers.
+
   \section*{Construct Database}
-  We download the taxonomy database and the genome reports from the
-  NCBI.
+  The NCBI taxonomy database and the corresponding genome reports are
+  posted at
 #+end_src
 #+begin_src sh <<construct.sh>>=
-  wget ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
-  wget ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt
-  wget ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/eukaryotes.txt
-  wget ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/viruses.txt
+  ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+  ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt
+  ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/eukaryotes.txt
+  ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/viruses.txt
 #+end_src
 #+begin_src latex
-  We unpack the taxonomy database.
+  These four files are updated regularly. To ensure the long-term
+  stability of this Tutorial, we use files downloaded on 14. September
+  2022:
 #+end_src
 #+begin_src sh <<construct.sh>>=
+  wget guanine.evolbio.mpg.de/neighbors/taxdb.tgz
+#+end_src
+#+begin_src latex
+  We unpack the database files, change into the directory containing
+  them, and unpack the database dump.
+#+end_src
+#+begin_src sh <<construct.sh>>=
+  tar -xvzf taxdb.tgz
+  cd taxdb
   tar -xvzf taxdump.tar.gz
 #+end_src
 #+begin_src latex
-  This generates nine files, of which we use two, \ty{nodes.dmp} with
-  the nodes of the taxonomic tree, and \ty{names.dmp} with the taxon
-  names. We construct the taxonomy database, \ty{tax.db}, by running
-  \ty{makeNeiDb} in default mode. This takes less than a minute.
+  We can now construct the taxonomy database, \ty{tax.db}, using
+  \ty{makeNeiDb}. This takes less than half a minute.
 #+end_src
 #+begin_src sh <<construct.sh>>=
   makeNeiDb
@@ -51,11 +61,12 @@
   trees, \ty{dree}.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  dree 1375 tax.db
+  dree 1375 tax.db | dot -T x11
 #+end_src
 #+begin_src latex
   Unfortunately, this tree is so large, it's illegible. So we restrict
-  it to the clades with sequenced genomes.
+  it to the clades with sequenced genomes and get Figure~\ref{fig:au1},
+  where taxa with sequenced genomes are colored.
 #+end_src
 #+begin_src sh <<query.sh>>=
   dree -g 1375 tax.db | dot -T x11
@@ -88,7 +99,7 @@
   Now we search for the neighbors of \emph{Aerococcus}.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  printf "1376\n" | neighbors tax.db
+  printf "1376" | neighbors -g tax.db
 #+end_src
 #+begin_src latex
   \begin{verbatim}
@@ -97,14 +108,11 @@
   # Type  Taxon-ID  Name                      Genomes
   t       1376      Aerococcus urinae         CP014161|CP065662
   tt      866775    Aerococcus urinae ACS     CP002512
-  tt      1216979   Aerococcus urinae NBRC    -
   n       1377      Aerococcus viridans       CP014164
-  n       51665     Aerococcus urinqeequi     CP013988|CP014162|...
-  n       79233     Aerococcus sp. LV65.5:W1  -
+  n       51665     Aerococcus urinaeequi     CP013988|CP014162|...
   n       87541     Aerococcus christensenii  CP014159
   n       119206    Aerococcus sanguinicola   CP014160
   n       128944    Aerococcus urinaehominis  CP014163
-  ...
   \end{verbatim}
   The output of \ty{neighbors} begins with three hashed lines. The first
   states the most recent common ancestor of the targets,
@@ -113,17 +121,29 @@
   with taxon-ID 1375. The third hashed row is the header of the
   subsequent table, which consists of four columns, type, taxon-ID,
   name, and genomes. There are three possible types, ``t'' for known
-  target, ``tt'' for new target, and ``n'' for neighbor. We see that
-  there are two new targets, 866775 with one genome sequence, which we
-  already saw in Figure~\ref{fig:au} and 1216979 without a genome
-  sequence. We ignore plasmid sequences, which leaves seven genomes
-  among the neighbors. We fetch them using a loop over their accessions,
-  mark their names with prefix ``n'', and store them in the directory
-  \ty{neighbors}.
+  target, ``tt'' for new target, and ``n'' for neighbor. We see the new
+  target 866775, which was already in Figure~\ref{fig:au1}. We download
+  the three target sequences, mark their names with prefix ``t'', and
+  store them in the directory \ty{targets}.
 #+end_src
 #+begin_src sh <<query.sh>>=
+  mkdir targets
+  for a in CP014161 CP065662 CP002512
+  do
+      efetch -db nucleotide -format fasta \
+	     -id $a > targets/t${a}.fasta
+  done
+#+end_src
+#+begin_src latex
+  When looking for neighbor genomes, we ignore plasmid sequences, which
+  leaves seven genomes among the neighbors. Like the targets, we fetch
+  the neighbors using a loop over their accessions, mark their names
+  with prefix ``n'', and store them in the directory \ty{neighbors}.
+#+end_src
+
+#+begin_src sh <<query.sh>>=
   mkdir neighbors
-  for a in CP014164 CP013988 CP014162 CP063065
+  for a in CP014164 CP013988 CP014162 CP063065 \
 	   CP014159 CP014160 CP014163
   do
       efetch -db nucleotide -format fasta \
@@ -146,7 +166,8 @@
   \end{figure}
 #+end_src
 #+begin_src sh <<query.sh>>=
-  phylonium targets/* neighbors/* | nj | midRoot | plotTree
+  phylonium targets/* neighbors/* | nj | midRoot > au.nwk
+  plotTree au.nwk
 #+end_src
 #+begin_src latex
   Now we can construct the \ty{fur} database with \ty{makeFurDb} and run
@@ -189,8 +210,8 @@
   Sometimes a tree of genomes is very large, making it inconvenient to
   manually list the taxa that belong to a particular clade. This isn't
   an issue in our analysis (Figure~\ref{fig:auTree}), but if it were, we
-  could use the programs \ty{lads} and \ty{pickle} to pick individual
-  clades. \ty{lads} labels the nodes in a tree, yielding
+  could use the programs \ty{land} and \ty{pickle} to pick individual
+  clades. \ty{land} labels the nodes in a tree, yielding
   Figure~\ref{fig:auTree2}.
   \begin{figure}
     \begin{center}
@@ -201,20 +222,21 @@
   \end{figure}
 #+end_src
 #+begin_src sh <<query.sh>>=
-  lads au.nwk > au2.nwk
+  land au.nwk > au2.nwk
   plotTree au2.nwk
 #+end_src
 #+begin_src latex
-  Now we can pick a clade, say clade 6, and print its leaf labels with
-  \ty{pickle}.
+  Now we can pick a clade, say clade 7, and print its five leaf labels
+  with \ty{pickle}.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  pickle au2.nwk
+  pickle 7 au2.nwk
 #+end_src
 #+begin_src latex
   \begin{verbatim}
   # Selected clades
-  ## 6
+  ## 7
+  nCP014163
   nCP063065
   nCP014164
   nCP013988

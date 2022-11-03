@@ -7,18 +7,18 @@ unique across the board. The program \ty{fur} implements this idea,
 and markers constructed from its output have excellent specificity and
 sensifivity~\cite{hau21:fur}.
 
-Users of \ty{fur} need to know the neighbors of their
-targets. But how can neighbors be discovered, if they aren't already
-known? To answer this question, consider the toy taxonomy in
-Figure~\ref{fig:tax}, where the numbers are taxon-IDs. We also assume
-that we have a mapping from taxon-IDs to genome accessions. Let taxa 7
-and 4 be our targets. Then we look up the most recent common ancestor
-of 4 and 7, which is 3. This would imply that 6 also belongs to the
-target set. The neighbors are the nodes in the subtree rooted on 3's
-parent, that is, the five taxa 2, 8, 9, 10, and 11. Notice that we
-look up all nodes in a subtree minus its root, not just the leaves, as
-we cannot assume that genome sequences are only associated with taxa
-in terminal nodes.
+Users of \ty{fur} need to know the neighbors of their targets. But how
+can neighbors be discovered, if they aren't already known? To answer
+this question, consider the toy taxonomy in Figure~\ref{fig:tax},
+where the numbers are taxon-IDs taht are linked to genome
+accessions. Let taxa 7 and 4 be our targets. Then we look up the most
+recent common ancestor of 4 and 7, which is 3. This implies there are
+five targets, 3, 4, 5, 6, and 7. The neighbors are the nodes in the
+subtree rooted on 3's parent, minus the parent and minus the
+targets. So in our example there are five neighbors, 2, 8, 9, 10, and
+11. Notice that we look up all nodes in a subtree, not just the
+leaves, as genome sequences might be associated with taxa in terminal
+and internal nodes.
 
 \begin{figure}
 \begin{center}
@@ -38,7 +38,7 @@ where $s(v)$ returns the nodes in the subtree rooted on $v$, and
 $p(v)$ the parent of $v$. This set subtraction is implemented in the
 program \ty{neighbors}.
 
-\ty{neighbors} is centered on an \ty{sqlite}
+\ty{neighbors} is centered on an \ty{sqlite3}
 database that combines taxonomy and genome information. The database
 is built using the program \ty{makeNeiDb}, which is based on the
 packages \ty{tdb}, \ty{tax}, and \ty{util}, which are also part of the
@@ -49,10 +49,11 @@ Figure~\ref{fig:db}, \ty{taxonomyDb} consists of two
 tables, \ty{genome} and \ty{taxon}. Each genome comes from an organism
 identified by its taxon-ID, has a size, and one or more replicons,
 which are lumped in one attribute. Each genome belongs to a taxon. A
-taxon has a taxon-ID, a parent, and a name. Several genomes may have
-been sequenced for a given taxon. This means that the
-attribute \ty{taxid} in table \ty{genome} is not unique and we don't
-declare an explicit primary key on that table.
+taxon has a unique taxon-ID, which serves as primary key. A taxon also
+has a parent and a name. Since several genomes may have been sequenced for a
+given taxon, the attribute \ty{taxid} in
+table \ty{genome} is not unique, which is why that table has no
+primary key.
 
 \begin{figure}
   \begin{center}
@@ -72,15 +73,15 @@ $ taxi -s "Aerococcus urinae"
 Next, the program \ty{dree} can draw the taxonomic tree rooted on a
 taxon. The program \ty{ants} lets us walk in the opposite direction,
 from a taxon to its ancestors. Finally, we can submit the taxa of
-interes to \ty{neighbors}, which finds their closest neighbors and the
-associates genome sequences. 
+interest to \ty{neighbors}, which finds their closest neighbors and
+the associated genome sequences.
 
 The genome sequences of targets and neighbors are best analyzed
 further by converting them into a phylogeny. Such phylogenies are
 often large and need to be broken down into individual clades. We can
 pick individual clades from a Newick tree by first labeling the
-internal nodes with \ty{lads} and then picking individual clades
+internal nodes with \ty{land} and then picking individual clades
 with \ty{pickle}. The Tutorial shows how the seven
 programs \ty{makeNeiDb}, \ty{taxi}, \ty{dree}, \ty{ants},
-\ty{neighbors}, \ty{lads}, and \ty{pickle} can be used to discover
+\ty{neighbors}, \ty{land}, and \ty{pickle} can be used to discover
 diagnostic regions from bacterial genomes.
