@@ -12,7 +12,8 @@ digraph g {
 	2665953 [label="Homo sapiens environmental sample"]
 	37010 [label="Pan troglodytes schweinfurthii"]
 	37011 [label="Pan troglodytes troglodytes"]
-	37012 [color="lightsalmon",style=filled,label="Pan troglodytes verus"]
+	37012 [color="lightsalmon",style=filled]
+	37012 [label="Pan troglodytes verus"]
 	406788 [label="Gorilla gorilla diehli"]
 	46359 [label="Gorilla beringei graueri"]
 	499232 -> 1159185
@@ -28,24 +29,29 @@ digraph g {
 	9593 -> 183511
 	9593 -> 406788
 	9593 -> 9595
-	9593 [color="lightsalmon",style=filled,label="Gorilla gorilla"]
-	9595 [color="lightsalmon",style=filled,label="Gorilla gorilla gorilla"]
+	9593 [color="lightsalmon",style=filled]
+	9593 [label="Gorilla gorilla"]
+	9595 [color="lightsalmon",style=filled]
+	9595 [label="Gorilla gorilla gorilla"]
 	9596 -> 9597
 	9596 -> 9598
 	9596 [label="Pan"]
-	9597 [color="lightsalmon",style=filled,label="Pan paniscus"]
+	9597 [color="lightsalmon",style=filled]
+	9597 [label="Pan paniscus"]
 	9598 -> 1294088
 	9598 -> 37010
 	9598 -> 37011
 	9598 -> 37012
 	9598 -> 756884
 	9598 -> 91950
-	9598 [color="lightsalmon",style=filled,label="Pan troglodytes"]
+	9598 [color="lightsalmon",style=filled]
+	9598 [label="Pan troglodytes"]
 	9605 -> 1425170
 	9605 -> 2665952
 	9605 -> 9606
 	9605 [label="Homo"]
 	9606 -> 63221
 	9606 -> 741158
-	9606 [color="lightsalmon",style=filled,label="Homo sapiens"]
+	9606 [color="lightsalmon",style=filled]
+	9606 [label="Homo sapiens"]
 }
