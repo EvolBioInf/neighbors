@@ -1,11 +1,11 @@
 #+begin_src latex
   \section{\ty{tax}}
   Package \ty{tax} builds the taxonomy from \ty{nodes.dmp} and
-  \ty{names.dmp}, which are part of the dump of th NCBI taxonomy
+  \ty{names.dmp}, which are part of the dump of the NCBI taxonomy
   database.  To see how this construction works, consider again the toy
   taxonomy in Figure~\ref{fig:tax}, where the numbers are taxon-IDs. The
   corresponding table of child/parent pairs in \ty{nodes.dmp} is shown
-  in Table~\ref{tab:nodes}. I have ordered the table of taxaxon-IDs, but
+  in Table~\ref{tab:nodes}. I have ordered the table of taxon-IDs, but
   taxa may appear in any order.
 
   The names of taxa are listed in Table~\ref{tab:names}. They come in
@@ -54,7 +54,7 @@
 
   %%\subsection{Implementation}
   The outline of \ty{tax} contains hooks for imports, types, and
-  functions.
+  functions.\bpa{tax}{pa:tax}
 #+end_src
 #+begin_src go <<tax.go>>=
   // Package tax provides functions for navigating the NCBI taxonomy
@@ -62,30 +62,31 @@
   package tax
 
   import (
-	  //<<Imports>>
+	  //<<Imports, Pa.~\ref{pa:tax}>>
   )
-  //<<Types>>
-  //<<Methods>>
-  //<<Functions>>
+  //<<Types, Pa.~\ref{pa:tax}>>
+  //<<Methods, Pa.~\ref{pa:tax}>>
+  //<<Functions, Pa.~\ref{pa:tax}>>
 #+end_src
 #+begin_src latex
   \subsection{\ty{Taxonomy}}
+  \epa
   A taxonomy is a tree of taxon-IDs.  This tree can be quite large, the
   NCBI taxonomy currently contains 2.3 million entries. To make it
   possible to directly access its nodes, we store the taxonomic tree in a
   map of nodes indexed by taxon-IDs.
 #+end_src
-#+begin_src go <<Types>>=
+#+begin_src go <<Types, Pa.~\ref{pa:tax}>>=
   // Taxonomy holds the hierarchical structure of the taxonomy database.
   type Taxonomy map[int]*Node
 #+end_src
 #+begin_src latex
   A node is the fundamental unit of a taxonomy.
 #+end_src
-#+begin_src go <<Types>>=
+#+begin_src go <<Types, Pa.~\ref{pa:tax}>>=
   // Node is the unit of the taxonomy tree.
   type Node struct {
-	  //<<Node fields>>
+	  //<<Node fields, Pa.~\ref{pa:tax}>>
   }
 #+end_src
 #+begin_src latex
@@ -93,7 +94,7 @@
   its child, sibling, last sibling, and parent. Last sibling is an
   auxiliary node that points to the end of the sibling list.
 #+end_src
-#+begin_src go <<Node fields>>=
+#+begin_src go <<Node fields, Pa.~\ref{pa:tax}>>=
   // ID stores the taxon-ID.
   ID int
   // Name stores the scientific name.
@@ -105,32 +106,32 @@
   We construct a new taxonomy in three steps, parse the nodes file,
   construct the tree, and parse the names file.
 #+end_src
-#+begin_src go <<Functions>>=
+#+begin_src go <<Functions, Pa.~\ref{pa:tax}>>=
   func NewTaxonomy(nodes, names io.Reader) Taxonomy {
 	  tax := make(map[int]*Node)
-	  //<<Parse nodes file>>
-	  //<<Construct tree>>
-	  //<<Parse names file>>
+	  //<<Parse nodes file, Pa.~\ref{pa:tax}>>
+	  //<<Construct tree, Pa.~\ref{pa:tax}>>
+	  //<<Parse names file, Pa.~\ref{pa:tax}>>
 	  return tax
   }
 #+end_src
 #+begin_src latex
   We import \ty{io}.
 #+end_src
-#+begin_src go <<Imports>>=
+#+begin_src go <<Imports, Pa.~\ref{pa:tax}>>=
   "io"
 #+end_src
 #+begin_src latex
   We parse the rows in the nodes file using a scanner. A node is split
   and the corresponding taxon stored.
 #+end_src
-#+begin_src go <<Parse nodes file>>=
+#+begin_src go <<Parse nodes file, Pa.~\ref{pa:tax}>>=
   parents := make(map[int]int)
   sc := bufio.NewScanner(nodes)
   for sc.Scan() {
 	  row := sc.Text()
-	  //<<Split row>>
-	  //<<Store taxon>>
+	  //<<Split row, Pa.~\ref{pa:tax}>>
+	  //<<Store taxon, Pa.~\ref{pa:tax}>>
   }
 #+end_src
 #+begin_src latex
@@ -139,7 +140,7 @@
   integers. Conversion returns an error variable, which we check using
   the as yet unwritten function \ty{check}.
 #+end_src
-#+begin_src go <<Split row>>=
+#+begin_src go <<Split row, Pa.~\ref{pa:tax}>>=
   fields := strings.SplitN(row, "\t|\t", 3)
   taxonID, err := strconv.Atoi(fields[0])
   check(err, fields[0])
@@ -149,7 +150,7 @@
 #+begin_src latex
   We import \ty{bufio}, \ty{strings}, and \ty{strconv}.
 #+end_src
-#+begin_src go <<Imports>>=
+#+begin_src go <<Imports, Pa.~\ref{pa:tax}>>=
   "bufio"
   "strings"
   "strconv"
@@ -158,7 +159,7 @@
   The function \ty{check} tests for a conversion error and aborts with a
   friendly message, if one occurred.
 #+end_src
-#+begin_src go <<Functions>>=
+#+begin_src go <<Functions, Pa.~\ref{pa:tax}>>=
   func check(e error, s string) {
 	  if e != nil {
 		  fmt.Fprintf(os.Stderr, "couldn't convert " +
@@ -170,14 +171,14 @@
 #+begin_src latex
   We import \ty{fmt} and \ty{os}.
 #+end_src
-#+begin_src go <<Imports>>=
+#+begin_src go <<Imports, Pa.~\ref{pa:tax}>>=
   "fmt"
   "os"
 #+end_src
 #+begin_src latex
   For each taxon-ID we store a node and the taxon-ID of its parent.
 #+end_src
-#+begin_src go <<Store taxon>>=
+#+begin_src go <<Store taxon, Pa.~\ref{pa:tax}>>=
   v := new(Node)
   v.ID = taxonID
   tax[taxonID] = v
@@ -192,12 +193,12 @@
   the construction of a loop, so we check for this before setting the
   links between parent and child.
 #+end_src
-#+begin_src go <<Construct tree>>=
+#+begin_src go <<Construct tree, Pa.~\ref{pa:tax}>>=
   for k, v := range parents {
 	  if k != v {
 		  child := tax[k]
 		  parent := tax[v]
-		  //<<Set links between parent and child>>
+		  //<<Set links between parent and child, Pa.~\ref{pa:tax}>>
 	  } else {
 		tax[k].Parent = tax[k]
 	  }
@@ -207,7 +208,7 @@
   We set the child's parent link and add it to its parent's list of
   children.
 #+end_src
-#+begin_src go <<Set links between parent and child>>=
+#+begin_src go <<Set links between parent and child, Pa.~\ref{pa:tax}>>=
   child.Parent = parent
   if parent.Child == nil {
 	  parent.Child = child
@@ -224,7 +225,7 @@
   last. The last row is terminated by \verb+\t|\n+, so we remove the
   last to bytes from the name types.
 #+end_src
-#+begin_src go <<Parse names file>>=
+#+begin_src go <<Parse names file, Pa.~\ref{pa:tax}>>=
   sc = bufio.NewScanner(names)
   for sc.Scan() {
 	  row := sc.Text()
@@ -234,13 +235,13 @@
 	  name := fields[1]
 	  f := fields[3]
 	  nameType := f[0:len(f)-2]
-	  //<<Store name>>
+	  //<<Store name, Pa.~\ref{pa:tax}>>
   }
 #+end_src
 #+begin_src latex
   If the name we've just read is a scientific name, we store it.
 #+end_src
-#+begin_src go <<Store name>>=
+#+begin_src go <<Store name, Pa.~\ref{pa:tax}>>=
   if nameType == "scientific name" {
 	  tax[taxonID].Name = name
   }
@@ -250,7 +251,7 @@
   The root of the tree has taxon-ID 1 and is returned by the method
   \ty{Root}.
 #+end_src
-#+begin_src go <<Methods>>=
+#+begin_src go <<Methods, Pa.~\ref{pa:tax}>>=
   func (t Taxonomy) Root() *Node {
 	  return t[1]
   }
@@ -260,11 +261,11 @@
   To visualize a taxonomy, we implement the \ty{String} method. This
   writes the tree of taxon-IDs and the table of names to a string.
 #+end_src
-#+begin_src go <<Methods>>=
+#+begin_src go <<Methods, Pa.~\ref{pa:tax}>>=
   func (t Taxonomy) String() string {
 	  str := ""
-	  //<<Write tree of taxon-IDs>>
-	  //<<Write table of names>>
+	  //<<Write tree of taxon-IDs, Pa.~\ref{pa:tax}>>
+	  //<<Write table of names, Pa.~\ref{pa:tax}>>
 	  return str
   }
 #+end_src
@@ -272,7 +273,7 @@
   In preparation of their conversion to string, we write the tree of
   taxon-IDs to a buffer using the function \ty{writeTree}.
 #+end_src
-#+begin_src go <<Write tree of taxon-IDs>>=
+#+begin_src go <<Write tree of taxon-IDs, Pa.~\ref{pa:tax}>>=
   var b []byte
   buf := bytes.NewBuffer(b)
   writeTree(t.Root(), buf, 0)
@@ -282,7 +283,7 @@
 #+begin_src latex
   We import \ty{bytes}.
 #+end_src
-#+begin_src go <<Imports>>=
+#+begin_src go <<Imports, Pa.~\ref{pa:tax}>>=
   "bytes"
 #+end_src
 #+begin_src latex
@@ -290,7 +291,7 @@
   the tree in indentation notation, with levels two blanks
   wide~\cite[p. 312]{knu97:ar1}.
 #+end_src
-#+begin_src go <<Functions>>=
+#+begin_src go <<Functions, Pa.~\ref{pa:tax}>>=
   func writeTree(v *Node, w io.Writer, h int) {
 	  if v == nil { return }
 	  for i := 0; i < h; i++ {
@@ -305,7 +306,7 @@
   We write the table of names using a tab writer and the function
   \ty{writeNames}. The first thing we write to the table is the header.
 #+end_src
-#+begin_src go <<Write table of names>>=
+#+begin_src go <<Write table of names, Pa.~\ref{pa:tax}>>=
   w := new(tabwriter.Writer)
   w.Init(buf, 1, 0, 2, ' ', 0)
   fmt.Fprintf(w, "# TaxonID\tName")
@@ -316,14 +317,14 @@
 #+begin_src latex
   We import \ty{tabwriter}.
 #+end_src
-#+begin_src go <<Imports>>=
+#+begin_src go <<Imports, Pa.~\ref{pa:tax}>>=
   "text/tabwriter"
 #+end_src
 #+begin_src latex
   The function \ty{writeNames} runs recursively across the tree and
   prints pairs of taxon-ID and name.
 #+end_src
-#+begin_src go <<Functions>>=
+#+begin_src go <<Functions, Pa.~\ref{pa:tax}>>=
   func writeNames(v *Node, w io.Writer) {
 	  if v == nil { return }
 	  fmt.Fprintf(w, "\n%d\t%s",
@@ -340,7 +341,7 @@
   common ancestor of taxa 4 and 7 is 3. The method \ty{MRCA} gives this
   answer.
 
-  There is a long history of MRCA queries in computer
+  There is a rich history of MRCA queries in computer
   science~\cite[ch. 3]{ohl13:bio}. However, instead of using the general
   solution to the problem, I construct a simpler solution that involves
   climbing to the common ancestor of a set of taxa. If these taxa are
@@ -352,37 +353,37 @@
   MRCA. Otherwise, we climb to the parents and repeat. So we declare a
   count of descendants.
 #+end_src
-#+begin_src go <<Node fields>>=
+#+begin_src go <<Node fields, Pa.~\ref{pa:tax}>>=
   numDesc int
 #+end_src
 #+begin_src latex
-  To see an example of how this counter is used, consider again the tree
-  taxa 4 and 7 in Figure~\ref{fig:tax}. We set their descendant counters
-  to 1 and climb to nodes 3 and 5. We increment their descendant
-  counters to 1, and since none of the counters is equal to 2, we climb
-  to nodes 1 and 3. Now the counter of 3 is incremented to 2 and we have
-  found the MRCA.
+  To see an example of how this counter is used, consider again the taxa
+  4 and 7 in Figure~\ref{fig:tax}. We set their descendant counters to 1
+  and climb to nodes 3 and 5. We increment their descendant counters to
+  1, and since none of the counters is equal to 2, we climb to nodes 1
+  and 3. Now the counter of 3 is incremented to 2 and we have found the
+  MRCA.
 
   To carry out this climb, we convert the slice of taxon-IDs to a slice
   of nodes, which I think of as children, as we are looking for their
   ancestor. Then we search for the MRCA. Once we've found it, we reset
   the descendant counters.
 #+end_src
-#+begin_src go <<Methods>>=
+#+begin_src go <<Methods, Pa.~\ref{pa:tax}>>=
   // The method MRCA finds the most recent common ancestor of a set of
   // taxon-IDs.
   func (t Taxonomy) MRCA(taxa []int) int {
 	  var mrca *Node
-	  //<<Convert taxon-IDs to children>>
-	  //<<Search for MRCA>>
-	  //<<Reset descendant counters>>
+	  //<<Convert taxon-IDs to children, Pa.~\ref{pa:tax}>>
+	  //<<Search for MRCA, Pa.~\ref{pa:tax}>>
+	  //<<Reset descendant counters, Pa.~\ref{pa:tax}>>
 	  return mrca.ID
   }
 #+end_src
 #+begin_src latex
   We convert the taxon-IDs to a slice of nodes, the children.
 #+end_src
-#+begin_src go <<Convert taxon-IDs to children>>=
+#+begin_src go <<Convert taxon-IDs to children, Pa.~\ref{pa:tax}>>=
   var children []*Node
   for _, taxon := range taxa {
 	  child := t[taxon]
@@ -393,17 +394,17 @@
   We search for the MRCA by repeatedly incrementing the descendants
   count and climbing one step in the tree.
 #+end_src
-#+begin_src go <<Search for MRCA>>=
+#+begin_src go <<Search for MRCA, Pa.~\ref{pa:tax}>>=
   for mrca == nil {
-	  //<<Increment descendant counter>>
-	  //<<Climb tree>>
+	  //<<Increment descendant counter, Pa.~\ref{pa:tax}>>
+	  //<<Climb tree, Pa.~\ref{pa:tax}>>
   }
 #+end_src
 #+begin_src latex
   When incrementing the number of descendants, we also check whether
   we've found the MRCA.
 #+end_src
-#+begin_src go <<Increment descendant counter>>=
+#+begin_src go <<Increment descendant counter, Pa.~\ref{pa:tax}>>=
   for _, child := range children {
 	  child.numDesc++
 	  if child.numDesc == len(taxa) {
@@ -418,7 +419,7 @@
   taxon-ID of one. After the climbing step, the parents become the
   children for the next round.
 #+end_src
-#+begin_src go <<Climb tree>>=
+#+begin_src go <<Climb tree, Pa.~\ref{pa:tax}>>=
   var parents []*Node
   for _, child := range children {
 	  if child.ID > 1 {
@@ -431,13 +432,13 @@
   Resetting the descendant counters is done by calling the as yet
   undefined function \ty{resetNumDesc}.
 #+end_src
-#+begin_src go <<Reset descendant counters>>=
+#+begin_src go <<Reset descendant counters, Pa.~\ref{pa:tax}>>=
   resetNumDesc(mrca)
 #+end_src
 #+begin_src latex
   The function \ty{resetNumDesc} implements a recursive tree traversal.
 #+end_src
-#+begin_src go <<Functions>>=
+#+begin_src go <<Functions, Pa.~\ref{pa:tax}>>=
   func resetNumDesc(v *Node) {
 	  if v ==  nil { return }
 	  v.numDesc = 0
@@ -457,7 +458,7 @@
   leaf. In that case we return its ID. Otherwise, we call
   \ty{collectLeaves} on $v$'s child.
 #+end_src
-#+begin_src go <<Methods>>=
+#+begin_src go <<Methods, Pa.~\ref{pa:tax}>>=
   // Leaves collects the taxon-IDs of the leaves in the subtree rooted
   // on its argument taxon-ID.
   func (t Taxonomy) Leaves(taxon int) []int {
@@ -475,7 +476,7 @@
   The the function \ty{collectLeaves} runs recursively across the tree
   and returns the leaves.
 #+end_src
-#+begin_src go <<Functions>>=
+#+begin_src go <<Functions, Pa.~\ref{pa:tax}>>=
   func collectLeaves(v *Node, leaves []int) []int {
 	  if v == nil { return leaves }
 	  if v.Child == nil {
@@ -495,7 +496,7 @@
   $\{3,4,5,6,7\}$. The method \ty{Subtree} calls the recursive function
   \ty{subtree}.
 #+end_src
-#+begin_src go <<Methods>>=
+#+begin_src go <<Methods, Pa.~\ref{pa:tax}>>=
   // Subtree collectes the taxon-IDs of the nodes in the subtree
   // rooted on its argument.
   func (t Taxonomy) Subtree(taxon int) []int {
@@ -510,7 +511,7 @@
   The function \ty{subtree} traverses the given subtree and collects all
   node-IDs it encounters.
 #+end_src
-#+begin_src go <<Functions>>=
+#+begin_src go <<Functions, Pa.~\ref{pa:tax}>>=
   func subtree(v *Node, sub []int) []int {
 	  if v == nil { return sub }
 	  sub = subtree(v.Child, sub)
@@ -529,29 +530,29 @@
 
   import (
 	  "testing"
-	  //<<Testing imports>>
+	  //<<Testing imports, Pa.~\ref{pa:tax}>>
   )
-  //<<Testing functions>>
+  //<<Testing functions, Pa.~\ref{pa:tax}>>
 #+end_src
 #+begin_src latex
   We declare a function for testing, in which we read a taxonomy and
   test its five central methods, \ty{String}, \ty{MRCA}, 
   \ty{Leaves}, \ty{Encode}, and \ty{Decode}.
 #+end_src
-#+begin_src go <<Testing functions>>=
+#+begin_src go <<Testing functions, Pa.~\ref{pa:tax}>>=
   func TestMethods(t *testing.T) {
-	  //<<Read taxonomy>>
-	  //<<Test \ty{String}>>
-	  //<<Test \ty{MRCA}>>
-	  //<<Test \ty{Leaves}>>
-	  //<<Test \ty{Subtree}>>
+	  //<<Read taxonomy, Pa.~\ref{pa:tax}>>
+	  //<<Test \ty{String}, Pa.~\ref{pa:tax}>>
+	  //<<Test \ty{MRCA}, Pa.~\ref{pa:tax}>>
+	  //<<Test \ty{Leaves}, Pa.~\ref{pa:tax}>>
+	  //<<Test \ty{Subtree}, Pa.~\ref{pa:tax}>>
   }
 #+end_src
 #+begin_src latex
   To read a taxonomy, we open two files of test data using the function
   \ty{open} and call \ty{NewTaxonomy}. Then we close the files.
 #+end_src
-#+begin_src go <<Read taxonomy>>=
+#+begin_src go <<Read taxonomy, Pa.~\ref{pa:tax}>>=
   nodes := open("../data/nodesTest.dmp")
   names := open("../data/namesTest.dmp")
   tax := NewTaxonomy(nodes, names)
@@ -561,7 +562,7 @@
 #+begin_src latex
   The function \ty{open} opens a file and checks for errors.
 #+end_src
-#+begin_src go <<Testing functions>>=
+#+begin_src go <<Testing functions, Pa.~\ref{pa:tax}>>=
   func open(file string) *os.File {
 	  f, err := os.Open(file)
 	  if err != nil {
@@ -574,22 +575,40 @@
 #+begin_src latex
   We import \ty{os} and \ty{fmt}.
 #+end_src
-#+begin_src go <<Testing imports>>=
+#+begin_src go <<Testing imports, Pa.~\ref{pa:tax}>>=
   "os"
   "fmt"
 #+end_src
 #+begin_src latex
-  To test \ty{String}, we just print the taxonomy.
+  To test \ty{String}, we sort the strings we get so our result is
+  reproducible.
 #+end_src
-#+begin_src go <<Test \ty{String}>>=
-  fmt.Println(tax)
+#+begin_src go <<Test \ty{String}, Pa.~\ref{pa:tax}>>=
+  want, err := ioutil.ReadFile("r.txt")
+  if err != nil { t.Error(err) }
+  gstr := tax.String()
+  gsli := strings.Split(gstr, "\n")
+  sort.Strings(gsli)
+  get := []byte(strings.Join(gsli, "\n"))
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{ioutil}, \ty{sort}, \ty{strings}, and \ty{bytes}.
+#+end_src
+#+begin_src go <<Testing imports, Pa.~\ref{pa:tax}>>=
+  "io/ioutil"
+  "sort"
+  "strings"
+  "bytes"
 #+end_src
 #+begin_src latex
   To test \ty{MRCA}, we construct several tests and run them in a loop.
 #+end_src
-#+begin_src go <<Test \ty{MRCA}>>=
-  //<<Construct tests of \ty{MRCA}>>
-  //<<Run tests of \ty{MRCA}>>
+#+begin_src go <<Test \ty{MRCA}, Pa.~\ref{pa:tax}>>=
+  //<<Construct tests of \ty{MRCA}, Pa.~\ref{pa:tax}>>
+  //<<Run tests of \ty{MRCA}, Pa.~\ref{pa:tax}>>
 #+end_src
 #+begin_src latex
   We look for the MRCAs of the following five sets of taxa:
@@ -601,7 +620,7 @@
   \item $\{4, 7, 6\}$
   \end{itemize}
 #+end_src
-#+begin_src go <<Construct tests of \ty{MRCA}>>=
+#+begin_src go <<Construct tests of \ty{MRCA}, Pa.~\ref{pa:tax}>>=
   taxa := make([][]int, 0)
   var res []int
   taxa = append(taxa, []int{4, 7})
@@ -618,7 +637,7 @@
 #+begin_src latex
   We loop over the tests.
 #+end_src
-#+begin_src go <<Run tests of \ty{MRCA}>>=
+#+begin_src go <<Run tests of \ty{MRCA}, Pa.~\ref{pa:tax}>>=
   for i, taxon := range taxa {
 	  get := tax.MRCA(taxon)
 	  want := res[i]
@@ -631,7 +650,7 @@
   To test \ty{Leaves}, we request the leaves of node 3 and check we get
   4, 7, and 6.
 #+end_src
-#+begin_src go <<Test \ty{Leaves}>>=
+#+begin_src go <<Test \ty{Leaves}, Pa.~\ref{pa:tax}>>=
   leaves := tax.Leaves(3)
   s := 0
   for _, leaf := range leaves {
@@ -645,7 +664,7 @@
   To test \ty{Subtree}, we request the subtree of node 3 and check that
   we get 3, 4, 5, 6, and 7.
 #+end_src
-#+begin_src go <<Test \ty{Subtree}>>=
+#+begin_src go <<Test \ty{Subtree}, Pa.~\ref{pa:tax}>>=
   sub := tax.Subtree(3)
   s = 0
   for _, t := range sub {

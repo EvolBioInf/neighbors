@@ -10,7 +10,7 @@ all:
 		make -C $$prog; \
 		cp $$prog/$$prog bin; \
 	done
-.PHONY: doc
+.PHONY: doc test
 doc:
 	make -C doc
 clean:
@@ -18,6 +18,7 @@ clean:
 		make clean -C $$prog; \
 	done
 test:
+	echo test
 	for prog in $(progs) $(packs); do \
 		make test -C $$prog; \
 	done

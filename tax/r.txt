@@ -1,0 +1,19 @@
+               7->5
+          4->3
+          5->3
+          6->3
+          8->2
+          9->2
+     2->1
+     3->1
+# TaxonID  Name
+1          root
+1->1
+2          Viruses
+3          cellular organisms
+4          Bacteria
+5          Archaea
+6          Eukaryota
+7          Euryarchaeota
+8          Plasmaviridae
+9          Fuselloviridae

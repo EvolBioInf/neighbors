@@ -31,7 +31,7 @@ tdb.tex: ../tdb/tdb.org
 tutorial.tex: ../tutorial/tutorial.org
 	bash ../scripts/org2nw ../tutorial/tutorial.org | noweave -n -x > tutorial.tex
 util.tex: ../util/util.org
-	bash ../scripts/org2nw ../util/util.org | noweave -n -x > util.tex
+	bash ../scripts/org2nw ../util/util.org | noweave -n -x | sed 's/_test/\\_test/g' > util.tex
 
 clean:
 	rm -f neighborsDoc.pdf neighborsDoc.ps neighborsDoc.dvi neighborsDoc.aux $(SRC1) 

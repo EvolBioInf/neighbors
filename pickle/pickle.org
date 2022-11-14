@@ -1,6 +1,6 @@
 #+begin_src latex
   \section{\ty{pickle}}
-  In Newick trees with labeled nodes, \ty{pickle} picks the clades
+  In Newick trees with labeled clades, \ty{pickle} picks the clades
   requested by the user and prints their leaf labels.
 
   \subsection*{Implementation}

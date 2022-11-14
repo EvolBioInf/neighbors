@@ -1,8 +1,7 @@
 #+begin_src latex
   \section{\ty{util}}
-  The package \ty{util} collects auxiliary functions common to
-  \ty{indexNodes} and \ty{neighbors}. Its outline provides hooks for
-  imports, variables, and functions.
+  The package \ty{util} collects utility functions. Its outline
+  provides hooks for imports, variables, and functions.
   \bpa{util}{pa:util}
 #+end_src
 #+begin_src go <<util.go>>=
@@ -18,7 +17,7 @@
 #+end_src
 #+begin_src latex
   \epa
-  \subsection*{\ty{PrintInfo}}
+  \subsection{\ty{PrintInfo}}
   The function \ty{PrintInfo} prints information about the calling program.
 #+end_src
 #+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
@@ -48,7 +47,7 @@
   "os"
 #+end_src
 #+begin_src latex
-  \subsection*{\ty{Open}}
+  \subsection{\ty{Open}}
   When a file is opened, we quit gracefully if an error occurred.
 #+end_src
 #+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
@@ -68,4 +67,45 @@
 #+begin_src go <<Imports, Pa.~\ref{pa:util}>>=
   "fmt"
   "os"
+#+end_src
+#+begin_src latex
+  We are done with the \ty{util} package, time to test it.
+  \subsection{Testing}
+  Our testing code for \ty{util} contains hooks for imports and the
+  logic of the testing function.
+#+end_src
+#+begin_src go <<util_test.go>>=
+  package util
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pa.~\ref{pa:util}>>
+  )
+
+  func TestUtil(t *testing.T) {
+	  //<<Testing, Pa.~\ref{pa:util}>>
+  }
+#+end_src
+#+begin_src latex
+  There is only one function we can sensibly test, \ty{Open}. So we open
+  a test file and read the string ``success'' from it.
+#+end_src
+#+begin_src go <<Testing, Pa.~\ref{pa:util}>>=
+  f := Open("r.txt")
+  defer f.Close()
+  sc := bufio.NewScanner(f)
+  if !sc.Scan() {
+	  t.Error("scan failed")
+  }
+  get := sc.Text()
+  want := "success"
+  if get != want {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{bufio}.
+#+end_src
+#+begin_src go <<Testing imports, Pa.~\ref{pa:util}>>=
+  "bufio"
 #+end_src

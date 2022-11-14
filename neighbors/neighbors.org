@@ -1,11 +1,11 @@
 #+begin_src latex
   \section{\ty{neighbors}}
   The program \ty{neighbors} takes as input a set of target
-  taxonomy-IDs. It finds their most recent common ancestor, and from
-  there calculates two new sets of taxon-IDs, the complete set of
-  targets, which comprises at least the input taxa, and the
-  neighbors. For each taxon in these two sets it also returns the
-  accessions of the corresponding genome sequences.
+  taxon-IDs. It finds their most recent common ancestor, and from there
+  calculates two new sets of taxon-IDs, the complete set of targets,
+  which comprises at least the input taxa, and the neighbors. For each
+  taxon in these two sets it also returns the accessions of the
+  corresponding genome sequences.
 
   \subsection*{Implementation}
   The outline of \ty{neighbors} contains hooks for imports, functions,

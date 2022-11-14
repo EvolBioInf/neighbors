@@ -1,11 +1,23 @@
 #+begin_src latex
   \section*{Introduction}
-  In this Tutorial we construct an \ty{sqlite3} database from the NCBI
-  taxonomy data. Then we query the database to find the taxon-IDs for
-  our target organism. Based on these taxon-IDs, we carry out the search
-  for target and neighbor genomes using \ty{neighbors}. We subject these
-  genomes to two connected analyses, phylogeny reconstruction and
-  identification of diagnostic markers.
+  The Neighbors package provides tools for finding the target and
+  neighbor genomes used by \ty{fur} to find unique regions. These unique
+  regions then serve as the basis for constructing diagnostic
+  markers. In this Tutorial I demonstrate the application of the seven
+  programs in the Neighbors package. We begin by constructing a
+  relational database from the NCBI taxonomy data using the program
+  \ty{makeNeiDb}. Then we query the database with \ty{taxid} to find the
+  taxon-ID for our target organism. The programs \ty{ants} and \ty{dree}
+  allow us to explore the taxonomic context of our target
+  organism. Based on the target taxon-ID, we carry out the search for
+  target and neighbor genomes using \ty{neighbors}.
+
+  Any genomes suggested by \ty{neighbors} are best subjected to
+  phylogeny reconstruction before we extract markers from them using
+  \ty{fur}. The prerequisite phylogeny reconstruction is supported by
+  two additional programs from the Neighbors package, \ty{land} for
+  labeling the nodes in a phylogeny, and \ty{pickle} for picking a
+  particular clade in a phylogeny.
 
   \section*{Construct Database}
   The NCBI taxonomy database and the corresponding genome reports are
@@ -18,9 +30,8 @@
   ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/viruses.txt
 #+end_src
 #+begin_src latex
-  These four files are updated regularly. To ensure the long-term
-  stability of this Tutorial, we use files downloaded on 14. September
-  2022:
+  These four files are updated regularly. To ensure the stability of
+  this Tutorial, we use files downloaded on 14. September 2022:
 #+end_src
 #+begin_src sh <<construct.sh>>=
   wget guanine.evolbio.mpg.de/neighbors/taxdb.tgz
@@ -36,7 +47,7 @@
 #+end_src
 #+begin_src latex
   We can now construct the taxonomy database, \ty{tax.db}, using
-  \ty{makeNeiDb}. This takes less than half a minute.
+  \ty{makeNeiDb}. This takes approximately half a minute.
 #+end_src
 #+begin_src sh <<construct.sh>>=
   makeNeiDb
@@ -44,8 +55,9 @@
 #+begin_src latex
   \section*{Query Database}
   The next step is to find the taxon-IDs for our target organism or
-  target organisms. Say, our target organism is \emph{Aerococcus
-  urinae}. We look up its taxon-ID using \ty{taxi}.
+  target organisms. Say, our target organism is the bactrium
+  \emph{Aerococcus urinae}, which causes urinary tract infections. We
+  look up its taxon-ID using \ty{taxi}.
 #+end_src
 #+begin_src sh <<query.sh>>=
   taxi "Aerococcus urinae" tax.db
@@ -55,10 +67,29 @@
   # ID    Parent  Name
     1376  1375    Aerococcus urinae
   \end{verbatim}
-  The result tells us that \emph{Aerococcus urinae} has taxon-ID 1376
-  and its parent has taxon-ID 1375. To get an overview of the
-  \emph{Aerococcus} clade, we draw it with our program for drawing
-  trees, \ty{dree}.
+  This tells us that \emph{Aerococcus urinae} has taxon-ID 1376
+  and its parent has taxon-ID 1375. If we are interested in the wider
+  taxonomic context of \emph{A. urinae}, we can look up all its
+  ancestors with \ty{ants} to find that \emph{A. urinae} belongs to the
+  Firmicutes.
+#+end_src
+#+begin_src sh <<query.sh>>=
+  ants 1376 tax.db
+#+end_src
+#+begin_src latex
+  \begin{verbatim}
+  # Back  ID       Name
+    9     1        root
+    8     131567   cellular organisms
+    7     2        Bacteria
+    6     1783272  Terrabacteria group
+    5     1239     Firmicutes
+    4     91061    Bacilli
+    3     186826   Lactobacillales
+    2     186827   Aerococcaceae
+    1     1375     Aerococcus
+    0     1376     Aerococcus urinae
+  \end{verbatim}
 #+end_src
 #+begin_src sh <<query.sh>>=
   dree 1375 tax.db | dot -T x11
@@ -72,8 +103,6 @@
   dree -g 1375 tax.db | dot -T x11
 #+end_src
 #+begin_src latex
-   In Figure~\ref{fig:au1} the
-  \emph{Aerococcus} taxa with sequenced genomes are colored.
   \begin{figure}
     \begin{center}
       \resizebox{\textwidth}{!}{\includegraphics{../tutorial/1375_t_g.ps}}
@@ -82,8 +111,8 @@
       with sequenced genomes, which are shown as colored
       nodes.}\label{fig:au1}
   \end{figure}
-  However, taxon-IDs are difficult to interpret, so we convert them to
-  taxon names in Figure~\ref{fig:au2}.
+  Since taxon-IDs are difficult to interpret, we convert them to taxon
+  names in Figure~\ref{fig:au2}.
 #+end_src
 #+begin_src sh <<query.sh>>=
   dree -n -g 1375 tax.db | dot -T x11
@@ -122,9 +151,10 @@
   subsequent table, which consists of four columns, type, taxon-ID,
   name, and genomes. There are three possible types, ``t'' for known
   target, ``tt'' for new target, and ``n'' for neighbor. We see the new
-  target 866775, which was already in Figure~\ref{fig:au1}. We download
-  the three target sequences, mark their names with prefix ``t'', and
-  store them in the directory \ty{targets}.
+  target 866775, which was already in Figure~\ref{fig:au1}, but wasn't
+  contained in our query. We download the three target sequences, mark
+  their names with prefix ``t'', and store them in the directory
+  \ty{targets}.
 #+end_src
 #+begin_src sh <<query.sh>>=
   mkdir targets
@@ -172,8 +202,9 @@
 #+begin_src latex
   Now we can construct the \ty{fur} database with \ty{makeFurDb} and run
   \ty{fur}\footnote{\ty{github.com/evolbioinf/fur}} on it to get
-  approximately 474 kb potential marker material. The program \ty{cres}
-  used to quantify the output of \ty{fur} is also part of the
+  approximately 474 kb potential marker material after cleaning with
+  \ty{cleanSeq}, which is part of the \ty{fur} package. The program
+  \ty{cres} used to quantify the output of \ty{fur} is also part of the
   \ty{biobox}.
 #+end_src
 #+begin_src sh <<query.sh>>=
@@ -210,9 +241,9 @@
   Sometimes a tree of genomes is very large, making it inconvenient to
   manually list the taxa that belong to a particular clade. This isn't
   an issue in our analysis (Figure~\ref{fig:auTree}), but if it were, we
-  could use the programs \ty{land} and \ty{pickle} to pick individual
-  clades. \ty{land} labels the nodes in a tree, yielding
-  Figure~\ref{fig:auTree2}.
+  could use the programs \ty{land} and \ty{pickle} to first label and
+  then pick individual clades. \ty{land} labels the nodes in a tree,
+  yielding Figure~\ref{fig:auTree2}.
   \begin{figure}
     \begin{center}
       \scalebox{0.75}{\includegraphics{../tutorial/au2}}

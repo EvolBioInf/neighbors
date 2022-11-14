@@ -1,9 +1,9 @@
 #+begin_src latex
   \section{taxi}
   The \ty{neighbors} module is based on taxon-IDs. These are difficult
-  to remember, so the program \ty{taxi} takes you from the name of an
-  organism to its taxon-ID. The input to \ty{taxi} is a scientific name
-  and the taxonomy database. By default, \ty{taxi} carries out a
+  to remember, so the program \ty{taxi} takes the user from the name of
+  an organism to its taxon-ID. The input to \ty{taxi} is a scientific
+  name and the taxonomy database. By default, \ty{taxi} carries out a
   case-insensitive exact match across the full name, but the user can
   opt for a substring match instead. Regardless of the query type, there
   may be more than one match, and \ty{taxi} returns them all.

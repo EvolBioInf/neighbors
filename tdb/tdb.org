@@ -1,7 +1,7 @@
 #+begin_src latex
   \section{\ty{tdb}}
   The package \ty{tdb} provides code for constructing and navigating
-  \ty{taxonDb} (Figure~\ref{fig:db}). Its outline has hooks for imports,
+  \ty{tax.db} (Figure~\ref{fig:db}). Its outline has hooks for imports,
   types, methods, and functions.
   \bpa{tdb}{pa:tdb}
 #+end_src
@@ -121,16 +121,16 @@
 #+end_src
 #+begin_src latex
   Table \ty{taxon} has the attributes \ty{taxid}, \ty{parent}, and
-  \ty{name}. Taxon-IDs are integers, names are text. Taxon-IDs also
-  functions as primary key. As there are currently 2.4 million taxa, and
-  this number is bound to grow, we ensure that queries are quick by
-  using indexes. The primary key, \ty{taxid}, is automatically indexed
-  and we might be tempted to index the remaining two attributes,
-  \ty{parent} and \ty{name}. However, \ty{sqlite} does not make use of
-  indexes on text columns. You can check this on an existing database by
-  prefacing a query with \ty{explain query plan}. Since creating an
-  index takes time, we have no time for an index that won't actually be
-  used, so we only index \ty{parent}.
+  \ty{name}. Taxon-IDs are integers, names are text. \ty{taxid} is the
+  primary key. As there are currently 2.4 million taxa, and this number
+  is bound to grow, we ensure that queries are quick by using
+  indexes. The primary key, \ty{taxid}, is automatically indexed and we
+  might be tempted to index the remaining two attributes, \ty{parent}
+  and \ty{name}. However, \ty{name} is a string, and \ty{sqlite} does not
+  make use of indexes on text columns. You can check this on an existing
+  database by prefacing a query with \ty{explain query plan}. Since
+  creating an index takes time, we have no time for an index that won't
+  actually be used, so we only index \ty{parent}.
 #+end_src
 #+begin_src go <<Construct table \ty{taxon}, Pa.~\ref{pa:tdb}>>=
   sqlStmt := `create table taxon (
@@ -836,7 +836,7 @@
 #+begin_src latex
   \subsection{\ty{Taxids}}
   Given a taxon name, \ty{Taxids} returns the corresponding
-  taxon-IDs. We construct and execute the query for taxon-IDS, extract
+  taxon-IDs. We construct and execute the query for taxon-IDs, extract
   the IDs, and return them.
 #+end_src
 #+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
