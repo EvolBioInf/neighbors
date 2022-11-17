@@ -10,7 +10,7 @@ Make sure you've installed the packages `git`, `golang`, `make`, and `noweb`.
   The directory `bin` now contains the binaries, scripts are in
   `scripts`.
 ## Make the Documentation
-Make you've installed the packages `git`, `make`, `noweb`, `texlive-science`,
+Make sure you've installed the packages `git`, `make`, `noweb`, `texlive-science`,
 `texlive-pstricks`, `texlive-latex-extra`,
 and `texlive-fonts-extra`.  
   `$ make doc`  
