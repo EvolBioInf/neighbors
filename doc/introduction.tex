@@ -46,8 +46,8 @@ is built using the program \ty{makeNeiDb}, which is based on the
 packages \ty{tdb}, \ty{tax}, and \ty{util} contained in the
 \ty{neighbors} module.
 
-Let's call the central database \ty{tax.db}; as shown in
-Figure~\ref{fig:db}, \ty{tax.db} consists of two
+Let's call the central database \ty{neidb}; as shown in
+Figure~\ref{fig:db}, \ty{neidb} consists of two
 tables, \ty{genome} and \ty{taxon}. Each genome comes from an organism
 identified by its taxon-ID, has a size, and one or more replicons,
 which are lumped in one attribute. Each genome belongs to a taxon. A
@@ -61,7 +61,7 @@ primary key.
   \begin{center}
     \input{db}
   \end{center}
-  \caption{Diagram of \ty{tax.db}.}\label{fig:db}
+  \caption{Diagram of \ty{neidb}.}\label{fig:db}
 \end{figure}
 
 Once the database is constructed, we can query it. A typical sequence
@@ -70,7 +70,7 @@ say \emph{Aerococcus urinae}. The first thing we'd need is its
 taxon-ID. We get this using the program \ty{taxi}, which is also part
 of \ty{neighbors}.
 \begin{verbatim}
-$ taxi -s "Aerococcus urinae"
+$ taxi -s "Aerococcus urinae" neidb
 \end{verbatim}
 Next, the program \ty{dree} can draw the taxonomic tree rooted on a
 taxofn.In other words, the program \ty{dree} walks from a taxon to the

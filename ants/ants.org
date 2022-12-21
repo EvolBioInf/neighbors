@@ -37,7 +37,7 @@
 #+begin_src go <<Set usage, Pr.~\ref{pr:ant}>>=
   u := "ants [option] <taxon-ID> <db>"
   p := "Get a taxon's ancestors."
-  e := "ants 9606 tax.db"
+  e := "ants 9606 neidb"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -184,7 +184,7 @@
 #+end_src
 #+begin_src go <<Construct tests, Pr.~\ref{pr:ant}>>=
   tid := "9606"
-  db := "../data/tax.db"
+  db := "../data/neidb"
   test := exec.Command("./ants", tid, db)
   tests = append(tests, test)
 #+end_src

@@ -9,13 +9,13 @@
     \ty{dree} labels taxa with their IDs, but with \ty{-n} we get names
     instead. Taxa with sequenced genomes are colored.
   \begin{verbatim}
-  $ ./dree -n 207598 tax.db | dot -T x11
+  $ ./dree -n 207598 neidb | dot -T x11
   \end{verbatim}
   The resulting tree in Figure~\ref{fig:homininaeFull} is pretty
   crowded, so we use \ty{-g} to to reduce it to the taxa with sequenced
   genomes and their ancestors.
   \begin{verbatim}
-  $ ./dree -n -g 207598 tax.db | dot -T x11
+  $ ./dree -n -g 207598 neidb | dot -T x11
   \end{verbatim}
   This gives the more
   legible Figure~\ref{fig:homininaeG}.
@@ -71,9 +71,9 @@
   purpose of \ty{dree}, and an example command.
 #+end_src
 #+begin_src go <<Set usage, Pr.~\ref{pr:dr}>>=
-  u := "dree [-h] [option]... taxonID tax.db..."
+  u := "dree [-h] [option]... <taxon-ID> <db>"
   p := "Get the taxonomy rooted on a specific taxon."
-  e := "dree -n -g 207598 tax.db | dot -T x11"
+  e := "dree -n -g 207598 neidb | dot -T x11"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -373,7 +373,7 @@
 #+end_src
 #+begin_src go <<Construct tests, Pr.~\ref{pr:dr}>>=
   n := "207598"
-  d := "../data/tax.db"
+  d := "../data/neidb"
   test := exec.Command("./dree", n, d)
   tests = append(tests, test)
   test = exec.Command("./dree", "-n", n, d)

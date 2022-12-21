@@ -39,7 +39,7 @@
   var optI = flag.String("i", "viruses.txt", "virus genomes")
   var optA = flag.String("a", "names.dmp", "taxonomic names")
   var optO = flag.String("o", "nodes.dmp", "node information")
-  var optD = flag.String("d", "tax.db", "database name")
+  var optD = flag.String("d", "neidb", "database name")
   var optV = flag.Bool("v", false, "print version & " +
 	  "program information")
 #+end_src

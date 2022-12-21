@@ -46,7 +46,7 @@
   tar -xvzf taxdump.tar.gz
 #+end_src
 #+begin_src latex
-  We can now construct the taxonomy database, \ty{tax.db}, using
+  We can now construct the taxonomy database, \ty{neidb}, using
   \ty{makeNeiDb}. This takes approximately half a minute.
 #+end_src
 #+begin_src sh <<construct.sh>>=
@@ -60,7 +60,7 @@
   look up its taxon-ID using \ty{taxi}.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  taxi "Aerococcus urinae" tax.db
+  taxi "Aerococcus urinae" neidb
 #+end_src
 #+begin_src latex
   \begin{verbatim}
@@ -74,7 +74,7 @@
   Firmicutes.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  ants 1376 tax.db
+  ants 1376 neidb
 #+end_src
 #+begin_src latex
   \begin{verbatim}
@@ -92,7 +92,7 @@
   \end{verbatim}
 #+end_src
 #+begin_src sh <<query.sh>>=
-  dree 1375 tax.db | dot -T x11
+  dree 1375 neidb | dot -T x11
 #+end_src
 #+begin_src latex
   Unfortunately, this tree is so large, it's illegible. So we restrict
@@ -100,7 +100,7 @@
   where taxa with sequenced genomes are colored.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  dree -g 1375 tax.db | dot -T x11
+  dree -g 1375 neidb | dot -T x11
 #+end_src
 #+begin_src latex
   \begin{figure}
@@ -115,7 +115,7 @@
   names in Figure~\ref{fig:au2}.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  dree -n -g 1375 tax.db | dot -T x11
+  dree -n -g 1375 neidb | dot -T x11
 #+end_src
 #+begin_src latex
   \begin{figure}
@@ -128,7 +128,7 @@
   Now we search for the neighbors of \emph{Aerococcus}.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  printf "1376" | neighbors -g tax.db
+  printf "1376" | neighbors -g neidb
 #+end_src
 #+begin_src latex
   \begin{verbatim}

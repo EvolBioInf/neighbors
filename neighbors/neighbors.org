@@ -41,11 +41,11 @@
   taxonomy database.
 #+end_src
 #+begin_src go <<Set usage, Pr.~\ref{pr:neig}>>=
-  u := "neighbors [-h] [option]... tax.db [targets.txt]..."
+  u := "neighbors [-h] [option]... <db> [targets.txt]..."
   p := "Given a taxonomy database computed with makeNeiDb and " +
 	  "a set of target taxon-IDs, find their closest " +
 	  "taxonomic neighbors."
-  e := "neighbors tax.db targetIds.txt"
+  e := "neighbors neidb targetIds.txt"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -359,7 +359,7 @@
   we also test the genomes option, \ty{-g}.
 #+end_src
 #+begin_src go <<Construct tests, Pr.~\ref{pr:neig}>>=
-  db := "../data/tax.db"
+  db := "../data/neidb"
   for i := 1; i <= 4; i++ {
 	  in := "tid" + strconv.Itoa(i) + ".txt"
 	  test := exec.Command("./neighbors", db, in)

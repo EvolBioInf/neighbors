@@ -42,7 +42,7 @@
 #+begin_src go <<Set usage, Pr.~\ref{pr:tax}>>=
   u := "taxi [option] <scientific-name> <db>"
   p := "Take user from scientific name to taxon-ID."
-  e := "taxi \"homo sapiens\" tax.db"
+  e := "taxi \"homo sapiens\" neidb"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -184,7 +184,7 @@
 #+end_src
 #+begin_src go <<Construct tests, Pr.~\ref{pr:tax}>>=
   q := "homo sapiens"
-  d := "../data/tax.db"
+  d := "../data/neidb"
   test := exec.Command("./taxi", q, d)
   tests = append(tests, test)
   test = exec.Command("./taxi", "-s", q, d)
