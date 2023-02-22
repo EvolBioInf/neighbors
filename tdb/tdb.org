@@ -941,7 +941,7 @@
   and the name for entry 9606, \emph{Homo sapiens}.
 #+end_src
 #+begin_src go <<Test \ty{NewTaxonomy}, Pa.~\ref{pa:tdb}>>=
-  d2 := p + "tax.db"
+  d2 := p + "neidb"
   taxdb = OpenTaxonomyDB(d2)
   ta = taxdb.NewTaxonomy(nil)
   want := "Homo sapiens"
