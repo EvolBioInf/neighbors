@@ -34,15 +34,15 @@
   this Tutorial, we use files downloaded on 14. September 2022:
 #+end_src
 #+begin_src sh <<construct.sh>>=
-  wget guanine.evolbio.mpg.de/neighbors/taxdb.tgz
+  wget guanine.evolbio.mpg.de/neighbors/neidb.tgz
 #+end_src
 #+begin_src latex
   We unpack the database files, change into the directory containing
   them, and unpack the database dump.
 #+end_src
 #+begin_src sh <<construct.sh>>=
-  tar -xvzf taxdb.tgz
-  cd taxdb
+  tar -xvzf neidb.tgz
+  cd neidb
   tar -xvzf taxdump.tar.gz
 #+end_src
 #+begin_src latex
