@@ -1,0 +1,184 @@
+### Introduction ###
+
+In this Tutorial we construct an SQLite3 database from the NCBI
+taxonomy data. Then we query the database to find the taxon-IDs for
+our target organism. Based on these taxon-IDs, we carry out the search
+for target and neighbor genomes using neighbors. We subject these
+genomes to two connected analyses, phylogeny reconstruction and
+identification of diagnostic markers.
+
+### Construct Database ###
+
+The NCBI taxonomy Dump files are hosted at
+
+	ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+
+The genome lists are posted as three separate files for prokaryotes,
+eukaryotes, and viruses,
+
+	ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt
+	ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/eukaryotes.txt
+	ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/viruses.txt
+
+These four files are updated regularly. To ensure the long-term
+stability of this Tutorial, we use files downloaded on 14. September
+2022:
+
+$>	wget guanine.evolbio.mpg.de/neighbors/neidb.tgz
+
+We unpack the database files, change into the directory containing
+them, and unpack the database dump.
+
+$>	tar -xvzf neidb.tgz
+$>	cd neidb
+$>	tar -xvzf taxdump.tar.gz
+
+We can now construct the taxonomy database, neidb, using
+makeNeiDb. This takes less than half a minute.
+
+$>	makeNeiDb
+
+### Query the Database ###
+
+The next step is to find the taxon-IDs for our target organism or
+target organisms. Say, our target organism is Aerococcus urinae.  We
+look up its taxon-ID using taxi.
+
+$>	taxi "Aerococcus urinae" neidb
+
+The result tells us that Aerococcus urinae has taxon-ID 1376 and its
+parent has taxon- ID 1375.
+
+$>	# ID	Parent	Name	
+	  1376 	1375	Aerococcus urinae
+
+To get the overview of the Aerococcus clade, we draw it with our
+program for drawing trees, dree.
+
+$>	dree 1375 neidb | dot -T x11
+
+Unfortunately, this tree is so large, it's illegible. So we restrict
+it to the clades with sequenced genomes and get a figure, where taxa
+with sequenced genomes are colored.
+
+$>	dree -g 1375 neidb | dot -T x11
+
+In the obtained figure, the Aerococcus taxa with sequenced genomes are
+colored. However, taxon-IDs are difficult to interpret, so we convert
+them to taxon names.
+
+$>	dree -n -g 1375 neidb | dot -T x11
+
+Now we search for the neighbors of Aerococcus.
+
+$>	printf "1376\n" | neighbors neidb
+
+The output of neighbors begins with three hashed lines. The first one
+states the most recent common ancestor of the targets, A. urinae with
+taxon-ID 1376. The second line states the most recent common ancestor
+of the neighbors and the targets, Aerococcus, with taxon-ID 1375. The
+third hashed row is the header of the subsequent table, which consists
+of four columns, type, taxon-ID, name, and genomes. There are three
+possible types, 't' for known target, 'tt' for new target, and 'n' for
+neighbor. We see that there are two new targets, 866775 with one
+genome sequence, which we already saw in the produced figure produced
+by dree.
+
+$>	# MRCA(targets): 1376, Aerococcus urinae
+	# MRCA(targets+neighbors): 1375, Aerococcus
+	# Type	Taxon-ID	Name	Genomes
+	t	1376	Aerococcus urinae	CP014161|CP065662
+	tt	866775	Aerococcus urinae ACS	CP002512
+	tt	1216979	Aerococcus urinae NBRC	-
+	n	1377	Aerococcus viridans	CP014164
+	n	51665	Aerococcus urinqeequi	CP013988|CP014162|...
+	n	79233	Aerococcus sp. LV65.5:W1	-
+	n	87541	Aerococcus christensenii	CP014159
+	n	119206	Aerococcus sanguinicola	CP014160
+	n	128944	Aerococcus urinaehominis	CP014163
+	...
+
+We download the three target sequences, mark their names with prefix
+'t', and store them in the directory targets.
+
+$>	mkdir targets
+	for a in CP014161 CP065662 CP002512
+	do
+		efetch -db nucleotide -format fasta \
+		-id $a > targets/t${a}.fasta
+	done
+
+
+When looking for neighbor genomes, we ignore plasmid sequences, which
+leaves seven genomes among the neighbors. Like the targets, we fetch
+the neighbors using a loop over their accessions, mark their names
+with prefix 'n', and store them in the directory neighbors.
+
+$>	mkdir neighbors
+	for a in CP014164 CP013988 CP014162 CP063065 \
+		CP014159 CP014160 CP014163
+	do
+	efetch -db nucleotide -format fasta \
+		-id $a > neighbors/n${a}.fasta
+	done
+	
+We compute a quick phylogeny for the target and neighbor genomes using
+phylonium (github.com/evolbioinf/phylonium) and programs form the
+biobox toolkit (github.com/evolbioinf/biobox).
+
+$>	phylonium targets/* neighbors/* | nj | midRoot > au.nwk
+$>	plotTree au.nwk
+
+As shown in the resulting figure, the targets are monophyletic, which
+is necessary for a successful fur run.
+
+Now we can construct the fur database with makeFurDb and run fur
+(github.com/evolbioinf/fur) on it to get approximately 474 kb
+potential marker material. The program cres used to quantify the
+output of fur is also part of the biobox.
+
+$>	makeFurDb -t targets/ -n neighbors/ -d au.db
+$>	fur -d au.db | cleanSeq > au.fasta
+$>	cres au.fasta
+
+If we look again at the phylogeny in the figure ($> plotTree au.nwk),
+we might want to rethink the position of CP002512. Perhaps it should
+be a neighbor rather than a target? This of course depends on the
+details of our test system. But let's say we make CP002512 a neighbor;
+then our set of potential markers shrinks to 105 kb.
+
+$>	mv targets/tCP002512.fasta neighbors/
+$>	makeFurDb -t targets/ -n neighbors/ -d au2.db
+$>	fur -d au2.db/ | cleanSeq > au2.fasta
+$>	cres au2.fasta
+
+We might extend this analysis by making CP002512 the target and everything else
+the neighors. This returns 190 kb marker material.
+
+$>	mv targets/* neighbors/
+$>	mv neighbors/tCP002512.fasta targets/
+$>	makeFurDb -t targets/ -n neighbors/ -d au3.db
+$>	fur -d au3.db/ | cleanSeq > au3.fasta
+$>	cres au3.fasta
+
+### Pick Clades from Phylogeny ###
+
+Sometimes a tree of genomes is very large, making it inconvenient to
+manually list the taxa that belong to a particular clade. This isn't
+an issue in our analysis, but if it were, we could use the programs
+land and pickle to pick individual clades.  land labels the nodes in a
+tree.
+
+$>	land au.nwk > au2.nwk
+$>	plotTree au2.nwk
+
+Now we can pick a clade, say clade 7, and print its leaf labels with pickle.
+
+$>	pickle 7 au2.nwk
+
+$>	# Selected clades
+	## 7
+	nCP063065
+	nCP014164
+	nCP013988
+	nCP014162
