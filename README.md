@@ -15,11 +15,17 @@ Make sure you've installed the packages `git`, `make`, `noweb`, `texlive-science
 and `texlive-fonts-extra`.  
   `$ make doc`  
   The documentation is now in `doc/neighborsDoc.pdf`.
-## Docker Container 
+## Run Docker Container 
 As an alternative to building `neighbors` from scratch, we also post it as a [docker
   container](https://hub.docker.com/r/itsers/neighbors). The container
   includes all programs needed to work through the tutorial in `~/tutorial.txt`.
   -  `$ docker pull itsers/neighbors`
   -  `$ docker container run --detach-keys="ctrl-@" -h neighbors -it itsers/neighbors`
+## Make the Docker Container
+The command  
+`$ make docker`  
+pulls the repository
+`https://github.com/IvanTsers/neighbors-docker`, and starts building a
+local copy of the docker image.
 ## License
 [GNU General Public License](https://www.gnu.org/licenses/gpl.html)
