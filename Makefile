@@ -10,7 +10,7 @@ all:
 		make -C $$prog; \
 		cp $$prog/$$prog bin; \
 	done
-.PHONY: doc test
+.PHONY: doc test docker
 doc:
 	make -C doc
 clean:
@@ -22,3 +22,8 @@ test:
 	for prog in $(progs) $(packs); do \
 		make test -C $$prog; \
 	done
+docker:
+	git clone https://github.com/IvanTsers/neighbors-docker; \
+	cd neighbors-docker; \
+	sudo docker build -t neighbors .; \
+	cd ..

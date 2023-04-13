@@ -35,4 +35,5 @@ pickle/pickle
 
 # Misc
 dree/makeRes.sh
+neighbors-docker
 tutorial/drawTrees.sh
