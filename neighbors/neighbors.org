@@ -55,12 +55,14 @@
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  Apart from the version, we declare only the option to restrict the
-  output to taxa with genomes.
+  Apart from the version, we declare an option to restrict the output to
+  taxa with genomes (\ty{-g}), and an option to just list the replicons
+  (\ty{-l}).
 #+end_src
 #+begin_src go <<Declare options, Pr.~\ref{pr:neig}>>=
-  var optV = flag.Bool("v", false, "version")
-  var optG = flag.Bool("g", false, "genome sequences only")
+  optV := flag.Bool("v", false, "version")
+  optG := flag.Bool("g", false, "genome sequences only")
+  optL := flag.Bool("l", false, "list replicons")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -112,22 +114,24 @@
 #+begin_src latex
   The input files are parsed using the function \ty{clio.ParseFiles},
   which takes as argument the function \ty{parse}. In turn, \ty{parse}
-  takes the database connection and the genomes option as arguments.
+  takes the database connection, the list option, and the genomes option
+  as arguments.
 #+end_src
 #+begin_src go <<Parse input files, Pr.~\ref{pr:neig}>>=
-  clio.ParseFiles(files, parse, taxdb, *optG)
+  clio.ParseFiles(files, parse, taxdb, *optL, *optG)
 #+end_src
 #+begin_src latex
-  Inside \ty{parse}, we retrieve the taxonomy database and the genomes
-  option. Then we read the taxon-IDs and compute two new sets of
-  taxon-IDs, the targets, and the neighbors. For each element of these
-  sets we also look up the genome accessions. Then we print the combined
-  result.
+  Inside \ty{parse}, we retrieve the taxonomy database, the list option,
+  and the genomes option. Then we read the taxon-IDs and compute two new
+  sets of taxon-IDs, the targets, and the neighbors. For each element of
+  these sets we also look up the genome accessions. Then we print the
+  combined result.
 #+end_src
 #+begin_src go <<Functions, Pr.~\ref{pr:neig}>>=
   func parse(r io.Reader, args ...interface{}) {
 	  taxdb := args[0].(*tdb.TaxonomyDB)
-	  optG := args[1].(bool)
+	  optL := args[1].(bool)
+	  optG := args[2].(bool)
 	  //<<Read taxon-IDs, Pr.~\ref{pr:neig}>>
 	  //<<Compute targets, Pr.~\ref{pr:neig}>>
 	  //<<Compute neighbors, Pr.~\ref{pr:neig}>>
@@ -246,26 +250,28 @@
 	  genomes[t] = taxdb.Replicons(t)
   }
 #+end_src
-
-#+begin_src latex
-  We start the results section with the taxon-IDs and scientific names
-  of the most recent common ancestors of the targets and of the whole
-  analysis, that is, the MRCA of the targets and neighbors
-  combined. Then we print a table of results consisting of four columns:
-  the taxon type---neighbor or target, the taxon-ID, taxon name, and the
-  genome accessions. We typeset the table using a tab writer, which we
-  flush at the end.
-#+end_src
+#+begin_export latex
+The result consists either of a list of replicons or of the full
+report.
+#+end_export
 #+begin_src go <<Print result, Pr.~\ref{pr:neig}>>=
-  mrcaTname := taxdb.Name(mrcaT)
-  mrcaAname := taxdb.Name(mrcaA)
-  fmt.Printf("# MRCA(targets): %d, %s\n", mrcaT, mrcaTname)
-  fmt.Printf("# MRCA(targets+neighbors): %d, %s\n", mrcaA, mrcaAname)
-  w := new(tabwriter.Writer)
-  w.Init(os.Stdout, 1, 0, 2, ' ', 0)
-  fmt.Fprint(w, "# Type\tTaxon-ID\tName\tGenomes\n")
-  //<<Print targets, Pr.~\ref{pr:neig}>>
-  //<<Print neighbors, Pr.~\ref{pr:neig}>>
+  if optL {
+	  //<<List replicons, Pr.~\ref{pr:neig}>>
+  } else {
+	  //<<Print report, Pr.~\ref{pr:neig}>>
+  }
+#+end_src
+#+begin_export latex
+We list the replicons in a table constructed with a \ty{tabwriter},
+which we flush at the end. The replicons table has a header consisting
+of the sample (target or neighbor), the replicon's name, and its
+accession. We first list the targets, then the neighbors.
+#+end_export
+#+begin_src go <<List replicons, Pr.~\ref{pr:neig}>>=
+  w := tabwriter.NewWriter(os.Stdout, 1, 0, 2, ' ', 0)
+  fmt.Fprintf(w, "# Sample\tName\tAccession\n")
+  //<<List targets, Pr.~\ref{pr:neig}>>
+  //<<List neighbors, Pr.~\ref{pr:neig}>>
   w.Flush()
 #+end_src
 #+begin_src latex
@@ -274,11 +280,79 @@
 #+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
   "text/tabwriter"
 #+end_src
+#+begin_export latex
+For each target we get the list of replicons and print each one.
+#+end_export
+#+begin_src go <<List targets, Pr.~\ref{pr:neig}>>=
+  sample := "t"
+  for _, target := range targets {
+	  replicons := genomes[target]
+	  for _, replicon := range replicons {
+		  //<<Print replicon, Pr.~\ref{pr:neig}>>
+	  }
+  }
+#+end_src
+#+begin_export latex
+A replicon field consists of entries separated by colons. Each entry
+has the strucutre
+\begin{center}
+  \texttt{name:accession1/accession2}
+\end{center}
+We iterate over the entries. From each entry we extract the name and
+replace any blanks it might contain with underscores. Then we extract
+the first accession and print the sample, the name, and the accession.
+#+end_export
+#+begin_src go <<Print replicon, Pr.~\ref{pr:neig}>>=
+  entries := strings.Split(replicon, ";")
+  for _, entry := range entries {
+	  arr := strings.Split(entry, ":")
+	  if len(arr) < 1 {
+		  log.Fatalf("cannot parse %s\n", entry)
+	  }
+	  name := strings.Trim(arr[0], " ")
+	  name = strings.Replace(name, " ", "_", -1)
+	  arr = strings.Split(arr[1], "/")
+	  acc := arr[0]
+	  fmt.Fprintf(w, "%s\t%s\t%s\n", sample, name, acc)
+  }
+#+end_src
+#+begin_export latex
+We list the neighbors like we just listed the targets.
+#+end_export
+#+begin_src go <<List neighbors, Pr.~\ref{pr:neig}>>=
+  sample = "n"
+  for _, neighbor := range neighbors {
+	  replicons := genomes[neighbor]
+	  for _, replicon := range replicons {
+		  //<<Print replicon, Pr.~\ref{pr:neig}>>
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We start the report with the taxon-IDs and scientific names of the
+  most recent common ancestors of the targets and of the whole analysis,
+  that is, the MRCA of the targets and neighbors combined. Then we print
+  a table of results consisting of four columns: the taxon
+  type---neighbor or target, the taxon-ID, taxon name, and the genome
+  accessions. Like the replicon list, we typeset again the report table
+  using a tab writer and flush it at the end.
+#+end_src
+#+begin_src go <<Print report, Pr.~\ref{pr:neig}>>=
+  mrcaTname := taxdb.Name(mrcaT)
+  mrcaAname := taxdb.Name(mrcaA)
+  fmt.Printf("# MRCA(targets): %d, %s\n", mrcaT, mrcaTname)
+  fmt.Printf("# MRCA(targets+neighbors): %d, %s\n", mrcaA, mrcaAname)
+  w := tabwriter.NewWriter(os.Stdout, 1, 0, 2, ' ', 0)
+  fmt.Fprint(w, "# Type\tTaxon-ID\tName\tGenomes\n")
+  //<<Print targets, Pr.~\ref{pr:neig}>>
+  //<<Print neighbors, Pr.~\ref{pr:neig}>>
+  w.Flush()
+#+end_src
 #+begin_src latex
   Targets that were already in the input are marked as type ``t'', new
-  targets as ``tt''. To make it easy to retrieve the genomes, we print
-  their accessions in a single string punctuated by pipe symbols. If the
-  user requested only taxa with genomes, we restrict our output to them.
+  targets as ``tt''. We print the genome accessions in a single string
+  punctuated by pipe symbols. If the user requested only taxa with
+  genomes, we restrict our output to them.
 #+end_src
 #+begin_src go <<Print targets, Pr.~\ref{pr:neig}>>=
   for _, target := range targets {
@@ -337,8 +411,7 @@
   }
 #+end_src
 #+begin_src latex
-  We construct a set of tests and then iterate over them to run each
-  one.
+  We construct a set of tests and run each one.
 #+end_src
 #+begin_src go <<Testing, Pr.~\ref{pr:neig}>>=
   var tests []*exec.Cmd
@@ -356,7 +429,8 @@
 #+begin_src latex
   We run \ty{neighbors} on the full database with four sets of
   target-IDs, \ty{tid1.txt}, \ty{tid2.txt}, and so on. On \ty{tid4.txt}
-  we also test the genomes option, \ty{-g}.
+  we also test the list option (\ty{-l}) and the genomes option
+  (\ty{-g}).
 #+end_src
 #+begin_src go <<Construct tests, Pr.~\ref{pr:neig}>>=
   db := "../data/neidb"
@@ -365,7 +439,9 @@
 	  test := exec.Command("./neighbors", db, in)
 	  tests = append(tests, test)
   }
-  test := exec.Command("./neighbors", "-g", db, "tid4.txt")
+  test := exec.Command("./neighbors", "-l", db, "tid4.txt")
+  tests = append(tests, test)
+  test = exec.Command("./neighbors", "-g", db, "tid4.txt")
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
