@@ -17,6 +17,7 @@ clean:
 	for prog in $(progs) $(packs) doc; do \
 		make clean -C $$prog; \
 	done
+	make clean -C doc
 test:
 	echo test
 	for prog in $(progs) $(packs); do \
