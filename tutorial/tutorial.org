@@ -23,7 +23,7 @@
   The NCBI taxonomy database and the corresponding genome reports are
   posted at
 #+end_src
-#+begin_src sh <<construct.sh>>=
+#+begin_src sh <<db.sh>>=
   ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
   ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt
   ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/eukaryotes.txt
@@ -33,24 +33,33 @@
   These four files are updated regularly. To ensure the stability of
   this Tutorial, we use files downloaded on 14. September 2022:
 #+end_src
-#+begin_src sh <<construct.sh>>=
+#+begin_src sh <<db.sh>>=
   wget guanine.evolbio.mpg.de/neighbors/neidb.tgz
 #+end_src
 #+begin_src latex
-  We unpack the database files, change into the directory containing
-  them, and unpack the database dump.
+  We unpack the database files, delete the tar file, change into the new
+  directory \ty{neidb}, and unpack the database dump.
 #+end_src
-#+begin_src sh <<construct.sh>>=
+#+begin_src sh <<db.sh>>=
   tar -xvzf neidb.tgz
+  rm neidb.tgz
   cd neidb
   tar -xvzf taxdump.tar.gz
 #+end_src
 #+begin_src latex
   We can now construct the taxonomy database, \ty{neidb}, using
-  \ty{makeNeiDb}. This takes approximately half a minute.
+  \ty{makeNeiDb}. This takes approximately 17s. Then we return to the
+  parent directory and move the database \ty{neidb} there. Since the
+  database has the same name as the directory that contains it, we first
+  move the database to \ty{tmpdb}, remove the download directory, and
+  move \ty{tmpdb} to \ty{neidb}.
 #+end_src
-#+begin_src sh <<construct.sh>>=
+#+begin_src sh <<db.sh>>=
   makeNeiDb
+  cd ../
+  mv neidb/neidb tmpdb
+  rm -r neidb
+  mv tmpdb neidb
 #+end_src
 #+begin_src latex
   \section*{Query Database}
@@ -91,14 +100,27 @@
     0     1376     Aerococcus urinae
   \end{verbatim}
 #+end_src
+#+begin_export latex
+We can draw the tree rooted on \emph{Aerococcus}.
+#+end_export
 #+begin_src sh <<query.sh>>=
   dree 1375 neidb | dot -T x11
 #+end_src
 #+begin_src latex
-  Unfortunately, this tree is so large, it's illegible. So we restrict
-  it to the clades with sequenced genomes and get Figure~\ref{fig:au1},
-  where taxa with sequenced genomes are colored.
+  Unfortunately, this tree is so large, it's illegible and when we zoom
+  in, navigating the image becomes difficult. So instead of piping it to
+  an X11 window, we save it to file and render this file with a tool
+  that allows easy navigation, e. g. \ty{eog}.
 #+end_src
+#+begin_src sh <<query.sh>>=
+  dree 1375 neidb | dot -T svg > tmp.svg
+  eog tmp.svg &
+#+end_src
+#+begin_export latex
+Still, this is not a very useful view. So we restrict
+it to the clades with sequenced genomes and get Figure~\ref{fig:au1},
+where taxa with sequenced genomes are colored.
+#+end_export
 #+begin_src sh <<query.sh>>=
   dree -g 1375 neidb | dot -T x11
 #+end_src
@@ -135,50 +157,89 @@
   # MRCA(targets): 1376, Aerococcus urinae
   # MRCA(targets+neighbors): 1375, Aerococcus
   # Type  Taxon-ID  Name                      Genomes
-  t       1376      Aerococcus urinae         CP014161|CP065662
-  tt      866775    Aerococcus urinae ACS     CP002512
-  n       1377      Aerococcus viridans       CP014164
-  n       51665     Aerococcus urinaeequi     CP013988|CP014162|...
-  n       87541     Aerococcus christensenii  CP014159
-  n       119206    Aerococcus sanguinicola   CP014160
-  n       128944    Aerococcus urinaehominis  CP014163
+  # MRCA(targets): 1376, Aerococcus urinae
+  # MRCA(targets+neighbors): 1375, Aerococcus
+  # Type  Taxon-ID  Name                                Genomes
+  t       1376      Aerococcus urinae                   NZ_CP014161.1|NZ_CP065662.1
+  tt      866775    Aerococcus urinae ACS-120-V-Col10a  NC_015278.1
+  n       1377      Aerococcus viridans                 NZ_CP014164.1
+  n       51665     Aerococcus urinaeequi               NZ_CP013988.1|NZ_CP014162.1|...
+  n       87541     Aerococcus christensenii            NZ_CP014159.1
+  n       119206    Aerococcus sanguinicola             NZ_CP014160.1
+  n       128944    Aerococcus urinaehominis            NZ_CP014163.1
   \end{verbatim}
-  The output of \ty{neighbors} begins with three hashed lines. The first
-  states the most recent common ancestor of the targets,
-  \emph{A. urinae} with taxon-ID 1376. The second states the most recent
-  common ancestor of the neighbors and the targets, \emph{Aerococcus},
-  with taxon-ID 1375. The third hashed row is the header of the
-  subsequent table, which consists of four columns, type, taxon-ID,
-  name, and genomes. There are three possible types, ``t'' for known
-  target, ``tt'' for new target, and ``n'' for neighbor. We see the new
-  target 866775, which was already in Figure~\ref{fig:au1}, but wasn't
-  contained in our query. We download the three target sequences, mark
-  their names with prefix ``t'', and store them in the directory
-  \ty{targets}.
+  I've slightly edited the output of \ty{neighbors} for clarity. It
+  begins with three hashed lines. The first states the most recent
+  common ancestor of the targets, \emph{A. urinae} with taxon-ID
+  1376. The second states the most recent common ancestor of the
+  neighbors and the targets, \emph{Aerococcus}, with taxon-ID 1375. The
+  third hashed row is the header of the subsequent table, which consists
+  of four columns, type, taxon-ID, name, and genomes. There are three
+  possible types, ``t'' for known target, ``tt'' for new target, and
+  ``n'' for neighbor. We see the new target 866775, which was already in
+  Figure~\ref{fig:au1}, but wasn't contained in our query.
+
+  To download the targets and neighbors, this ``report view'' of the
+  results is a bit tricky to process. So we use the ``list view instead''.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  mkdir targets
-  for a in CP014161 CP065662 CP002512
-  do
-      efetch -db nucleotide -format fasta \
-	     -id $a > targets/t${a}.fasta
-  done
+  printf "1376" | neighbors -l neidb
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+# Sample  Name            Accession
+t         chromosome      NZ_CP014161.1
+t         chromosome      NZ_CP065662.1
+t         chromosome      NC_015278.1
+n         chromosome      NZ_CP014164.1
+n         chromosome      NZ_CP014160.1
+n         chromosome      NZ_CP014159.1
+n         chromosome      NZ_CP014163.1
+n         chromosome      NZ_CP013988.1
+n         chromosome      NZ_CP014162.1
+n         chromosome      NZ_CP063065.1
+n         plasmid_pT4302  NZ_CP063066.1
+n         plasmid_pT4303  NZ_CP063067.1
+\end{verbatim}
+#+end_export
+#+begin_export latex
+To prepare the download, we make directories for the targets and
+neighbors. We also save a slightly edited version of the accessions in
+the file \ty{acc.txt}.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  mkdir targets neighbors
+  printf "1376" | neighbors -l neidb > acc.txt
+#+end_src
+#+begin_export latex
+We extract the target accessions, download the corresponding genomes
+in FASTA format, and store them in the \ty{targets} directory. The
+names of the sequence files are the accessions prefixed by \ty{t}.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  grep '^t' acc.txt |
+      awk '{print $3}' |
+      while read a
+      do
+	  echo $a
+	  efetch -db nucleotide -id ${a} \
+		 -format fasta > targets/t${a}.fasta
+      done
 #+end_src
 #+begin_src latex
-  When looking for neighbor genomes, we ignore plasmid sequences, which
-  leaves seven genomes among the neighbors. Like the targets, we fetch
-  the neighbors using a loop over their accessions, mark their names
-  with prefix ``n'', and store them in the directory \ty{neighbors}.
+  Among the neighbor genomes we ignore plasmid sequences. This time we
+  prefix the file names by \ty{n}.
 #+end_src
-
 #+begin_src sh <<query.sh>>=
-  mkdir neighbors
-  for a in CP014164 CP013988 CP014162 CP063065 \
-	   CP014159 CP014160 CP014163
-  do
-      efetch -db nucleotide -format fasta \
-	     -id $a > neighbors/n${a}.fasta
-  done
+      grep '^n' acc.txt |
+      grep -v plasmid |
+      awk '{print $3}' |
+      while read a
+      do
+	  echo $a
+	  efetch -db nucleotide -id ${a} \
+		 -format fasta > neighbors/n${a}.fasta
+      done
 #+end_src
 #+begin_src latex
   We compute a quick phylogeny for the target and neighbor genomes using
@@ -197,7 +258,8 @@
 #+end_src
 #+begin_src sh <<query.sh>>=
   phylonium targets/* neighbors/* | nj | midRoot > au.nwk
-  plotTree au.nwk
+  sed 's/_//g' au.nwk > au2.nwk
+  plotTree au2.nwk
 #+end_src
 #+begin_src latex
   Now we can construct the \ty{fur} database with \ty{makeFurDb} and run
@@ -214,24 +276,24 @@
 #+end_src
 #+begin_src latex
   If we look again at the phylogeny in Figure~\ref{fig:auTree}, we might
-  want to rethink the position of CP002512. Perhaps it should be a
+  want to rethink the position of NC015278. Perhaps it should be a
   neighbor rather than a target? This of course depends on the details
-  of our test system. But let's say we make CP002512 a neighbor; then
+  of our test system. But let's say we make NC015278 a neighbor; then
   our set of potential markers shrinks to 105 kb.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  mv targets/tCP002512.fasta neighbors/
+  mv targets/tNC_015278.1.fasta neighbors/
   makeFurDb -t targets/ -n neighbors/ -d au2.db
   fur -d au2.db/ | cleanSeq > au2.fasta
   cres au2.fasta
 #+end_src
 #+begin_src latex
-  We might extend this analysis by making CP002512 the target and
+  We might extend this analysis by making NC015278 the target and
   everything else the neighors. This returns 190 kb marker material.
 #+end_src
 #+begin_src sh <<query.sh>>=
   mv targets/* neighbors/
-  mv neighbors/tCP002512.fasta targets/
+  mv neighbors/tNC_015278.1.fasta targets/
   makeFurDb -t targets/ -n neighbors/ -d au3.db
   fur -d au3.db/ | cleanSeq > au3.fasta
   cres au3.fasta
@@ -253,24 +315,24 @@
   \end{figure}
 #+end_src
 #+begin_src sh <<query.sh>>=
-  land au.nwk > au2.nwk
-  plotTree au2.nwk
+  land au2.nwk > au3.nwk
+  plotTree au3.nwk
 #+end_src
 #+begin_src latex
   Now we can pick a clade, say clade 7, and print its five leaf labels
   with \ty{pickle}.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  pickle 7 au2.nwk
+  pickle 7 au3.nwk
 #+end_src
 #+begin_src latex
   \begin{verbatim}
   # Selected clades
   ## 7
-  nCP014163
-  nCP063065
-  nCP014164
-  nCP013988
-  nCP014162
+  nNZCP014163.1
+  nNZCP063065.1
+  nNZCP014164.1
+  nNZCP013988.1
+  nNZCP014162.1
   \end{verbatim}
 #+end_src
