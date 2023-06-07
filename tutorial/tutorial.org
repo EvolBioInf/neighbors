@@ -1,23 +1,23 @@
 #+begin_src latex
   \section*{Introduction}
   The Neighbors package provides tools for finding the target and
-  neighbor genomes used by \ty{fur} to find unique regions. These unique
-  regions then serve as the basis for constructing diagnostic
-  markers. In this Tutorial I demonstrate the application of the seven
-  programs in the Neighbors package. We begin by constructing a
-  relational database from the NCBI taxonomy data using the program
-  \ty{makeNeiDb}. Then we query the database with \ty{taxid} to find the
-  taxon-ID for our target organism. The programs \ty{ants} and \ty{dree}
-  allow us to explore the taxonomic context of our target
-  organism. Based on the target taxon-ID, we carry out the search for
-  target and neighbor genomes using \ty{neighbors}.
+  neighbor genomes that can then be used to find regions unique to the
+  targets. These unique target regions serve as the basis for
+  constructing diagnostic markers. In this Tutorial I demonstrate the
+  application of the seven programs in the Neighbors package. We begin
+  by constructing a relational database from the NCBI taxonomy data
+  using the program \ty{makeNeiDb}. Then we query the database with
+  \ty{taxid} to find the taxon-ID for our target organism. The programs
+  \ty{ants} and \ty{dree} allow us to explore the taxonomic context of
+  our target organism. Based on the target taxon-ID, we carry out the
+  search for target and neighbor genomes using \ty{neighbors}.
 
   Any genomes suggested by \ty{neighbors} are best subjected to
-  phylogeny reconstruction before we extract markers from them using
-  \ty{fur}. The prerequisite phylogeny reconstruction is supported by
-  two additional programs from the Neighbors package, \ty{land} for
-  labeling the nodes in a phylogeny, and \ty{pickle} for picking a
-  particular clade in a phylogeny.
+  phylogeny reconstruction before we extract marker candidates from
+  them. The prerequisite phylogeny reconstruction is supported by two
+  additional programs from the Neighbors package, \ty{land} for labeling
+  the nodes in a phylogeny, and \ty{pickle} for picking a particular
+  clade in a phylogeny.
 
   \section*{Construct Database}
   The NCBI taxonomy database and the corresponding genome reports are
@@ -117,9 +117,10 @@ We can draw the tree rooted on \emph{Aerococcus}.
   eog tmp.svg &
 #+end_src
 #+begin_export latex
-Still, this is not a very useful view. So we restrict
-it to the clades with sequenced genomes and get Figure~\ref{fig:au1},
-where taxa with sequenced genomes are colored.
+Still, there are too many nodes in this tree for convenient
+viewing. So we restrict it to the clades with sequenced genomes and
+get Figure~\ref{fig:au1}, where taxa with sequenced genomes are
+colored.
 #+end_export
 #+begin_src sh <<query.sh>>=
   dree -g 1375 neidb | dot -T x11
@@ -159,18 +160,18 @@ where taxa with sequenced genomes are colored.
   # Type  Taxon-ID  Name                      Genomes
   # MRCA(targets): 1376, Aerococcus urinae
   # MRCA(targets+neighbors): 1375, Aerococcus
-  # Type  Taxon-ID  Name                                Genomes
-  t       1376      Aerococcus urinae                   NZ_CP014161.1|NZ_CP065662.1
-  tt      866775    Aerococcus urinae ACS-120-V-Col10a  NC_015278.1
-  n       1377      Aerococcus viridans                 NZ_CP014164.1
-  n       51665     Aerococcus urinaeequi               NZ_CP013988.1|NZ_CP014162.1|...
-  n       87541     Aerococcus christensenii            NZ_CP014159.1
-  n       119206    Aerococcus sanguinicola             NZ_CP014160.1
-  n       128944    Aerococcus urinaehominis            NZ_CP014163.1
+  # Type  Taxon-ID  Name                      Genomes
+  t       1376      Aerococcus urinae         NZ_CP014161.1|...
+  tt      866775    Aerococcus urinae...      NC_015278.1
+  n       1377      Aerococcus viridans       NZ_CP014164.1
+  n       51665     Aerococcus urinaeequi     NZ_CP013988.1|...
+  n       87541     Aerococcus christensenii  NZ_CP014159.1
+  n       119206    Aerococcus sanguinicola   NZ_CP014160.1
+  n       128944    Aerococcus urinaehominis  NZ_CP014163.1
   \end{verbatim}
   I've slightly edited the output of \ty{neighbors} for clarity. It
   begins with three hashed lines. The first states the most recent
-  common ancestor of the targets, \emph{A. urinae} with taxon-ID
+  common ancestor of the targets, \emph{A. urinae}, with taxon-ID
   1376. The second states the most recent common ancestor of the
   neighbors and the targets, \emph{Aerococcus}, with taxon-ID 1375. The
   third hashed row is the header of the subsequent table, which consists
@@ -179,8 +180,11 @@ where taxa with sequenced genomes are colored.
   ``n'' for neighbor. We see the new target 866775, which was already in
   Figure~\ref{fig:au1}, but wasn't contained in our query.
 
-  To download the targets and neighbors, this ``report view'' of the
-  results is a bit tricky to process. So we use the ``list view instead''.
+  For downloading the targets and neighbors, we need the genome
+  accessions. These are a bit difficult to extract from the ``report
+  view'' of the results we just looked at. So we use the ``list view
+  instead''. It consists of three columns, sample (target or neighbor),
+  the name of the replicon, and its accession.
 #+end_src
 #+begin_src sh <<query.sh>>=
   printf "1376" | neighbors -l neidb
@@ -203,9 +207,8 @@ n         plasmid_pT4303  NZ_CP063067.1
 \end{verbatim}
 #+end_export
 #+begin_export latex
-To prepare the download, we make directories for the targets and
-neighbors. We also save a slightly edited version of the accessions in
-the file \ty{acc.txt}.
+To prepare the sequence download, we make directories for the targets
+and neighbors. We also save the accessions in the file \ty{acc.txt}.
 #+end_export
 #+begin_src sh <<query.sh>>=
   mkdir targets neighbors
@@ -245,19 +248,33 @@ names of the sequence files are the accessions prefixed by \ty{t}.
   We compute a quick phylogeny for the target and neighbor genomes using
   \ty{phylonium}\footnote{\ty{github.com/evolbioinf/phylonium}} and
   programs form the
-  \ty{biobox}\footnote{\ty{github.com/evolbioinf/biobox}}. The result in
-  Figure~\ref{fig:auTree} shows that the targets are monophyletic, which
-  is necessary for a successful \ty{fur} run.
-  \begin{figure}
-    \begin{center}
-      \scalebox{0.75}{\includegraphics{../tutorial/au}}
-    \end{center}
-    \caption{Phylogeny of target and neighbor genomes; targets are
-      prefixed ``t'', neighbors ``n''.}\label{fig:auTree}
-  \end{figure}
+  \ty{biobox}\footnote{\ty{github.com/evolbioinf/biobox}}. The taxon
+  names in the tree are the file names minus the \ty{.fasta}
+  extensions. These file names contain underscores, e. g.
+  \begin{center}
+    \ty{tNC\_015278.1.fasta}
+  \end{center}
+  When rendering the tree, characters preceded by underscores are
+  interpreted as subscripts.
 #+end_src
 #+begin_src sh <<query.sh>>=
   phylonium targets/* neighbors/* | nj | midRoot > au.nwk
+  plotTree au.nwk
+#+end_src
+#+begin_export latex
+To avoid the subscripts in the leaf names, we remove the
+underscores. The resulting tree in Figure~\ref{fig:auTree} shows that
+the targets are monophyletic, which is necessary for a successful
+\ty{fur} run.
+\begin{figure}
+  \begin{center}
+    \scalebox{1}{\includegraphics{../tutorial/au}}
+  \end{center}
+  \caption{Phylogeny of target and neighbor genomes; targets are
+    prefixed ``t'', neighbors ``n''.}\label{fig:auTree}
+\end{figure}
+#+end_export
+#+begin_src sh <<query.sh>>=
   sed 's/_//g' au.nwk > au2.nwk
   plotTree au2.nwk
 #+end_src
@@ -266,7 +283,7 @@ names of the sequence files are the accessions prefixed by \ty{t}.
   \ty{fur}\footnote{\ty{github.com/evolbioinf/fur}} on it to get
   approximately 474 kb potential marker material after cleaning with
   \ty{cleanSeq}, which is part of the \ty{fur} package. The program
-  \ty{cres} used to quantify the output of \ty{fur} is also part of the
+  \ty{cres} used to quantify the output of \ty{fur} is part of the
   \ty{biobox}.
 #+end_src
 #+begin_src sh <<query.sh>>=
@@ -308,7 +325,7 @@ names of the sequence files are the accessions prefixed by \ty{t}.
   yielding Figure~\ref{fig:auTree2}.
   \begin{figure}
     \begin{center}
-      \scalebox{0.75}{\includegraphics{../tutorial/au2}}
+      \scalebox{1}{\includegraphics{../tutorial/au2}}
     \end{center}
     \caption{Phylogeny of target and neighbor genomes with internal
       nodes, or \emph{clades}, labeled.}\label{fig:auTree2}
