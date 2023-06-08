@@ -294,31 +294,57 @@ For each target we get the list of replicons and print each one.
 #+end_src
 #+begin_export latex
 A replicon field consists of entries separated by colons. Each entry
-has the strucutre
+has the structure
 \begin{center}
-  \texttt{name:accession1/accession2}
+  \texttt{[name:]accession1[/accession2]}
 \end{center}
-We iterate over the entries. From each entry we extract the name and
-replace any blanks it might contain with underscores. Then we extract
-the first accession and print the sample, the name, and the accession.
+where the elements in square brackets are optional.  We iterate over
+the entries. From each entry we extract the name, if present, and the
+first accession. Then we print the sample, the name, and the
+accession.
 #+end_export
 #+begin_src go <<Print replicon, Pr.~\ref{pr:neig}>>=
   entries := strings.Split(replicon, ";")
   for _, entry := range entries {
-	  arr := strings.Split(entry, ":")
-	  if len(arr) < 1 {
-		  log.Fatalf("cannot parse %s\n", entry)
-	  }
-	  name := strings.Trim(arr[0], " ")
-	  name = strings.Replace(name, " ", "_", -1)
-	  arr = strings.Split(arr[1], "/")
-	  acc := arr[0]
+	  //<<Extract name, Pr.~\ref{pr:neig}>>
+	  //<<Extract accession, Pr.~\ref{pr:neig}>>
 	  fmt.Fprintf(w, "%s\t%s\t%s\n", sample, name, acc)
   }
 #+end_src
+#+begin_src latex
+  We import \ty{strings}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "strings"
+#+end_src
 #+begin_export latex
-We list the neighbors like we just listed the targets.
+The default name is a hyphen. If we do have a name, we trim any
+flanking blanks it might contain and replace any remaining blanks with
+underscores.
 #+end_export
+#+begin_src go <<Extract name, Pr.~\ref{pr:neig}>>=
+  name := "-"
+  if strings.Index(entry, ":") > -1 {
+	  name = strings.Split(entry, ":")[0]
+	  name = strings.Trim(name, " ")
+	  name = strings.Replace(name, " ", "_", -1)
+  }
+#+end_src
+#+begin_export latex
+The default accession is the full entry. If that entry contains a
+colon, we split it at the colon. If the right substring obtained by
+the split contains a slash, we split it at that and take the left
+substring as the accession.
+#+end_export
+#+begin_src go <<Extract accession, Pr.~\ref{pr:neig}>>=
+  acc := entry
+  if strings.Index(entry, ":") > -1 {
+	  acc = strings.Split(acc, ":")[1]
+  }
+  if strings.Index(acc, "/") > -1 {
+	  acc = strings.Split(acc, "/")[0]
+  }
+#+end_src
 #+begin_src go <<List neighbors, Pr.~\ref{pr:neig}>>=
   sample = "n"
   for _, neighbor := range neighbors {
@@ -367,12 +393,6 @@ We list the neighbors like we just listed the targets.
 		  taxdb.Name(target),
 		  strings.TrimPrefix(g, " "))
   }
-#+end_src
-#+begin_src latex
-  We import \ty{strings}.
-#+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
-  "strings"
 #+end_src
 #+begin_src latex
   Neighbors are marked as type ``n''. Since the targets were already
