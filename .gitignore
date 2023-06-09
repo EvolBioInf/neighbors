@@ -12,6 +12,7 @@ doc/neighborsDoc.ps
 doc/*.toc
 doc/ants.tex
 doc/dree.tex
+doc/findMacs.tex
 doc/makeNeiDb.tex
 doc/neighbors.tex
 doc/land.tex
@@ -25,6 +26,7 @@ doc/util.tex
 # Programs
 ants/ants
 dree/dree
+findMacs/findMacs
 makeNeiDb/makeNeiDb
 makeNeiDb/test.db
 neighbors/neighbors

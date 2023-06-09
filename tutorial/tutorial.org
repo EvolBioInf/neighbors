@@ -2,9 +2,9 @@
   \section*{Introduction}
   The Neighbors package provides tools for finding the target and
   neighbor genomes that can then be used to find regions unique to the
-  targets. These unique target regions serve as the basis for
+  targets. These unique target regions are a good starting point for
   constructing diagnostic markers. In this Tutorial I demonstrate the
-  application of the seven programs in the Neighbors package. We begin
+  application of the eight programs in the Neighbors package. We begin
   by constructing a relational database from the NCBI taxonomy data
   using the program \ty{makeNeiDb}. Then we query the database with
   \ty{taxid} to find the taxon-ID for our target organism. The programs
@@ -17,7 +17,8 @@
   them. The prerequisite phylogeny reconstruction is supported by two
   additional programs from the Neighbors package, \ty{land} for labeling
   the nodes in a phylogeny, and \ty{pickle} for picking a particular
-  clade in a phylogeny.
+  clade in a phylogeny. Finally, we use \ty{findMacs} to find marker
+  candidates.
 
   \section*{Construct Database}
   The NCBI taxonomy database and the corresponding genome reports are
@@ -63,10 +64,10 @@
 #+end_src
 #+begin_src latex
   \section*{Query Database}
-  The next step is to find the taxon-IDs for our target organism or
-  target organisms. Say, our target organism is the bactrium
-  \emph{Aerococcus urinae}, which causes urinary tract infections. We
-  look up its taxon-ID using \ty{taxi}.
+  The next step is to find the taxon-IDs for one or more target
+  organisms. Say, our target organism is the bactrium \emph{Aerococcus
+  urinae}, which causes urinary tract infections. We look up its
+  taxon-ID using \ty{taxi}.
 #+end_src
 #+begin_src sh <<query.sh>>=
   taxi "Aerococcus urinae" neidb
@@ -172,10 +173,10 @@ colored.
   I've slightly edited the output of \ty{neighbors} for clarity. It
   begins with three hashed lines. The first states the most recent
   common ancestor of the targets, \emph{A. urinae}, with taxon-ID
-  1376. The second states the most recent common ancestor of the
+  1376. The second line states the most recent common ancestor of the
   neighbors and the targets, \emph{Aerococcus}, with taxon-ID 1375. The
-  third hashed row is the header of the subsequent table, which consists
-  of four columns, type, taxon-ID, name, and genomes. There are three
+  third line is the header of the subsequent table, which consists of
+  four columns, type, taxon-ID, name, and genomes. There are three
   possible types, ``t'' for known target, ``tt'' for new target, and
   ``n'' for neighbor. We see the new target 866775, which was already in
   Figure~\ref{fig:au1}, but wasn't contained in our query.
@@ -216,8 +217,8 @@ and neighbors. We also save the accessions in the file \ty{acc.txt}.
 #+end_src
 #+begin_export latex
 We extract the target accessions, download the corresponding genomes
-in FASTA format, and store them in the \ty{targets} directory. The
-names of the sequence files are the accessions prefixed by \ty{t}.
+in FASTA format, and store them in the \ty{targets} directory. As
+names for the sequence files we use the accessions prefixed by \ty{t}.
 #+end_export
 #+begin_src sh <<query.sh>>=
   grep '^t' acc.txt |
@@ -264,8 +265,8 @@ names of the sequence files are the accessions prefixed by \ty{t}.
 #+begin_export latex
 To avoid the subscripts in the leaf names, we remove the
 underscores. The resulting tree in Figure~\ref{fig:auTree} shows that
-the targets are monophyletic, which is necessary for a successful
-\ty{fur} run.
+the targets are monophyletic, which is necessary for successful marker
+discovery.
 \begin{figure}
   \begin{center}
     \scalebox{1}{\includegraphics{../tutorial/au}}
@@ -279,41 +280,79 @@ the targets are monophyletic, which is necessary for a successful
   plotTree au2.nwk
 #+end_src
 #+begin_src latex
-  Now we can construct the \ty{fur} database with \ty{makeFurDb} and run
-  \ty{fur}\footnote{\ty{github.com/evolbioinf/fur}} on it to get
-  approximately 474 kb potential marker material after cleaning with
-  \ty{cleanSeq}, which is part of the \ty{fur} package. The program
-  \ty{cres} used to quantify the output of \ty{fur} is part of the
-  \ty{biobox}.
+  There's a published program for finding marker candidates,
+  \ty{fur}\footnote{\ty{github.com/evolbioinf/fur}}, but Neighbors comes
+  with its own script for doing that, \ty{findMacs}. The output of
+  \ty{findMacs} consists of intervals on the target representative,
+  which we save to the file \ty{macs1.out}.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  makeFurDb -t targets/ -n neighbors/ -d au.db
-  fur -d au.db | cleanSeq > au.fasta
-  cres au.fasta
+  findMacs targets neighbors > macs1.out
+#+end_src
+#+begin_export latex
+We calculate the amount of marker material by summing the interval
+lengths, 1.18 Mb.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  awk '{s+=$3-$2+1}END{print s}' macs1.out
+#+end_src
+#+begin_export latex
+How specific are the markers? To really find out, we'd need to test
+them against a comprehensive sequence database and measure the true
+negative rate as the fraction of non-targets classified as
+non-targets. Here we restrict ourselves to the question, how much of
+the marker material is found in the neighbors, after all?  For this we
+extract the intervals identified by \ty{findMacs}, cut the marker
+candidates from the target representative, convert the neighbor
+sequences into a Blast database, and compare the candidates to the
+database. We recover 2.2 kb, a tiny fraction, so specificity looks
+good.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  awk '{print $2, $3}'  macs1.out > iv.txt
+  cutSeq  -f iv.txt targets/tNC_015278.1.fasta > frag.fasta
+  cat neighbors/*.fasta > nei.fasta
+  makeblastdb -in nei.fasta -out nei -dbtype nucl
+  blastn -query frag.fasta -db nei -outfmt 6 |
+      awk '{s+=$4}END{print s}'
+#+end_src
+#+begin_export latex
+Next, we look at the sensitivity of our markers. Again, to really find
+out, we'd have to compare them to a comprehensive sequence database
+and measure the true positive rate as the fraction of targets
+classified as targets. Here we restrict ourselves to asking how much
+of the marker material is found in the targets. It turns out, 1.21 Mb
+in the representative NC\_015278, which is roughly three percent more
+than the 1.18 Mb we expect, and 1.18 Mb in the other targets. So
+again, sensitivity looks good.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  cat targets/*.fasta > tar.fasta
+  makeblastdb -in tar.fasta -out tar -dbtype nucl
+  blastn -query frag.fasta -db tar -outfmt 6 |
+      awk '{c[$2]+=$4}END{for(a in c)print a, c[a]}'
 #+end_src
 #+begin_src latex
-  If we look again at the phylogeny in Figure~\ref{fig:auTree}, we might
+  If we return to the phylogeny in Figure~\ref{fig:auTree}, we might
   want to rethink the position of NC015278. Perhaps it should be a
   neighbor rather than a target? This of course depends on the details
   of our test system. But let's say we make NC015278 a neighbor; then
-  our set of potential markers shrinks to 105 kb.
+  our set of potential markers shrinks to 433.4 kb.
 #+end_src
 #+begin_src sh <<query.sh>>=
   mv targets/tNC_015278.1.fasta neighbors/
-  makeFurDb -t targets/ -n neighbors/ -d au2.db
-  fur -d au2.db/ | cleanSeq > au2.fasta
-  cres au2.fasta
+  findMacs targets neighbors > macs2.out
+  awk '{s+=$3-$2+1}END{print s}' macs2.out
 #+end_src
 #+begin_src latex
   We might extend this analysis by making NC015278 the target and
-  everything else the neighors. This returns 190 kb marker material.
+  everything else the neighors. This returns 496.9 kb marker material.
 #+end_src
 #+begin_src sh <<query.sh>>=
   mv targets/* neighbors/
   mv neighbors/tNC_015278.1.fasta targets/
-  makeFurDb -t targets/ -n neighbors/ -d au3.db
-  fur -d au3.db/ | cleanSeq > au3.fasta
-  cres au3.fasta
+  findMacs targets/ neighbors/ > macs3.out
+  awk '{s+=$3-$2+1}END{print s}' macs3.out
 #+end_src
 #+begin_src latex
   \subsection*{Pick Clades from Phylogeny}

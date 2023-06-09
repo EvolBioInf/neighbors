@@ -1,0 +1,220 @@
+#+begin_export latex
+\section{\ty{findMacs}}
+The program \ty{findMacs} is a shell script for finding marker
+candidates for a set of target genomes. It takes as input a directory
+of target genomes and a directory of neighbor genomes and returns the
+regions common to the targets that are absent from the neighbors. This
+is similar to what \ty{fur} does~\cite{hau21:fur}, but \ty{findMacs}
+is based on a combination of \ty{mapmash}~\cite{jai18:fas} for
+aligning genomes and \ty{bedtools}~\cite{qui10:bed} for manipulating
+sets of intervals. Using these tools, \ty{findMacs} performs the
+following steps:
+\begin{itemize}
+\item Identify arbitrary target as target representative, $r$.
+\item Subtract neighbors $N$ from $r$ to get the first set of marker
+  candidates,
+  \[
+  M_1 = r - N.
+  \]
+\item Intersect the targets $t_1,t_2,...,t_n$ with $M_1$ to get the
+  second and final set of marker candidates, $M_2$,
+  \[
+  M_2 = M_1\cap t_1\cap t_2\cap...\cap t_n.
+  \]
+\end{itemize}
+
+Intervals in \ty{mapmash} and \ty{bedtools} have zero-based starting
+points and one-based end points, that is, they are half-open to the
+left. For example, the BED interval $(2,5]$ covers the nucleotides
+  $[3,5]$. In contrast, \ty{findMacs} returns one-baased start and end
+  points. The coordinates we use throughout these calculations are
+  with respect to the target representative.
+
+\section*{Implementation}
+First of all, we declare \ty{findMacs} a bash script. Then we interact
+with the user, determine the target representative, subtract the
+neighbors, intersect the targets, and print the results. Throughout,
+we generate intermediary results that we store in various files. So at
+the end we delete these files again.  \bpr{findMacs}{pr:fin}
+#+end_export
+#+begin_src sh <<findMacs.sh>>=
+  #!/usr/bin/bash
+  //<<Interact with user, Pr. \ref{pr:fin}>>
+  //<<Determine target representative, Pr. \ref{pr:fin}>>
+  //<<Subtract neighbors, Pr. \ref{pr:fin}>>
+  //<<Intersect targets, Pr. \ref{pr:fin}>>
+  //<<Print results, Pr. \ref{pr:fin}>>
+  //<<Delete intermediary files, Pr. \ref{pr:fin}>>
+#+end_src
+#+begin_export latex
+\epr If there are not exactly two parameters, print a message asking
+for target and neighbor directories, and exit. Otherwise we save the
+target and neighbor directories.
+#+end_export
+#+begin_src sh <<Interact with user, Pr. \ref{pr:fin}>>=
+  if [ $# != 2 ]
+  then
+      echo "Usage: findMacs targetDir neighborDir"
+      exit
+  fi
+  td=$1
+  nd=$2
+#+end_src
+#+begin_export latex
+Any target sequence can serve as representative, so we take the first
+one.
+#+end_export
+#+begin_src sh <<Determine target representative, Pr. \ref{pr:fin}>>=
+  r=$(ls $td/*.fasta | head -n 1)
+#+end_src
+#+begin_export latex
+To subtract the neighbors, we compare the target representative to the
+neighbors. Then we extract the target intervals and the neighbor hits
+on those intervals, before we subtract the neighbor hits from the
+target intervals.
+#+end_export
+#+begin_src sh <<Subtract neighbors, Pr. \ref{pr:fin}>>=
+  //<<Compare target representative to neighbors, Pr. \ref{pr:fin}>>
+  //<<Extract target intervals, Pr. \ref{pr:fin}>>
+  //<<Extract neighbor hits, Pr. \ref{pr:fin}>>
+  //<<Subtract neighbor hits from target intervals, Pr. \ref{pr:fin}>>
+#+end_src
+#+begin_export latex
+We compare the target representative to the neighbors using
+\ty{mashmap}. This takes as input a reference and a query sequence
+file. Our reference is the target representative, for the query we
+store the neighbor in a single unique file. Then we index the query
+and run \ty{mashmap} with the shortest segment length possible,
+100. This means the smallest marker regions we can detect are 200 bp
+long. For the output of \ty{mashmap} we use another unique file.
+#+end_export
+#+begin_src sh <<Compare target representative to neighbors, Pr. \ref{pr:fin}>>=
+  query=$(mktemp $nd/queryXXX)
+  cat $nd/*.fasta > $query
+  samtools faidx $query
+  mo=$(mktemp $td/moXXX)
+  mashmap -s 100 -q $query -r $r -o $mo
+#+end_src
+#+begin_export latex
+For the actual subtraction $a-b$, we create a unique file $a$, which
+contains the intervals $(0,l_i]$, where $l_i$ is the length of the
+  $i$-th sequence making up the target representative.
+#+end_export
+#+begin_src sh <<Extract target intervals, Pr. \ref{pr:fin}>>=
+  a=$(mktemp $td/aXXX.bed)
+  cut -f 6,7 $mo |
+      sort |
+      uniq |
+      awk '{printf "%s\t0\t%d\n", $1, $2}' > $a
+#+end_src
+#+begin_export latex
+The file $b$ in our subtraction contains the neighbor hits, which we
+extract from the \ty{mashmap} output.
+#+end_export
+#+begin_src sh <<Extract neighbor hits, Pr. \ref{pr:fin}>>=
+  b=$(mktemp $td/bXXX.bed)
+  awk '{printf "%s\t%d\t%d\n", $6, $8, $9}' $mo > $b
+#+end_src
+#+begin_export latex
+We carry out the subtraction with \ty{bedtools} and save the output in
+file $m_1$.
+#+end_export
+#+begin_src sh <<Subtract neighbor hits from target intervals, Pr. \ref{pr:fin}>>=
+  m1=$(mktemp $td/m1XXX.bed)
+  bedtools subtract -a $a -b $b > $m1
+#+end_src
+#+begin_export latex
+Now we intersect the remaining targets with the target
+representative. For this we determine the list of targets excluding
+the representative. Then we iterate over that list and intersect each
+target with the representative. The trick is to store for each
+sequence comparison the complement. Complementation requires a
+``genome'' file containing the lengths of the sequences that make up
+the target representative. We store the combined complements in file
+$c$ and subtract them at the end from $M_1$ to get out final set of
+marker intervals, $M_2$.
+#+end_export
+#+begin_src sh <<Intersect targets, Pr. \ref{pr:fin}>>=
+  targets=$(ls $td/*.fasta | tail -n +2)
+  c=$(mktemp $td/cXXX.bed)
+  t=$(mktemp $td/tXXX.bed)
+  //<<Create genome file, Pr. \ref{pr:fin}>>
+  for target in $targets
+  do
+      //<<Intersect one target, Pr. \ref{pr:fin}>>
+  done
+  m2=$(mktemp $td/m2XXX.bed)
+  bedtools subtract -a $m1 -b $c > $m2
+#+end_src
+#+begin_export latex
+We create a unique name for the genome file and extract the sequence
+lengths.
+#+end_export
+#+begin_src sh <<Create genome file, Pr. \ref{pr:fin}>>=
+  g=$(mktemp $td/gXXX.bed)
+  cut -f 6,7 $mo |
+      sort |
+      uniq > $g
+#+end_src
+#+begin_export latex
+To intersect the current target, we compare it to the target
+representative and extract the target hits, which we then complement.
+#+end_export
+#+begin_src sh <<Intersect one target, Pr. \ref{pr:fin}>>=
+  //<<Compare target to representative, Pr. \ref{pr:fin}>>
+  //<<Extract target hits, Pr. \ref{pr:fin}>>
+  //<<Complement target hits, Pr. \ref{pr:fin}>>
+#+end_src
+#+begin_export latex
+We compare the target to the representative using \ty{mashmap} with
+the same settings we used in the subtraction step. The index files for
+the queries might already have been generated in a previous round of
+analysis or by another process working on the same data. Hence we
+generate them only if necessary.
+#+end_export
+#+begin_src sh <<Compare target to representative, Pr. \ref{pr:fin}>>=
+  if [ ! -f ${target}.fai ]
+  then
+      samtools faidx $target
+  fi
+  mashmap -s 100 -r $r -q $target -o $mo
+#+end_src
+#+begin_export latex
+We extract the target hits from the output of \ty{mashmap} and sort
+them.
+#+end_export
+#+begin_src sh <<Extract target hits, Pr. \ref{pr:fin}>>=
+  awk '{printf "%s\t%d\t%d\n", $6, $8, $9}' $mo |
+      sort -k 2 -n > $t
+#+end_src
+#+begin_export latex
+We take the complement of the result and accumulate it in
+\ty{c.bed}. To keep this file tidy, we merge the intervals after
+adding new ones. Both merging and complementing require sorted input.
+#+end_export
+#+begin_src sh <<Complement target hits, Pr. \ref{pr:fin}>>=
+  bedtools complement -i $t -g $g >> $c
+  tmp=$(mktemp $td/tmpXXX.bed)
+  sort -k 2 -n $c > $tmp
+  mv $tmp $c
+  bedtools merge -i $c > $tmp
+  mv $tmp $c
+#+end_src
+#+begin_export latex
+As final results, we print the intervals in $M_2$ that are at least
+100 bp long. We change the half-open intervals of \ty{bedtools} and
+\ty{mashmap} to closed.
+#+end_export
+#+begin_src sh <<Print results, Pr. \ref{pr:fin}>>=
+  awk '{
+      l = $3 - $2
+      if (l >= 100)
+	 printf "%s\t%d\t%d\n", $1, $2+1, $3
+      }' $m2
+#+end_src
+#+begin_export latex
+We delete the various intermediary files we generated.
+#+end_export
+#+begin_src sh <<Delete intermediary files, Pr. \ref{pr:fin}>>=
+  rm $query $mo $a $b $m1 $c $g $m2 $t ${query}.fai
+#+end_src

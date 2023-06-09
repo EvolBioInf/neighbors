@@ -1,4 +1,4 @@
-progs = makeNeiDb taxi ants neighbors dree land pickle
+progs = makeNeiDb taxi ants neighbors dree land pickle findMacs
 packs = tax util tdb # Order matters
 
 all:
