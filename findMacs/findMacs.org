@@ -39,7 +39,7 @@ intermediary results that we store in various files. So at the end we
 delete these files again.  \bpr{findMacs}{pr:fin}
 #+end_export
 #+begin_src sh <<findMacs.sh>>=
-  #!/usr/bin/bash
+  #!/usr/bin/env bash
   //<<Interact with user, Pr. \ref{pr:fin}>>
   //<<Determine target representative, Pr. \ref{pr:fin}>>
   //<<Subtract neighbors, Pr. \ref{pr:fin}>>
