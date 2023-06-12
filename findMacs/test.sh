@@ -6,7 +6,15 @@ r=$(mktemp rXXX.out)
 d=$(diff $r r1.txt)
 if [ "$d" = "" ]
 then
-    echo "findMacs OK"
+    echo "findMacs - mashmap OK"
+else
+    echo "Error: " $d
+fi
+./findMacs -n $t $n > $r
+d=$(diff $r r2.txt)
+if [ "$d" = "" ]
+then
+    echo "findMacs - nucmer OK"
 else
     echo "Error: " $d
 fi

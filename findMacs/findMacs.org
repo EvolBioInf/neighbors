@@ -5,10 +5,11 @@ candidates for a set of target genomes. It takes as input a directory
 of target genomes and a directory of neighbor genomes and returns the
 regions common to the targets that are absent from the neighbors. This
 is similar to what \ty{fur} does~\cite{hau21:fur}, but \ty{findMacs}
-is based on a combination of \ty{mapmash}~\cite{jai18:fas} for
-aligning genomes and \ty{bedtools}~\cite{qui10:bed} for manipulating
-sets of intervals. Using these tools, \ty{findMacs} performs the
-following steps:
+is based on a combination of \ty{nucmer}~\cite{mrc18:mum} or
+\ty{mapmash}~\cite{jai18:fas} for aligning genomes, and
+\ty{bedtools}~\cite{qui10:bed} for manipulating sets of
+intervals. Using these tools, \ty{findMacs} performs the following
+steps:
 \begin{itemize}
 \item Identify arbitrary target as target representative, $r$.
 \item Subtract neighbors $N$ from $r$ to get the first set of marker
@@ -23,19 +24,19 @@ following steps:
   \]
 \end{itemize}
 
-Intervals in \ty{mapmash} and \ty{bedtools} have zero-based starting
-points and one-based end points, that is, they are half-open to the
-left. For example, the BED interval $(2,5]$ covers the nucleotides
-  $[3,5]$. In contrast, \ty{findMacs} returns one-baased start and end
-  points. The coordinates we use throughout these calculations are
-  with respect to the target representative.
+Intervals in \ty{nucmer}, \ty{mapmash}, and \ty{bedtools} have
+zero-based starting points and one-based end points, that is, they are
+half-open to the left. For example, the BED interval $(2,5]$ covers
+  the nucleotides $[3,5]$. In contrast, \ty{findMacs} returns
+  one-based start and end points. The coordinates we use throughout
+  these calculations are with respect to the target representative.
 
 \section*{Implementation}
-First of all, we declare \ty{findMacs} a bash script. Then we interact
-with the user, determine the target representative, subtract the
-neighbors, intersect the targets, and print the results. Throughout,
-we generate intermediary results that we store in various files. So at
-the end we delete these files again.  \bpr{findMacs}{pr:fin}
+We declare \ty{findMacs} a bash script. Then we interact with the
+user, determine the target representative, subtract the neighbors,
+intersect the targets, and print the results. Throughout, we generate
+intermediary results that we store in various files. So at the end we
+delete these files again.  \bpr{findMacs}{pr:fin}
 #+end_export
 #+begin_src sh <<findMacs.sh>>=
   #!/usr/bin/bash
@@ -47,15 +48,55 @@ the end we delete these files again.  \bpr{findMacs}{pr:fin}
   //<<Delete intermediary files, Pr. \ref{pr:fin}>>
 #+end_src
 #+begin_export latex
-\epr If there are not exactly two parameters, print a message asking
-for target and neighbor directories, and exit. Otherwise we save the
-target and neighbor directories.
+\epr For interacting with the user, we construct a help message, parse
+the options, and ensure the user provided target and neighbor
+directories.
 #+end_export
 #+begin_src sh <<Interact with user, Pr. \ref{pr:fin}>>=
-  if [ $# != 2 ]
+  //<<Construct help message, Pr. \ref{pr:fin}>>
+  //<<Parse options, Pr. \ref{pr:fin}>>
+  //<<Ensure directories, Pr. \ref{pr:fin}>>
+#+end_src
+#+begin_export latex
+The help message consists of a usage, an explanation of the purpose of
+\ty{findMacs}, and an example command. This is followed by an
+explanation of the two options we define, help (\ty{-h}) and
+\ty{nucmer} instead of \ty{mashmap} (\ty{-n}).
+#+end_export
+#+begin_src sh <<Construct help message, Pr. \ref{pr:fin}>>=
+  msg="Usage: findMacs [options] <targetsDir> <neighborsDir>"
+  msg="$msg\nFind marker candidates present in all targets "
+  msg="$msg and absent from all neighbors."
+  msg="$msg\nExample: findMacs targets/ neighbors/"
+  msg="$msg\nOptions:\n\t-n use nucmer (default mashmap)"
+  msg="$msg\n\t-h print this message and exit"
+#+end_src
+#+begin_export latex
+If the user asked for help, we print the help message and exit. If the
+user asked for \ty{nucmer}, we set the variable \ty{nOpt} to 1,
+otherwise it's 0.
+#+end_export
+#+begin_src sh <<Parse options, Pr. \ref{pr:fin}>>=
+  nOpt=0
+  while getopts nh o
+  do
+      case $o in
+	  n) nOpt=1;;
+	  h) echo -e $msg; exit 0;;
+      esac
+  done
+#+end_src
+#+begin_export latex
+If after \ty{getopts} there are not exactly two parameters, we print a
+message asking for target and neighbor directories, and
+exit. Otherwise we save the target and neighbor directories.
+#+end_export
+#+begin_src sh <<Ensure directories, Pr. \ref{pr:fin}>>=
+  shift $(( OPTIND - 1 ))
+  if [[ $1 = "" || $2 = "" ]]
   then
-      echo "Usage: findMacs targetDir neighborDir"
-      exit
+      printf "Usage: findMacs targetDir neighborDir\n"
+      exit 0
   fi
   td=$1
   nd=$2
@@ -80,20 +121,44 @@ target intervals.
   //<<Subtract neighbor hits from target intervals, Pr. \ref{pr:fin}>>
 #+end_src
 #+begin_export latex
-We compare the target representative to the neighbors using
-\ty{mashmap}. This takes as input a reference and a query sequence
-file. Our reference is the target representative, for the query we
-store the neighbor in a single unique file. Then we index the query
-and run \ty{mashmap} with the shortest segment length possible,
-100. This means the smallest marker regions we can detect are 200 bp
-long. For the output of \ty{mashmap} we use another unique file.
+We compare the target representative to the neighbors either with
+\ty{nucmer} or with \ty{mashmap}. Both programs take as input a
+reference and a query sequence file. The reference is the target
+representative. For the query we store all neighbors in a file that we
+generate with \ty{mktemp} to ensure it is unique. As output we require
+from either program a file in PAF format, for which we also generate a
+unique name.
 #+end_export
 #+begin_src sh <<Compare target representative to neighbors, Pr. \ref{pr:fin}>>=
   query=$(mktemp $nd/queryXXX)
   cat $nd/*.fasta > $query
+  paf=$(mktemp $td/pafXXX)
+  if [[ $nOpt -eq 1 ]]
+  then
+      //<<Compare to neighbors with \ty{nucmer}, Pr. \ref{pr:fin}>>
+  else
+      //<<Compare to neighbors with \ty{mashmap}, Pr. \ref{pr:fin}>>
+  fi
+#+end_src
+#+begin_export latex
+The immediate output of \ty{nucmer} is a unique delta file, which we
+convert to PAF using \ty{paftools.js} from the \ty{minimap2}
+package\footnote{https://github.com/lh3/minimap2}.
+#+end_export
+#+begin_src sh <<Compare to neighbors with \ty{nucmer}, Pr. \ref{pr:fin}>>=
+  delta=$(mktemp $td/deltaXXX)
+  nucmer --delta=$delta $r $query
+  paftools.js delta2paf $delta > $paf
+#+end_src
+#+begin_export latex
+The program \ty{mashmap} expects an indexed query, which we provide
+with \ty{samtools}~\cite{li09:fas}. Then run \ty{mashmap} with the
+shortest segment length possible, 100. This means the smallest
+alignment we can detect are 200 bp long.
+#+end_export
+#+begin_src sh <<Compare to neighbors with \ty{mashmap}, Pr. \ref{pr:fin}>>=
   samtools faidx $query
-  mo=$(mktemp $td/moXXX)
-  mashmap -s 100 -q $query -r $r -o $mo
+  mashmap -s 100 -q $query -r $r -o $paf
 #+end_src
 #+begin_export latex
 For the actual subtraction $a-b$, we create a unique file $a$, which
@@ -102,18 +167,18 @@ contains the intervals $(0,l_i]$, where $l_i$ is the length of the
 #+end_export
 #+begin_src sh <<Extract target intervals, Pr. \ref{pr:fin}>>=
   a=$(mktemp $td/aXXX.bed)
-  cut -f 6,7 $mo |
+  cut -f 6,7 $paf |
       sort |
       uniq |
       awk '{printf "%s\t0\t%d\n", $1, $2}' > $a
 #+end_src
 #+begin_export latex
 The file $b$ in our subtraction contains the neighbor hits, which we
-extract from the \ty{mashmap} output.
+extract from the PAF file.
 #+end_export
 #+begin_src sh <<Extract neighbor hits, Pr. \ref{pr:fin}>>=
   b=$(mktemp $td/bXXX.bed)
-  awk '{printf "%s\t%d\t%d\n", $6, $8, $9}' $mo > $b
+  awk '{printf "%s\t%d\t%d\n", $6, $8, $9}' $paf > $b
 #+end_src
 #+begin_export latex
 We carry out the subtraction with \ty{bedtools} and save the output in
@@ -152,7 +217,7 @@ lengths.
 #+end_export
 #+begin_src sh <<Create genome file, Pr. \ref{pr:fin}>>=
   g=$(mktemp $td/gXXX.bed)
-  cut -f 6,7 $mo |
+  cut -f 6,7 $paf |
       sort |
       uniq > $g
 #+end_src
@@ -166,25 +231,43 @@ representative and extract the target hits, which we then complement.
   //<<Complement target hits, Pr. \ref{pr:fin}>>
 #+end_src
 #+begin_export latex
-We compare the target to the representative using \ty{mashmap} with
-the same settings we used in the subtraction step. The index files for
-the queries might already have been generated in a previous round of
-analysis or by another process working on the same data. Hence we
-generate them only if necessary.
+We compare the target to the representative again using either
+\ty{nucmer} or \ty{mashmap}.
 #+end_export
 #+begin_src sh <<Compare target to representative, Pr. \ref{pr:fin}>>=
-  if [ ! -f ${target}.fai ]
+  if [[ $nOpt -eq 1 ]]
+  then
+      //<<Compare rep with \ty{nucmer}, Pr. \ref{pr:fin}>>
+  else
+      //<<Compare rep with \ty{mashmap}, Pr. \ref{pr:fin}>>
+  fi
+#+end_src
+#+begin_export latex
+We run \ty{nucmer} as we did in the subtraction step.
+#+end_export
+#+begin_src sh <<Compare rep with \ty{nucmer}, Pr. \ref{pr:fin}>>=
+  nucmer --delta=$delta $r $target
+  paftools.js delta2paf $delta > $paf
+#+end_src
+#+begin_export latex
+The index files for the \ty{mashmap} queries might already have been
+generated in a previous round of analysis or by another process
+working on the same data. Hence we check for their existence and
+generate them only if necessary.
+#+end_export
+#+begin_src sh <<Compare rep with \ty{mashmap}, Pr. \ref{pr:fin}>>=
+  if [[ ! -f ${target}.fai ]]
   then
       samtools faidx $target
   fi
-  mashmap -s 100 -r $r -q $target -o $mo
+  mashmap -s 100 -r $r -q $target -o $paf
 #+end_src
 #+begin_export latex
-We extract the target hits from the output of \ty{mashmap} and sort
+We extract the target hits from the PAF file and sort
 them.
 #+end_export
 #+begin_src sh <<Extract target hits, Pr. \ref{pr:fin}>>=
-  awk '{printf "%s\t%d\t%d\n", $6, $8, $9}' $mo |
+  awk '{printf "%s\t%d\t%d\n", $6, $8, $9}' $paf |
       sort -k 2 -n > $t
 #+end_src
 #+begin_export latex
@@ -201,7 +284,7 @@ adding new ones. Both merging and complementing require sorted input.
   mv $tmp $c
 #+end_src
 #+begin_export latex
-As final results, we print the intervals in $M_2$ that are at least
+As the final result, we print the intervals in $M_2$ that are at least
 100 bp long. We change the half-open intervals of \ty{bedtools} and
 \ty{mashmap} to closed.
 #+end_export
@@ -213,8 +296,15 @@ As final results, we print the intervals in $M_2$ that are at least
       }' $m2
 #+end_src
 #+begin_export latex
-We delete the various intermediary files we generated.
+At the end of \ty{findMacs} we delete the various intermediary files
+we generated.
 #+end_export
 #+begin_src sh <<Delete intermediary files, Pr. \ref{pr:fin}>>=
-  rm $query $mo $a $b $m1 $c $g $m2 $t ${query}.fai
+  rm $query $paf $a $b $m1 $c $g $m2 $t
+  if [[ $nOpt -eq 1 ]]
+  then
+      rm $delta
+  else
+      rm ${query}.fai
+  fi
 #+end_src

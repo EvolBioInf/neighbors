@@ -27,7 +27,10 @@ silico* and
 [Bernhard Haubold](http://guanine.evolbio.mpg.de/), `haubold@evolbio.mpg.de`
 ## Make the Programs
 Make sure you've installed the packages `bedtools`, `git`, `golang`,
-`make`, and `noweb`; The program [`mashmap`](https://github.com/marbl/MashMap) is also a requirement.  
+`make`, `samtools`, and `noweb`. In addition, we need the programs
+[`mashmap`](https://github.com/marbl/MashMap),
+[`nucmer`](https://github.com/mummer4/mummer), and
+[`paftools.js`](https://github.com/lh3/minimap2/tree/master/misc).  
   `$ make`  
   The directory `bin` now contains the eight executables of the
   package, additional scripts are in
