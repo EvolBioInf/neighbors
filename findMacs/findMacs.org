@@ -69,6 +69,7 @@ explanation of the two options we define, help (\ty{-h}) and
   msg="$msg and absent from all neighbors."
   msg="$msg\nExample: findMacs targets/ neighbors/"
   msg="$msg\nOptions:\n\t-n use nucmer (default mashmap)"
+  msg="$msg\n\t-t number of threads (default 1)"
   msg="$msg\n\t-h print this message and exit"
 #+end_src
 #+begin_export latex
@@ -78,10 +79,12 @@ otherwise it's 0.
 #+end_export
 #+begin_src sh <<Parse options, Pr. \ref{pr:fin}>>=
   nOpt=0
-  while getopts nh o
+  tOpt=1
+  while getopts nt:h o
   do
       case $o in
 	  n) nOpt=1;;
+	  t) tOpt=$OPTARG;;
 	  h) echo -e $msg; exit 0;;
       esac
   done
@@ -147,7 +150,7 @@ package\footnote{https://github.com/lh3/minimap2}.
 #+end_export
 #+begin_src sh <<Compare to neighbors with \ty{nucmer}, Pr. \ref{pr:fin}>>=
   delta=$(mktemp $td/deltaXXX)
-  nucmer --delta=$delta $r $query
+  nucmer --delta=$delta -t $tOpt $r $query
   paftools.js delta2paf $delta > $paf
 #+end_src
 #+begin_export latex
@@ -158,7 +161,7 @@ alignment we can detect are 200 bp long.
 #+end_export
 #+begin_src sh <<Compare to neighbors with \ty{mashmap}, Pr. \ref{pr:fin}>>=
   samtools faidx $query
-  mashmap -s 100 -q $query -r $r -o $paf
+  mashmap -s 100  -t $tOpt -q $query -r $r -o $paf
 #+end_src
 #+begin_export latex
 For the actual subtraction $a-b$, we create a unique file $a$, which
@@ -246,7 +249,7 @@ We compare the target to the representative again using either
 We run \ty{nucmer} as we did in the subtraction step.
 #+end_export
 #+begin_src sh <<Compare rep with \ty{nucmer}, Pr. \ref{pr:fin}>>=
-  nucmer --delta=$delta $r $target
+  nucmer --delta=$delta -t $tOpt $r $target
   paftools.js delta2paf $delta > $paf
 #+end_src
 #+begin_export latex
@@ -260,7 +263,7 @@ generate them only if necessary.
   then
       samtools faidx $target
   fi
-  mashmap -s 100 -r $r -q $target -o $paf
+  mashmap -s 100 -t $tOpt -r $r -q $target -o $paf
 #+end_src
 #+begin_export latex
 We extract the target hits from the PAF file and sort
