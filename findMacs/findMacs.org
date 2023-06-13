@@ -266,12 +266,12 @@ generate them only if necessary.
   mashmap -s 100 -t $tOpt -r $r -q $target -o $paf
 #+end_src
 #+begin_export latex
-We extract the target hits from the PAF file and sort
-them.
+We extract the target hits from the PAF file and sort them by the
+sequence name and within a sequence by position.
 #+end_export
 #+begin_src sh <<Extract target hits, Pr. \ref{pr:fin}>>=
   awk '{printf "%s\t%d\t%d\n", $6, $8, $9}' $paf |
-      sort -k 2 -n > $t
+      sort -k 1,1 -k 2,2n > $t
 #+end_src
 #+begin_export latex
 We take the complement of the result and accumulate it in
@@ -281,7 +281,7 @@ adding new ones. Both merging and complementing require sorted input.
 #+begin_src sh <<Complement target hits, Pr. \ref{pr:fin}>>=
   bedtools complement -i $t -g $g >> $c
   tmp=$(mktemp $td/tmpXXX.bed)
-  sort -k 2 -n $c > $tmp
+  sort -k 1,1 -k 2,2n $c > $tmp
   mv $tmp $c
   bedtools merge -i $c > $tmp
   mv $tmp $c
