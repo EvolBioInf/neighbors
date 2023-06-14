@@ -232,12 +232,13 @@
 #+end_src
 #+begin_src latex
   We draw the header and footer of the graph, and the actual subtree
-  sandwiched in between. The subtree is written to a buffer so we can
-  sort the lines it contains before printing them to achieve
-  reproducible output.
+  sandwiched in between. To improve legibility, that subtree is oriented
+  left to right rather than the default top to bottom. The subtree is
+  written to a buffer so we can sort the lines it contains before
+  printing them to achieve reproducible output.
 #+end_src
 #+begin_src go <<Draw subtree, Pr.~\ref{pr:dr}>>=
-  fmt.Printf("digraph g {\n")
+  fmt.Printf("digraph g {\n\trankdir=LR\n")
   //<<Construct buffer, Pr.~\ref{pr:dr}>>
   //<<Iterate over nodes in subtree, Pr.~\ref{pr:dr}>>
   //<<Print buffer, Pr.~\ref{pr:dr}>>

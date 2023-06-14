@@ -1,4 +1,5 @@
 digraph g {
+	rankdir=LR
 	1159185 [label="Gorilla beringei beringei"]
 	1294088 [label="Pan troglodytes verus x troglodytes"]
 	1425170 [label="Homo heidelbergensis"]

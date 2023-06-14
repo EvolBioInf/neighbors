@@ -1,17 +1,16 @@
 digraph g {
-	1376 -> 866775
-	866775 [color="lightsalmon",style=filled]
-	1376 [color="lightsalmon",style=filled]
-	1375 -> 51665
-	51665 [color="lightsalmon",style=filled]
-	1375 -> 128944
-	128944 [color="lightsalmon",style=filled]
-	1375 -> 87541
-	87541 [color="lightsalmon",style=filled]
-	1375 -> 119206
 	119206 [color="lightsalmon",style=filled]
+	128944 [color="lightsalmon",style=filled]
+	1375 -> 119206
+	1375 -> 128944
 	1375 -> 1376
-	1376 [color="lightsalmon",style=filled]
 	1375 -> 1377
+	1375 -> 51665
+	1375 -> 87541
+	1376 -> 866775
+	1376 [color="lightsalmon",style=filled]
 	1377 [color="lightsalmon",style=filled]
+	51665 [color="lightsalmon",style=filled]
+	866775 [color="lightsalmon",style=filled]
+	87541 [color="lightsalmon",style=filled]
 }
