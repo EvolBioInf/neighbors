@@ -24,6 +24,31 @@ steps:
   \]
 \end{itemize}
 
+This grand intersection is implemented by sequentially intersecting
+the other targets with the representative. For each intersection we
+form the complement and form the union of the complements. This union
+is subtracted from $M_1$, to get the final set of markers, $M_2$. Let
+$r=t_1$, then we can summarize these steps as
+\[
+M_2=M_1-((r\cap t_2)'\cup(r\cap t_3)'\cup...\cup(r\cap t_n)').
+\]
+
+Figure~\ref{fig:int} illustrates this procedure for three targets. The
+matches between them and $r$ are shown as $r\cap t_1$ and $r\cap t_2$,
+which results in an expected result of two intervals indicated by the
+vertical dotted lines. This result, $M_2$, is indeed obtained by
+merging the intersections' complements and subtracting that from
+$M_1$.
+
+\begin{figure}
+  \begin{center}
+    \input{../findMacs/int}
+  \end{center}
+  \caption{Illustration of the intersection step in \ty{findMacs} with
+    three targets, $t_1,t_2,t_3$, of which $t_1$ is the target
+    representative, $r$.}\label{fig:int}
+\end{figure}
+
 Intervals in \ty{nucmer}, \ty{mapmash}, and \ty{bedtools} have
 zero-based starting points and one-based end points, that is, they are
 half-open to the left. For example, the BED interval $(2,5]$ covers

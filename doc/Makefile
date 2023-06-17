@@ -2,7 +2,7 @@ SRC1 =   makeNeiDb.tex taxi.tex ants.tex neighbors.tex dree.tex findMacs.tex lan
 SRC2 =   header.tex introduction.tex neighborsDoc.tex
 
 all: neighborsDoc.pdf
-neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2)
+neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2) ../findMacs/int.tex
 	latex neighborsDoc.tex
 	bibtex neighborsDoc
 	latex neighborsDoc.tex
