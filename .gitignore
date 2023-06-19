@@ -27,6 +27,7 @@ doc/util.tex
 ants/ants
 dree/dree
 findMacs/findMacs
+findMacs/bedtools.sh
 makeNeiDb/makeNeiDb
 makeNeiDb/test.db
 neighbors/neighbors

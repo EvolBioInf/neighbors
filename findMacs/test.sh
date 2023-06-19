@@ -34,4 +34,13 @@ then
 else
     echo "Error - nucmer -t " $d
 fi
-rm -r $t $n $r
+b=$(mktemp bXXX)
+bash bedtools.sh > $b
+d=$(diff $b r3.txt)
+if [[ "$d" == "" ]]
+then
+    echo "findMacs - bedtools.sh OK"
+else
+    echo "Error - bedtools.sh " $d
+fi
+rm -r $t $n $r $b
