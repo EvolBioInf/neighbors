@@ -18,7 +18,7 @@ neighbor region is removed.
 M\leftarrow M\setminus N,
 \end{equation}
 To make sure the markers are ubiquitous among the targets, they are
-intersected in the third stepwith all targets but $t_1$.
+intersected in the third step with all targets but $t_1$.
 \begin{equation}\label{eq:int}
 M\leftarrow M\cap t_2\cap t_3\cap...\cap t_k.
 \end{equation}
@@ -60,13 +60,20 @@ The three steps are further detailed in Algorithm~\ref{alg:fin}:
     \textbf{B} indicate the expected result.}\label{fig:fin}
 \end{figure}
 
-Algorithm~\ref{alg:fin} is centered on two operations on sequence
-regions, intersection and subtraction. Intersections are calculated by
-aligning sequences with \ty{minimap2}, which returns sets of matching
-intervals. Such sets of intervals can then be subtracted from each
-other by calls to the \ty{subtract} function of \ty{bedtools}. So, for
-every $\cap$ in Algorithm~\ref{alg:fin} think \ty{minimap2}, for every
-$\setminus$ think \ty{bedtools}.
+A slightly tricky aspect of Algorithm~\ref{alg:fin}  is that an object
+like $t_1$ is interchangeably used as an interval and as a
+sequence. However, a sequence can be aligned, while an interval
+cannot. The apparent contradiction is resolved by thinking of markers
+as sequence regions. These are characterized by an interval and a
+sequence. 
+
+There are two central operations on sequence regions in
+Algorithm~\ref{alg:fin}, intersection and subtraction. Intersections
+are calculated by aligning sequences with \ty{minimap2}, which returns
+sets of matching intervals. Such sets of intervals can then be
+subtracted from each other by calls to the \ty{subtract} function of
+\ty{bedtools}. So, for every $\cap$ in Algorithm~\ref{alg:fin} think
+\ty{minimap2}, for every $\setminus$ think \ty{bedtools}.
 
 Let's explore in more detail how \ty{bedtools} can be used to
 implement the subtraction part of Algorithm~\ref{alg:fin}. For this we
@@ -802,7 +809,7 @@ We construct a set of tests, iterate over them, and run each one.
 #+end_export
 #+begin_src go <<Testing, Pr. \ref{pr:fin}>>=
   var tests []*exec.Cmd
-  //<<Construct tests, Pr. \ref[pr:fin}>>
+  //<<Construct tests, Pr. \ref{pr:fin}>>
   for i, test := range tests {
 	  //<<Run test, Pr. \ref{pr:fin}>>
   }
@@ -817,7 +824,7 @@ We import \ty{exec}.
 We construct two tests, one with only default parameters, the other
 with the minimum marker length changed.
 #+end_export
-#+begin_src go <<Construct tests, Pr. \ref[pr:fin}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:fin}>>=
   tar := "targets"
   nei := "neighbors"
   test := exec.Command("./findMacs", "-t", tar, "-n", nei)

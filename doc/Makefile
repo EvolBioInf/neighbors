@@ -23,7 +23,7 @@ dree.tex: ../dree/dree.org
 land.tex: ../land/land.org
 	bash ../scripts/org2nw ../land/land.org | noweave -n -x | sed 's/_test/\\_test/g' > land.tex
 findMacs.tex: ../findMacs/findMacs.org
-	bash ../scripts/org2nw ../findMacs/findMacs.org | noweave -n -x > findMacs.tex
+	bash ../scripts/org2nw ../findMacs/findMacs.org | noweave -n -x | sed 's/_test/\\_test/g' > findMacs.tex
 pickle.tex: ../pickle/pickle.org
 	bash ../scripts/org2nw ../pickle/pickle.org | noweave -n -x | sed 's/_test/\\_test/g' > pickle.tex
 tax.tex: ../tax/tax.org
