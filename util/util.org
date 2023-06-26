@@ -68,6 +68,25 @@
   "fmt"
   "os"
 #+end_src
+#+begin_export latex
+\subsubsection{\ty{Check}}
+If an error is passed, we respond in a uniform manner by calling
+\ty{log.Fatal}.
+#+end_export
+#+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
+  // Check checks an error and aborts if it isn't nil.
+  func Check(err error) {
+	  if err != nil {
+		  log.Fatal(err)
+	  }
+  }
+#+end_src
+#+begin_export latex
+We import \ty{log}.
+#+end_export
+#+begin_src go <<Imports, Pa.~\ref{pa:util}>>=
+  "log"
+#+end_src
 #+begin_src latex
   We are done with the \ty{util} package, time to test it.
   \subsection{Testing}
