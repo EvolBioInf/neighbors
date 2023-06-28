@@ -316,7 +316,7 @@ extensions, \ty{.fasta}, \ty{.fna}, \ty{.ffn}, \ty{.frn}, and
   if ext != ".fasta" && ext != ".fna" && ext != "ffn" &&
 	  ext != ".frn" && ext != ".fa" {
 	  m := "%s doesn't seem to be a nucleotide FASTA file; " +
-		  "skipping it"
+		  "skipping it\n"
 	  fmt.Fprintf(os.Stderr, m, path)
 	  continue
   }
