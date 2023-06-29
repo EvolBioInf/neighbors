@@ -176,7 +176,7 @@ the purpose of \ty{findMacs}, and an example command.
 #+begin_src go <<Set usage, Pr. \ref{pr:fin}>>=
   u := "findMacs [option]... -t <targets> -n <neighbors>"
   p := "Find marker candidates from target " +
-	  "and neighbor sequences."
+	  "and neighbor sequences as closed one-based intervals."
   e := "findMacs -t targets/ -n neighbors/"
   clio.Usage(u, p, e)
 #+end_src
@@ -774,15 +774,15 @@ subtract the difference from $M$.
 #+end_src
 #+begin_export latex
 $M$ now contains the desired set of marker candidates. We print the
-markers of minimum length as a tab-delimited table in the BED notation
-we have used throughout.
+markers of minimum length as a tab-delimited table of one-based closed
+intervals.
 #+end_export
 #+begin_src go <<Print marker candidates, Pr. \ref{pr:fin}>>=
   for _, marker := range markers {
 	  l := marker.End - marker.Start
 	  if l >= *optM {
 		  fmt.Printf("%s\t%d\t%d\n", marker.Chr,
-			  marker.Start, marker.End)
+			  marker.Start+1, marker.End)
 	  }
   }
 #+end_src
