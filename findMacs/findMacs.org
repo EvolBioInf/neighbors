@@ -590,14 +590,15 @@ count strings, which we then convert to count integers.
   }
 #+end_src
 #+begin_export latex
-There are three operators, \ty{M} for match, \ty{I} for insertion, and
-\ty{D} for deletion. Deletions and insertions are reported with
-respect to the query, which in our case is always $t_1$.  We deal with
-the match case separately. If we have an insertion, we advance the
-current start to the next start. Since start positions are zero-based,
-we increment the current start position by the count. The third case,
-deletion, has no consequences. So we can directly advance to the case
-where we found a rogue operator.
+There are four operators, \ty{M} for match, \ty{I} for insertion,
+\ty{D} for deletion, and \ty{N} for skipping reference. Insertion,
+skipping, and deletion are reported with respect to the query, which
+in our case is always $t_1$.  We deal with the match case
+separately. If we have an insertion, we advance the current start to
+the next start. Since start positions are zero-based, we increment the
+current start position by the count. The third and fourth case,
+deletion and skipping, has no consequences. So we can directly advance
+to the case where we found a rogue operator.
 
 #+end_export
 #+begin_src go <<Convert operators and counts to hits, Pr. \ref{pr:fin}>>=
@@ -607,7 +608,7 @@ where we found a rogue operator.
 		  //<<Deal with match , Pr. \ref{pr:fin}>>
 	  } else if operator == 'I' {
 		  start += count
-	  } else if operator != 'D' {
+	  } else if operator != 'D' && operator != 'N' {
 		  //<<Deal with rogue operator, Pr. \ref{pr:fin}>>
 	  }
   }
