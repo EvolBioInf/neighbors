@@ -247,3 +247,83 @@ We create a new sequence without the deleted nucleotides.
   }
   seq = fasta.NewSequence(seq.Header(), d2)
 #+end_src
+#+begin_export latex
+We've finished writing \ty{rad}, so let's test it.
+
+\section*{Testing}
+The outline of our code for testing \ty{rad} contains hooks for
+imports and the testing logic.
+#+end_export
+#+begin_src go <<rad_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr. \ref{pr:rad}>>
+  )
+
+  func TestRad(t *testing.T) {
+	  //<<Testing, Pr. \ref{pr:rad}>>
+  }
+#+end_src
+#+begin_export latex
+We construct a number of tests and run each one.
+#+end_export
+#+begin_src go <<Testing, Pr. \ref{pr:rad}>>=
+  var tests []*exec.Cmd
+  //<<Construct tests, Pr. \ref{pr:rad}>>
+  for i, test := range tests {
+	  //<<Run test, Pr. \ref{pr:rad}>>
+  }
+#+end_src
+#+begin_export latex
+We import \ty{exec}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:rad}>>=
+  "os/exec"
+#+end_src
+#+begin_export latex
+We first construct a test with only default options. Then we construct
+three more tests to try out the three options mean deletion length,
+\ty{-l}, standard deviation of deletion length, \ty{-d}, and mean
+number of deletions, \ty{-n}. In each of the four tests we set the
+seed of the random number generator to make the test reproducible.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:rad}>>=
+  f := "test.fasta"
+  test := exec.Command("./rad", "-s", "3", f)
+  tests = append(tests, test)
+  test = exec.Command("./rad", "-s", "3", "-l", "100", f)
+  tests = append(tests, test)
+  test = exec.Command("./rad", "-s", "3", "-d", "100", f)
+  tests = append(tests, test)
+  test = exec.Command("./rad", "-s", "3", "-n", "1", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+For a given test we compare the result we get with the result we want,
+which is contained in files \ty{r1.fasta}, \ty{r2.fasta}, and so on.
+#+end_export
+#+begin_src go <<Run test, Pr. \ref{pr:rad}>>=
+  get, err := test.Output()
+  if err != nil {
+	  t.Error(err)
+  }
+  fn := "r" + strconv.Itoa(i + 1) + ".fasta"
+  want, err := os.ReadFile(fn)
+  if err != nil {
+	  t.Error(err)
+  }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strconv}, \ty{os}, and \ty{bytes}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:rad}>>=
+  "strconv"
+  "os"
+  "bytes"
+#+end_src
+
