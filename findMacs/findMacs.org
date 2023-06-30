@@ -184,15 +184,21 @@ the purpose of \ty{findMacs}, and an example command.
 We declare the version option (\ty{-v}), the target directory
 (\ty{-t}), the neighbor directory (\ty{-n}), a minimum marker length
 (\ty{-m}), and a parameter string for \ty{minimap2} (\ty{-p}). Our
-default parameter string for \ty{minipap2} is \ty{-c}, which means we
-get the CIGAR string for reconstructing the alignment.
+default parameter string for \ty{minipap2} is 
+\begin{verbatim}
+--rmq=yes -c
+\end{verbatim}
+The parameter \verb+--rmq=yes+ means we use the minigraph chaining
+algorithm for optimized alignment through long indels. The parameter
+\ty{-c} means we get the CIGAR string for reconstructing the
+alignment. Without the CIGAR string, \ty{findMacs} fails.
 #+end_export
 #+begin_src go <<Declare options, Pr. \ref{pr:fin}>>=
   optV := flag.Bool("v", false, "version")
   optT := flag.String("t", "", "target directory")
   optN := flag.String("n", "", "neighbor directory")
   optM := flag.Int("m", 100, "minimum marker length")
-  optP := flag.String("p", "-c", "parameters for minimap2")
+  optP := flag.String("p", "--rmq=yes -c", "parameters for minimap2")
 #+end_src
 #+begin_export latex
 We import \ty{flag}.
@@ -591,15 +597,15 @@ count strings, which we then convert to count integers.
 #+end_src
 #+begin_export latex
 There are four operators, \ty{M} for match, \ty{I} for insertion,
-\ty{D} for deletion, and \ty{N} for skipping reference. Insertion,
-skipping, and deletion are reported with respect to the query, which
-in our case is always $t_1$.  We deal with the match case
-separately. If we have an insertion, we advance the current start to
-the next start. Since start positions are zero-based, we increment the
-current start position by the count. The third and fourth case,
-deletion and skipping, has no consequences. So we can directly advance
-to the case where we found a rogue operator.
-
+\ty{D} for deletion, and \ty{N} for skipping reference. The \ty{N}
+operator only appears in splice alignment mode. Insertion, skipping,
+and deletion are reported with respect to the query, which in our case
+is always $t_1$.  We deal with the match case separately. If we have
+an insertion, we advance the current start to the next start. Since
+start positions are zero-based, we increment the current start
+position by the count. The third and fourth case, deletion and
+skipping, has no consequences. So we can directly advance to the case
+where we found a rogue operator.
 #+end_export
 #+begin_src go <<Convert operators and counts to hits, Pr. \ref{pr:fin}>>=
   for i, count := range counts {
