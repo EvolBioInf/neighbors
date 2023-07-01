@@ -7,22 +7,20 @@ further tested by \emph{in silico} PCR against, say the non-redundant
 collection of nucleotide sequences, \ty{nt}. The published
 program \ty{fur} implements this comparison between targets and
 neighbors, and markers constructed from its output have excellent
-specificity and sensifivity~\cite{hau21:fur}. As an alternative
-to \ty{fur}, the Neighbors package contains the program \ty{findMacs}
-for finding marker candidates.
+specificity and sensifivity~\cite{hau21:fur}.
 
-Users of programs like \ty{fur} or \ty{findMacs} need to know the
-neighbors of their targets. But how can neighbors be discovered, if
-they aren't already known? To answer this question, consider the toy
-taxonomy in Figure~\ref{fig:tax}, where the numbers are taxon-IDs that
-are linked to genome accessions. Let taxa 7 and 4 be our targets. Then
-we look up the most recent common ancestor of 4 and 7, which is
-3. This implies there are five targets, 3, 4, 5, 6, and 7. The
-neighbors are the nodes in the subtree rooted on 3's parent, minus the
-parent and minus the targets. So in our example there are five
-neighbors, 2, 8, 9, 10, and 11. Notice that we look up all nodes in a
-subtree, not just the leaves, as genome sequences might be associated
-with taxa in terminal and internal nodes.
+Users of programs like \ty{fur} need to know the neighbors of their
+targets. But how can neighbors be discovered, if they aren't already
+known? To answer this question, consider the toy taxonomy in
+Figure~\ref{fig:tax}, where the numbers are taxon-IDs that are linked
+to genome accessions. Let taxa 7 and 4 be our targets. Then we look up
+the most recent common ancestor of 4 and 7, which is 3. This implies
+there are five targets, 3, 4, 5, 6, and 7. The neighbors are the nodes
+in the subtree rooted on 3's parent, minus the parent and minus the
+targets. So in our example there are five neighbors, 2, 8, 9, 10, and
+11. Notice that we look up all nodes in a subtree, not just the
+leaves, as genome sequences might be associated with taxa in terminal
+and internal nodes.
 
 \begin{figure}
 \begin{center}
@@ -50,14 +48,13 @@ packages \ty{tdb}, \ty{tax}, and \ty{util} contained in the
 \ty{neighbors} module.
 
 \begin{table}
-\caption{The eight programs of Neighbors}\label{tab:pro}
+\caption{The seven programs of Neighbors}\label{tab:pro}
 \begin{center}
 \begin{tabular}{lll}
 \hline
 \# & Name & Function\\\hline
 1 & \ty{ants} & list the ancestors of a taxon\\
 2 & \ty{dree} & draw taxonomic tree rooted on taxid\\
-3 & \ty{findMacs} & find marker candidates\\
 4 & \ty{land} & label nodes in Newick tree\\
 5 & \ty{makeNeiDb} & construct taxonomy and genomes database\\
 6 & \ty{neighbors} & complete targets and list neighbors\\
@@ -109,5 +106,5 @@ pick individual clades from a Newick tree by first labeling the
 internal nodes with \ty{land} and then picking clades
 with \ty{pickle}. The Tutorial shows how the seven
 programs \ty{makeNeiDb}, \ty{taxi}, \ty{dree}, \ty{ants},
-\ty{neighbors}, \ty{land}, \ty{pickle}, and \ty{findMacs} can be used
+\ty{neighbors}, \ty{land}, and \ty{pickle} can be used
 to find marker candidates from bacterial genomes.

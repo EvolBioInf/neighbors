@@ -19,18 +19,14 @@ Given a sample of target genomes and a sample of neighbor genomes
 discovered with `neighbors`, the regions common to the targets that
 are absent form the neighbors are good marker candidates. The program
 [`fur`](https://github.com/evolbioinf/fur) is one example of a program
-for identifying such regions, `findMacs` in this package is
-another. Once found, the marker candidates can be further analyzed *in
-silico* and
+for identifying such regions. Once found, the marker candidates can be
+further analyzed *in silico* and
 *in vitro* to extract genetic markers.  
 ## Author
 [Bernhard Haubold](http://guanine.evolbio.mpg.de/), `haubold@evolbio.mpg.de`
 ## Make the Programs
-Make sure you've installed the packages `bedtools`, `git`, `golang`,
-`make`, `samtools`, and `noweb`. In addition, we need the programs
-[`mashmap`](https://github.com/marbl/MashMap),
-[`nucmer`](https://github.com/mummer4/mummer), and
-[`paftools.js`](https://github.com/lh3/minimap2/tree/master/misc).  
+Make sure you've installed the packages `git`, `golang`,
+`make`, and `noweb`.
   `$ make`  
   The directory `bin` now contains the eight executables of the
   package, additional scripts are in

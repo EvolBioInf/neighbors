@@ -17,8 +17,7 @@
   them. The prerequisite phylogeny reconstruction is supported by two
   additional programs from the Neighbors package, \ty{land} for labeling
   the nodes in a phylogeny, and \ty{pickle} for picking a particular
-  clade in a phylogeny. Finally, we use \ty{findMacs} to find marker
-  candidates.
+  clade in a phylogeny.
 
   \section*{Construct Database}
   The NCBI taxonomy database and the corresponding genome reports are
@@ -280,81 +279,10 @@ discovery.
   plotTree au2.nwk
 #+end_src
 #+begin_src latex
-  There's a published program for finding marker candidates,
-  \ty{fur}\footnote{\ty{github.com/evolbioinf/fur}}, but Neighbors comes
-  with its own script for doing that, \ty{findMacs}. The output of
-  \ty{findMacs} consists of intervals on the target representative,
-  which we save to the file \ty{macs1.out}.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  findMacs targets neighbors > macs1.out
-#+end_src
-#+begin_export latex
-We calculate the amount of marker material by summing the interval
-lengths, 1.18 Mb.
-#+end_export
-#+begin_src sh <<query.sh>>=
-  awk '{s+=$3-$2+1}END{print s}' macs1.out
-#+end_src
-#+begin_export latex
-How specific are the markers? To really find out, we'd need to test
-them against a comprehensive sequence database and measure the true
-negative rate as the fraction of non-targets classified as
-non-targets. Here we restrict ourselves to the question, how much of
-the marker material is found in the neighbors, after all?  For this we
-extract the intervals identified by \ty{findMacs}, cut the marker
-candidates from the target representative, convert the neighbor
-sequences into a Blast database, and compare the candidates to the
-database. We recover 2.2 kb, a tiny fraction, so specificity looks
-good.
-#+end_export
-#+begin_src sh <<query.sh>>=
-  awk '{print $2, $3}'  macs1.out > iv.txt
-  cutSeq  -f iv.txt targets/tNC_015278.1.fasta > frag.fasta
-  cat neighbors/*.fasta > nei.fasta
-  makeblastdb -in nei.fasta -out nei -dbtype nucl
-  blastn -query frag.fasta -db nei -outfmt 6 |
-      awk '{s+=$4}END{print s}'
-#+end_src
-#+begin_export latex
-Next, we look at the sensitivity of our markers. Again, to really find
-out, we'd have to compare them to a comprehensive sequence database
-and measure the true positive rate as the fraction of targets
-classified as targets. Here we restrict ourselves to asking how much
-of the marker material is found in the targets. It turns out, 1.21 Mb
-in the representative NC\_015278, which is roughly three percent more
-than the 1.18 Mb we expect, and 1.18 Mb in the other targets. So
-again, sensitivity looks good.
-#+end_export
-#+begin_src sh <<query.sh>>=
-  cat targets/*.fasta > tar.fasta
-  makeblastdb -in tar.fasta -out tar -dbtype nucl
-  blastn -query frag.fasta -db tar -outfmt 6 |
-      awk '{c[$2]+=$4}END{for(a in c)print a, c[a]}'
-#+end_src
-#+begin_src latex
-  If we return to the phylogeny in Figure~\ref{fig:auTree}, we might
-  want to rethink the position of NC015278. Perhaps it should be a
-  neighbor rather than a target? This of course depends on the details
-  of our test system. But let's say we make NC015278 a neighbor; then
-  our set of potential markers shrinks to 433.4 kb.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  mv targets/tNC_015278.1.fasta neighbors/
-  findMacs targets neighbors > macs2.out
-  awk '{s+=$3-$2+1}END{print s}' macs2.out
-#+end_src
-#+begin_src latex
-  We might extend this analysis by making NC015278 the target and
-  everything else the neighors. This returns 496.9 kb marker material.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  mv targets/* neighbors/
-  mv neighbors/tNC_015278.1.fasta targets/
-  findMacs targets/ neighbors/ > macs3.out
-  awk '{s+=$3-$2+1}END{print s}' macs3.out
-#+end_src
-#+begin_src latex
+  Now that we've got target and neighbor programs, we could use the
+  program \ty{fur}~\cite{hau21:fur} for finding unique regions, that is,
+  marker candidates.
+
   \subsection*{Pick Clades from Phylogeny}
   Sometimes a tree of genomes is very large, making it inconvenient to
   manually list the taxa that belong to a particular clade. This isn't
