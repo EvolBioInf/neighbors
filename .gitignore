@@ -12,12 +12,10 @@ doc/neighborsDoc.ps
 doc/*.toc
 doc/ants.tex
 doc/dree.tex
-doc/findMacs.tex
 doc/makeNeiDb.tex
 doc/neighbors.tex
 doc/land.tex
 doc/pickle.tex
-doc/rad.tex
 doc/tax.tex
 doc/taxi.tex
 doc/tdb.tex
@@ -27,9 +25,6 @@ doc/util.tex
 # Programs
 ants/ants
 dree/dree
-findMacs/findMacs
-findMacs/bedtools.sh
-findMacs/makeTestData.sh
 makeNeiDb/makeNeiDb
 makeNeiDb/test.db
 neighbors/neighbors
@@ -37,7 +32,6 @@ neighbors/makeRes.sh
 taxi/taxi
 land/land
 pickle/pickle
-rad/rad
 
 # Misc
 dree/makeRes.sh
