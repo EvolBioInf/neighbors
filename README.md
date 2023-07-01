@@ -37,10 +37,6 @@ Make sure you've installed the packages `git`, `make`, `noweb`, `texlive-science
 and `texlive-fonts-extra`. Then execute  
   `$ make doc`  
   The documentation is now in `doc/neighborsDoc.pdf`. 
-## Make the Unpublished Manuscript
-  The documentation also contains an unpublished manuscript describing `neighbors`. The command  
-  `$ make ms`  
-  generates the manuscript `doc/ms/ms.pdf` and its supplementary material `doc/ms/sup.pdf`.
 ## Run Docker Container 
 As an alternative to building `neighbors` from scratch, we also post it as a [docker
   container](https://hub.docker.com/r/itsers/neighbors). The container
