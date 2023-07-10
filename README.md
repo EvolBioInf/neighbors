@@ -28,7 +28,7 @@ further analyzed *in silico* and
 Make sure you've installed the packages `git`, `golang`,
 `make`, and `noweb`.
   `$ make`  
-  The directory `bin` now contains the eight executables of the
+  The directory `bin` now contains the seven executables of the
   package, additional scripts are in
   `scripts`.
 ## Make the Documentation
