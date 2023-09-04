@@ -1,14 +1,74 @@
 # MRCA(targets): 1375, Aerococcus
 # MRCA(targets+neighbors): 186827, Aerococcaceae
-# Type  Taxon-ID  Name                                Genomes
-tt      1376      Aerococcus urinae                   chromosome:NZ_CP014161.1/CP014161.1|chromosome:NZ_CP065662.1/CP065662.1
-tt      1377      Aerococcus viridans                 chromosome:NZ_CP014164.1/CP014164.1
-tt      51665     Aerococcus urinaeequi               chromosome:NZ_CP013988.1/CP013988.1|chromosome:NZ_CP014162.1/CP014162.1|chromosome:NZ_CP063065.1/CP063065.1; plasmid pT4302:NZ_CP063066.1/CP063066.1; plasmid pT4303:NZ_CP063067.1/CP063067.1
-tt      87541     Aerococcus christensenii            chromosome:NZ_CP014159.1/CP014159.1
-t       119206    Aerococcus sanguinicola             chromosome:NZ_CP014160.1/CP014160.1
-t       128944    Aerococcus urinaehominis            chromosome:NZ_CP014163.1/CP014163.1
-t       866775    Aerococcus urinae ACS-120-V-Col10a  chromosome:NC_015278.1/CP002512.1
-n       46125     Abiotrophia defectiva               chromosome:NZ_CP053988.1/CP053988.1
-n       2036206   Suicoccus acidiformans              chromosome:NZ_CP023434.1/CP023434.1
-n       2774330   Aerococcaceae bacterium zg-1292     chromosome:CP065955.1
-n       2796928   Aerococcaceae bacterium zg-252      chromosome:CP066204.1
+# Type  Taxon-ID  Name                                             Genomes
+tt      1376      Aerococcus urinae                                GCA_001543175.1|GCA_016026975.1|GCA_002087935.1|GCA_003286735.1|GCA_905112985.1|GCA_905125285.1|GCA_003286875.1|GCA_003286525.1|GCA_002884575.1|GCA_003286805.1|GCA_905115105.1|GCA_003286595.1|GCA_905115165.1|GCA_003286585.1|GCA_905115195.1|GCA_003286895.1|GCA_905125205.1|GCA_905112955.1|GCA_905111125.1|GCA_003286695.1|GCA_905112975.1|GCA_905125235.1|GCA_905115125.1|GCA_905125305.1|GCA_905115155.1|GCA_905125245.1|GCA_905115095.1|GCA_905125255.1|GCA_905111885.1|GCA_905125265.1|GCA_905125275.1|GCA_905125325.1|GCA_905113075.1|GCA_003286755.1|GCA_905115145.1|GCA_003286515.1|GCA_003286825.1|GCA_905111135.1|GCA_905113065.1|GCA_905125315.1|GCA_905111875.1|GCA_905112965.1|GCA_905112995.1|GCA_905115075.1|GCA_002884955.1|GCA_002847665.1|GCA_905125335.1|GCA_008726315.1|GCA_905115225.1|GCA_905125225.1|GCA_003286845.1|GCA_905125295.1|GCA_905125195.1|GCA_003286645.1|GCA_905115205.1|GCA_905115135.1|GCA_003286665.1|GCA_008726845.1|GCA_008726285.1|GCA_003286635.1|GCA_008726675.1|GCA_003286555.1|GCA_008726885.1|GCA_905115115.1|GCA_001649715.1|GCA_905113055.1|GCA_002871915.1|GCA_002847625.1|GCA_002847705.1|GCA_008726385.1|GCA_905115085.1|GCA_018919305.1|GCA_008726475.1|GCA_905113045.1|GCA_003286795.1|GCA_003286565.1|GCA_003286725.1|GCA_003286715.1
+tt      1377      Aerococcus viridans                              GCA_001543285.1|GCA_900445095.1|GCA_002083135.2|GCA_002871935.1|GCA_900445105.1|GCA_002280005.1
+tt      51665     Aerococcus urinaeequi                            GCA_001518795.1|GCA_001543205.1|GCA_014931015.1|GCA_014050425.1|GCA_014050435.1|GCA_014050445.1|GCA_001719605.1|GCA_003542755.1|GCA_022781615.1|GCA_020743935.1
+tt      87541     Aerococcus christensenii                         GCA_001543105.1|GCA_002861505.1|GCA_001552755.1
+t       119206    Aerococcus sanguinicola                          GCA_905113025.1|GCA_001543145.1|GCA_905113005.1|GCA_905113035.1|GCA_905109855.1|GCA_905113015.1|GCA_905125215.1|GCA_905109795.1|GCA_905115175.1|GCA_008726925.1|GCA_002847725.1|GCA_008802315.1
+t       128944    Aerococcus urinaehominis                         GCA_001543245.1|GCA_900103385.1
+tt      371602    Aerococcus suis                                  GCA_900176325.1|GCA_022780685.1
+tt      525247    Aerococcus christensenii DSM 15819 = CCUG 28831  GCA_001466745.1
+tt      655812    Aerococcus viridans ATCC 11563 = CCUG 4311       GCA_000178435.1
+t       866775    Aerococcus urinae ACS-120-V-Col10a               GCA_000193205.1
+tt      1120952   Aerococcus urinaeequi DSM 20341 = CCUG 28094     GCA_000425085.1
+tt      1175629   Aerococcus viridans LL1                          GCA_000262085.1
+t       1216979   Aerococcus urinae NBRC 15544 = CCUG 36881        GCA_001544335.1
+tt      1581058   Aerococcus sp. HMSC23C02                         GCA_001806805.1
+tt      1581084   Aerococcus sp. HMSC10H05                         GCA_001806975.1
+tt      1581129   Aerococcus sp. HMSC06H08                         GCA_001807425.1
+tt      1715105   Aerococcus sp. HMSC062A02                        GCA_001809535.1
+tt      1715159   Aerococcus sp. HMSC062B07                        GCA_001809895.1
+tt      1715184   Aerococcus sp. HMSC035B07                        GCA_001836025.1
+tt      1739288   Aerococcus sp. HMSC075D05                        GCA_001811135.1
+tt      1739333   Aerococcus sp. HMSC072A12                        GCA_001811965.1
+tt      1739396   Aerococcus sp. HMSC061A03                        GCA_001813115.1
+tt      1872398   Aerococcus sp.                                   GCA_022768285.1|GCA_017474445.1
+tt      1945961   Aerococcus sp. UBA6277                           GCA_002440555.1
+tt      1981982   Aerococcus sp. 1KP-2016                          GCA_002252085.1
+tt      2487350   Aerococcus sp. SJQ22                             GCA_003797145.1
+n       13076     Globicatella sanguinis                           GCA_002847845.1
+n       46125     Abiotrophia defectiva                            GCA_013267415.1|GCA_916438635.1|GCA_905373775.1|GCA_015259635.1
+n       76631     Abiotrophia sp.                                  GCA_015259565.1|GCA_015259595.1
+n       84521     Dolosicoccus paucivorans                         GCA_002871685.1|GCA_900100125.1|GCA_002871385.1
+n       87458     Ruoffia tabacinasalis                            GCA_005864045.1|GCA_015863285.1|GCA_020743545.1
+n       89093     Ignavigranum ruoffiae                            GCA_900110675.1|GCA_023195815.1
+n       120956    Facklamia miroungae                              GCA_900100775.1|GCA_012396555.1
+n       136093    Globicatella sulfidifaciens                      GCA_012518335.1|GCA_020742355.1
+n       137730    Falseniella ignava                               GCA_002847645.1
+n       178214    Facklamia hominis                                GCA_004141915.1|GCA_002861185.1
+n       316094    uncultured Abiotrophia sp.                       GCA_916438485.1|GCA_916720375.1|GCA_915062795.1|GCA_916048345.1
+n       592010    Abiotrophia defectiva ATCC 49176                 GCA_000160075.2
+n       883110    Facklamia hominis ACS-120-V-Sch10                GCA_000413455.1
+n       883111    Facklamia hominis CCUG 36813                     GCA_000301035.1
+n       883112    Falseniella ignava CCUG 37419                    GCA_000301055.1
+n       883113    Facklamia languida CCUG 37842                    GCA_000245795.1
+n       908337    Eremococcus coleocola ACS-139-V-Col8             GCA_000183205.2
+n       1121871   Eremococcus coleocola DSM 15696                  GCA_000428865.1
+n       1121925   Globicatella sulfidifaciens DSM 15739            GCA_900167405.1
+n       1223493   Globicatella sanguinis NBRC 15551                GCA_001552295.1
+n       1408438   Hutsoniella sourekii ATCC 700629                 GCA_000518205.1
+n       1581061   Abiotrophia sp. HMSC24B09                        GCA_001815865.1|GCA_905372995.1|GCA_905370395.1
+n       1739262   Facklamia sp. HMSC062C11                         GCA_001810675.1
+n       1739315   Globicatella sp. HMSC072A10                      GCA_001811625.1
+n       2036206   Suicoccus acidiformans                           GCA_003546865.1
+n       2053495   Aerococcaceae bacterium                          GCA_003521095.1
+n       2058294   Vaginisenegalia massiliensis                     GCA_900604935.1
+n       2664442   Fundicoccus ignavus                              GCA_009659415.1|GCA_009659375.1|GCA_009659495.1
+n       2678501   Facklamia sp. 252                                GCA_010892325.1
+n       2678502   Facklamia sp. 253                                GCA_010892315.1
+n       2748684   Ruoffia halotolerans                             GCA_014049385.1
+n       2749963   Aerococcaceae bacterium DSM 111176               GCA_015863215.1
+n       2749964   Aerococcaceae bacterium DSM 111022               GCA_015863195.1
+n       2749965   Aerococcaceae bacterium DSM 111020               GCA_015863185.1
+n       2749966   Aerococcaceae bacterium DSM 111021               GCA_020112395.1
+n       2749967   Facklamia lactis                                 GCA_015863265.1|GCA_015863205.1
+n       2774330   Aerococcaceae bacterium zg-1292                  GCA_016126655.1|GCA_014779695.1
+n       2786948   Aerococcaceae bacterium zg-BR9                   GCA_015476615.1
+n       2786952   Aerococcaceae bacterium zg-BR22                  GCA_015546655.1
+n       2796350   Aerococcaceae bacterium zg-1578                  GCA_016522115.1
+n       2796928   Aerococcaceae bacterium zg-252                   GCA_016237705.1
+n       2814590   Aerococcaceae bacterium zg-A91                   GCA_018348555.1
+n       2814591   Aerococcaceae bacterium zg-B36                   GCA_018348615.1
+n       2814592   Aerococcaceae bacterium zg-BR33                  GCA_018348635.1
+n       2824563   Aerococcaceae bacterium zg-ZUI334                GCA_018145715.1
