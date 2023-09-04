@@ -8,4 +8,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 )
 
-require github.com/evolbioinf/fasta v0.0.0-20230419094527-219cc47d94b2 // indirect
+replace github.com/evolbioinf/neighbors/tdb => ../tdb
+
+replace github.com/evolbioinf/neighbors/tax => ../tax

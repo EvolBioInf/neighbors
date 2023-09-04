@@ -3,7 +3,7 @@ all : tdb
 tdb: tdb.go
 	go build tdb.go
 tdb.go: tdb.org
-	bash ../scripts/org2nw tdb.org | notangle -Rtdb.go | gofmt > tdb.go
+	awk -f ../scripts/preTangle.awk tdb.org | bash ../scripts/org2nw | notangle -Rtdb.go | gofmt > tdb.go
 test: tdb.go tdb_test.go
 	rm -f ../data/taxSmall.db
 	go test -v

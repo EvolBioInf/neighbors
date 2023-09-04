@@ -37,13 +37,14 @@
 #+begin_src latex
   \subsection{\ty{NewTaxonomyDB}}
   The function \ty{NewTaxonomyDB} takes as parameters the names of the
-  five input files and the name of the database. It opens these files,
-  opens a new database, constructs the database, closes the files, and
-  closes the database.
+  five input files from which we construct the database, and the name of
+  the database. It opens these files, opens a new database, constructs
+  the database, closes the files, and closes the database.
 #+end_src
 #+begin_src go <<Functions, Pa.~\ref{pa:tdb}>>=
-  // NewTaxonomyDB takes as parameters the names of the five data files
-  // and the database name, and constructs the database from them.
+  // NewTaxonomyDB takes as parameters the names
+  // of the five data files and the database name,
+  // and constructs the database from them.
   func NewTaxonomyDB(nodes, names, prokaryotes,
 	  eukaryotes, viruses, dbName string) {
 	  //<<Open files, Pa.~\ref{pa:tdb}>>
@@ -120,35 +121,36 @@
   //<<Construct table \ty{genome}, Pa.~\ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
-  Table \ty{taxon} has the attributes \ty{taxid}, \ty{parent}, and
-  \ty{name}. Taxon-IDs are integers, names are text. \ty{taxid} is the
-  primary key. As there are currently 2.4 million taxa, and this number
-  is bound to grow, we ensure that queries are quick by using
-  indexes. The primary key, \ty{taxid}, is automatically indexed and we
-  might be tempted to index the remaining two attributes, \ty{parent}
-  and \ty{name}. However, \ty{name} is a string, and \ty{sqlite} does not
-  make use of indexes on text columns. You can check this on an existing
-  database by prefacing a query with \ty{explain query plan}. Since
-  creating an index takes time, we have no time for an index that won't
-  actually be used, so we only index \ty{parent}.
+  Table \ty{taxon} has the attributes \ty{taxid}, \ty{parent},
+  \ty{name}, and \ty{rank}. Taxon-IDs are integers, names are
+  text. \ty{taxid} is also the primary key. As there are currently 2.4
+  million taxa, and this number is bound to grow, we ensure that queries
+  are quick by using indexes. The primary key, \ty{taxid}, is
+  automatically indexed and we construct an index for \ty{parent}. We
+  might be tempted to also index the remaining two attributes, \ty{name}
+  and \ty{rank}. However, these are text and \ty{sqlite} does not make
+  use of indexes on text columns. You can check this on an existing
+  database by prefacing a query with \ty{explain query plan}. So we
+  leave it at our index for \ty{parent}.
 #+end_src
 #+begin_src go <<Construct table \ty{taxon}, Pa.~\ref{pa:tdb}>>=
   sqlStmt := `create table taxon (
-  taxid int, parent int, name text, primary key(taxid));
+  taxid int, parent int, name text, rank text, 
+  primary key(taxid));
   create index taxon_parent_idx on taxon(parent);`
   if _, err := db.Exec(sqlStmt); err != nil {
 	  log.Fatal(err)
   }
 #+end_src
 #+begin_src latex
-  Table \ty{genome} has attributes \ty{taxid}, \ty{size}, and
-  \ty{replicons}. To stress that every genome belongs to exactly one
+  Table \ty{genome} has attributes \ty{taxid}, \ty{size}, \ty{replicons},
+  and \ty{accession}. To stress that every genome belongs to exactly one
   taxon, we declare \ty{taxid} as foreign key into \ty{taxon}. We also
-  index \ty{taxid} and \ty{size}.
+  index the numerical attributes \ty{taxid} and \ty{size}.
 #+end_src
 #+begin_src go <<Construct table \ty{genome}, Pa.~\ref{pa:tdb}>>=
   sqlStmt = `create table genome (
-  taxid int, size real, replicons text,
+  taxid int, size real, replicons text, accession text,
   foreign key(taxid) references taxon(taxid));
   create index genome_taxid_idx on genome(taxid);
   create index genome_size_idx on genome(size);`
@@ -167,13 +169,13 @@
 #+begin_src latex 
   To load \ty{taxon}, we simulate a join of \ty{nodes.dmp} and
   \ty{names.dmp} on taxon-ID. For this we create the type \ty{taxon}
-  with the same three fields as the three attributes in
+  with the same four fields as the four attributes in
   Figure~\ref{fig:db}.
 #+end_src
 #+begin_src go <<Types, Pa.~\ref{pa:tdb}>>=
   type taxon struct {
 	  taxid, parent int
-	  name string
+	  name, rank string
   }
 #+end_src
 #+begin_src latex
@@ -193,20 +195,21 @@
 #+end_src
 #+begin_src latex
   We traverse the nodes file using a scanner. The first column contains
-  the taxon-ID, the second the parent's ID. Columns are delimited by
-  \verb+\t|\t+ and we convert the strings denoting IDs to integers
-  before storing them.
+  the taxon-ID, the second the parent's ID, the third the taxon's
+  rank. Columns are delimited by \verb+\t|\t+ and we convert the strings
+  denoting IDs to integers before storing them.
 #+end_src
 #+begin_src go <<Parse nodes file, Pa.~\ref{pa:tdb}>>=
   scanner := bufio.NewScanner(of)
   for scanner.Scan() {
 	  row := scanner.Text()
-	  fields := strings.SplitN(row, "\t|\t", 3)
+	  fields := strings.SplitN(row, "\t|\t", 4)
 	  t := new(taxon)
 	  t.taxid, err = strconv.Atoi(fields[0])
 	  if err != nil { log.Fatal(err) }
 	  t.parent, err = strconv.Atoi(fields[1])
 	  if err != nil { log.Fatal(err) }
+	  t.rank = fields[2]
 	  taxa[t.taxid] = t
   }
 #+end_src
@@ -251,14 +254,13 @@
 #+begin_src latex
   Having read the taxa from the input files, we insert them in the
   \ty{taxon} table. We do this with a transaction, which takes a
-  statement and prepares it, before we insert the individual rows into
-  \ty{taxon}.
+  statement and prepares it, before we insert the individual rows.
 #+end_src
 #+begin_src go <<Insert taxa, Pa.~\ref{pa:tdb}>>=
   tx, err := db.Begin()
   if err != nil { log.Fatal(err) }
-  sqlStmt = "insert into taxon(taxid, parent, name) " +
-	  "values(?, ?, ?)"
+  sqlStmt = "insert into taxon(taxid, parent, name, rank) " +
+	  "values(?, ?, ?, ?)"
   stmt, err := tx.Prepare(sqlStmt)
   if err != nil { log.Fatal(err) }
   //<<Insert rows into table \ty{taxon}, Pa.~\ref{pa:tdb}>>
@@ -270,34 +272,34 @@
 #+end_src
 #+begin_src go <<Insert rows into table \ty{taxon}, Pa.~\ref{pa:tdb}>>=
   for _, v := range taxa {
-	  _, err = stmt.Exec(v.taxid, v.parent, v.name)
+	  _, err = stmt.Exec(v.taxid, v.parent, v.name, v.rank)
 	  if err != nil { log.Fatal(err) }
   }
 #+end_src
 #+begin_src latex
-  The next table to load is \ty{genome}. So we also read the genomes
-  from input and insert them.
+  The next table to load is \ty{genome}. Like the taxa, we read the
+  genomes from input and insert them.
 #+end_src
 #+begin_src go <<Load table \ty{genome}, Pa.~\ref{pa:tdb}>>=
   //<<Read genomes, Pa.~\ref{pa:tdb}>>
   //<<Insert genomes, Pa.~\ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
-  We read each genome into a struct that holds the three attributes
-  shown in Figure~\ref{fig:db}, \ty{taxid}, \ty{replicons}, and
-  \ty{size}.
+  We read each genome into a struct that holds the four attributes shown
+  in Figure~\ref{fig:db}, \ty{taxid}, \ty{replicons}, \ty{accession},
+  and \ty{size}.
 #+end_src
 #+begin_src go <<Types, Pa.~\ref{pa:tdb}>>=
   type genome struct {
 	  taxid int
-	  replicons string
+	  replicons, accession string
 	  size float64
   }
 #+end_src
 #+begin_src latex
   We save genomes in a slice and read them from the three files that
-  correspond to three deep divisions of life, prokaryotes, eukaryotes,
-  and viruses.
+  correspond to the three deep divisions of life, prokaryotes,
+  eukaryotes, and viruses.
 #+end_src
 #+begin_src go <<Read genomes, Pa.~\ref{pa:tdb}>>=
   var genomes []genome
@@ -307,7 +309,7 @@
 #+end_src
 #+begin_src latex
   In the prokaryote genomes file, we skip the header, split the columns
-  at tabs, generate the genomes and save them.
+  at tabs, generate the genomes, and save them.
 #+end_src
 #+begin_src go <<Read prokaryote genomes, Pa.~\ref{pa:tdb}>>=
   fn := pf.Name()
@@ -317,19 +319,31 @@
 	  row := scanner.Text()
 	  if row[0] == '#' { continue }
 	  fields := strings.Split(row, "\t")
-	  //<<Generate a genome, Pa.~\ref{pa:tdb}>>
+	  //<<Generate a prokaryote genome, Pa.~\ref{pa:tdb}>>
 	  genomes = append(genomes, gen)
   }
 #+end_src
 #+begin_src latex
-  In an individual row, the second column contains the taxon-ID, the
-  seventh the size in Mb, and the nineth the replicons. Unfortunately,
-  it is possible that no genome size is given, in which case we set it
-  to -1. It is also possible that the row is incomplete, in which case
-  we skip it and send a warning.
+  Table~\ref{tab:pg} shows the columns in the table of prokaryote
+  genomes. We can see that the taxon ID is in the second column, the
+  size in Mb in the seventh, the replicons in the nineth, and the
+  assembly accessions in the 19th. Unfortunately, it is possible that
+  there is no genome size, in which case we set it to -1. It is also
+  possible that the row is incomplete, in which case we skip it and send
+  a warning.
+  \begin{table}
+    \caption{Columns in the table of prokaryote genomes supplied by the NCBI.}\label{tab:pg}
+    \begin{center}
+      \begin{tabular}{rlrlrl}
+	\hline
+	\input{../tdb/pro}\\
+	\hline
+      \end{tabular}
+    \end{center}
+  \end{table}
 #+end_src
-#+begin_src go <<Generate a genome, Pa.~\ref{pa:tdb}>>=
-  if len(fields) < 9 {
+#+begin_src go <<Generate a prokaryote genome, Pa.~\ref{pa:tdb}>>=
+  if len(fields) < 19 {
 	  fmt.Fprintf(os.Stderr,
 		  "skipping truncated line in %q\n", fn)
 	  continue
@@ -339,6 +353,7 @@
   gen.size, err = strconv.ParseFloat(fields[6], 64)
   if err != nil { gen.size = -1.0 }
   gen.replicons = fields[8]
+  gen.accession = fields[18]
 #+end_src
 #+begin_src latex
   We close the prokaryote genomes file.
@@ -347,8 +362,7 @@
   pf.Close()
 #+end_src
 #+begin_src latex
-  Similarly, we read the file for the eukaryote genomes, which has the
-  same structure as that of the prokaryotes.
+  Similarly, we read the file for eukaryote genomes.
 #+end_src
 #+begin_src go <<Read eukaryote genomes, Pa.~\ref{pa:tdb}>>=
   fn = ef.Name()
@@ -357,9 +371,40 @@
 	  row := scanner.Text()
 	  if row[0] == '#' { continue }
 	  fields := strings.Split(row, "\t")
-	  //<<Generate a genome, Pa.~\ref{pa:tdb}>>
+	  //<<Generate a eukaryote genome, Pa.~\ref{pa:tdb}>>
 	  genomes = append(genomes, gen)
   }
+#+end_src
+#+begin_export latex
+Table~\ref{tab:eg} shows the columns in the table of eukaryote
+genomes. The taxon ID is in the second column, the size in the
+seventh, the assembly accession in the nineth, and the replicons the
+tenth.
+\begin{table}
+  \caption{Columns in the table of eukaryote genomes supplied by the NCBI.}\label{tab:eg}
+  \begin{center}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{rlrlrl}
+      \hline
+      \input{../tdb/euk}\\
+      \hline
+    \end{tabular}
+    }
+  \end{center}
+\end{table}
+#+end_export
+#+begin_src go <<Generate a eukaryote genome, Pa.~\ref{pa:tdb}>>=
+  if len(fields) < 10 {
+	  fmt.Fprintf(os.Stderr,
+		  "skipping truncated line in %q\n", fn)
+	  continue
+  }
+  gen.taxid, err = strconv.Atoi(fields[1])
+  if err != nil { log.Fatal(err) }
+  gen.size, err = strconv.ParseFloat(fields[6], 64)
+  if err != nil { gen.size = -1.0 }
+  gen.accession = fields[8]
+  gen.replicons = fields[9]
 #+end_src
 #+begin_src latex
   We close the eukaryote genomes file.
@@ -382,11 +427,22 @@
   }
 #+end_src
 #+begin_src latex
-  The file describing the genomes of viruses has a slightly different
-  structure from that of prokaryotes and eukaryotes. Replicons are now
-  in the tenth column, and genome size is given in kb. We convert that
-  to Mb to have all genome lengths on the same scale. Again, if a line
-  is incomplete, we skip it with message.
+  Table~\ref{tab:vg} shows the columns in the table of viral
+  genomes. Again, the taxon ID is in the second column and the size in
+  the seventh. However, this time the size is in kb, which we convert to
+  Mb. Also, there are no ``Replicons'', nor is there an ``Assembly
+  Accession''. Instead, we have ``Segments'' in column 10, which we use
+  both as attributes \ty{replicons} and \ty{accession} in our database.
+  \begin{table}
+    \caption{Columns in the table of viral genomes supplied by the NCBI.}\label{tab:vg}
+    \begin{center}
+      \begin{tabular}{rlrlrl}
+	\hline
+	\input{../tdb/vir}\\
+	\hline
+      \end{tabular}
+    \end{center}
+  \end{table}
 #+end_src
 #+begin_src go <<Generate a viral genome, Pa.~\ref{pa:tdb}>>=
   if len(fields) < 10 {
@@ -400,6 +456,7 @@
   if err != nil { gen.size = -1.0 }
   if gen.size > 0 { gen.size /= 1000.0 }
   gen.replicons = fields[9]
+  gen.accession = fields[9]
 #+end_src
 #+begin_src latex
   We close the virus genomes file.
@@ -414,8 +471,9 @@
 #+begin_src go <<Insert genomes, Pa.~\ref{pa:tdb}>>=
   tx, err = db.Begin()
   if err != nil { log.Fatal(err) }
-  sqlStmt = "insert into genome(taxid, replicons, size) " +
-	  "values(?, ?, ?)"
+  sqlStmt = "insert into genome(taxid, replicons," +
+	  "size, accession) " +
+	  "values(?, ?, ?, ?)"
   stmt, err = tx.Prepare(sqlStmt)
   if err != nil { log.Fatal(err) }
   //<<Insert rows into table \ty{genome}, Pa.~\ref{pa:tdb}>>
@@ -427,7 +485,8 @@
 #+end_src
 #+begin_src go <<Insert rows into table \ty{genome}, Pa.~\ref{pa:tdb}>>=
   for _, g := range genomes {
-	  _, err = stmt.Exec(g.taxid, g.replicons, g.size)
+	  _, err = stmt.Exec(g.taxid, g.replicons,
+		  g.size, g.accession)
 	  if err != nil { log.Fatal(err) }
   }
 #+end_src
@@ -620,8 +679,8 @@
 #+end_src
 #+begin_src latex
   \subsection{\ty{Replicons}}
-  The method \ty{Replicons} takes as parameter a taxon-ID and returns a
-  slice of genome accessions.
+  !The method \ty{Replicons} takes as parameter a taxon-ID and returns a
+  !slice of replicons.
 
   We query for replicons and then store them in the string slice we
   return.
@@ -668,6 +727,48 @@
   }
 #+end_src
 #+begin_src latex
+  \subsection{\ty{Accessions}}
+  !The method \ty{Accessions} takes as parameter a taxon-ID and returns a
+  !slice of assembly accessions.
+
+  We query for accessions and then store them in the string slice we
+  return.
+#+end_src
+#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+  func (t *TaxonomyDB) Accessions(tid int) []string {
+	  var accessions []string
+	  //<<Query for accessions, Pa.~\ref{pa:tdb}>>
+	  //<<Store accessions, Pa.~\ref{pa:tdb}>>
+	  return accessions
+  }
+#+end_src
+#+begin_src latex
+  We generate the query and execute it, which returns a set of table
+  rows. The rows are later closed again.
+#+end_src
+#+begin_src go <<Query for accessions, Pa.~\ref{pa:tdb}>>=
+  tmpl := "select accession from genome where taxid=%d"
+  q := fmt.Sprintf(tmpl, tid)
+  rows, err := t.db.Query(q)
+  if err != nil {
+	  log.Fatal(err)
+  }
+  defer rows.Close()
+#+end_src
+#+begin_src latex
+  We append each accession to our slice of replicons.
+#+end_src
+#+begin_src go <<Store accessions, Pa.~\ref{pa:tdb}>>=
+  accession := ""
+  for rows.Next() {
+	  err := rows.Scan(&accession)
+	  if err != nil {
+		  log.Fatal(err)
+	  }
+	  accessions = append(accessions, accession)
+  }
+#+end_src
+#+begin_src latex
   \subsection{\ty{Name}}
   The method \ty{Name} takes as argument a taxon ID and returns the
   taxon's name. We construct the query, execute it, and extract the
@@ -708,6 +809,50 @@
 #+begin_src go <<Extract name, Pa.~\ref{pa:tdb}>>=
   rows.Next()
   err = rows.Scan(&n)
+  if err != nil {
+	  log.Fatal(err)
+  }
+#+end_src
+#+begin_src latex
+  \subsection{\ty{Rank}}
+  !The method \ty{Rank} takes as argument a taxon ID and returns the
+  !taxon's name. We construct the query, execute it, and extract the
+  !name.
+#+end_src
+#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+  func (t *TaxonomyDB) Rank(taxon int) string {
+	  rank := ""
+	  //<<Construct rank query, Pa.~\ref{pa:tdb}>>
+	  //<<Execute rank query, Pa.~\ref{pa:tdb}>>
+	  //<<Extract rank, Pa.~\ref{pa:tdb}>>
+	  return rank
+  }
+#+end_src
+#+begin_src latex
+  We construct the rank query from a string template.
+#+end_src
+#+begin_src go <<Construct rank query, Pa.~\ref{pa:tdb}>>=
+  tmpl := "select rank from taxon where taxid=%d"
+  q := fmt.Sprintf(tmpl, taxon)
+#+end_src
+#+begin_src latex
+  We execute the rank query, which might throw an error. We also close
+  the results table once we're done with it.
+#+end_src
+#+begin_src go <<Execute rank query, Pa.~\ref{pa:tdb}>>=
+  rows, err := t.db.Query(q)
+  if err != nil {
+	  log.Fatal(err)
+  }
+  defer rows.Close()
+#+end_src
+#+begin_src latex
+  Our results table contains only the requested single rank. We scan
+  this and catch potential errors.
+#+end_src
+#+begin_src go <<Extract rank, Pa.~\ref{pa:tdb}>>=
+  rows.Next()
+  err = rows.Scan(&rank)
   if err != nil {
 	  log.Fatal(err)
   }
