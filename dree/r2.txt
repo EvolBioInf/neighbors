@@ -11,6 +11,9 @@ digraph g {
 	2665952 -> 2665953
 	2665952 [label="environmental samples"]
 	2665953 [label="Homo sapiens environmental sample"]
+	2813598 -> 2813599
+	2813598 [label="unclassified Homo"]
+	2813599 [label="Homo sp."]
 	37010 [label="Pan troglodytes schweinfurthii"]
 	37011 [label="Pan troglodytes troglodytes"]
 	37012 [color="lightsalmon",style=filled]
@@ -23,7 +26,6 @@ digraph g {
 	63221 [label="Homo sapiens neanderthalensis"]
 	741158 [label="Homo sapiens subsp. 'Denisova'"]
 	756884 [label="Pan troglodytes ellioti"]
-	91950 [label="Pan troglodytes vellerosus"]
 	9592 -> 499232
 	9592 -> 9593
 	9592 [label="Gorilla"]
@@ -44,11 +46,11 @@ digraph g {
 	9598 -> 37011
 	9598 -> 37012
 	9598 -> 756884
-	9598 -> 91950
 	9598 [color="lightsalmon",style=filled]
 	9598 [label="Pan troglodytes"]
 	9605 -> 1425170
 	9605 -> 2665952
+	9605 -> 2813598
 	9605 -> 9606
 	9605 [label="Homo"]
 	9606 -> 63221

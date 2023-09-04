@@ -88,11 +88,12 @@
   with genome sequences, \ty{-g}.
 #+end_src
 #+begin_src go <<Declare options, Pr.~\ref{pr:dr}>>=
-  var optV = flag.Bool("v", false, "version")
-  var optN = flag.Bool("n", false,
+  optV := flag.Bool("v", false, "version")
+  optN := flag.Bool("n", false,
 	  "print names instead of taxon-IDs")
-  var optG = flag.Bool("g", false,
+  optG := flag.Bool("g", false,
 	  "only taxa with genome sequences")
+  optL := flag.Bool("l", false, "list taxa")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -124,12 +125,6 @@
   The remaining tokens on the command line are interpreted as taxon-ID
   and database, in that order. If we don't have two tokens, we bail with
   a friendly message. We convert the taxonomy-ID to an integer.
-#+end_src
-#+begin_src latex
-  We import \ty{util}.
-#+end_src
-#+begin_src go <<Import Pr.~\ref{pr:dr}>>=
-  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src go <<Get taxon-ID, Pr.~\ref{pr:dr}>>=
   tokens := flag.Args()
@@ -209,25 +204,74 @@
   }
 #+end_src
 #+begin_src latex
-  We import \ty{tax} and \ty{tdb}.
+  We import \ty{tax}.
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
   "github.com/evolbioinf/neighbors/tax"
-  "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
-  We check whether the current node has one or more genomes (replicons)
-  associated with it. If so, we mark its as having a genome and as
-  having a genome in its subtree. Having a genome in the subtree is a
-  property that propagates up the tree.
+  We check whether the current node has one or more genomes associated
+  with it. If so, we mark its as having a genome and as having a genome
+  in its subtree. Having a genome in the subtree is a property that
+  propagates up the tree.
 #+end_src
 #+begin_src go <<Annotate node, Pr.~\ref{pr:dr}>>=
-  if len(taxdb.Replicons(v.ID)) > 0 {
+  if len(taxdb.Accessions(v.ID)) > 0 {
 	  hasGenome[v.ID] = true
 	  hasGsub[v.ID] = true
   }
   if v.Parent != nil && hasGsub[v.ID] {
 	  hasGsub[v.Parent.ID] = true
+  }
+#+end_src
+#+begin_export latex
+By default we draw the subtree graph, but the user might also have
+opted for listing the taxa in the subtree.
+#+end_export
+#+begin_src go <<Draw subtree, Pr.~\ref{pr:dr}>>=
+  if *optL {
+	  //<<List subtree, Pr.~\ref{pr:dr}>>
+  } else {
+	  //<<Draw subtree graph, Pr.~\ref{pr:dr}>>
+  }
+#+end_src
+#+begin_export latex
+We get the taxon IDs of the subtree by calling \ty{getIDs}. Then we
+list the subtree in a table consisting of three columns, taxon ID, and
+the number of genomes. We construct this table with a \ty{tabwriter}
+to which we write with the function \ty{listTree}. We flush the
+\ty{tabwriter} afterwards.
+#+end_export
+#+begin_src go <<List subtree, Pr.~\ref{pr:dr}>>=
+  var ids []int
+  ids = getIds(subtree, ids)
+  sort.Ints(ids)
+  w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
+  fmt.Fprint(w, "# Taxid\tRank\tGenomes\n")
+  for _, id := range ids {
+	  r := taxdb.Rank(id)
+	  n := len(taxdb.Accessions(id))
+	  fmt.Fprintf(w, "%d\t%s\t%d\n", id, r, n)
+  }
+  w.Flush()
+#+end_src
+#+begin_export latex
+We import \ty{tabwriter}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+  "text/tabwriter"
+#+end_src
+#+begin_export latex
+In the function \ty{getIds}, we recursively traverse the subtree and
+collect its taxon IDs.
+#+end_export
+#+begin_src go <<Functions, Pr.~\ref{pr:dr}>>=
+  func getIds(v *tax.Node, ids []int) []int {
+	  if v == nil { return ids }
+	  ids = append(ids, v.ID)
+	  ids = getIds(v.Child, ids)
+	  ids = getIds(v.Sib, ids)
+	  return ids
   }
 #+end_src
 #+begin_src latex
@@ -237,7 +281,7 @@
   written to a buffer so we can sort the lines it contains before
   printing them to achieve reproducible output.
 #+end_src
-#+begin_src go <<Draw subtree, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Draw subtree graph, Pr.~\ref{pr:dr}>>=
   fmt.Printf("digraph g {\n\trankdir=LR\n")
   //<<Construct buffer, Pr.~\ref{pr:dr}>>
   //<<Iterate over nodes in subtree, Pr.~\ref{pr:dr}>>
@@ -274,7 +318,8 @@
 	  optN, optG bool) {
 	  if v == nil { return }
 	  //<<Print child/parent pair, Pr.~\ref{pr:dr}>>
-	  traverseSubtree(w, v.Child, hasGenome, hasGsub, optN, optG)
+	  traverseSubtree(w, v.Child, hasGenome, hasGsub, optN,
+		  optG)
 	  traverseSubtree(w, v.Sib, hasGenome, hasGsub, optN, optG)
   }
 #+end_src
@@ -369,8 +414,8 @@
 #+end_src
 #+begin_src latex
   In our tests, we draw the \emph{Homininae} which have taxon-ID
-  207598. First with no options, then with names, and finally with
-  genomes.
+  207598. First with no options, then with names, then with
+  genomes, and finally with list.
 #+end_src
 #+begin_src go <<Construct tests, Pr.~\ref{pr:dr}>>=
   n := "207598"
@@ -381,17 +426,19 @@
   tests = append(tests, test)
   test = exec.Command("./dree", "-g", n, d)
   tests = append(tests, test)
+  test = exec.Command("./dree", "-l", n, d)
+  tests = append(tests, test)
 #+end_src
 #+begin_src latex
   For each test we compare the output we get with the output we want,
-  which is contained in \ty{r1.dot}, \ty{r2.dot}, and \ty{r3.dot}.
+  which is contained in \ty{r1.txt}, \ty{r2.txt}, and so on.
 #+end_src
 #+begin_src go <<Run test, Pr.~\ref{pr:dr}>>=
   get, err := test.Output()
   if err != nil {
 	  t.Errorf("couldn't run %q", test)
   }
-  f := "r" + strconv.Itoa(i+1) + ".dot"
+  f := "r" + strconv.Itoa(i+1) + ".txt"
   want, err := ioutil.ReadFile(f)
   if err != nil {
 	  t.Errorf("couldn't open %q", f)
