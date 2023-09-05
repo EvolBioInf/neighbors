@@ -17,9 +17,9 @@
   //<<Functions, Pa.~\ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
-  \epa
-  The central type of \ty{tdb} is \ty{TaxonDB}, which wraps a database
-  defined in the standard library.
+  \epa The package \ty{tdb} has two central types: \ty{TaxonDB} wraps
+  the relational database shown in Figure~\ref{fig:db} and \ty{Taxonomy}
+  is the taxonomic tree.
 #+end_src
 #+begin_src go <<Types, Pa.~\ref{pa:tdb}>>=
   type TaxonomyDB struct {
@@ -523,161 +523,6 @@ tenth.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{NewTaxonomy}}
-  The method \ty{NewTaxonomy} reads the taxonomy of a set of taxa from
-  the database. If the supplied set of taxa is empty or nil, the
-  complete taxonomy is returned. The taxa from which the taxonomic tree
-  is to be built are stored in two maps, \ty{tax} and
-  \ty{parents}. \ty{tax} maps a taxon-ID, which is an integer, to a
-  taxon node. \ty{parents} maps a taxon's ID to that of its parent. From
-  these two maps we then construct the tree.
-#+end_src
-#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
-  // NewTaxonomy reads the taxonomy from the database.
-  func (t *TaxonomyDB) NewTaxonomy(taxa []int) tax.Taxonomy {
-	  ta := make(map[int]*tax.Node)
-	  parents := make(map[int]int)
-	  if taxa == nil || len(taxa) == 0 {
-		  //<<Parse taxon table, Pa.~\ref{pa:tdb}>>
-	  } else {
-		  //<<Parse taxon slice, Pa.~\ref{pa:tdb}>>
-	  }
-	  //<<Construct tree, Pa.~\ref{pa:tdb}>>
-	  return ta
-  }
-#+end_src
-#+begin_src latex
-  We import \ty{tax}.
-#+end_src
-#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
-  "github.com/evolbioinf/neighbors/tax"
-#+end_src
-#+begin_src latex
-  We query the \ty{taxon} table, store the taxa, and check for errors at the
-  end.
-#+end_src
-#+begin_src go <<Parse taxon table, Pa.~\ref{pa:tdb}>>=
-  //<<Query taxon table, Pa.~\ref{pa:tdb}>>
-  //<<Store taxa, Pa.~\ref{pa:tdb}>>
-  //<<Check for errors in taxon query, Pa.~\ref{pa:tdb}>>
-#+end_src
-#+begin_src latex
-  Our query of the \ty{taxon} table returns the full table.
-#+end_src
-#+begin_src go <<Query taxon table, Pa.~\ref{pa:tdb}>>=
-  q := "select name, taxid, parent from taxon"
-  rows, err := t.db.Query(q)
-  if err != nil {
-	  log.Fatalf("couldn't run %q", q)
-  }
-  defer rows.Close()
-#+end_src
-#+begin_src latex
-  We iterate over the rows of the query and store each row as a
-  taxon. We also store its parent.
-#+end_src
-#+begin_src go <<Store taxa, Pa.~\ref{pa:tdb}>>=
-  var taxid, parent int
-  var name string
-  for rows.Next() {
-	  err = rows.Scan(&name, &taxid, &parent)
-	  if err != nil {
-		  log.Fatal(err)
-	  }
-	  v := &(tax.Node{ID: taxid, Name: name})
-	  ta[taxid] = v
-	  parents[taxid] = parent
-  }
-#+end_src
-#+begin_src latex
-  The query table might be left in an error state, in which case we
-  bail.
-#+end_src
-#+begin_src go <<Check for errors in taxon query, Pa.~\ref{pa:tdb}>>=
-  err = rows.Err()
-  if err != nil {
-	  log.Fatal(err)
-  }
-#+end_src
-#+begin_src latex
-  Instead of the full taxon table, we now work from a slice of taxa. We
-  do this in two steps. First we construct a path of nodes from the
-  first taxon to the root of the taxonomy. We call this chain of nodes
-  the ``root path''. Then we construct nodes for the remaining taxa and
-  attach them to the root path.
-#+end_src
-#+begin_src go <<Parse taxon slice, Pa.~\ref{pa:tdb}>>=
-  //<<Construct root path, Pa.~\ref{pa:tdb}>>
-  taxa = taxa[1:]
-  for _, tid := range taxa {
-	  v := &(tax.Node{ID: tid, Name: t.Name(tid)})
-	  ta[tid] = v
-	  p := parents[tid]
-	  for p == 0 {
-		  //<<Attach taxon to root path, Pa.~\ref{pa:tdb}>>
-	  }
-  }
-#+end_src
-#+begin_src latex
-  The root path extends from the first taxon to the root of the
-  taxonomy. The root is the only node whose ID is identical to that of
-  its parent.
-#+end_src
-#+begin_src go <<Construct root path, Pa.~\ref{pa:tdb}>>=
-  tid := taxa[0]
-  for tid != parents[tid] {
-	  v := &(tax.Node{ID: tid, Name: t.Name(tid)})
-	  ta[tid] = v
-	  parents[tid] = t.Parent(tid)
-	  tid = parents[tid]
-  }
-#+end_src
-#+begin_src latex
-  We add the current node on our way to the root path and move to its
-  parent.
-#+end_src
-#+begin_src go <<Attach taxon to root path, Pa.~\ref{pa:tdb}>>=
-  v = &(tax.Node{ID: tid, Name: t.Name(tid)})
-  ta[tid] = v
-  p = t.Parent(tid)
-  parents[tid] = p
-  tid = p
-  p = parents[tid]
-#+end_src
-#+begin_src latex
-  The tree topology is now implicit in the map of parents. To construct
-  an explicit tree from this, we iterate over all taxa and access the
-  corresponding child/parent pairs. As the parent of the root is the
-  root itself, we might be dealing with two roots at this
-  point. Treating them like an ordinary child/parent pair would lead to
-  the construction of a loop, so we check for this before setting the
-  links between parent and child.
-#+end_src
-#+begin_src go <<Construct tree, Pa.~\ref{pa:tdb}>>=
-  for k, v := range parents {
-	  if k != v {
-		  child := ta[k]
-		  parent := ta[v]
-		  //<<Set links between parent and child, Pa.~\ref{pa:tdb}>>
-	  }
-  }
-#+end_src
-#+begin_src latex
-  We set the child's parent link and add it to its parent's list of
-  children.
-#+end_src
-#+begin_src go <<Set links between parent and child, Pa.~\ref{pa:tdb}>>=
-  child.Parent = parent
-  if parent.Child == nil {
-	  parent.Child = child
-	  parent.Child.LastSib = child
-  } else {
-	  c := parent.Child
-	  c.LastSib.Sib = child
-	  c.LastSib = child
-  }
-#+end_src
-#+begin_src latex
   \subsection{\ty{Replicons}}
   !The method \ty{Replicons} takes as parameter a taxon-ID and returns a
   !slice of replicons.
@@ -966,14 +811,18 @@ tenth.
   }
 #+end_src
 #+begin_src latex
-  \ty{traverseSubtree} is a recursive function.
+  \ty{traverseSubtree} is a recursive function, where we take care to
+  avoid the infinite loop we would get if we included the root in the
+  recursion.
 #+end_src
 #+begin_src go <<Functions, Pa.~\ref{pa:tdb}>>=
   func traverseSubtree(t *TaxonomyDB, r int, taxa []int) []int {
 	  taxa = append(taxa, r)
 	  ch := t.Children(r)
 	  for _, c := range ch {
-		  taxa = traverseSubtree(t, c, taxa)
+		  if c != r {
+			  taxa = traverseSubtree(t, c, taxa)
+		  }
 	  }
 	  return taxa
   }
@@ -1027,6 +876,111 @@ tenth.
   }
 #+end_src
 #+begin_src latex
+  \subsection{\ty{MRCA}}
+  !The method \ty{MRCA} takes as input a slice of taxon IDs and returns
+  !their most recent common ancestor.
+  For example, in Figure~\ref{fig:tax}, the most recent
+  common ancestor of taxa 4 and 7 is 3. We begin by checking the IDs
+  supplied and then search for the MRCA. If we haven't found one, we
+  return -1.
+#+end_src
+#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+  func (t *TaxonomyDB) MRCA(ids []int) int {
+	  //<<Check IDs, Pa.~\ref{pa:tdb}>>
+	  //<<Search for MRCA, Pa.~\ref{pa:tdb}>>
+	  return -1
+  }
+#+end_src
+#+begin_export latex
+If the ID list is empty, something went wrong and we throw an
+error. If the ID list contains a single entry, that is the MRCA.
+#+end_export
+#+begin_src go <<Check IDs, Pa.~\ref{pa:tdb}>>=
+  if len(ids) == 0 {
+	  log.Fatal("Empty ID list in tdb.MRCA")
+  } else if len(ids) == 1 {
+	  return ids[0]
+  }
+#+end_src
+#+begin_export latex
+There is a rich history of MRCA queries in computer
+science~\cite[ch. 3]{ohl13:bio}. However, instead of using the general
+solution to the problem, I construct a simpler solution that involves
+climbing to the common ancestor of a set of taxa. If these taxa are
+closely related, the climb is short.
+
+To be more precise, in each step of our climb, we increment a
+descendant counter for each node. If one of these counters is equal to
+the number of input taxa, the corresponding node is the
+MRCA. Otherwise, we climb to the parents and repeat. So we construct a
+variable to count descendants and variables for parents and
+children. Then we iterate over the parents.
+#+end_export
+#+begin_src go <<Search for MRCA, Pa.~\ref{pa:tdb}>>=
+  //<<Construct counter for descendants, Pa.~\ref{pa:tdb}>>
+  //<<Construct variables for parents and children, Pa.~\ref{pa:tdb}>>
+  //<<Iterate over parents, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+We store descendants in a map between a taxon ID, which is an integer,
+and the number of its descendants, another integer. The initial number
+of descendants of the taxa supplied is one.
+#+end_export
+#+begin_src go <<Construct counter for descendants, Pa.~\ref{pa:tdb}>>=
+  desc := make(map[int]int)
+  for _, id := range ids {
+	  desc[id] = 1
+  }
+#+end_src
+#+begin_export latex
+We store the parent and child taxa as integer slices. The children
+slice is initialized to the taxon IDs supplied.
+#+end_export
+#+begin_src go <<Construct variables for parents and children, Pa.~\ref{pa:tdb}>>=
+  parents := make([]int, 0)
+  children := make([]int, 0)
+  for _, id := range ids {
+	  children = append(children, id)
+  }
+#+end_src
+#+begin_export latex
+As long as we have more than a single parent, i. e. haven't reached
+the root yet, we climb to the next set of parents and we replace the
+children by the parents.
+#+end_export
+#+begin_src go <<Iterate over parents, Pa.~\ref{pa:tdb}>>=
+  for len(parents) > 1 {
+	  //<<Climb to parents, Pa.~\ref{pa:tdb}>>
+	  //<<Replace parents by children, Pa.~\ref{pa:tdb}>>
+  }
+#+end_src
+#+begin_export latex
+For each parent we reach, we check whether the number of its
+descendants is equal to the number of taxa submitted. If yes, we've
+found the MRCA and return it.
+#+end_export
+#+begin_src go <<Climb to parents, Pa.~\ref{pa:tdb}>>=
+  for _, child := range children {
+	  parent := t.Parent(child)
+	  desc[parent] += desc[child]
+	  if desc[parent] == len(ids) {
+		  return parent
+	  }
+	  parents = append(parents, parent)
+  }
+#+end_src
+#+begin_export latex
+We replace the children by the parent and reset the parent slice to
+empty.
+#+end_export
+#+begin_src go <<Replace parents by children, Pa.~\ref{pa:tdb}>>=
+  children = children[:0]
+  for _, parent := range parents {
+	  children = append(children, parent)
+  }
+  parents = parents[:0]
+#+end_src
+#+begin_src latex
   \subsection{Testing}
   The outline of our code for testing \ty{tdb} has a hook for the
   testing logic.
@@ -1044,12 +998,11 @@ tenth.
 #+end_src
 #+begin_src latex
   We test the function \ty{NewTaxonomyDB}, and the methods
-  \ty{NewTaxonomy}, \ty{Replicons}, \ty{Name}, \ty{Parent},
-  \ty{Children}, \ty{Subtree}, and \ty{Taxids}.
+  \ty{Replicons}, \ty{Name}, \ty{Parent}, \ty{Children}, \ty{Subtree},
+  and \ty{Taxids}.
 #+end_src
 #+begin_src go <<Testing, Pa.~\ref{pa:tdb}>>=
   //<<Test \ty{NewTaxonomyDB}, Pa.~\ref{pa:tdb}>>
-  //<<Test \ty{NewTaxonomy}, Pa.~\ref{pa:tdb}>>
   //<<Test \ty{Replicons}, Pa.~\ref{pa:tdb}>>
   //<<Test \ty{Name}, Pa.~\ref{pa:tdb}>>
   //<<Test \ty{Parent}, Pa.~\ref{pa:tdb}>>
@@ -1072,62 +1025,29 @@ tenth.
 #+end_src
 #+begin_src latex
   We extract the full taxonomy from the small database and check it has
-  9 entries.
+  11 entries.
 #+end_src
 #+begin_src go <<Test \ty{NewTaxonomyDB}, Pa.~\ref{pa:tdb}>>=
   taxdb := OpenTaxonomyDB(d1)
-  ta := taxdb.NewTaxonomy(nil)
-  if len(ta) != 9 {
-	  t.Errorf("get %d rows, want 9", len(ta))
-  }
-#+end_src
-#+begin_src latex
-  We open a complete taxonomy database, get the full taxonomy from it,
-  and the name for entry 9606, \emph{Homo sapiens}.
-#+end_src
-#+begin_src go <<Test \ty{NewTaxonomy}, Pa.~\ref{pa:tdb}>>=
-  d2 := p + "neidb"
-  taxdb = OpenTaxonomyDB(d2)
-  ta = taxdb.NewTaxonomy(nil)
-  want := "Homo sapiens"
-  get := ta[9606].Name
-  if get != want {
-	  t.Errorf("get: %q; want: %q", get, want)
-  }
-#+end_src
-#+begin_src latex
-  We get a partial taxonomy for \emph{Homo sapiens} (9606) and
-  \emph{Gorilla gorilla gorilla} (9595). Its most recent common ancestor
-  is \emph{Hominidae} (207598).
-#+end_src
-#+begin_src go <<Test \ty{NewTaxonomy}, Pa.~\ref{pa:tdb}>>=
-  w := 207598
-  taxa := []int{9606, 9595}
-  tp := taxdb.NewTaxonomy(taxa)
-  g := tp.MRCA(taxa)
-  if g != w {
-	  t.Errorf("get MRCA %d; want %d", g, w)
-  }
-#+end_src
-#+begin_src latex
-  We also check that the MRCA found in the complete taxonomy is the same
-  as that found in the partial taxonomy.
-#+end_src
-#+begin_src go <<Test \ty{NewTaxonomy}, Pa.~\ref{pa:tdb}>>=
-  g = ta.MRCA(taxa)
-  if g != w {
-	  t.Errorf("get MRCA %d; want %d", g, w)
+  subtree := taxdb.Subtree(1)
+  if len(subtree) != 11 {
+	  t.Errorf("get %d rows, want 11", len(subtree))
+	  for _, s := range subtree {
+		  println(s)
+	  }
   }
 #+end_src
 #+begin_src latex 
-  We submit three taxon-IDs to the method \ty{Replicons} and print out the
-  result.
+  We open a complete taxonomy, submit three taxon-IDs to the method
+  \ty{Replicons}, and print out the result.
 #+end_src
 #+begin_src go <<Test \ty{Replicons}, Pa.~\ref{pa:tdb}>>=
+  d2 := p + "tax.db"
+  taxdb = OpenTaxonomyDB(d2)
   tid := 866775
   reps := taxdb.Replicons(tid)
-  get = reps[0]
-  want = "chromosome:NC_015278.1/CP002512.1"
+  get := reps[0]
+  want := "chromosome:NC_015278.1/CP002512.1"
   if get != want {
 	  t.Errorf("get: %q; want: %q", get, want)
   }
@@ -1148,8 +1068,8 @@ tenth.
   9605.
 #+end_src
 #+begin_src go <<Test \ty{Parent}, Pa.~\ref{pa:tdb}>>=
-  w = 9605
-  g = taxdb.Parent(tid)
+  w := 9605
+  g := taxdb.Parent(tid)
   if g != w {
 	  t.Errorf("get parent: %d; want: %d", g, w)
   }
@@ -1165,12 +1085,12 @@ tenth.
   }
 #+end_src
 #+begin_src latex
-  The \emph{Hominidae} subtree contains 25 nodes.
+  The \emph{Hominidae} subtree contains 26 nodes.
 #+end_src
 #+begin_src go <<Test \ty{Subtree}, Pa.~\ref{pa:tdb}>>=
   tid = 207598
-  w = 25
-  taxa = taxdb.Subtree(tid)
+  w = 26
+  taxa := taxdb.Subtree(tid)
   g = len(taxa)
   if g != w {
 	  t.Errorf("get %d nodes in subtree; want %d", g, w)
@@ -1178,15 +1098,59 @@ tenth.
 #+end_src
 #+begin_src latex
   To test \ty{Taxids}, we get the ten taxa whose names contain
-  \emph{homo sapiens}. Notice the lower-case ``h'' in \emph{homo}, which
-  SQL matches to the upper-case ``H'' in the actual names.
+  \emph{homo sapiens}, of which there are 11. Notice the lower-case
+  ``h'' in \emph{homo}, which SQL matches to the upper-case ``H'' in the
+  actual names.
 #+end_src
 #+begin_src go <<Test \ty{Taxids}, Pa.~\ref{pa:tdb}>>=
-  w = 10
+  w = 11
   taxa = taxdb.Taxids("%homo sapiens%")
   g = len(taxa)
   if g != w {
 	  t.Errorf("get %d taxa for homo sapiens; want %d", g, w)
   }
 #+end_src
-
+#+begin_src latex
+  To test \ty{MRCA}, we construct several tests and run them in a loop.
+#+end_src
+#+begin_src go <<Test \ty{MRCA}, Pa.~\ref{pa:tdb}>>=
+  //<<Construct tests of \ty{MRCA}, Pa.~\ref{pa:tdb}>>
+  //<<Run tests of \ty{MRCA}, Pa.~\ref{pa:tdb}>>
+#+end_src
+#+begin_src latex
+  We look for the MRCAs of the following five sets of taxa in the tree
+  shown in Figure~\ref{fig:tax}:
+  \begin{itemize}
+  \item $\{4, 7\}$
+  \item $\{4\}$
+  \item $\{2, 7\}$
+  \item $\{2, 2\}$
+  \item $\{4, 7, 6\}$
+  \end{itemize}
+#+end_src
+#+begin_src go <<Construct tests of \ty{MRCA}, Pa.~\ref{pa:tdb}>>=
+  taxa := make([][]int, 0)
+  var res []int
+  taxa = append(taxa, []int{4, 7})
+  res = append(res, 3)
+  taxa = append(taxa, []int{4})
+  res = append(res, 4)
+  taxa = append(taxa, []int{2, 7})
+  res = append(res, 1)
+  taxa = append(taxa, []int{2, 2})
+  res = append(res, 2)
+  taxa = append(taxa, []int{4, 7, 6})
+  res = append(res, 3)
+#+end_src
+#+begin_src latex
+  We loop over the tests.
+#+end_src
+#+begin_src go <<Run tests of \ty{MRCA}, Pa.~\ref{pa:tdb}>>=
+  for i, taxon := range taxa {
+	  get := tax.MRCA(taxon)
+	  want := res[i]
+	  if get != want {
+		  t.Errorf("get: %d\nwant: %d\n", get, want)
+	  }
+  }
+#+end_src
