@@ -118,12 +118,16 @@
 #+end_src
 #+begin_src go <<Iterate over input, Pr.~\ref{pr:lan}>>=
   c := 1
-  sc := bufio.NewScanner(r)
-  for sc.Scan() {
-	  bytes := sc.Bytes()
+  br := bufio.NewReader(r)
+  bytes, err := br.ReadBytes('\n')
+  for err == nil {
 	  if bytes[0] != '#' {
 		  //<<Print line, Pr.~\ref{pr:lan}>>
 	  }
+	  bytes, err = br.ReadBytes('\n')
+  }
+  if err != nil && err == io.EOF {
+	  //<<Print line, Pr.~\ref{pr:lan}>>
   }
 #+end_src
 #+begin_src latex
@@ -138,7 +142,8 @@
   whenever we encounter a closing parenthesis, we construct the label
   and print it in double quotes. The label consists of the prefix, a
   counter that we increment, and the suffix. We terminate each line by a
-  carriage return.
+  carriage return. If we reach the end of a tree, marked by a semi
+  colon, we reset the node counter.
 #+end_src
 #+begin_src go <<Print line, Pr.~\ref{pr:lan}>>=
   for _, b := range bytes {
@@ -148,8 +153,8 @@
 		  fmt.Printf("%q", l)
 		  c++
 	  }
+	  if b == ';' { c = 1 }
   }
-  fmt.Printf("\n")
 #+end_src
 #+begin_src latex
   We import \ty{fmt}.
