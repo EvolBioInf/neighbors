@@ -36,7 +36,7 @@
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
-  purpose of \ty{neighbors}, and an example command.  In the usage we
+  purpose of \ty{neighbors}, and an example command. In the usage we
   clarify that the first argument of \ty{neighbors} is the name of the
   taxonomy database.
 #+end_src
@@ -180,8 +180,7 @@
   targets.
 #+end_src
 #+begin_src go <<Compute targets, Pr.~\ref{pr:neig}>>=
-  taxonomy := taxdb.NewTaxonomy(taxa)
-  mrcaT := taxonomy.MRCA(taxa)
+  mrcaT := taxdb.MRCA(taxa)
   targets := taxdb.Subtree(mrcaT)
   //<<Mark new targets, Pr.~\ref{pr:neig}>>
 #+end_src
