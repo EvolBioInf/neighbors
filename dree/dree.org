@@ -226,9 +226,10 @@ opted for listing the taxa in the subtree.
 #+end_src
 #+begin_export latex
 We list the subtree in a table consisting of four columns, taxon-ID,
-rank, name, and the number of genomes. We construct this table with a
-\ty{tabwriter} to which we write with the function \ty{listTree}. We
-flush the \ty{tabwriter} afterwards.
+rank, name, and the number of genomes. If the user asked only for taxa
+with genomes, this number has to be at least one. We construct this
+table with a \ty{tabwriter} to which we write with the function
+\ty{listTree}. We flush the \ty{tabwriter} afterwards.
 #+end_export
 #+begin_src go <<List subtree, Pr.~\ref{pr:dr}>>=
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
@@ -237,7 +238,9 @@ flush the \ty{tabwriter} afterwards.
 	  r := taxdb.Rank(v)
 	  n := len(taxdb.Accessions(v))
 	  a := taxdb.Name(v)
-	  fmt.Fprintf(w, "%d\t%s\t%d\t%s\n", v, r, n, a)
+	  if !*optG || n > 0 {
+		  fmt.Fprintf(w, "%d\t%s\t%d\t%s\n", v, r, n, a)
+	  }
   }
   w.Flush()
 #+end_src
