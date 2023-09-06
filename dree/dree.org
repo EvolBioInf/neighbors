@@ -225,18 +225,19 @@ opted for listing the taxa in the subtree.
   }
 #+end_src
 #+begin_export latex
-We list the subtree in a table consisting of three columns, taxon ID,
-and the number of genomes. We construct this table with a
+We list the subtree in a table consisting of four columns, taxon-ID,
+rank, name, and the number of genomes. We construct this table with a
 \ty{tabwriter} to which we write with the function \ty{listTree}. We
 flush the \ty{tabwriter} afterwards.
 #+end_export
 #+begin_src go <<List subtree, Pr.~\ref{pr:dr}>>=
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
-  fmt.Fprint(w, "# Taxid\tRank\tGenomes\n")
+  fmt.Fprint(w, "# Taxid\tRank\tGenomes\tName\n")
   for _, v := range subtree {
 	  r := taxdb.Rank(v)
 	  n := len(taxdb.Accessions(v))
-	  fmt.Fprintf(w, "%d\t%s\t%d\n", v, r, n)
+	  a := taxdb.Name(v)
+	  fmt.Fprintf(w, "%d\t%s\t%d\t%s\n", v, r, n, a)
   }
   w.Flush()
 #+end_src
