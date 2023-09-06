@@ -886,9 +886,10 @@ tenth.
 #+end_src
 #+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
   func (t *TaxonomyDB) MRCA(ids []int) int {
+	  mrca := -1
 	  //<<Check IDs, Pa.~\ref{pa:tdb}>>
 	  //<<Search for MRCA, Pa.~\ref{pa:tdb}>>
-	  return -1
+	  return mrca
   }
 #+end_src
 #+begin_export latex
@@ -944,12 +945,12 @@ slice is initialized to the taxon IDs supplied.
   }
 #+end_src
 #+begin_export latex
-As long as we have more than a single parent, i. e. haven't reached
+As long as we have more than a single child, i. e. haven't reached
 the root yet, we climb to the next set of parents and we replace the
 children by the parents.
 #+end_export
 #+begin_src go <<Iterate over parents, Pa.~\ref{pa:tdb}>>=
-  for len(parents) > 1 {
+  for len(children) > 1 {
 	  //<<Climb to parents, Pa.~\ref{pa:tdb}>>
 	  //<<Replace parents by children, Pa.~\ref{pa:tdb}>>
   }
@@ -964,21 +965,26 @@ found the MRCA and return it.
 	  parent := t.Parent(child)
 	  desc[parent] += desc[child]
 	  if desc[parent] == len(ids) {
-		  return parent
+		  mrca = parent
+		  break
 	  }
 	  parents = append(parents, parent)
   }
 #+end_src
 #+begin_export latex
-We replace the children by the parent and reset the parent slice to
-empty.
+If the MRCA hasn't been found yet, we replace the children by the
+parent and reset the parent slice to empty.
 #+end_export
 #+begin_src go <<Replace parents by children, Pa.~\ref{pa:tdb}>>=
-  children = children[:0]
-  for _, parent := range parents {
-	  children = append(children, parent)
+  if mrca == -1 {
+	  children = children[:0]
+	  for _, parent := range parents {
+		  children = append(children, parent)
+	  }
+	  parents = parents[:0]
+  } else {
+	  break
   }
-  parents = parents[:0]
 #+end_src
 #+begin_src latex
   \subsection{Testing}
