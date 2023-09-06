@@ -9,5 +9,3 @@ require (
 )
 
 replace github.com/evolbioinf/neighbors/tdb => ../tdb
-
-replace github.com/evolbioinf/neighbors/tax => ../tax
