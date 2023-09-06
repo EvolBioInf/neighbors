@@ -37,9 +37,8 @@
     \end{figure}
 
     \subsection*{Implementation}
-    The outline of \ty{dree} has hooks for imports, functions, and
-    the logic of the main function.
-    \bpr{dree}{pr:dr}
+    The outline of \ty{dree} has hooks for imports and the logic of the
+    main function.  \bpr{dree}{pr:dr}
 #+end_src
 #+begin_src go <<dree.go>>=
   package main
@@ -48,7 +47,6 @@
 	  //<<Imports, Pr.~\ref{pr:dr}>>
   )
 
-  //<<Functions, Pr.~\ref{pr:dr}>>
   func main() {
 	  //<<Main function, Pr.~\ref{pr:dr}>>
   }
@@ -103,8 +101,8 @@
 #+end_src
 #+begin_src latex
   We parse the options and respond to \ty{-v}, as this stops
-  \ty{dree}. Then we get the taxon-ID and the database name. From the
-  database name we construct the taxonomy.
+  \ty{dree}. Then we get the taxon-ID and the database name. Using the
+  database name we open the database connection.
 #+end_src
 #+begin_src go <<Parse options, Pr.~\ref{pr:dr}>>=
   flag.Parse()
@@ -113,7 +111,7 @@
   }
   //<<Get taxon-ID, Pr.~\ref{pr:dr}>>
   //<<Get database name, Pr.~\ref{pr:dr}>>
-  //<<Construct taxonomy, Pr.~\ref{pr:dr}>>
+  //<<Open database connection, Pr.~\ref{pr:dr}>>
 #+end_src
 #+begin_src latex
   We import \ty{util}.
@@ -154,16 +152,10 @@
   dbname := tokens[1]
 #+end_src
 #+begin_src latex
-  We open a connection to the taxonomy database and calculate the
-  taxonomy tree from it. The taxonomy tree is the subtree rooted on the
-  taxon supplied. Since the taxonomy returned by \ty{NewTaxonomy}
-  reaches up to the root, we truncate it at the taxon supplied.
+  We open a connection to the taxonomy database.
 #+end_src
-#+begin_src go <<Construct taxonomy, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Open database connection, Pr.~\ref{pr:dr}>>=
   taxdb := tdb.OpenTaxonomyDB(dbname)
-  taxa := taxdb.Subtree(tid)
-  taxonomy := taxdb.NewTaxonomy(taxa)
-  taxonomy[tid].Parent = nil
 #+end_src
 #+begin_src latex
   We import \ty{tdb}.
@@ -175,53 +167,50 @@
   We get the subtree we're looking for.
 #+end_src
 #+begin_src go <<Get subtree, Pr.~\ref{pr:dr}>>=
-  subtree := taxonomy[tid]
+  subtree := taxdb.Subtree(tid)
 #+end_src
 #+begin_src latex
   We annotate each node, $v$, of our subtree with two kinds of
   information: whether or not $v$ has at least one genome associated
   with it, and whether or not $v$ has at least one genome in the subtree
-  rooted on it. The actual annotation is done through a recursive
-  traversal of the subtree implemented in the function
-  \ty{annotateSubtree}.
+  rooted on it. So we construct two maps for storing this
+  information. Then we mark nodes with genomes and nodes with genomes in
+  subtree.
 #+end_src
 #+begin_src go <<Annotate subtree, Pr.~\ref{pr:dr}>>=
   hasGenome := make(map[int]bool)
   hasGsub := make(map[int]bool)
-  annotateSubtree(subtree, taxdb, hasGenome, hasGsub)
+  //<<Mark nodes with genomes, Pr.~\ref{pr:dr}>>
+  //<<Mark nodes with genomes in subtree, Pr.~\ref{pr:dr}>>
 #+end_src
-#+begin_src latex
-  Inside \ty{annotateSubtree} we traverse the tree from the leaves
-  upwards and annotate each node.
-#+end_src
-#+begin_src go <<Functions, Pr.~\ref{pr:dr}>>=
-  func annotateSubtree(v *tax.Node, taxdb *tdb.TaxonomyDB,
-	  hasGenome, hasGsub map[int]bool) {
-	  if v == nil { return }
-	  annotateSubtree(v.Child, taxdb, hasGenome, hasGsub)
-	  annotateSubtree(v.Sib, taxdb, hasGenome, hasGsub)
-	  //<<Annotate node, Pr.~\ref{pr:dr}>>
+#+begin_export latex
+We iterate over the nodes and mark those with genomes. These nodes are
+also the initial set of nodes with genomes in their subtree.
+#+end_export
+#+begin_src go <<Mark nodes with genomes, Pr.~\ref{pr:dr}>>=
+  for _, v := range subtree {
+	  if len(taxdb.Accessions(v)) > 0 {
+		  hasGenome[v] = true
+		  hasGsub[v] = true
+	  }
   }
 #+end_src
-#+begin_src latex
-  We import \ty{tax}.
-#+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
-  "github.com/evolbioinf/neighbors/tax"
-#+end_src
-#+begin_src latex
-  We check whether the current node has one or more genomes associated
-  with it. If so, we mark its as having a genome and as having a genome
-  in its subtree. Having a genome in the subtree is a property that
-  propagates up the tree.
-#+end_src
-#+begin_src go <<Annotate node, Pr.~\ref{pr:dr}>>=
-  if len(taxdb.Accessions(v.ID)) > 0 {
-	  hasGenome[v.ID] = true
-	  hasGsub[v.ID] = true
-  }
-  if v.Parent != nil && hasGsub[v.ID] {
-	  hasGsub[v.Parent.ID] = true
+#+begin_export latex
+To find the nodes with genomes in their subtrees, we iterate over the
+nodes and for each node with a genome in it subtree, we propagate this
+up the tree.
+#+end_export
+#+begin_src go <<Mark nodes with genomes in subtree, Pr.~\ref{pr:dr}>>=
+  for _, v := range subtree {
+	  if hasGsub[v] {
+		  u := v
+		  p := taxdb.Parent(u)
+		  for u != tid {
+			  hasGsub[p] = true
+			  u = p
+			  p = taxdb.Parent(u)
+		  }
+	  }
   }
 #+end_src
 #+begin_export latex
@@ -236,22 +225,18 @@ opted for listing the taxa in the subtree.
   }
 #+end_src
 #+begin_export latex
-We get the taxon IDs of the subtree by calling \ty{getIDs}. Then we
-list the subtree in a table consisting of three columns, taxon ID, and
-the number of genomes. We construct this table with a \ty{tabwriter}
-to which we write with the function \ty{listTree}. We flush the
-\ty{tabwriter} afterwards.
+We list the subtree in a table consisting of three columns, taxon ID,
+and the number of genomes. We construct this table with a
+\ty{tabwriter} to which we write with the function \ty{listTree}. We
+flush the \ty{tabwriter} afterwards.
 #+end_export
 #+begin_src go <<List subtree, Pr.~\ref{pr:dr}>>=
-  var ids []int
-  ids = getIds(subtree, ids)
-  sort.Ints(ids)
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
   fmt.Fprint(w, "# Taxid\tRank\tGenomes\n")
-  for _, id := range ids {
-	  r := taxdb.Rank(id)
-	  n := len(taxdb.Accessions(id))
-	  fmt.Fprintf(w, "%d\t%s\t%d\n", id, r, n)
+  for _, v := range subtree {
+	  r := taxdb.Rank(v)
+	  n := len(taxdb.Accessions(v))
+	  fmt.Fprintf(w, "%d\t%s\t%d\n", v, r, n)
   }
   w.Flush()
 #+end_src
@@ -261,121 +246,56 @@ We import \ty{tabwriter}.
 #+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
   "text/tabwriter"
 #+end_src
-#+begin_export latex
-In the function \ty{getIds}, we recursively traverse the subtree and
-collect its taxon IDs.
-#+end_export
-#+begin_src go <<Functions, Pr.~\ref{pr:dr}>>=
-  func getIds(v *tax.Node, ids []int) []int {
-	  if v == nil { return ids }
-	  ids = append(ids, v.ID)
-	  ids = getIds(v.Child, ids)
-	  ids = getIds(v.Sib, ids)
-	  return ids
-  }
-#+end_src
 #+begin_src latex
-  We draw the header and footer of the graph, and the actual subtree
-  sandwiched in between. To improve legibility, that subtree is oriented
-  left to right rather than the default top to bottom. The subtree is
-  written to a buffer so we can sort the lines it contains before
-  printing them to achieve reproducible output.
+  The default node is simply its taxon ID. However, nodes can be
+  annotated with color and a taxon name. For this purpose we declare
+  templates for annotation lines, one for color, ``lightsalmon'', the
+  other for the name.
+
+  Then we draw the header and footer of the graph, and the actual
+  subtree sandwiched in between. To improve legibility, that subtree is
+  oriented left to right rather than the default top to bottom. For each
+  node $v$ in the subtree we print $v$ and its parent.
 #+end_src
 #+begin_src go <<Draw subtree graph, Pr.~\ref{pr:dr}>>=
+  t1 := "\t%d [color=\"lightsalmon\",style=filled]\n"
+  t2 := "\t%d [label=\"%s\"]\n"
   fmt.Printf("digraph g {\n\trankdir=LR\n")
-  //<<Construct buffer, Pr.~\ref{pr:dr}>>
-  //<<Iterate over nodes in subtree, Pr.~\ref{pr:dr}>>
-  //<<Print buffer, Pr.~\ref{pr:dr}>>
-  fmt.Printf("}\n")
-#+end_src
-#+begin_src latex
-  We construct our output with a string builder.
-#+end_src
-#+begin_src go <<Construct buffer, Pr.~\ref{pr:dr}>>=
-  w := new(strings.Builder)
-#+end_src
-#+begin_src latex
-  We import \ty{strings}.
-#+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
-  "strings"
-#+end_src
-#+begin_src latex
-  We delegate the traversal of the subtree to the recursive function
-  \ty{traverseSubtree}. Inside that function we plan to print all
-  parent/child pairs.
-#+end_src
-#+begin_src go <<Iterate over nodes in subtree, Pr.~\ref{pr:dr}>>=
-  traverseSubtree(w, subtree, hasGenome, hasGsub, *optN, *optG)
-#+end_src
-#+begin_src latex
-  Inside \ty{traverseSubtree}, we print the current node and its
-  parent.
-#+end_src
-#+begin_src go <<Functions, Pr.~\ref{pr:dr}>>=
-  func traverseSubtree(w io.Writer, v *tax.Node,
-	  hasGenome, hasGsub map[int]bool,
-	  optN, optG bool) {
-	  if v == nil { return }
-	  //<<Print child/parent pair, Pr.~\ref{pr:dr}>>
-	  traverseSubtree(w, v.Child, hasGenome, hasGsub, optN,
-		  optG)
-	  traverseSubtree(w, v.Sib, hasGenome, hasGsub, optN, optG)
+  for _, v := range subtree {
+	  //<<Print $v$ and its parent, Pr.~\ref{pr:dr}>>
   }
-#+end_src
-#+begin_src latex
-  We import \ty{io}.
-#+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
-  "io"
+  fmt.Printf("}\n")
 #+end_src
 #+begin_src latex
   We print a node , $v$, if one of two conditions holds. Either the user
   did not restrict the output to genomes-only, or the user did make this
-  restriction and $v$ has a genome in its subtree. If one of these two
-  conditions holds and $v$ has a parent, $p$, we also print the pair
-  $(v,p)$ with connecting edge.
+  restriction and $v$ has a genome in its subtree. If $v$ isn't the root
+  of the subtree, we look up its parent, $p$. If $p$ isn't identical to
+  $v$, in other words, if $v$ is not the global root, we also print $p$
+  and the connecting edge.
 #+end_src
-#+begin_src go <<Print child/parent pair, Pr.~\ref{pr:dr}>>=
-  if !optG || (optG && hasGsub[v.ID]) {
-	  //<<Print node, Pr.~\ref{pr:dr}>>
-	  p := v.Parent
-	  if p != nil {
-		  fmt.Fprintf(w, "\t%d -> %d\n", p.ID, v.ID)
+#+begin_src go <<Print $v$ and its parent, Pr.~\ref{pr:dr}>>=
+  if !*optG || (*optG && hasGsub[v]) {
+	  //<<Print $v$, Pr.~\ref{pr:dr}>>
+	  if v != tid {
+		  p := taxdb.Parent(v)
+		  if p != v {
+			  fmt.Printf("\t%d -> %d\n", p, v)
+		  }
 	  }
   }
 #+end_src
 #+begin_src latex
   If the node has a genome attached, or the user asked for names, we
-  print an attribute line for $v$. Genomes are colored ``lightsalmon''. 
+  print an attribute line for $v$. 
 #+end_src
-#+begin_src go <<Print node, Pr.~\ref{pr:dr}>>=
-  t1 := "\t%d [color=\"lightsalmon\",style=filled]\n"
-  t2 := "\t%d [label=\"%s\"]\n"
-  if hasGenome[v.ID] {
-	  fmt.Fprintf(w, t1, v.ID)
+#+begin_src go <<Print $v$, Pr.~\ref{pr:dr}>>=
+  if hasGenome[v] {
+	  fmt.Printf(t1, v)
   }
-  if optN {
-	  fmt.Fprintf(w, t2, v.ID, v.Name)
+  if *optN {
+	  fmt.Printf(t2, v, taxdb.Name(v))
   }
-#+end_src
-#+begin_src latex
-  We split the buffer into lines, sort them, and print the sorted lines.
-#+end_src
-#+begin_src go <<Print buffer, Pr.~\ref{pr:dr}>>=
-  strings := strings.Split(w.String(), "\n")
-  sort.Strings(strings)
-  for _, string := range strings {
-	  if len(string) > 0 {
-		  fmt.Printf("%s\n", string)
-	  }
-  }
-#+end_src
-#+begin_src latex
-  We import \ty{sort}.
-#+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
-  "sort"
 #+end_src
 #+begin_src latex
   We've finished writing \ty{dree}, now we test it.
