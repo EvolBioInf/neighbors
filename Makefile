@@ -1,5 +1,5 @@
 progs = ants dree land makeNeiDb neighbors pickle taxi
-packs = tax util tdb # Order matters
+packs = util tdb # Order matters
 
 all:
 	test -d bin || mkdir bin
