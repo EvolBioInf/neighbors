@@ -1,0 +1,27 @@
+# Taxid  Rank        Genomes  Name
+207598   subfamily   0        Homininae
+9596     genus       0        Pan
+9598     species     5        Pan troglodytes
+1294088  subspecies  0        Pan troglodytes verus x troglodytes
+37012    subspecies  1        Pan troglodytes verus
+37010    subspecies  0        Pan troglodytes schweinfurthii
+37011    subspecies  0        Pan troglodytes troglodytes
+756884   subspecies  0        Pan troglodytes ellioti
+9597     species     3        Pan paniscus
+9592     genus       0        Gorilla
+499232   species     0        Gorilla beringei
+46359    subspecies  0        Gorilla beringei graueri
+1159185  subspecies  0        Gorilla beringei beringei
+9593     species     2        Gorilla gorilla
+183511   subspecies  0        Gorilla gorilla uellensis
+9595     subspecies  5        Gorilla gorilla gorilla
+406788   subspecies  0        Gorilla gorilla diehli
+9605     genus       0        Homo
+1425170  species     0        Homo heidelbergensis
+9606     species     1047     Homo sapiens
+63221    subspecies  0        Homo sapiens neanderthalensis
+741158   subspecies  0        Homo sapiens subsp. 'Denisova'
+2665952  no rank     0        environmental samples
+2665953  species     0        Homo sapiens environmental sample
+2813598  no rank     0        unclassified Homo
+2813599  species     0        Homo sp.

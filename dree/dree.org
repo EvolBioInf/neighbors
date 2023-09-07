@@ -225,22 +225,21 @@ opted for listing the taxa in the subtree.
   }
 #+end_src
 #+begin_export latex
-We list the subtree in a table consisting of four columns, taxon-ID,
-rank, name, and the number of genomes. If the user asked only for taxa
-with genomes, this number has to be at least one. We construct this
-table with a \ty{tabwriter} to which we write with the function
-\ty{listTree}. We flush the \ty{tabwriter} afterwards.
+We list the subtree in a table consisting of three mandatory columns,
+taxon-ID, rank, and the number of genomes. In addition, the user might
+have opted for names. We construct this table with a
+\ty{tabwriter}. Then we iterate over the nodes and list each one. At
+the end we flush the tabwriter.
 #+end_export
 #+begin_src go <<List subtree, Pr.~\ref{pr:dr}>>=
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
-  fmt.Fprint(w, "# Taxid\tRank\tGenomes\tName\n")
+  fmt.Fprint(w, "# Taxid\tRank\tGenomes")
+  if *optN {
+	  fmt.Fprint(w, "\tName")
+  }
+  fmt.Fprint(w, "\n")
   for _, v := range subtree {
-	  r := taxdb.Rank(v)
-	  n := len(taxdb.Accessions(v))
-	  a := taxdb.Name(v)
-	  if !*optG || n > 0 {
-		  fmt.Fprintf(w, "%d\t%s\t%d\t%s\n", v, r, n, a)
-	  }
+	  //<<List one node, Pr.~\ref{pr:dr}>>
   }
   w.Flush()
 #+end_src
@@ -249,6 +248,22 @@ We import \ty{tabwriter}.
 #+end_export
 #+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
   "text/tabwriter"
+#+end_src
+#+begin_export latex
+The user might have opted to list only taxon nodes with genomes and/or
+to add names to taxa.
+#+end_export
+#+begin_src go <<List one node, Pr.~\ref{pr:dr}>>=
+  n := len(taxdb.Accessions(v))
+  if !*optG || n > 0 {
+	  r := taxdb.Rank(v)
+	  fmt.Fprintf(w, "%d\t%s\t%d", v, r, n)
+	  if *optN {
+		  a := taxdb.Name(v)
+		  fmt.Fprintf(w, "\t%s", a)
+	  }
+	  fmt.Fprintf(w, "\n")
+  }
 #+end_src
 #+begin_src latex
   The default node is simply its taxon ID. However, nodes can be
@@ -339,7 +354,7 @@ We import \ty{tabwriter}.
 #+begin_src latex
   In our tests, we draw the \emph{Homininae} which have taxon-ID
   207598. First with no options, then with names, then with
-  genomes, and finally with list.
+  genomes, then with list.
 #+end_src
 #+begin_src go <<Construct tests, Pr.~\ref{pr:dr}>>=
   n := "207598"
@@ -351,6 +366,18 @@ We import \ty{tabwriter}.
   test = exec.Command("./dree", "-g", n, d)
   tests = append(tests, test)
   test = exec.Command("./dree", "-l", n, d)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+The list option can be combined with genome, and name, yielding
+another three combinations to test.
+#+end_export
+#+begin_src go <<Construct tests, Pr.~\ref{pr:dr}>>=
+  test = exec.Command("./dree", "-l", "-g", n, d)
+  tests = append(tests, test)
+  test = exec.Command("./dree", "-l", "-n", n, d)
+  tests = append(tests, test)
+  test = exec.Command("./dree", "-l", "-g", "-n", n, d)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
