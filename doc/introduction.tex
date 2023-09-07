@@ -1,26 +1,26 @@
 Diagnostic PCR-markers are designed to amplify all members of a target
 set of organisms and nothing else. A promising approach to ensure
 marker specificity is to compare the target genomes to the genomes of
-the closest distinct relatives, the neighbors. This removes the vast
-majority of non-specific material. The small remainder can then be
-further tested by \emph{in silico} PCR against, say the non-redundant
-collection of nucleotide sequences, \ty{nt}. The published
-program \ty{fur} implements this comparison between targets and
-neighbors, and markers constructed from its output have excellent
+the closest distinct relatives, the neighbors. This usually removes
+the vast majority of non-specific material. The small remainder can
+then be further tested by \emph{in silico} PCR against, say, the
+non-redundant collection of nucleotide sequences, \ty{nt}. The
+published program \ty{fur} implements this comparison between targets
+and neighbors. Markers constructed from its output have excellent
 specificity and sensifivity~\cite{hau21:fur}.
 
 Users of programs like \ty{fur} need to know the neighbors of their
 targets. But how can neighbors be discovered, if they aren't already
 known? To answer this question, consider the toy taxonomy in
 Figure~\ref{fig:tax}, where the numbers are taxon-IDs that are linked
-to genome accessions. Let taxa 7 and 4 be our targets. Then we look up
-the most recent common ancestor of 4 and 7, which is 3. This implies
-there are five targets, 3, 4, 5, 6, and 7. The neighbors are the nodes
-in the subtree rooted on 3's parent, minus the parent and minus the
-targets. So in our example there are five neighbors, 2, 8, 9, 10, and
-11. Notice that we look up all nodes in a subtree, not just the
-leaves, as genome sequences might be associated with taxa in terminal
-and internal nodes.
+to genome accessions. Let taxa 7 and 4 be our targets. Their most
+recent common ancestor is 3. This implies there are three additional
+targets, 3, 5, and 6. The neighbors are the nodes in the subtree
+rooted on 3's parent, minus the parent and minus the targets. So in
+our example there are five neighbors, 2, 8, 9, 10, and 11. Notice that
+we look up all nodes in a subtree, not just the leaves, as genome
+sequences might be associated with taxa in terminal and internal
+nodes.
 
 \begin{figure}
 \begin{center}
@@ -40,13 +40,9 @@ where $s(v)$ returns the nodes in the subtree rooted on $v$, and
 $p(v)$ the parent of $v$. This set subtraction is implemented in the
 program \ty{neighbors}.
 
-The Neighbors package consists of the eight programs listed in
+The Neighbors package consists of the seven programs listed in
 Table~\ref{tab:pro} and is centered on an \ty{sqlite3} database that
-combines taxonomy and genome information. The database is built using
-the program \ty{makeNeiDb}, which is based on the
-packages \ty{tdb}, \ty{tax}, and \ty{util} contained in the
-\ty{neighbors} module.
-
+combines taxonomy and genome information. 
 \begin{table}
 \caption{The seven programs of Neighbors}\label{tab:pro}
 \begin{center}
@@ -55,25 +51,25 @@ packages \ty{tdb}, \ty{tax}, and \ty{util} contained in the
 \# & Name & Function\\\hline
 1 & \ty{ants} & list the ancestors of a taxon\\
 2 & \ty{dree} & draw taxonomic tree rooted on taxid\\
-4 & \ty{land} & label nodes in Newick tree\\
-5 & \ty{makeNeiDb} & construct taxonomy and genomes database\\
-6 & \ty{neighbors} & complete targets and list neighbors\\
-7 & \ty{pickle} & pick clades in a Newick tree\\
-8 & \ty{taxi} & get taxon-ID from taxon name\\\hline
+3 & \ty{land} & label nodes in Newick tree\\
+4 & \ty{makeNeiDb} & construct taxonomy and genomes database\\
+5 & \ty{neighbors} & complete targets and list neighbors\\
+6 & \ty{pickle} & pick clades in a Newick tree\\
+7 & \ty{taxi} & get taxon-ID from taxon name\\\hline
 \end{tabular}
 \end{center}
 \end{table}
 
-Let's call the central database \ty{neidb}; as shown in
-Figure~\ref{fig:db}, \ty{neidb} consists of two tables, \ty{genome}
-and \ty{taxon}. Each genome comes from an organism identified by its
-taxon-ID, has a size, a genome accession, and one or more replicons,
-which are lumped in one attribute. Each genome belongs to a taxon. A
-taxon has a unique taxon-ID, which serves as primary key. A taxon also
-has a parent, a rank, and a name. Since several genomes may have been
-sequenced for a given taxon, the attribute \ty{taxid} in
-table \ty{genome} is not unique, which is why that table has no
-primary key.
+The database, let's call it \ty{neidb}, is built using the
+program \ty{makeNeiDb}. As shown in Figure~\ref{fig:db}, \ty{neidb}
+consists of two tables, \ty{genome} and \ty{taxon}. Each genome comes
+from an organism identified by its taxon-ID, has a size, a genome
+accession, and one or more replicons, which are lumped in one
+attribute. Each genome belongs to a taxon. A taxon has a unique
+taxon-ID, which serves as primary key. A taxon also has a parent, a
+rank, and a name. Since several genomes may have been sequenced for a
+given taxon, the attribute \ty{taxid} in table \ty{genome} is not
+unique, which is why that table has no primary key.
 
 \begin{figure}
   \begin{center}
@@ -101,12 +97,16 @@ taxon. Finally, we can submit the taxa of interest to \ty{neighbors},
 which finds their closest neighbors and the associated genome
 sequences.
 
-The genome sequences of targets and neighbors are best analyzed
-further by converting them into a phylogeny. Such phylogenies are
-often large and need to be broken down into individual clades. We can
-pick the leaves of individual clades from a Newick tree by first
-labeling the internal nodes with \ty{land} and then picking clades
-with \ty{pickle}. The Tutorial shows how the seven
+There is no guarantee that the classification provided by the taxonomy
+is identical to the phylogeny of the target and neighbor genomes. Such
+mising of targets and neighbors would make marker discovery
+impossible. So we convert tartes and neighbors to phylogenies. Such
+phylogenies are often large and need to be broken down into individual
+clades. We can pick the leaves of individual clades from a Newick tree
+by first labeling the internal nodes with \ty{land} and then picking
+clades with \ty{pickle} (Table~\ref{tab:pro}).
+
+The Tutorial shows how the seven
 programs \ty{makeNeiDb}, \ty{taxi}, \ty{dree}, \ty{ants},
 \ty{neighbors}, \ty{land}, and \ty{pickle} can be used
-to find marker candidates from bacterial genomes.
+to find marker candidates for \emph{Aerococcus urinae}.

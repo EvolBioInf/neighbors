@@ -4,7 +4,8 @@ db.sh: tutorial.org
 query.sh: tutorial.org
 	bash ../scripts/org2nw tutorial.org | notangle -Rquery.sh > query.sh
 test: db.sh query.sh
+	rm -rf targets neighbors neidb.tgz neidb au.db ndata.zip ndata tdata tdata.zip
 	bash db.sh
 	bash query.sh
 clean:
-	rm -rf acc.txt au2.db au2.fasta au2.nwk au3.nwk au.nwk db.sh frag*.fasta iv.txt macs*.out nei.* neidb neidb.tgz neighbors query.sh tar.* targets tmp.svg
+	rm -rf all.txt au.db au.dist db.sh markers*.fasta nacc.txt ndata.zip ndata neidb neighbors query.sh tacc.txt tar.txt targets tdata.zip tdata tmp.svg

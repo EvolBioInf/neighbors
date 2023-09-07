@@ -1,16 +1,16 @@
 #+begin_src latex
   \section*{Introduction}
   The Neighbors package provides tools for finding the target and
-  neighbor genomes that can then be used to find regions unique to the
-  targets. These unique target regions are a good starting point for
-  constructing diagnostic markers. In this Tutorial I demonstrate the
-  application of the eight programs in the Neighbors package. We begin
-  by constructing a relational database from the NCBI taxonomy data
-  using the program \ty{makeNeiDb}. Then we query the database with
-  \ty{taxid} to find the taxon-ID for our target organism. The programs
-  \ty{ants} and \ty{dree} allow us to explore the taxonomic context of
-  our target organism. Based on the target taxon-ID, we carry out the
-  search for target and neighbor genomes using \ty{neighbors}.
+  neighbor genomes used to find regions unique to the targets. These
+  unique target regions are a good starting point for constructing
+  diagnostic markers. In this Tutorial I demonstrate the application of
+  the seven programs in the package. We begin by constructing a local
+  relational database from the NCBI taxonomy using the program
+  \ty{makeNeiDb}. Then we query the database with \ty{taxid} to find the
+  taxon-ID for our target organism. The programs \ty{ants} and \ty{dree}
+  allow us to explore the taxonomic context of our target
+  organism. Based on the target taxon-ID, we carry out the search for
+  target and neighbor genomes using \ty{neighbors}.
 
   Any genomes suggested by \ty{neighbors} are best subjected to
   phylogeny reconstruction before we extract marker candidates from
@@ -20,18 +20,22 @@
   clade in a phylogeny.
 
   \section*{Construct Database}
-  The NCBI taxonomy database and the corresponding genome reports are
-  posted at
-#+end_src
-#+begin_src sh <<db.sh>>=
+  A dump of the current NCBI taxonomy database is posted as a tar ball at
+  \begin{verbatim}
   ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+  \end{verbatim}
+  The corresponding genome reports for prokaryotes, eukaryotes, and
+  viruses are posted at
+  \begin{verbatim}
   ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt
   ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/eukaryotes.txt
   ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/viruses.txt
+  \end{verbatim}
 #+end_src
 #+begin_src latex
-  These four files are updated regularly. To ensure the stability of
-  this Tutorial, we use files downloaded on 14. September 2022:
+  The database dump and the genome reports are updated regularly. To
+  ensure the stability of this Tutorial, we use files downloaded on
+  14. September 2022:
 #+end_src
 #+begin_src sh <<db.sh>>=
   wget guanine.evolbio.mpg.de/neighbors/neidb.tgz
@@ -64,7 +68,7 @@
 #+begin_src latex
   \section*{Query Database}
   The next step is to find the taxon-IDs for one or more target
-  organisms. Say, our target organism is the bactrium \emph{Aerococcus
+  organisms. Our target organism is the bactrium \emph{Aerococcus
   urinae}, which causes urinary tract infections. We look up its
   taxon-ID using \ty{taxi}.
 #+end_src
@@ -87,17 +91,17 @@
 #+end_src
 #+begin_src latex
   \begin{verbatim}
-  # Back  ID       Name
-    9     1        root
-    8     131567   cellular organisms
-    7     2        Bacteria
-    6     1783272  Terrabacteria group
-    5     1239     Firmicutes
-    4     91061    Bacilli
-    3     186826   Lactobacillales
-    2     186827   Aerococcaceae
-    1     1375     Aerococcus
-    0     1376     Aerococcus urinae
+  # Back  ID       Name                 Rank
+    9     1        root                 no rank
+    8     131567   cellular organisms   no rank
+    7     2        Bacteria             superkingdom
+    6     1783272  Terrabacteria group  clade
+    5     1239     Firmicutes           phylum
+    4     91061    Bacilli              class
+    3     186826   Lactobacillales      order
+    2     186827   Aerococcaceae        family
+    1     1375     Aerococcus           genus
+    0     1376     Aerococcus urinae    species
   \end{verbatim}
 #+end_src
 #+begin_export latex
@@ -110,7 +114,7 @@ We can draw the tree rooted on \emph{Aerococcus}.
   Unfortunately, this tree is so large, it's illegible and when we zoom
   in, navigating the image becomes difficult. So instead of piping it to
   an X11 window, we save it to file and render this file with a tool
-  that allows easy navigation, e. g. \ty{eog}.
+  that allows easier navigation, e. g. \ty{eog}.
 #+end_src
 #+begin_src sh <<query.sh>>=
   dree 1375 neidb | dot -T svg > tmp.svg
@@ -128,7 +132,7 @@ colored.
 #+begin_src latex
   \begin{figure}
     \begin{center}
-      \resizebox{\textwidth}{!}{\includegraphics{../tutorial/1375_t_g.ps}}
+      \scalebox{0.3}{\includegraphics{../tutorial/1375_t_g.ps}}
     \end{center}
     \caption{The taxonomy of \emph{Aerococcus} (1375) restricted to taxa
       with sequenced genomes, which are shown as colored
@@ -136,187 +140,348 @@ colored.
   \end{figure}
   Since taxon-IDs are difficult to interpret, we convert them to taxon
   names in Figure~\ref{fig:au2}.
+    \begin{figure}
+      \begin{center}
+	\resizebox{!}{\textwidth}{\includegraphics{../tutorial/1375_n_g.ps}}
+      \end{center}
+      \caption{The taxonomy tree of \emph{Aerococcus} with taxon names;
+	nodes with at least one sequenced genome are colored.}\label{fig:au2}
+    \end{figure}
 #+end_src
 #+begin_src sh <<query.sh>>=
   dree -n -g 1375 neidb | dot -T x11
 #+end_src
+#+begin_export latex
+In the tree returned by \ty{dree}, the number of genomes per node is
+reduced to presence/absence. To get the distribution of genomes across
+a subtree, we can list its nodes.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  dree -l 1375 neidb
+#+end_src
 #+begin_src latex
-  \begin{figure}
-    \begin{center}
-      \resizebox{\textwidth}{!}{\includegraphics{../tutorial/1375_n_g.ps}}
-    \end{center}
-    \caption{The taxonomy tree of \emph{Aerococcus} with sequenced
-      genomes and taxon names.}\label{fig:au2}
-  \end{figure}
-  Now we search for the neighbors of \emph{Aerococcus}.
+  \begin{verbatim}
+  # Taxid  Rank     Genomes
+  1375     genus    0
+  189666   no rank  0
+  1185773  species  0
+  ...
+  \end{verbatim}
+  We can add taxon names to the list.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  printf "1376" | neighbors -g neidb
+  dree -l -n 1375 neidb
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+# Taxid  Rank     Genomes  Name
+1375     genus    0        Aerococcus
+189666   no rank  0        environmental samples
+1185773  species  0        Aerococcus sp. enrichment...
+...
+\end{verbatim}
+#+end_export
+#+begin_export latex
+If we restrict the list to genome-carrying taxa, it becomes much
+shorter. If we also reverse-sort it by the number of genomes, we see
+there are between 79 and one genome per taxon.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  dree -l -n -g 1375 neidb |
+      sort -k 3 -n -r
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+1376     species  79       Aerococcus urinae
+51665    species  12       Aerococcus urinaeequi
+119206   species  12       Aerococcus sanguinicola
+1377     species  6        Aerococcus viridans
+87541    species  3        Aerococcus christensenii
+371602   species  2        Aerococcus suis
+1872398  species  2        Aerococcus sp.
+128944   species  2        Aerococcus urinaehominis
+866775   strain   1        Aerococcus urinae ACS-120-V-Col10a
+...
+\end{verbatim}
+#+end_export
+#+begin_export latex
+Now we search for the neighbors of \emph{Aerococcus}.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  printf 1376 | neighbors -g neidb
 #+end_src
 #+begin_src latex
   \begin{verbatim}
   # MRCA(targets): 1376, Aerococcus urinae
   # MRCA(targets+neighbors): 1375, Aerococcus
-  # Type  Taxon-ID  Name                      Genomes
-  # MRCA(targets): 1376, Aerococcus urinae
-  # MRCA(targets+neighbors): 1375, Aerococcus
-  # Type  Taxon-ID  Name                      Genomes
-  t       1376      Aerococcus urinae         NZ_CP014161.1|...
-  tt      866775    Aerococcus urinae...      NC_015278.1
-  n       1377      Aerococcus viridans       NZ_CP014164.1
-  n       51665     Aerococcus urinaeequi     NZ_CP013988.1|...
-  n       87541     Aerococcus christensenii  NZ_CP014159.1
-  n       119206    Aerococcus sanguinicola   NZ_CP014160.1
-  n       128944    Aerococcus urinaehominis  NZ_CP014163.1
+  # Type  Taxon-ID  Name                         Genomes
+  t       1376      Aerococcus urinae            GCA_001543175.1|...
+  tt      866775    Aerococcus urinae...         GCA_000193205.1
+  tt      1216979   Aerococcus urinae...         GCA_001544335.1
+  n       1377      Aerococcus viridans          GCA_001543285.1|...
+  n       51665     Aerococcus urinaeequi        GCA_001518795.1|...
+  n       87541     Aerococcus christensenii     GCA_001543105.1|...
+  n       119206    Aerococcus sanguinicola      GCA_905113025.1|...
+  n       128944    Aerococcus urinaehominis     GCA_001543245.1|...
+  n       371602    Aerococcus suis              GCA_900176325.1|...
+  n       525247    Aerococcus christensenii...  GCA_001466745.1
+  n       655812    Aerococcus viridans...       GCA_000178435.1
+  n       1120952   Aerococcus urinaeequi...     GCA_000425085.1
+  n       1175629   Aerococcus viridans LL1      GCA_000262085.1
+  n       1581058   Aerococcus sp. HMSC23C02     GCA_001806805.1
+  n       1581084   Aerococcus sp. HMSC10H05     GCA_001806975.1
+  n       1581129   Aerococcus sp. HMSC06H08     GCA_001807425.1
+  n       1715105   Aerococcus sp. HMSC062A02    GCA_001809535.1
+  n       1715159   Aerococcus sp. HMSC062B07    GCA_001809895.1
+  n       1715184   Aerococcus sp. HMSC035B07    GCA_001836025.1
+  n       1739288   Aerococcus sp. HMSC075D05    GCA_001811135.1
+  n       1739333   Aerococcus sp. HMSC072A12    GCA_001811965.1
+  n       1739396   Aerococcus sp. HMSC061A03    GCA_001813115.1
+  n       1872398   Aerococcus sp.               GCA_022768285.1|...
+  n       1945961   Aerococcus sp. UBA6277       GCA_002440555.1
+  n       1981982   Aerococcus sp. 1KP-2016      GCA_002252085.1
+  n       2487350   Aerococcus sp. SJQ22         GCA_003797145.1
   \end{verbatim}
   I've slightly edited the output of \ty{neighbors} for clarity. It
   begins with three hashed lines. The first states the most recent
   common ancestor of the targets, \emph{A. urinae}, with taxon-ID
   1376. The second line states the most recent common ancestor of the
-  neighbors and the targets, \emph{Aerococcus}, with taxon-ID 1375. The
-  third line is the header of the subsequent table, which consists of
-  four columns, type, taxon-ID, name, and genomes. There are three
-  possible types, ``t'' for known target, ``tt'' for new target, and
-  ``n'' for neighbor. We see the new target 866775, which was already in
-  Figure~\ref{fig:au1}, but wasn't contained in our query.
+  neighbors \emph{and} the targets, \emph{Aerococcus}, with taxon-ID
+  1375. The third line is the header of the subsequent table, which
+  consists of four columns, type, taxon-ID, name, and genomes. There are
+  three possible types, ``t'' for known target, ``tt'' for new target,
+  and ``n'' for neighbor. We see the new targets 866775 and 1216979,
+  which were already in Figure~\ref{fig:au1}, but not in our query.
 
-  For downloading the targets and neighbors, we need the genome
+  To download the target and neighbor genomes, we need the genome
   accessions. These are a bit difficult to extract from the ``report
-  view'' of the results we just looked at. So we use the ``list view
-  instead''. It consists of three columns, sample (target or neighbor),
-  the name of the replicon, and its accession.
+  view'' of the \ty{neighbors} results. So we use the ``list view''
+  instead. It consists of two columns, sample (target or neighbor) and
+  accession.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  printf "1376" | neighbors -l neidb
+  printf 1376 | neighbors -l neidb
 #+end_src
 #+begin_export latex
 \begin{verbatim}
-# Sample  Name            Accession
-t         chromosome      NZ_CP014161.1
-t         chromosome      NZ_CP065662.1
-t         chromosome      NC_015278.1
-n         chromosome      NZ_CP014164.1
-n         chromosome      NZ_CP014160.1
-n         chromosome      NZ_CP014159.1
-n         chromosome      NZ_CP014163.1
-n         chromosome      NZ_CP013988.1
-n         chromosome      NZ_CP014162.1
-n         chromosome      NZ_CP063065.1
-n         plasmid_pT4302  NZ_CP063066.1
-n         plasmid_pT4303  NZ_CP063067.1
+# Sample  Accession
+t         GCA_001543175.1
+...
+t         GCA_001544335.1
+n         GCA_001518795.1
+...
+n         GCA_022780685.1
 \end{verbatim}
 #+end_export
 #+begin_export latex
-To prepare the sequence download, we make directories for the targets
-and neighbors. We also save the accessions in the file \ty{acc.txt}.
+We get 81 targets and 55 neighbors.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  for a in t n
+  do
+      echo -n ${a} " "
+      printf 1376 |
+	  neighbors -l neidb |
+	  grep "^${a}" |
+	  wc -l
+  done
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+t  81
+n  55
+\end{verbatim}
+
+To prepare the sequence download, we split the accessions into two
+files, \ty{tacc.txt} and \ty{nacc.txt}.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  for a in t n
+  do
+      printf 1376 |
+	  neighbors -l neidb |
+	  grep "^${a}" |
+	  awk '{print $2}' > ${a}acc.txt
+  done
+#+end_src
+#+begin_export latex
+We use the program \ty{datasets} provided by the NCBI to download
+genomes. It is available from the \ty{datasets} web site,
+\begin{center}
+\ty{https://www.ncbi.nlm.nih.gov/datasets/}  
+\end{center}
+We download the neighbor genomes in dehydrated form.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  datasets download genome accession \
+	   --inputfile nacc.txt \
+	   --filename ndata.zip \
+	   --dehydrated
+#+end_src
+#+begin_export latex
+We repeat the download for the target genomes, except in this case we
+exclude genomes flagged as ``atypical''.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  datasets download genome accession \
+	   --inputfile tacc.txt \
+	   --filename tdata.zip \
+	   --dehydrated \
+	   --exclude-atypical
+#+end_src
+#+begin_export latex
+The genomes arrive as zipped archives, which we unzip before we
+rehydrate the data.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  for a in n t
+  do
+      unzip ${a}data.zip -d ${a}data
+      datasets rehydrate --directory ${a}data
+  done
+#+end_src
+#+begin_export latex
+We make directories for the targets and the neighbors, and set
+symbolic links to the sequence data we just downloaded.
 #+end_export
 #+begin_src sh <<query.sh>>=
   mkdir targets neighbors
-  printf "1376" | neighbors -l neidb > acc.txt
+  ln -s $(pwd)/tdata/ncbi_dataset/data/*/*.fna $(pwd)/targets/
+  ln -s $(pwd)/ndata/ncbi_dataset/data/*/*.fna $(pwd)/neighbors/
 #+end_src
 #+begin_export latex
-We extract the target accessions, download the corresponding genomes
-in FASTA format, and store them in the \ty{targets} directory. As
-names for the sequence files we use the accessions prefixed by \ty{t}.
+We check we got 55 neighbors.
 #+end_export
 #+begin_src sh <<query.sh>>=
-  grep '^t' acc.txt |
-      awk '{print $3}' |
-      while read a
-      do
-	  echo $a
-	  efetch -db nucleotide -id ${a} \
-		 -format fasta > targets/t${a}.fasta
-      done
-#+end_src
-#+begin_src latex
-  Among the neighbor genomes we ignore plasmid sequences. This time we
-  prefix the file names by \ty{n}.
-#+end_src
-#+begin_src sh <<query.sh>>=
-      grep '^n' acc.txt |
-      grep -v plasmid |
-      awk '{print $3}' |
-      while read a
-      do
-	  echo $a
-	  efetch -db nucleotide -id ${a} \
-		 -format fasta > neighbors/n${a}.fasta
-      done
-#+end_src
-#+begin_src latex
-  We compute a quick phylogeny for the target and neighbor genomes using
-  \ty{phylonium}\footnote{\ty{github.com/evolbioinf/phylonium}} and
-  programs form the
-  \ty{biobox}\footnote{\ty{github.com/evolbioinf/biobox}}. The taxon
-  names in the tree are the file names minus the \ty{.fasta}
-  extensions. These file names contain underscores, e. g.
-  \begin{center}
-    \ty{tNC\_015278.1.fasta}
-  \end{center}
-  When rendering the tree, characters preceded by underscores are
-  interpreted as subscripts.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  phylonium targets/* neighbors/* | nj | midRoot > au.nwk
-  plotTree au.nwk
+  ls neighbors/ | wc -l
 #+end_src
 #+begin_export latex
-To avoid the subscripts in the leaf names, we remove the
-underscores. The resulting tree in Figure~\ref{fig:auTree} shows that
-the targets are monophyletic, which is necessary for successful marker
-discovery.
+As to targets, we've gone from 81 to 76 by excluding ``atypical''
+genomes.
+#+end_export
+#+begin_export latex
+Our next task is to investigate whether the neighbors and targets are
+well separated on their phylogeny. So we rename neighbors to start
+with ``n''.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  for a in neighbors/*
+  do
+      p=$(dirname $a)
+      b=$(basename $a)
+      mv ${a} $p/n${b}
+  done
+#+end_src
+#+begin_export latex
+Similarly, we prefix the targets with ``t''.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  for a in targets/*
+  do
+      p=$(dirname $a)
+      b=$(basename $a)
+      mv ${a} $p/t${b}
+  done
+#+end_src
+#+begin_export latex
+We calculate the pairwise distances between the genomes using
+\ty{phylonium}~\cite{klo20:phy}. We ignore the error messages and save the result in
+\ty{au.dist}.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  phylonium targets/* neighbors/* > au.dist
+#+end_src
+#+begin_export latex
+To calculate the tree from the distances and to plot the tree, we use
+the programs \ty{nj}, \ty{midRoot}, and \ty{plotTree} from the
+biobox\footnote{\ty{https://github.com/evolbioinf/biobox}}.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  nj au.dist | midRoot | plotTree
+#+end_src
+#+begin_export latex
+Since our tree contains $76+55=131$ taxa, its labels are hard to read. So we
+make it bigger using the dimension option, \ty{-d}.
+#+end_export
+#+begin_src sh <<query.sh>>=
+    nj au.dist | midRoot | plotTree -d 1200,1200
+#+end_src
+#+begin_export latex
+One of the clades seems to contain all targets. In order to refer to
+that clade, we label the nodes in the tree with the program \ty{land}
+from the Neighbors package and can now refer to node 54 (Figure~\ref{fig:au}).
 \begin{figure}
   \begin{center}
-    \scalebox{1}{\includegraphics{../tutorial/au}}
+    \resizebox{1.19\textwidth}{!}{\includegraphics{../tutorial/au}}
   \end{center}
-  \caption{Phylogeny of target and neighbor genomes; targets are
-    prefixed ``t'', neighbors ``n''.}\label{fig:auTree}
+  \caption{Phylogeny of 131 complete genomes of
+    \emph{Aerococcus}; internal nodes are labeled with \ty{land} and
+    leaf labels were reduced to the first character, \emph{t} for
+    ``target'', \emph{n} for ``neighbor''.}\label{fig:au}
 \end{figure}
 #+end_export
 #+begin_src sh <<query.sh>>=
-  sed 's/_//g' au.nwk > au2.nwk
-  plotTree au2.nwk
+  nj au.dist | midRoot | land | plotTree -d 1200,1200
 #+end_src
-#+begin_src latex
-  Now that we've got target and neighbor programs, we could use the
-  program \ty{fur}~\cite{hau21:fur} for finding unique regions, that is,
-  marker candidates.
-
-  \subsection*{Pick Clades from Phylogeny}
-  Sometimes a tree of genomes is very large, making it inconvenient to
-  manually list the taxa that belong to a particular clade. This isn't
-  an issue in our analysis (Figure~\ref{fig:auTree}), but if it were, we
-  could use the programs \ty{land} and \ty{pickle} to first label and
-  then pick individual clades. \ty{land} labels the nodes in a tree,
-  yielding Figure~\ref{fig:auTree2}.
-  \begin{figure}
-    \begin{center}
-      \scalebox{1}{\includegraphics{../tutorial/au2}}
-    \end{center}
-    \caption{Phylogeny of target and neighbor genomes with internal
-      nodes, or \emph{clades}, labeled.}\label{fig:auTree2}
-  \end{figure}
-#+end_src
+#+begin_export latex
+We'd like to know whether clade 54 is pure target. So we use
+\ty{pickle} from the Neighbors package to list the leaves in clade 54
+and search for labels starting with ``n''. There are two. In other
+words, two genomes were classified as neighbors but are, in fact,
+targets.
+#+end_export
 #+begin_src sh <<query.sh>>=
-  land au2.nwk > au3.nwk
-  plotTree au3.nwk
+  nj au.dist | midRoot | land | pickle 124 | grep '^n'
 #+end_src
-#+begin_src latex
-  Now we can pick a clade, say clade 7, and print its five leaf labels
-  with \ty{pickle}.
-#+end_src
+#+begin_export latex
+\begin{verbatim}
+nGCA_001811135.1_ASM181113v1_genomic.fna
+nGCA_001809895.1_ASM180989v1_genomic.fna
+\end{verbatim}
+So we move the two misclassified genomes from the neighbors to the
+targets.
+#+end_export
 #+begin_src sh <<query.sh>>=
-  pickle 7 au3.nwk
+  mv neighbors/nGCA_001811135.1_ASM181113v1_genomic.fna targets/
+  mv neighbors/nGCA_001809895.1_ASM180989v1_genomic.fna targets/
 #+end_src
-#+begin_src latex
-  \begin{verbatim}
-  # Selected clades
-  ## 7
-  nNZCP014163.1
-  nNZCP063065.1
-  nNZCP014164.1
-  nNZCP013988.1
-  nNZCP014162.1
-  \end{verbatim}
+#+begin_export latex
+To check the purity of the neighbors, we need to subtract the targets
+from all the nodes in the tree. The root in a tree is always labeled
+as ``1'' by \ty{land}. We find the neighbors contain no stray targets.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  nj au.dist | midRoot | land | pickle 1  | grep -v '^#' > all.txt
+  nj au.dist | midRoot | land | pickle 54 | grep -v '^#' > tar.txt
+  cat all.txt tar.txt | sort | uniq -c | awk '$1==1' | grep '^t'
+#+end_src
+#+begin_export latex
+Our final input data consists of 53 neighbors and 78 targets.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  ls neighbors/ | wc -l
+  ls targets/   | wc -l
+#+end_src
+#+begin_export latex
+We are ready to run \ty{fur} to identify marker candidates. We
+calculate the requisite database with \ty{makeFurDb}, which on my
+laptop takes approximately 50 s and 550 MB of RAM.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  makeFurDb -t targets/ -n neighbors/ -d au.db
+#+end_src
+#+begin_export latex
+The marker candidates are found with \ty{fur}. It takes roughly 10 s
+and 290 MB of RAM, to find 221 kb of marker material, of which 42 kb
+are N.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  fur -d au.db > markers.fasta
+#+end_src
+#+begin_export latex
+Long stretches of \ty{N} can be removed with \ty{cleanSeq} from the
+Fur package.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  cleanSeq markers.fasta > markers2.fasta
 #+end_src

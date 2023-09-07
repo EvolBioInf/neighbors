@@ -1,24 +1,84 @@
 digraph g {
+	rankdir=LR
+	1375 [label="Aerococcus"]
 	119206 [color="lightsalmon",style=filled]
 	119206 [label="Aerococcus sanguinicola"]
-	128944 [color="lightsalmon",style=filled]
-	128944 [label="Aerococcus urinaehominis"]
 	1375 -> 119206
-	1375 -> 128944
-	1375 -> 1376
-	1375 -> 1377
-	1375 -> 51665
-	1375 -> 87541
-	1375 [label="Aerococcus"]
-	1376 -> 866775
 	1376 [color="lightsalmon",style=filled]
 	1376 [label="Aerococcus urinae"]
-	1377 [color="lightsalmon",style=filled]
-	1377 [label="Aerococcus viridans"]
-	51665 [color="lightsalmon",style=filled]
-	51665 [label="Aerococcus urinaeequi"]
+	1375 -> 1376
+	1216979 [color="lightsalmon",style=filled]
+	1216979 [label="Aerococcus urinae NBRC 15544 = CCUG 36881"]
+	1376 -> 1216979
 	866775 [color="lightsalmon",style=filled]
 	866775 [label="Aerococcus urinae ACS-120-V-Col10a"]
+	1376 -> 866775
+	128944 [color="lightsalmon",style=filled]
+	128944 [label="Aerococcus urinaehominis"]
+	1375 -> 128944
 	87541 [color="lightsalmon",style=filled]
 	87541 [label="Aerococcus christensenii"]
+	1375 -> 87541
+	525247 [color="lightsalmon",style=filled]
+	525247 [label="Aerococcus christensenii DSM 15819 = CCUG 28831"]
+	87541 -> 525247
+	371602 [color="lightsalmon",style=filled]
+	371602 [label="Aerococcus suis"]
+	1375 -> 371602
+	51665 [color="lightsalmon",style=filled]
+	51665 [label="Aerococcus urinaeequi"]
+	1375 -> 51665
+	1120952 [color="lightsalmon",style=filled]
+	1120952 [label="Aerococcus urinaeequi DSM 20341 = CCUG 28094"]
+	51665 -> 1120952
+	2618060 [label="unclassified Aerococcus"]
+	1375 -> 2618060
+	1981982 [color="lightsalmon",style=filled]
+	1981982 [label="Aerococcus sp. 1KP-2016"]
+	2618060 -> 1981982
+	1715184 [color="lightsalmon",style=filled]
+	1715184 [label="Aerococcus sp. HMSC035B07"]
+	2618060 -> 1715184
+	1581129 [color="lightsalmon",style=filled]
+	1581129 [label="Aerococcus sp. HMSC06H08"]
+	2618060 -> 1581129
+	1715105 [color="lightsalmon",style=filled]
+	1715105 [label="Aerococcus sp. HMSC062A02"]
+	2618060 -> 1715105
+	1715159 [color="lightsalmon",style=filled]
+	1715159 [label="Aerococcus sp. HMSC062B07"]
+	2618060 -> 1715159
+	1739333 [color="lightsalmon",style=filled]
+	1739333 [label="Aerococcus sp. HMSC072A12"]
+	2618060 -> 1739333
+	1739396 [color="lightsalmon",style=filled]
+	1739396 [label="Aerococcus sp. HMSC061A03"]
+	2618060 -> 1739396
+	2487350 [color="lightsalmon",style=filled]
+	2487350 [label="Aerococcus sp. SJQ22"]
+	2618060 -> 2487350
+	1945961 [color="lightsalmon",style=filled]
+	1945961 [label="Aerococcus sp. UBA6277"]
+	2618060 -> 1945961
+	1872398 [color="lightsalmon",style=filled]
+	1872398 [label="Aerococcus sp."]
+	2618060 -> 1872398
+	1581084 [color="lightsalmon",style=filled]
+	1581084 [label="Aerococcus sp. HMSC10H05"]
+	2618060 -> 1581084
+	1581058 [color="lightsalmon",style=filled]
+	1581058 [label="Aerococcus sp. HMSC23C02"]
+	2618060 -> 1581058
+	1739288 [color="lightsalmon",style=filled]
+	1739288 [label="Aerococcus sp. HMSC075D05"]
+	2618060 -> 1739288
+	1377 [color="lightsalmon",style=filled]
+	1377 [label="Aerococcus viridans"]
+	1375 -> 1377
+	655812 [color="lightsalmon",style=filled]
+	655812 [label="Aerococcus viridans ATCC 11563 = CCUG 4311"]
+	1377 -> 655812
+	1175629 [color="lightsalmon",style=filled]
+	1175629 [label="Aerococcus viridans LL1"]
+	1377 -> 1175629
 }
