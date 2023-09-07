@@ -111,56 +111,45 @@
   su := args[1].(string)
 #+end_src
 #+begin_src latex
-  Nodes are labeled with numbers starting from 1, so we declare a
-  counter and initialize it to 1. We use a scanner to iterate over the
-  lines of the input file and print each line, unless it is
-  commented-out with a hashtag.
+  We scan the trees in the input. Each tree is labeled starting with 1
+  and printed.
 #+end_src
 #+begin_src go <<Iterate over input, Pr.~\ref{pr:lan}>>=
-  c := 1
-  br := bufio.NewReader(r)
-  bytes, err := br.ReadBytes('\n')
-  for err == nil {
-	  if bytes[0] != '#' {
-		  //<<Print line, Pr.~\ref{pr:lan}>>
-	  }
-	  bytes, err = br.ReadBytes('\n')
-  }
-  if err != nil && err == io.EOF {
-	  //<<Print line, Pr.~\ref{pr:lan}>>
+  sc := nwk.NewScanner(r)
+  for sc.Scan() {
+	  tree := sc.Tree()
+	  labelTree(tree, 1, pr, su)
+	  fmt.Println(tree)
   }
 #+end_src
 #+begin_src latex
-  We import \ty{bufio}.
+  We import \ty{nwk} and \ty{fmt}.
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:lan}>>=
-  "bufio"
+  "github.com/evolbioinf/nwk"
+  "fmt"
 #+end_src
-#+begin_src latex
-  We print every bye in the input. Internal nodes are terminated by a
-  closing parenthesis, which is followed by an optional label. So
-  whenever we encounter a closing parenthesis, we construct the label
-  and print it in double quotes. The label consists of the prefix, a
-  counter that we increment, and the suffix. We terminate each line by a
-  carriage return. If we reach the end of a tree, marked by a semi
-  colon, we reset the node counter.
-#+end_src
-#+begin_src go <<Print line, Pr.~\ref{pr:lan}>>=
-  for _, b := range bytes {
-	  fmt.Printf("%c", b)
-	  if b == ')' {
-		  l := fmt.Sprintf("%s%d%s", pr, c, su)
-		  fmt.Printf("%q", l)
+#+begin_export latex
+Inside the function \ty{labelTree} we label the internal nodes in
+order.
+#+end_export
+#+begin_src go <<Functions, Pr.~\ref{pr:lan}>>=
+  func labelTree(v *nwk.Node, c int, pr, su string) int {
+	  if v == nil { return c }
+	  if v.Child != nil {
+		  v.Label = pr + strconv.Itoa(c) + su
 		  c++
 	  }
-	  if b == ';' { c = 1 }
+	  c = labelTree(v.Child, c, pr, su)
+	  c = labelTree(v.Sib, c, pr, su)
+	  return c
   }
 #+end_src
 #+begin_src latex
-  We import \ty{fmt}.
+  We import \ty{strconv}.
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:lan}>>=
-  "fmt"
+  "strconv"
 #+end_src
 #+begin_src latex
   We're done writing \ty{land}, let's test it.
