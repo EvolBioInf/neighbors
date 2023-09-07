@@ -130,20 +130,31 @@
   "fmt"
 #+end_src
 #+begin_export latex
-Inside the function \ty{labelTree} we label the internal nodes in
-order.
+Inside the function \ty{labelTree} we label the nodes in order.
 #+end_export
 #+begin_src go <<Functions, Pr.~\ref{pr:lan}>>=
   func labelTree(v *nwk.Node, c int, pr, su string) int {
-	  if v == nil { return c }
-	  if v.Child != nil {
-		  v.Label = pr + strconv.Itoa(c) + su
-		  c++
+	  if v == nil {
+		  return c
 	  }
+	  //<<Label node, Pr.~\ref{pr:lan}>>
 	  c = labelTree(v.Child, c, pr, su)
 	  c = labelTree(v.Sib, c, pr, su)
 	  return c
   }
+#+end_src
+#+begin_export latex
+When labeling a node, we leave leaf nodes unchanged, but construct new
+labels for internal nodes. Regardless of the type of node, we make
+sure that the node that eventually appears on the tree is quoted.
+#+end_export
+#+begin_src go <<Label node, Pr.~\ref{pr:lan}>>=
+  l := v.Label
+  if v.Child != nil {
+	  l = pr + strconv.Itoa(c) + su
+	  c++
+  }
+  v.Label = fmt.Sprintf("'%s'", l)
 #+end_src
 #+begin_src latex
   We import \ty{strconv}.
