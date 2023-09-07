@@ -1,6 +1,7 @@
 #+begin_src latex
   \section{\ty{ants}}
-  Given a taxon-ID, \ty{ants} returns all ancestors.
+  Given a taxon-ID, \ty{ants} returns all ancestors and their taxonomic
+  ranks.
 
   \subsection*{Implementation}
   The program \ty{ants} contains hooks for imports and the logic of the
@@ -124,18 +125,19 @@
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
-  We print the ancestors starting with the most remote. To make the
-  result look nice, we print a table and lay it out with a
-  \ty{tabwriter}.
+  We print the ancestors and their ranks starting with the most
+  remote. To make the result look nice, we print a table and lay it out
+  with a \ty{tabwriter}.
 #+end_src
 #+begin_src go <<Print ancestors, Pr.~\ref{pr:ant}>>=
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
   defer w.Flush()
-  fmt.Fprintf(w, "# Back\tID\tName\n")
+  fmt.Fprintf(w, "# Back\tID\tName\tRank\n")
   for i := len(ants) - 1; i >= 0; i-- {
 	  a := ants[i]
 	  n := taxdb.Name(a)
-	  fmt.Fprintf(w, "  %d\t%d\t%s\n", i, a, n)
+	  r := taxdb.Rank(a)
+	  fmt.Fprintf(w, "  %d\t%d\t%s\t%s\n", i, a, n, r)
   }
 #+end_src
 #+begin_src latex

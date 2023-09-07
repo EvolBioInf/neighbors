@@ -1,16 +1,56 @@
 digraph g {
+	rankdir=LR
 	119206 [color="lightsalmon",style=filled]
-	128944 [color="lightsalmon",style=filled]
 	1375 -> 119206
-	1375 -> 128944
-	1375 -> 1376
-	1375 -> 1377
-	1375 -> 51665
-	1375 -> 87541
-	1376 -> 866775
 	1376 [color="lightsalmon",style=filled]
-	1377 [color="lightsalmon",style=filled]
-	51665 [color="lightsalmon",style=filled]
+	1375 -> 1376
+	1216979 [color="lightsalmon",style=filled]
+	1376 -> 1216979
 	866775 [color="lightsalmon",style=filled]
+	1376 -> 866775
+	128944 [color="lightsalmon",style=filled]
+	1375 -> 128944
 	87541 [color="lightsalmon",style=filled]
+	1375 -> 87541
+	525247 [color="lightsalmon",style=filled]
+	87541 -> 525247
+	371602 [color="lightsalmon",style=filled]
+	1375 -> 371602
+	51665 [color="lightsalmon",style=filled]
+	1375 -> 51665
+	1120952 [color="lightsalmon",style=filled]
+	51665 -> 1120952
+	1375 -> 2618060
+	1981982 [color="lightsalmon",style=filled]
+	2618060 -> 1981982
+	1715184 [color="lightsalmon",style=filled]
+	2618060 -> 1715184
+	1581129 [color="lightsalmon",style=filled]
+	2618060 -> 1581129
+	1715105 [color="lightsalmon",style=filled]
+	2618060 -> 1715105
+	1715159 [color="lightsalmon",style=filled]
+	2618060 -> 1715159
+	1739333 [color="lightsalmon",style=filled]
+	2618060 -> 1739333
+	1739396 [color="lightsalmon",style=filled]
+	2618060 -> 1739396
+	2487350 [color="lightsalmon",style=filled]
+	2618060 -> 2487350
+	1945961 [color="lightsalmon",style=filled]
+	2618060 -> 1945961
+	1872398 [color="lightsalmon",style=filled]
+	2618060 -> 1872398
+	1581084 [color="lightsalmon",style=filled]
+	2618060 -> 1581084
+	1581058 [color="lightsalmon",style=filled]
+	2618060 -> 1581058
+	1739288 [color="lightsalmon",style=filled]
+	2618060 -> 1739288
+	1377 [color="lightsalmon",style=filled]
+	1375 -> 1377
+	655812 [color="lightsalmon",style=filled]
+	1377 -> 655812
+	1175629 [color="lightsalmon",style=filled]
+	1377 -> 1175629
 }

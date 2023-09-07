@@ -36,7 +36,7 @@
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
-  purpose of \ty{neighbors}, and an example command.  In the usage we
+  purpose of \ty{neighbors}, and an example command. In the usage we
   clarify that the first argument of \ty{neighbors} is the name of the
   taxonomy database.
 #+end_src
@@ -56,13 +56,13 @@
 #+end_src
 #+begin_src latex
   Apart from the version, we declare an option to restrict the output to
-  taxa with genomes (\ty{-g}), and an option to just list the replicons
+  taxa with genomes (\ty{-g}), and an option to just list the genomes
   (\ty{-l}).
 #+end_src
 #+begin_src go <<Declare options, Pr.~\ref{pr:neig}>>=
   optV := flag.Bool("v", false, "version")
   optG := flag.Bool("g", false, "genome sequences only")
-  optL := flag.Bool("l", false, "list replicons")
+  optL := flag.Bool("l", false, "list genomes")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -180,8 +180,7 @@
   targets.
 #+end_src
 #+begin_src go <<Compute targets, Pr.~\ref{pr:neig}>>=
-  taxonomy := taxdb.NewTaxonomy(taxa)
-  mrcaT := taxonomy.MRCA(taxa)
+  mrcaT := taxdb.MRCA(taxa)
   targets := taxdb.Subtree(mrcaT)
   //<<Mark new targets, Pr.~\ref{pr:neig}>>
 #+end_src
@@ -237,39 +236,39 @@
   }
 #+end_src
 #+begin_src latex
-  We look up the genomes, or \emph{replicons}, that belong to each
-  taxon-ID through a method call on the database. The genomes are stored
-  in a map between taxon-IDs and string slices.
+  We look up the genome accessions that belong to each taxon-ID through
+  a method call on the database. The genomes are stored in a map between
+  taxon-IDs and string slices.
 #+end_src
 #+begin_src go <<Look up genomes, Pr.~\ref{pr:neig}>>=
   genomes := make(map[int][]string)
   for _, t := range targets {
-	  genomes[t] = taxdb.Replicons(t)
+	  genomes[t] = taxdb.Accessions(t)
   }
   for _, t := range neighbors {
-	  genomes[t] = taxdb.Replicons(t)
+	  genomes[t] = taxdb.Accessions(t)
   }
 #+end_src
 #+begin_export latex
-The result consists either of a list of replicons or of the full
+The result consists either of a list of accessions or of the full
 report.
 #+end_export
 #+begin_src go <<Print result, Pr.~\ref{pr:neig}>>=
   if optL {
-	  //<<List replicons, Pr.~\ref{pr:neig}>>
+	  //<<List accessions, Pr.~\ref{pr:neig}>>
   } else {
 	  //<<Print report, Pr.~\ref{pr:neig}>>
   }
 #+end_src
 #+begin_export latex
-We list the replicons in a table constructed with a \ty{tabwriter},
-which we flush at the end. The replicons table has a header consisting
-of the sample (target or neighbor), the replicon's name, and its
-accession. We first list the targets, then the neighbors.
+We list the accessions in a table constructed with a \ty{tabwriter},
+which we flush at the end. The accessions table has a header
+consisting of the sample (target or neighbor) and the accession. We
+first list the targets, then the neighbors.
 #+end_export
-#+begin_src go <<List replicons, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<List accessions, Pr.~\ref{pr:neig}>>=
   w := tabwriter.NewWriter(os.Stdout, 1, 0, 2, ' ', 0)
-  fmt.Fprintf(w, "# Sample\tName\tAccession\n")
+  fmt.Fprintf(w, "# Sample\tAccession\n")
   //<<List targets, Pr.~\ref{pr:neig}>>
   //<<List neighbors, Pr.~\ref{pr:neig}>>
   w.Flush()
@@ -281,76 +280,27 @@ accession. We first list the targets, then the neighbors.
   "text/tabwriter"
 #+end_src
 #+begin_export latex
-For each target we get the list of replicons and print each one.
+For each target we get the list of genome accessions and print each
+one.
 #+end_export
 #+begin_src go <<List targets, Pr.~\ref{pr:neig}>>=
   sample := "t"
   for _, target := range targets {
-	  replicons := genomes[target]
-	  for _, replicon := range replicons {
-		  //<<Print replicon, Pr.~\ref{pr:neig}>>
+	  accessions := genomes[target]
+	  for _, accession := range accessions {
+		  fmt.Fprintf(w, "%s\t%s\n", sample, accession)
 	  }
   }
 #+end_src
 #+begin_export latex
-A replicon field consists of entries separated by colons. Each entry
-has the structure
-\begin{center}
-  \texttt{[name:]accession1[/accession2]}
-\end{center}
-where the elements in square brackets are optional.  We iterate over
-the entries. From each entry we extract the name, if present, and the
-first accession. Then we print the sample, the name, and the
-accession.
+We list the neighbors like we just listed the targets.
 #+end_export
-#+begin_src go <<Print replicon, Pr.~\ref{pr:neig}>>=
-  entries := strings.Split(replicon, ";")
-  for _, entry := range entries {
-	  //<<Extract name, Pr.~\ref{pr:neig}>>
-	  //<<Extract accession, Pr.~\ref{pr:neig}>>
-	  fmt.Fprintf(w, "%s\t%s\t%s\n", sample, name, acc)
-  }
-#+end_src
-#+begin_src latex
-  We import \ty{strings}.
-#+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
-  "strings"
-#+end_src
-#+begin_export latex
-The default name is a hyphen. If we do have a name, we trim any
-flanking blanks it might contain and replace any remaining blanks with
-underscores.
-#+end_export
-#+begin_src go <<Extract name, Pr.~\ref{pr:neig}>>=
-  name := "-"
-  if strings.Index(entry, ":") > -1 {
-	  name = strings.Split(entry, ":")[0]
-	  name = strings.Trim(name, " ")
-	  name = strings.Replace(name, " ", "_", -1)
-  }
-#+end_src
-#+begin_export latex
-The default accession is the full entry. If that entry contains a
-colon, we split it at the colon. If the right substring obtained by
-the split contains a slash, we split it at that and take the left
-substring as the accession.
-#+end_export
-#+begin_src go <<Extract accession, Pr.~\ref{pr:neig}>>=
-  acc := entry
-  if strings.Index(entry, ":") > -1 {
-	  acc = strings.Split(acc, ":")[1]
-  }
-  if strings.Index(acc, "/") > -1 {
-	  acc = strings.Split(acc, "/")[0]
-  }
-#+end_src
 #+begin_src go <<List neighbors, Pr.~\ref{pr:neig}>>=
   sample = "n"
   for _, neighbor := range neighbors {
-	  replicons := genomes[neighbor]
-	  for _, replicon := range replicons {
-		  //<<Print replicon, Pr.~\ref{pr:neig}>>
+	  accessions := genomes[neighbor]
+	  for _, accession := range accessions {
+		    fmt.Fprintf(w, "%s\t%s\n", sample, accession)
 	  }
   }
 #+end_src
@@ -393,6 +343,12 @@ substring as the accession.
 		  taxdb.Name(target),
 		  strings.TrimPrefix(g, " "))
   }
+#+end_src
+#+begin_export latex
+We import \ty{strings}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "strings"
 #+end_src
 #+begin_src latex
   Neighbors are marked as type ``n''. Since the targets were already

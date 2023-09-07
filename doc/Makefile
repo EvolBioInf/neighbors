@@ -1,4 +1,4 @@
-SRC1 =   makeNeiDb.tex taxi.tex ants.tex neighbors.tex dree.tex land.tex pickle.tex tax.tex tdb.tex tutorial.tex util.tex
+SRC1 =   makeNeiDb.tex taxi.tex ants.tex neighbors.tex dree.tex land.tex pickle.tex tdb.tex tutorial.tex util.tex
 SRC2 =   header.tex introduction.tex neighborsDoc.tex
 
 all: neighborsDoc.pdf
@@ -11,27 +11,25 @@ neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2)
 	ps2pdf -dALLOWPSTRANSPARENCY neighborsDoc.ps
 
 makeNeiDb.tex: ../makeNeiDb/makeNeiDb.org 
-	bash ../scripts/org2nw ../makeNeiDb/makeNeiDb.org | noweave -n -x | sed 's/_test/\\_test/g' > makeNeiDb.tex
+	awk -f ../scripts/preWeave.awk ../makeNeiDb/makeNeiDb.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > makeNeiDb.tex
 taxi.tex: ../taxi/taxi.org 
-	bash ../scripts/org2nw ../taxi/taxi.org | noweave -n -x | sed 's/_test/\\_test/g' > taxi.tex
+	awk -f ../scripts/preWeave.awk ../taxi/taxi.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > taxi.tex
 ants.tex: ../ants/ants.org
-	bash ../scripts/org2nw ../ants/ants.org | noweave -n -x | sed 's/_test/\\_test/g' > ants.tex
+	awk -f ../scripts/preWeave.awk ../ants/ants.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > ants.tex
 neighbors.tex: ../neighbors/neighbors.org
-	bash ../scripts/org2nw ../neighbors/neighbors.org | noweave -n -x  | sed 's/_test/\\_test/g' > neighbors.tex
+	awk -f ../scripts/preWeave.awk ../neighbors/neighbors.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > neighbors.tex
 dree.tex: ../dree/dree.org
-	bash ../scripts/org2nw ../dree/dree.org | noweave -n -x | sed 's/_test/\\_test/g' > dree.tex
+	awk -f ../scripts/preWeave.awk ../dree/dree.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > dree.tex
 land.tex: ../land/land.org
-	bash ../scripts/org2nw ../land/land.org | noweave -n -x | sed 's/_test/\\_test/g' > land.tex
+	awk -f ../scripts/preWeave.awk ../land/land.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > land.tex
 pickle.tex: ../pickle/pickle.org
-	bash ../scripts/org2nw ../pickle/pickle.org | noweave -n -x | sed 's/_test/\\_test/g' > pickle.tex
-tax.tex: ../tax/tax.org
-	bash ../scripts/org2nw ../tax/tax.org | noweave -n -x | sed 's/_test/\\_test/g' > tax.tex
+	awk -f ../scripts/preWeave.awk ../pickle/pickle.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > pickle.tex
 tdb.tex: ../tdb/tdb.org
-	bash ../scripts/org2nw ../tdb/tdb.org | noweave -n -x | sed 's/_test/\\_test/g' > tdb.tex	
+	awk -f ../scripts/preWeave.awk ../tdb/tdb.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > tdb.tex	
 tutorial.tex: ../tutorial/tutorial.org
-	bash ../scripts/org2nw ../tutorial/tutorial.org | noweave -n -x > tutorial.tex
+	awk -f ../scripts/preWeave.awk ../tutorial/tutorial.org | bash ../scripts/org2nw | noweave -n -x > tutorial.tex
 util.tex: ../util/util.org
-	bash ../scripts/org2nw ../util/util.org | noweave -n -x | sed 's/_test/\\_test/g' > util.tex
+	awk -f ../scripts/preWeave.awk ../util/util.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > util.tex
 
 clean:
 	rm -f neighborsDoc.pdf neighborsDoc.ps neighborsDoc.dvi neighborsDoc.aux $(SRC1) 

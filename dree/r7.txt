@@ -1,0 +1,7 @@
+# Taxid  Rank        Genomes  Name
+9598     species     5        Pan troglodytes
+37012    subspecies  1        Pan troglodytes verus
+9597     species     3        Pan paniscus
+9593     species     2        Gorilla gorilla
+9595     subspecies  5        Gorilla gorilla gorilla
+9606     species     1047     Homo sapiens

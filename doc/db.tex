@@ -11,15 +11,19 @@
   \rput(0,0){\ovalnode{replicons}{\ty{replicons}}}
   \rput(-0.5,2){\ovalnode{size}{\ty{size}}}
   \rput(1.5,2){\ovalnode{taxid}{\ty{taxid}}}
+  \rput(3.2,0){\ovalnode{accession}{\ty{accession}}}
   \ncline{replicons}{genome}
   \ncline{size}{genome}
   \ncline{taxid}{genome}
+  \ncline{accession}{genome}
 
   %% Attributes of taxon
   \rput(7.7,2){\ovalnode{name}{\ty{name}}}
   \rput(10.0,1.7){\ovalnode{taxid}{\underline{\ty{taxid}}}}
   \rput(10.0,0.5){\ovalnode{parent}{\ty{parent}}}
+  \rput(8,0){\ovalnode{rank}{\ty{rank}}}
   \ncline{name}{taxon}
   \ncline{taxid}{taxon}
   \ncline{parent}{taxon}
+  \ncline{rank}{taxon}
 \end{pspicture}
