@@ -1,4 +1,4 @@
-# Selected clades
+# Selected clade
 ## 9
 T1
 T2

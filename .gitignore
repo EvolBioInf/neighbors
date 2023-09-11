@@ -31,6 +31,7 @@ neighbors/neighbors
 neighbors/makeRes.sh
 taxi/taxi
 land/land
+pickle/makeRes.sh
 pickle/pickle
 
 # Misc
