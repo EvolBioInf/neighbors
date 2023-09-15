@@ -342,7 +342,7 @@ matching label and note that we found it.
 #+begin_src latex
   We repeat the basic tests with the complement switch.
 #+end_src
-#+begin_export go <Construct tests, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Construct tests, Pr.~\ref{pr:pic}>>=
 test = exec.Command("./pickle", "-c", "7", f)
 tests = append(tests, test)
 test = exec.Command("./pickle", "-c", "7,3", f)
@@ -351,13 +351,13 @@ test = exec.Command("./pickle", "-c", "9", f)
 tests = append(tests, test)
 test = exec.Command("./pickle", "-c", "4", f)
 tests = append(tests, test)
-#+end_export
+#+end_src
 #+begin_src latex
 #+end_src
 #+begin_src latex
   We repeat the basic tests with the tree switch.
 #+end_src
-#+begin_export go <Construct tests, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Construct tests, Pr.~\ref{pr:pic}>>=
 test = exec.Command("./pickle", "-t", "7", f)
 tests = append(tests, test)
 test = exec.Command("./pickle", "-t", "7,3", f)
@@ -366,12 +366,12 @@ test = exec.Command("./pickle", "-t", "9", f)
 tests = append(tests, test)
 test = exec.Command("./pickle", "-t", "4", f)
 tests = append(tests, test)
-#+end_export
+#+end_src
 #+begin_src latex
   Our final set of tests are the four basic tests with the complement
   and the tree switch.
 #+end_src
-#+begin_export go <Construct tests, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Construct tests, Pr.~\ref{pr:pic}>>=
 test = exec.Command("./pickle", "-c", "-t", "7", f)
 tests = append(tests, test)
 test = exec.Command("./pickle", "-c", "-t", "7,3", f)
@@ -380,7 +380,7 @@ test = exec.Command("./pickle", "-c", "-t", "9", f)
 tests = append(tests, test)
 test = exec.Command("./pickle", "-c", "-t", "4", f)
 tests = append(tests, test)
-#+end_export
+#+end_src
 #+begin_src latex
   For a given test we compare the result we get with the result we
   want. The results we want are contained in the files \ty{r1.txt},
