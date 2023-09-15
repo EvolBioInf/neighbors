@@ -135,7 +135,7 @@
 #+end_src
 #+begin_src go <<Construct table \ty{taxon}, Pa.~\ref{pa:tdb}>>=
   sqlStmt := `create table taxon (
-  taxid int, parent int, name text, rank text, 
+  taxid int, parent int, name text, rank text,
   primary key(taxid));
   create index taxon_parent_idx on taxon(parent);`
   if _, err := db.Exec(sqlStmt); err != nil {
@@ -143,14 +143,16 @@
   }
 #+end_src
 #+begin_src latex
-  Table \ty{genome} has attributes \ty{taxid}, \ty{size}, \ty{replicons},
-  and \ty{accession}. To stress that every genome belongs to exactly one
-  taxon, we declare \ty{taxid} as foreign key into \ty{taxon}. We also
-  index the numerical attributes \ty{taxid} and \ty{size}.
+  Table \ty{genome} has attributes \ty{taxid}, \ty{size},
+  \ty{replicons}, \ty{accession}, and \ty{status}. To stress that every
+  genome belongs to exactly one taxon, we declare \ty{taxid} as foreign
+  key into \ty{taxon}. We also index the numerical attributes \ty{taxid}
+  and \ty{size}.
 #+end_src
 #+begin_src go <<Construct table \ty{genome}, Pa.~\ref{pa:tdb}>>=
   sqlStmt = `create table genome (
-  taxid int, size real, replicons text, accession text,
+  taxid int, size real, replicons text, 
+	 accession text, status text,
   foreign key(taxid) references taxon(taxid));
   create index genome_taxid_idx on genome(taxid);
   create index genome_size_idx on genome(size);`
@@ -287,12 +289,12 @@
 #+begin_src latex
   We read each genome into a struct that holds the four attributes shown
   in Figure~\ref{fig:db}, \ty{taxid}, \ty{replicons}, \ty{accession},
-  and \ty{size}.
+  \ty{status}, and \ty{size}.
 #+end_src
 #+begin_src go <<Types, Pa.~\ref{pa:tdb}>>=
   type genome struct {
 	  taxid int
-	  replicons, accession string
+	  replicons, accession, status string
 	  size float64
   }
 #+end_src
@@ -326,11 +328,11 @@
 #+begin_src latex
   Table~\ref{tab:pg} shows the columns in the table of prokaryote
   genomes. We can see that the taxon ID is in the second column, the
-  size in Mb in the seventh, the replicons in the nineth, and the
-  assembly accessions in the 19th. Unfortunately, it is possible that
-  there is no genome size, in which case we set it to -1. It is also
-  possible that the row is incomplete, in which case we skip it and send
-  a warning.
+  size in Mb in the seventh, the replicons in the nineth, the status in
+  the 16th, and the assembly accessions in the 19th. Unfortunately, it
+  is possible that there is no genome size, in which case we set it to
+  -1. It is also possible that the row is incomplete, in which case we
+  skip it and send a warning.
   \begin{table}
     \caption{Columns in the table of prokaryote genomes supplied by the NCBI.}\label{tab:pg}
     \begin{center}
@@ -353,6 +355,7 @@
   gen.size, err = strconv.ParseFloat(fields[6], 64)
   if err != nil { gen.size = -1.0 }
   gen.replicons = fields[8]
+  gen.status = fields[15]
   gen.accession = fields[18]
 #+end_src
 #+begin_src latex
@@ -378,8 +381,8 @@
 #+begin_export latex
 Table~\ref{tab:eg} shows the columns in the table of eukaryote
 genomes. The taxon ID is in the second column, the size in the
-seventh, the assembly accession in the nineth, and the replicons the
-tenth.
+seventh, the assembly accession in the nineth, the replicons the
+tenth, and the status in the 17th.
 \begin{table}
   \caption{Columns in the table of eukaryote genomes supplied by the NCBI.}\label{tab:eg}
   \begin{center}
@@ -405,6 +408,7 @@ tenth.
   if err != nil { gen.size = -1.0 }
   gen.accession = fields[8]
   gen.replicons = fields[9]
+  gen.status = fields[16]
 #+end_src
 #+begin_src latex
   We close the eukaryote genomes file.
@@ -432,7 +436,8 @@ tenth.
   the seventh. However, this time the size is in kb, which we convert to
   Mb. Also, there are no ``Replicons'', nor is there an ``Assembly
   Accession''. Instead, we have ``Segments'' in column 10, which we use
-  both as attributes \ty{replicons} and \ty{accession} in our database.
+  both as attributes \ty{replicons} and \ty{accession} in our
+  database. The status is in column 15.
   \begin{table}
     \caption{Columns in the table of viral genomes supplied by the NCBI.}\label{tab:vg}
     \begin{center}
@@ -457,6 +462,7 @@ tenth.
   if gen.size > 0 { gen.size /= 1000.0 }
   gen.replicons = fields[9]
   gen.accession = fields[9]
+  gen.status = fields[14]
 #+end_src
 #+begin_src latex
   We close the virus genomes file.
@@ -472,8 +478,8 @@ tenth.
   tx, err = db.Begin()
   if err != nil { log.Fatal(err) }
   sqlStmt = "insert into genome(taxid, replicons," +
-	  "size, accession) " +
-	  "values(?, ?, ?, ?)"
+	  "size, accession, status) " +
+	  "values(?, ?, ?, ?, ?)"
   stmt, err = tx.Prepare(sqlStmt)
   if err != nil { log.Fatal(err) }
   //<<Insert rows into table \ty{genome}, Pa.~\ref{pa:tdb}>>
@@ -486,7 +492,7 @@ tenth.
 #+begin_src go <<Insert rows into table \ty{genome}, Pa.~\ref{pa:tdb}>>=
   for _, g := range genomes {
 	  _, err = stmt.Exec(g.taxid, g.replicons,
-		  g.size, g.accession)
+		  g.size, g.accession, g.status)
 	  if err != nil { log.Fatal(err) }
   }
 #+end_src

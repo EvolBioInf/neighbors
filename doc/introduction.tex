@@ -63,8 +63,8 @@ combines taxonomy and genome information.
 The database, let's call it \ty{neidb}, is built using the
 program \ty{makeNeiDb}. As shown in Figure~\ref{fig:db}, \ty{neidb}
 consists of two tables, \ty{genome} and \ty{taxon}. Each genome comes
-from an organism identified by its taxon-ID, has a size, a genome
-accession, and one or more replicons, which are lumped in one
+from an organism identified by its taxon-ID, has a size, a status, a
+genome accession, and one or more replicons, which are lumped in one
 attribute. Each genome belongs to a taxon. A taxon has a unique
 taxon-ID, which serves as primary key. A taxon also has a parent, a
 rank, and a name. Since several genomes may have been sequenced for a
