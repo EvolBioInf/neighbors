@@ -78,7 +78,39 @@ unique, which is why that table has no primary key.
   \caption{Diagram of \ty{neidb}.}\label{fig:db}
 \end{figure}
 
-Once the database is constructed, we can query it. A typical sequence
+Once the database is constructed, we can query it. The tutorial shows
+how to do this. Our example organism is the pathogenic \emph{E. coli}
+serotype O157:H7. It is a notorious food-borne pathogen that can cause
+severe diarrhea in humans. The program \ty{taxi} gives us the taxon-ID
+for \emph{E. coli} O157:H7. It is often useful to place this taxon-ID
+into context, for which we have two programs, \ty{dree}
+and \ty{andi}. Starting from a taxon-ID \ty{dree} draws the taxonomic
+tree rooted on that taxon-ID. Instead of walking from a root towards
+the leaves, the program \ty{ants} starts from a taxon and walks in the
+opposite direction toward the universal root. Along this
+path, \ty{ants} lists all ancestral taxa of our focal taxon. Once
+we've got our bearings in the taxonomy, we can query it
+with \ty{neighbors} to get the complete set of target and neighbor
+genomes currently available.
+
+The genome returned by \ty{neighbors} form the raw material for marker
+discovery. However, the classification into targets and neighbors
+retrieved from the taxonomy often contradicts the phylogeny calculated
+from the target and neighbor genomes. So we should always compute a
+phylogeny from our target and neighbor genomes. A program for doing
+this efficiently is \ty{phylonium}~\cite{klo20:phy}.
+
+The phylogenies of targets and neighbors may contain hundreds of
+taxa. Neighbors contains two programs to help analyze such large
+phylogenies, \ty{land} for labeling nodes, and \ty{pickle} for picking
+nodes.
+
+
+
+
+
+
+A typical sequence
 of queries would start from the target organism of interest,
 say \emph{Aerococcus urinae}. The first thing we'd need is its
 taxon-ID. We get this using the program \ty{taxi}, which is also part
@@ -99,7 +131,7 @@ sequences.
 
 There is no guarantee that the classification provided by the taxonomy
 is identical to the phylogeny of the target and neighbor genomes. Such
-mising of targets and neighbors would make marker discovery
+mixing of targets and neighbors would make marker discovery
 impossible. So we convert tartes and neighbors to phylogenies. Such
 phylogenies are often large and need to be broken down into individual
 clades. We can pick the leaves of individual clades from a Newick tree
