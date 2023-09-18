@@ -145,8 +145,7 @@ Inside the function \ty{labelTree} we label the nodes in order.
 #+end_src
 #+begin_export latex
 When labeling a node, we leave leaf nodes unchanged, but construct new
-labels for internal nodes. Regardless of the type of node, we make
-sure that the node that eventually appears on the tree is quoted.
+labels for internal nodes.
 #+end_export
 #+begin_src go <<Label node, Pr.~\ref{pr:lan}>>=
   l := v.Label
@@ -154,7 +153,7 @@ sure that the node that eventually appears on the tree is quoted.
 	  l = pr + strconv.Itoa(c) + su
 	  c++
   }
-  v.Label = fmt.Sprintf("'%s'", l)
+  v.Label = l
 #+end_src
 #+begin_src latex
   We import \ty{strconv}.
