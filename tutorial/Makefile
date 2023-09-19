@@ -8,4 +8,4 @@ test: db.sh query.sh
 	bash db.sh
 	bash query.sh
 clean:
-	rm -rf all.txt au.db au.dist db.sh markers*.fasta nacc.txt ndata.zip ndata neidb neighbors query.sh tacc.txt tar.txt targets tdata.zip tdata tmp.svg
+	rm -rf 256.db/ 256.fasta 264.db/ 264_257.db/ 264_257.fasta acc.txt all/ db.sh nacc.txt neidb ndata.zip ndata/ neighbors/ o157.dist o157.nwk query.sh tacc.txt targets/ tdata.zip tdata/
