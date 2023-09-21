@@ -26,7 +26,7 @@ further analyzed *in silico* and
 [Bernhard Haubold](http://guanine.evolbio.mpg.de/), `haubold@evolbio.mpg.de`
 ## Make the Programs
 Make sure you've installed the packages `git`, `golang`,
-`make`, and `noweb`.
+`make`, `noweb`, and `sqlite3`.  
   `$ make`  
   The directory `bin` now contains the seven executables of the
   package, additional scripts are in
