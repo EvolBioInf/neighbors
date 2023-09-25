@@ -53,6 +53,7 @@ tutorial/tacc.txt
 tutorial/targets/
 tutorial/tdata.zip
 tutorial/tdata/
+tutorial/tlen.dat
 
 # Misc
 dree/makeRes.sh
