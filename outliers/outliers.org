@@ -1,0 +1,425 @@
+#+begin_export latex
+\section{\ty{outliers}}
+Given a set of measurements, outliers are values far removed from the
+data's center. The following description of outliers is taken from the
+handbook of the American National Institute of Standards and
+Technology, which is published on the
+web\footnote{\ty{https://www.itl.nist.gov/div898/handbook/prc/section1/prc16.htm}}. The
+handbook follows the common definition of outliers based on the lower
+and upper quartile of a distribution, $q_{\rm l}$ and $q_{\rm u}$. Let
+$r=q_{\rm u}-q_{\rm l}$ be the interquartile range, then $f_{\rm
+  l}=q_{\rm l}-1.5r$ is the \emph{lower inner fence}, $f_{\rm
+  u}=q_{\rm u}+1.5r$ the \emph{upper inner fence}. Values outside the
+interval spanned by the lower and upper inner fences are considered
+\emph{mild} outliers. We can also define the \emph{lower outer fence}
+as $F_{\rm l}=q_{\rm l}-3r$ and the \emph{upper outer fence} as
+$F_{\rm u}=q_{\rm u}+3r$. Values outside interval spanned by the lower
+and upper outer fences are considered \emph{extreme} outliers.
+
+The program \ty{outliers} takes as input a list of numbers and returns
+seven measures of their distribution:
+\begin{enumerate}
+\item the lower outer fence
+\item the inner outer fence
+\item the first quartile
+\item the median
+\item the upper quartile
+\item the upper inner fence
+\item the upper outer fence
+\end{enumerate}
+
+It also lists mild and extreme outliers.
+\subsection*{Implementation}
+Our outline of \ty{outliers} contains hooks for imports, functions,
+and the logic of the main function.
+\bpr{outlines}{pr:out}
+#+end_export
+#+begin_src go <<outliers.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr.~\ref{pr:out}>>
+  )
+
+  //<<Functions, Pr.~\ref{pr:out}>>
+  func main() {
+	  //<<Main function, Pr.~\ref{pr:out}>>
+  }
+#+end_src
+#+begin_export latex
+\epr
+In the main function we set the program name and its usage, declare
+the options, parse the options, and parse the input files.
+#+end_export
+#+begin_src go <<Main function, Pr.~\ref{pr:out}>>=
+  util.SetName("outliers")
+  //<<Set usage, Pr.~\ref{pr:out}>>
+  //<<Declare options, Pr.~\ref{pr:out}>>
+  //<<Parse options, Pr.~\ref{pr:out}>>
+  //<<Scan input files, Pr.~\ref{pr:out}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:out}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_export latex
+The usage consists of three parts, the actual usage message, an
+explanation of the purpose of \ty{outliers} and an example command.
+#+end_export
+#+begin_src go <<Set usage, Pr.~\ref{pr:out}>>=
+  u := "outliers [option]... [file]..."
+  p := "List outliers according to the quartile criterion."
+  e := "outliers foo.dat"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_export latex
+We import \ty{cio}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:out}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_export latex
+We declare a single option, the version.
+#+end_export
+#+begin_src go <<Declare options, Pr.~\ref{pr:out}>>=
+  optV := flag.Bool("v", false, "version")
+#+end_src
+#+begin_export latex
+We import \ty{flag}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:out}>>=
+  "flag"
+#+end_src
+#+begin_export latex
+We parse the options and respond to a request for the version.
+#+end_export
+#+begin_src go <<Parse options, Pr.~\ref{pr:out}>>=
+  flag.Parse()
+  if *optV {
+	  util.Version()
+  }
+#+end_src
+#+begin_export latex
+The remaining arguments on the command line are taken as file
+names. These are submitted to the function \ty{ParseFiles}, which
+applies to each file the function \ty{scan}.
+#+end_export
+#+begin_src go <<Scan input files, Pr.~\ref{pr:out}>>=
+  files := flag.Args()
+  clio.ParseFiles(files, scan)
+#+end_src
+#+begin_export latex
+Inside \ty{scan} we read the data into a slice of floats. We need at
+least four data points for an outlier analysis. If we get four or more
+data points, we carry out the analysis and print the
+results. Otherwise, we skip the current data set with a friendly
+warning message.
+#+end_export
+#+begin_src go <<Functions, Pr.~\ref{pr:out}>>=
+  func scan(r io.Reader, args ...interface{}) {
+	  data := make([]float64, 0)
+	  //<<Read data, Pr.~\ref{pr:out}>>
+	  if len(data) >= 4 {
+		  //<<Analyse data, Pr.~\ref{pr:out}>>
+		  //<<Print results, Pr.~\ref{pr:out}>>
+	  } else {
+		  m := "outliers - Need at least 4 data points " +
+			  "for an outlier analysis"
+		  fmt.Fprintf(os.Stderr, m)
+	  }
+  }
+#+end_src
+#+begin_export latex
+We import \ty{io} and \ty{os}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:out}>>=
+  "io"
+  "os"
+#+end_src
+#+begin_export latex
+We scan the lines of the input file, convert each one into a number,
+and store that number in a slice of floats.
+#+end_export
+#+begin_src go <<Read data, Pr.~\ref{pr:out}>>=
+  sc := bufio.NewScanner(r)
+  for sc.Scan() {
+	  str := strings.Trim(sc.Text(), " ")
+	  if len(str) > 0 {
+		  d, e := strconv.ParseFloat(str, 64)
+		  util.Check(e)
+		  data = append(data, d)
+	  }
+  }
+#+end_src
+#+begin_export latex
+We import \ty{bufio}, \ty{strings}, and \ty{strconv}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:out}>>=
+  "bufio"
+  "strings"
+  "strconv"
+#+end_src
+#+begin_export latex
+We begin the data analysis by sorting the data. Then we determine the
+median, the lower quartile, the upper quartile, the interquartile
+range, the inner fences, and the outer fences.
+#+end_export
+#+begin_src go <<Analyse data, Pr.~\ref{pr:out}>>=
+  sort.Float64s(data)
+  //<<Determine median, Pr.~\ref{pr:out}>>
+  //<<Determine lower quartile, Pr.~\ref{pr:out}>>
+  //<<Determin upper quartile, Pr.~\ref{pr:out}>>
+  //<<Determine interquartile range, Pr.~\ref{pr:out}>>
+  //<<Determine inner fences, Pr.~\ref{pr:out}>>
+  //<<Determine outer fences, Pr.~\ref{pr:out}>>
+#+end_src
+#+begin_export latex
+We import \ty{sort}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:out}>>=
+  "sort"
+#+end_src
+#+begin_export latex
+The median is the value of the midpoint of the data range. I think of
+it as the second quartile.
+#+end_export
+#+begin_src go <<Determine median, Pr.~\ref{pr:out}>>=
+  n := len(data)
+  m := (n+1) / 2
+  q2 := data[m-1]
+  if n % 2 == 0 {
+	  q2 = (q2 + data[m]) / 2.0
+  }
+#+end_src
+#+begin_export latex
+We calculate the lower, or first, quartile.
+#+end_export
+#+begin_src go <<Determine lower quartile, Pr.~\ref{pr:out}>>=
+  exactQ := float64(n+1) * 0.25
+  f := math.Floor(exactQ)
+  l := int(f)
+  x := math.Remainder(exactQ, f)
+  q1 := data[l-1] + (data[l]-data[l-1]) * x
+#+end_src
+#+begin_export latex
+We import \ty{math}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:out}>>=
+  "math"
+#+end_src
+#+begin_export latex
+We calculate the upper, or third, quartile.
+#+end_export
+#+begin_src go <<Determin upper quartile, Pr.~\ref{pr:out}>>=
+  exactQ = float64(n+1) * 0.75
+  f = math.Floor(exactQ)
+  l = int(f)
+  x = math.Remainder(exactQ, f)
+  q3 := data[l-1] + (data[l]-data[l-1]) * x
+#+end_src
+#+begin_export latex
+The interquartile range is the difference between the upper and lower
+quartile.
+#+end_export
+#+begin_src go <<Determine interquartile range, Pr.~\ref{pr:out}>>=
+  iq := q3 - q1
+#+end_src
+#+begin_export latex
+We determine the lower and the upper inner fence.
+#+end_export
+#+begin_src go <<Determine inner fences, Pr.~\ref{pr:out}>>=
+  lif := q1 - 1.5 * iq
+  uif := q3 + 1.5 * iq
+#+end_src
+#+begin_export latex
+We determine the lower and upper outer fence.
+#+end_export
+#+begin_src go <<Determine outer fences, Pr.~\ref{pr:out}>>=
+  lof := q1 - 3.0 * iq
+  uof := q3 + 3.0 * iq
+#+end_src
+#+begin_export latex
+We print the results in three steps; we print the quartiles and
+fences, collect the outliers, and print them.
+#+end_export
+#+begin_src go <<Print results, Pr.~\ref{pr:out}>>=
+  //<<Print quartiles and fences, Pr.~\ref{pr:out}>>
+  //<<Collect outliers, Pr.~\ref{pr:out}>>
+  //<<Print outliers, Pr.~\ref{pr:out}>>
+#+end_src
+#+begin_export latex
+We print the quartiles and outliers in a table that we format with a
+tabwriter. Once we've written the table, we flush the tabwriter.
+#+end_export
+#+begin_src go <<Print quartiles and fences, Pr.~\ref{pr:out}>>=
+  w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
+  msg := "#Lower_outer_fence\tLower_inner_fence\t" +
+	  "Lower_quartile\tMedian\tUpper_quartile\t" +
+	  "Upper_inner_fence\tUpper_outer_fence"
+  fmt.Fprintf(w, "%s\n", msg)
+  fmt.Fprintf(w, "%g\t%g\t%g\t%g\t%g\t%g\t%g\n",
+	  lof, lif, q1, q2, q3, uif, uof)
+  w.Flush()
+#+end_src
+#+begin_export latex
+We import \ty{fmt} and \ty{tabwriter}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:out}>>=
+  "fmt"
+  "text/tabwriter"
+#+end_src
+#+begin_export latex
+We collect the mild outliers and the extreme outliers.
+#+end_export
+#+begin_src go <<Collect outliers, Pr.~\ref{pr:out}>>=
+  //<<Collect mild outliers, Pr.~\ref{pr:out}>>
+  //<<Collect extreme outliers, Pr.~\ref{pr:out}>>
+#+end_src
+#+begin_export latex
+We iterate over the data points and store the mild outliers in a
+slice.
+#+end_export
+#+begin_src go <<Collect mild outliers, Pr.~\ref{pr:out}>>=
+  mouts := make([]float64, 0)
+  for _, d := range data {
+	  if (d > lof && d < lif) ||
+		  d > uif && d < uof {
+		  mouts = append(mouts, d)
+	  }
+  }
+#+end_src
+#+begin_export latex
+We iterate over the data points and store the extreme outliers.
+#+end_export
+#+begin_src go <<Collect extreme outliers, Pr.~\ref{pr:out}>>=
+  eouts := make([]float64, 0)
+  for _, d := range data {
+	  if d < lof || d > uof {
+		  eouts = append(eouts, d)
+	  }
+  }
+#+end_src
+#+begin_export latex
+To print the outliers, we call the function \ty{printOutliers}, which
+takes as arguments the slice of outliers and the type of outlier.
+#+end_export
+#+begin_src go <<Print outliers, Pr.~\ref{pr:out}>>=
+  printOutliers(mouts, "mild")
+  printOutliers(eouts, "extreme")
+#+end_src
+#+begin_export latex
+Inside \ty{printOutliers}, we print the preamble and the values.
+#+end_export
+#+begin_src go <<Functions, Pr.~\ref{pr:out}>>=
+  func printOutliers(data []float64, kind string) {
+	  //<<Print preamble, Pr.~\ref{pr:out}>>
+	  //<<Print values, Pr.~\ref{pr:out}>>
+  }
+#+end_src
+#+begin_export latex
+In the preamble we distinguish between no outlier, one outlier, and
+more than one outlier. We also capitalize the beginning of a phrase.
+#+end_export
+#+begin_src go <<Print preamble, Pr.~\ref{pr:out}>>=
+  n := len(data)
+  if n == 0 {
+	  fmt.Printf("No_%s_outliers", kind)
+  } else {
+	  s := strings.ToUpper(kind[0:1]) + kind[1:]
+	  fmt.Printf("%s_outlier", s)
+  }
+  if n > 1 {
+	  fmt.Printf("s")
+  }
+  if n > 0 { fmt.Printf(":") }
+#+end_src
+#+begin_export latex
+The actual outlier values are printed in a single row.
+#+end_export
+#+begin_src go <<Print values, Pr.~\ref{pr:out}>>=
+  for _, d := range data {
+	  fmt.Printf(" %g", d)
+  }
+  fmt.Printf("\n")
+#+end_src
+#+begin_export latex
+We're finished writing \ty{outliers}, let's test it.
+\subsection*{Testing}
+The outline of our testing code contains hooks for imports and the
+testing logic.
+#+end_export
+#+begin_src go <<outliers_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr.~\ref{pr:out}>>
+  )
+
+  func TestOutliers(t *testing.T) {
+	  //<<Testing, Pr.~\ref{pr:out}>>
+  }
+#+end_src
+#+begin_export latex
+We construct a set of tests and iterate over them.
+#+end_export
+#+begin_src go <<Testing, Pr.~\ref{pr:out}>>=
+  var tests []*exec.Cmd
+  //<<Construct tests, Pr.~\ref{pr:out}>>
+  for i, test := range tests {
+	  //<<Run test, Pr.~\ref{pr:out}>>
+  }
+#+end_src
+#+begin_export latex
+We import \ty{exec}.
+#+end_export
+#+begin_src go <<Testing imports, Pr.~\ref{pr:out}>>=
+  "os/exec"
+#+end_src
+#+begin_export latex
+We run five tests, which are only distinguished by their input
+data. File \ty{test2.txt} was taken from the web page by the American
+National Institute of Standards and Technology already
+mentioned\footnote{\ty{https://www.itl.nist.gov/div898/handbook/prc/section1/prc16.htm}}. The
+other data sets are variations.
+#+end_export
+#+begin_src go <<Construct tests, Pr.~\ref{pr:out}>>=
+  for i := 1; i <= 5; i++ {
+	  f := "test" + strconv.Itoa(i) + ".txt"
+	  test := exec.Command("./outliers", f)
+	  tests = append(tests, test)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strconv}.
+#+end_export
+#+begin_src go <<Testing imports, Pr.~\ref{pr:out}>>=
+  "strconv"
+#+end_src
+#+begin_export latex
+When running a test, we compare the result we get with the result we
+want, which is stored in files \ty{r1.txt}, \ty{r2.txt}, and so on.
+#+end_export
+#+begin_src go <<Run test, Pr.~\ref{pr:out}>>=
+  get, err := test.Output()
+  if err != nil {
+	  t.Error(err)
+  }
+  f := "r" + strconv.Itoa(i+1) + ".txt"
+  want, err := os.ReadFile(f)
+  if err != nil {
+	  t.Error(err)
+  }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{os} and \ty{bytes}.
+#+end_export
+#+begin_src go <<Testing imports, Pr.~\ref{pr:out}>>=
+  "os"
+  "bytes"
+#+end_src

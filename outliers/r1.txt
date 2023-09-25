@@ -1,0 +1,4 @@
+#Lower_outer_fence  Lower_inner_fence  Lower_quartile  Median  Upper_quartile  Upper_inner_fence  Upper_outer_fence
+-520                -48.25             423.5           559     738             1209.75            1681.5
+No_mild_outliers
+No_extreme_outliers
