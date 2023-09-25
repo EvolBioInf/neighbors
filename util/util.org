@@ -18,10 +18,9 @@
 #+begin_src latex
   \epa
   \subsection{\ty{PrintInfo}}
-  The function \ty{PrintInfo} prints information about the calling program.
+  !\ty{PrintInfo} prints program information and exits.
 #+end_src
 #+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
-  // PrintInfo prints program information and exits.
   func PrintInfo(program string) {
 	  author := "Bernhard Haubold"
 	  email := "haubold@evolbio.mpg.de"
@@ -48,10 +47,9 @@
 #+end_src
 #+begin_src latex
   \subsection{\ty{Open}}
-  When a file is opened, we quit gracefully if an error occurred.
+  !\ty{Open} opens a file with error checking.
 #+end_src
 #+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
-  // Open opens a file with error checking.
   func Open(file string) *os.File {
 	  f, err := os.Open(file)
 	  if err != nil {
@@ -70,11 +68,9 @@
 #+end_src
 #+begin_export latex
 \subsubsection{\ty{Check}}
-If an error is passed, we respond in a uniform manner by calling
-\ty{log.Fatal}.
+!\ty{Check} checks an error and aborts if it isn't nil.
 #+end_export
 #+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
-  // Check checks an error and aborts if it isn't nil.
   func Check(err error) {
 	  if err != nil {
 		  log.Fatal(err)
@@ -86,6 +82,37 @@ We import \ty{log}.
 #+end_export
 #+begin_src go <<Imports, Pa.~\ref{pa:util}>>=
   "log"
+#+end_src
+#+begin_export latex
+\subsection{\ty{SetName}}
+!The function \ty{SetName} sets the name of the program.
+It stores the name in a global variable and prepares the \ty{log}
+package to print that name in the event of an error message.
+#+end_export
+#+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
+  func SetName(n string) {
+	  name = n
+	  s := fmt.Sprintf("%s: ", n)
+	  log.SetPrefix(s)
+	  log.SetFlags(0)
+  }
+#+end_src
+#+begin_export latex
+We declare the global string variable \ty{name}.
+#+end_export
+#+begin_src go <<Variables, Pa.~\ref{pa:util}>>=
+  var name string
+#+end_src
+#+begin_export latex
+\subsection{\ty{Version}}
+!The function \ty{Version} prints the version and other information
+!about the program and exits.
+\ty{Version} simply wraps a call to \ty{PrintInfo}.
+#+end_export
+#+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
+  func Version() {
+	  PrintInfo(name)
+  }
 #+end_src
 #+begin_src latex
   We are done with the \ty{util} package, time to test it.
