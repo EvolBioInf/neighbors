@@ -40,11 +40,11 @@ where $s(v)$ returns the nodes in the subtree rooted on $v$, and
 $p(v)$ the parent of $v$. This set subtraction is implemented in the
 program \ty{neighbors}.
 
-The Neighbors package consists of the seven programs listed in
+The Neighbors package consists of the eight programs listed in
 Table~\ref{tab:pro} and is centered on an \ty{sqlite3} database that
 combines taxonomy and genome information. 
 \begin{table}
-\caption{The seven programs of Neighbors}\label{tab:pro}
+\caption{The eight programs of Neighbors}\label{tab:pro}
 \begin{center}
 \begin{tabular}{lll}
 \hline
@@ -54,8 +54,9 @@ combines taxonomy and genome information.
 3 & \ty{land} & label nodes in Newick tree\\
 4 & \ty{makeNeiDb} & construct taxonomy and genomes database\\
 5 & \ty{neighbors} & complete targets and list neighbors\\
-6 & \ty{pickle} & pick clades in a Newick tree\\
-7 & \ty{taxi} & get taxon-ID from taxon name\\\hline
+6 & \ty{outliers} & find outliers in a set of numerical data\\
+7 & \ty{pickle} & pick clades in a Newick tree\\
+8 & \ty{taxi} & get taxon-ID from taxon name\\\hline
 \end{tabular}
 \end{center}
 \end{table}
@@ -138,7 +139,7 @@ clades. We can pick the leaves of individual clades from a Newick tree
 by first labeling the internal nodes with \ty{land} and then picking
 clades with \ty{pickle} (Table~\ref{tab:pro}).
 
-The Tutorial shows how the seven
+The Tutorial shows how the eight
 programs \ty{makeNeiDb}, \ty{taxi}, \ty{dree}, \ty{ants},
-\ty{neighbors}, \ty{land}, and \ty{pickle} can be used
+\ty{neighbors}, \ty{land}, \ty{outliers}, and \ty{pickle} can be used
 to find marker candidates for \emph{Aerococcus urinae}.
