@@ -6,7 +6,7 @@ the vast majority of non-specific material. The small remainder can
 then be further tested by \emph{in silico} PCR against, say, the
 non-redundant collection of nucleotide sequences, \ty{nt}. The
 published program \ty{fur} implements this comparison between targets
-and neighbors. Markers constructed from its output have excellent
+and neighbors. Markers constructed from its output can have excellent
 specificity and sensifivity~\cite{hau21:fur}.
 
 Users of programs like \ty{fur} need to know the neighbors of their
@@ -40,23 +40,24 @@ where $s(v)$ returns the nodes in the subtree rooted on $v$, and
 $p(v)$ the parent of $v$. This set subtraction is implemented in the
 program \ty{neighbors}.
 
-The Neighbors package consists of the eight programs listed in
+The Neighbors package consists of the nine programs listed in
 Table~\ref{tab:pro} and is centered on an \ty{sqlite3} database that
 combines taxonomy and genome information. 
 \begin{table}
-\caption{The eight programs of Neighbors}\label{tab:pro}
+\caption{The nine programs of Neighbors}\label{tab:pro}
 \begin{center}
 \begin{tabular}{lll}
 \hline
 \# & Name & Function\\\hline
 1 & \ty{ants} & list the ancestors of a taxon\\
 2 & \ty{dree} & draw taxonomic tree rooted on taxid\\
-3 & \ty{land} & label nodes in Newick tree\\
-4 & \ty{makeNeiDb} & construct taxonomy and genomes database\\
-5 & \ty{neighbors} & complete targets and list neighbors\\
-6 & \ty{outliers} & find outliers in a set of numerical data\\
-7 & \ty{pickle} & pick clades in a Newick tree\\
-8 & \ty{taxi} & get taxon-ID from taxon name\\\hline
+3 & \ty{fintac} & find target clade\\
+4 & \ty{land} & label nodes in Newick tree\\
+5 & \ty{makeNeiDb} & construct taxonomy and genomes database\\
+6 & \ty{neighbors} & complete targets and list neighbors\\
+7 & \ty{outliers} & find outliers in a set of numerical data\\
+8 & \ty{pickle} & pick clades in a Newick tree\\
+9 & \ty{taxi} & get taxon-ID from taxon name\\\hline
 \end{tabular}
 \end{center}
 \end{table}
@@ -80,66 +81,32 @@ unique, which is why that table has no primary key.
 \end{figure}
 
 Once the database is constructed, we can query it. The tutorial shows
-how to do this. Our example organism is the pathogenic \emph{E. coli}
-serotype O157:H7. It is a notorious food-borne pathogen that can cause
-severe diarrhea in humans. The program \ty{taxi} gives us the taxon-ID
-for \emph{E. coli} O157:H7. It is often useful to place this taxon-ID
-into context, for which we have two programs, \ty{dree}
-and \ty{andi}. Starting from a taxon-ID \ty{dree} draws the taxonomic
-tree rooted on that taxon-ID. Instead of walking from a root towards
-the leaves, the program \ty{ants} starts from a taxon and walks in the
-opposite direction toward the universal root. Along this
-path, \ty{ants} lists all ancestral taxa of our focal taxon. Once
-we've got our bearings in the taxonomy, we can query it
-with \ty{neighbors} to get the complete set of target and neighbor
-genomes currently available.
+how to do for \emph{E. coli} O157:H7. It is a notorious food-borne
+pathogen that can cause severe diarrhea in humans. The
+program \ty{taxi} gives us the taxon-ID for \emph{E. coli} O157:H7. It
+is often useful to place this taxon-ID into context, for which we have
+two programs, \ty{dree} and \ty{andi}. Starting from a
+taxon-ID, \ty{dree} draws the taxonomic tree rooted on that
+taxon-ID. Instead of walking from a root towards the leaves, the
+program \ty{ants} starts from a taxon and walks in the opposite
+direction toward the universal root. Along this path, \ty{ants} lists
+all ancestral taxa of our focal taxon. Once we've got our bearings in
+the taxonomy, we can query it with \ty{neighbors} to get the complete
+set of target and neighbor genomes currently available.
 
-The genome returned by \ty{neighbors} form the raw material for marker
-discovery. However, the classification into targets and neighbors
-retrieved from the taxonomy often contradicts the phylogeny calculated
-from the target and neighbor genomes. So we should always compute a
-phylogeny from our target and neighbor genomes. A program for doing
-this efficiently is \ty{phylonium}~\cite{klo20:phy}.
+The genomes returned by \ty{neighbors} form the raw material for
+marker discovery. However, the classification into targets and
+neighbors retrieved from the taxonomy often contradicts the phylogeny
+calculated from the target and neighbor genomes. So we should always
+compute a phylogeny from our target and neighbor genomes. A program
+for doing this efficiently is \ty{phylonium}~\cite{klo20:phy}.
 
-The phylogenies of targets and neighbors may contain hundreds of
-taxa. Neighbors contains two programs to help analyze such large
-phylogenies, \ty{land} for labeling nodes, and \ty{pickle} for picking
-nodes.
+The phylogenies of targets and neighbors may comprise hundreds of
+taxa. Neighbors contains three programs to help analyze such large
+phylogenies, \ty{land} for labeling nodes, \ty{pickle} for picking
+nodes, and \ty{fintac} for finding the target clade.
 
-
-
-
-
-
-A typical sequence
-of queries would start from the target organism of interest,
-say \emph{Aerococcus urinae}. The first thing we'd need is its
-taxon-ID. We get this using the program \ty{taxi}, which is also part
-of \ty{neighbors}.
-\begin{verbatim}
-$ taxi -s "Aerococcus urinae" neidb
-\end{verbatim}
-Next, the program \ty{dree} can draw the taxonomic tree rooted on a
-taxon, $r$. In other words, the program \ty{dree} walks from a taxon
-to the leaves of the subtree rooted on the
-taxon. Alternatively, \ty{dree} can also just list the taxa in the
-subtree rooted on $r$. In contrast, the program \ty{ants} lets us walk
-in the opposite direction, from a taxon to its ancestors. These two
-programs, \ty{dree} and \ty{ants}, help us explore the context of a
-taxon. Finally, we can submit the taxa of interest to \ty{neighbors},
-which finds their closest neighbors and the associated genome
-sequences.
-
-There is no guarantee that the classification provided by the taxonomy
-is identical to the phylogeny of the target and neighbor genomes. Such
-mixing of targets and neighbors would make marker discovery
-impossible. So we convert tartes and neighbors to phylogenies. Such
-phylogenies are often large and need to be broken down into individual
-clades. We can pick the leaves of individual clades from a Newick tree
-by first labeling the internal nodes with \ty{land} and then picking
-clades with \ty{pickle} (Table~\ref{tab:pro}).
-
-The Tutorial shows how the eight
-programs \ty{makeNeiDb}, \ty{taxi}, \ty{dree}, \ty{ants},
-\ty{neighbors}, \ty{land}, \ty{outliers}, and \ty{pickle} can be used
-to find marker candidates for \emph{Aerococcus urinae}.
+Even a clean set of phylogenetic targets might still contain genomes
+that are outliers in some way, for example with respect to their
+genome lengths. The program \ty{outliers} helps find such
+outliers. The tutorial contains the details.
