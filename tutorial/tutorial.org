@@ -4,7 +4,7 @@
   neighbor genomes used to identify regions that are ubiquitous in the
   targets and absent from the neighbors. These target regions are a good
   starting point for constructing diagnostic markers. In this Tutorial I
-  demonstrate the application of the eight programs in the Neighbors
+  demonstrate the application of the nine programs in the Neighbors
   package listed in Table~\ref{tab:pro}. We begin by constructing a
   local relational database from the NCBI taxonomy using the program
   \ty{makeNeiDb}. Then we query the database with \ty{taxid} to find the
@@ -18,10 +18,11 @@
   phylogeny reconstruction before we extract marker candidates from
   them. The prerequisite phylogeny reconstruction is done with
   \ty{phylonium}\footnote{\ty{https://github.com/evolbioinf/phylonium}}. The
-  resulting tree can be very large and its analysis is supported by two
-  additional programs from the Neighbors package, \ty{land} for labeling
-  the nodes in a phylogeny, and \ty{pickle} for picking a particular
-  clade in a phylogeny. Actual marker discovery is done with
+  resulting tree can be very large and its analysis is supported by
+  three additional programs from the Neighbors package, \ty{land} for
+  labeling the nodes in a phylogeny, \ty{pickle} for picking a
+  particular clade in a phylogeny, and \ty{fintac} for finding the
+  target clade. Actual marker discovery is done with
   \ty{fur}\footnote{\ty{https://github.com/evolbioinf/fur}}.
 
   \section*{Construct Database}
@@ -110,11 +111,11 @@ parent 83334, which in turn has parent 562.
     136 83334
 \end{verbatim}
 We can use \ty{dree} to visualize the taxonomic tree rooted on taxon
-83334. The output of \ty{dree} is in dot notation, which can be
-rendered into the tree shown in Figure~\ref{fig:ec1} using the program
-\ty{dot} from the graphviz package. Figure~\ref{fig:ec1} is too
-cramped for reading, but we can see that the tree has only two levels
-and that most of its nodes are colored, which indicates they are linked to
+83334. The output of \ty{dree} is in dot notation, which we render
+into the tree shown in Figure~\ref{fig:ec1} using the program \ty{dot}
+from the graphviz package. Figure~\ref{fig:ec1} is too cramped for
+reading, but we can see that the tree has only two levels and that
+most of its nodes are colored, which means they are linked to
 genome sequences.
 \begin{figure}
   \begin{center}
@@ -353,8 +354,8 @@ We rehydrate the 306 neighbor genomes.
 #+begin_export latex
 For easier handling, we move all genomes into a new directory,
 \ty{all}. We begin with the targets. To help dividing the data into
-true targets and neighbors later, we give target genomes the prefix
-\ty{t}.
+true, i. e. phylogenetic, targets and neighbors later, we give target
+genomes the prefix \ty{t}.
 #+end_export
 #+begin_src sh <<query.sh>>=
   mkdir all
@@ -365,8 +366,8 @@ true targets and neighbors later, we give target genomes the prefix
   done
 #+end_src
 #+begin_export latex
-We also move the neighbor genomes into \ty{all}, only this time we
-mark their names with prefix \ty{n}.
+We also move the neighbor genomes into \ty{all} and mark their names
+with prefix \ty{n}.
 #+end_export
 #+begin_src sh <<query.sh>>=
   for a in ndata/ncbi_dataset/data/*/*.fna
@@ -380,8 +381,8 @@ We've now got the taxonomic targets and neighbors united in the
 directory \ty{all}, but distinguishable by their prefix. Our next task
 is to extract from this data set the phylogenetic---as opposed to
 taxonomic---targets and neighbors. We do this by calculating a
-distance-based phylogeny. We calculate the requisite distances using
-the program
+distance-based phylogeny from the target and neighbor genomes. We
+calculate the requisite distances using the program
 \ty{phylonium}\footnote{\ty{https://github.com/evolbioinf/phylonium}}
 and save them in \ty{o157.dist}. This takes about one and a half
 minutes.
@@ -480,11 +481,42 @@ the reduced tree rooted on 291 shown in Figure~\ref{fig:o157}.
       plotTree -d 1200,1200
 #+end_src
 #+begin_export latex
-In Figure~\ref{fig:o157} clade 300 is our target clade, while its
-closely related sister clade, 293, is made up of neighbors. As we
-already noted, the root of this partial tree, 291, is connected to a
-singleton branch leading to a target. This is one of two taxonomic
-targets outside of clade 300.
+In Figure~\ref{fig:o157} clade 300 is our target clade, which took us
+a while to discover. Our discovery process is encapsulated in the
+program \ty{fintac}, which finds the target clade by looking for the
+clade that maximizes the sum of the targets inside its subtree and the
+neighbors outside.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  fintac o157.nwk
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+#Clade  Parent  Split (%)
+300     292     97.6
+\end{verbatim}
+We can also use the \ty{-a} option of \ty{fintac} to list all splits.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  fintac -a o157.nwk | head
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+#Clade  Parent  Split (%)
+300     292     97.6
+302     300     97.1
+304     302     96.7
+291     290     96.0
+290     271     95.8
+292     291     95.8
+311     304     95.1
+312     311     94.9
+271     270     91.5
+\end{verbatim}
+The closely related sister clade of 300, 293, is made up of
+neighbors. As we already noted, the root of this partial tree, 291, is
+connected to a singleton branch leading to a target. This is one of
+two taxonomic targets outside of clade 300.
 #+end_export
 #+begin_src sh <<query.sh>>=
   pickle -c 300 o157.nwk | grep '^t'
@@ -594,14 +626,14 @@ requirement that markers be present in all targets means that a single
 atypical target genome can wipe out markers found everywhere else. So
 our next task is to look for atypical genomes among the targets.
 
-When we downloaded the data, we already excluded ``atypical''
-genomes. A genome can be deemed atypical by the program \ty{datasets}
-based on about a dozen criteria, of which we concentrate on genome
-length. According to \ty{datasets}, a genome is atypical if it is 50\%
-larger or smaller than the average genome
-length\footnote{\ty{https://www.ncbi.nlm.nih.gov/datasets/docs/v2/troubleshooting/faq/\#what-are-atypical-genomes}}. If
-we think pf atypical genomes as outliers, this definition is somewhat
-unorthodox. A more common definition of outlier is based on the
+When we downloaded the data, we already excluded genomes deemed
+``atypical'' by the program \ty{datasets} based on about a dozen
+criteria. We concentrate on genome length. According to \ty{datasets},
+a genome is atypical if it is 50\% larger or smaller than the average
+genome
+length\footnote{\ty{https://www.ncbi.nlm.nih.gov/datasets/docs/v2/troubleshooting/faq/}\\ \ty{\#what-are-atypical-genomes}}. If
+we think of atypical genomes as outliers, this definition is somewhat
+unorthodox. A more common definition of outliers is based on the
 distance between the first and third quartile of a distribution. This
 definition is implemented in the program \ty{outliers}, which is also
 part of Neighbors. For each target genome, we extract its name and its
