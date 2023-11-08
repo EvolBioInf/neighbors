@@ -1,2 +1,2 @@
-#Clade  Parent  Split (%)
-300     292     97.6
+#Clade  Parent  Dist(Parent)  Split (%)
+300     292     0.00046       97.6
