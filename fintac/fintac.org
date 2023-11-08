@@ -156,65 +156,84 @@ them.
 #+end_src
 #+begin_export latex
 We traverse the tree by calling the function \ty{traverseTree}, which
-takes as argument a slice of counts and returns the filled-in slice of
-counts. It also takes the neighbor and target prefixes as arguments.
+takes as arguments a map, the neighbor prefix, and the target prefix.
 #+end_export
 #+begin_src go <<Count nodes, Pr. \ref{pr:fit}>>=
-  var counts []*count
-  counts = traverseTree(tree, counts, *optN, *optT)
+  counts := make(map[int]*Count)
+  traverseTree(tree, counts, *optN, *optT)
 #+end_src
 #+begin_export latex
-A count is understood per node; so it consists of the ID of the node,
-its label, the label of its parent, the number of neighbors and
-targets in its subtree, and its split as defined in
-equation~(\ref{eq:spl}).
+A count is understood per node; so it consists of the node label, the
+label of its parent, the number of neighbors and targets in its
+subtree, its split as defined in equation~(\ref{eq:spl}), and its
+distance to the parent.
 #+end_export
 #+begin_src go <<Types, Pr. \ref{pr:fit}>>=
-  type count struct {
-	  id int
+  type Count struct {
 	  label, parent string
 	  vn, vt int
-	  sv float64
+	  sv, dp float64
   }
 #+end_src
 #+begin_export latex
 The function \ty{traverseTree} recursively traverses the subtree of
-its input node in order. This means, we analyze the current node, $v$,
-before calling \ty{traverseTree} on its child and sibling.
+its input node. For each node it adds a count pre order and
+analyzes the node post order.
 #+end_export
 #+begin_src go <<Functions, Pr. \ref{pr:fit}>>=
-  func traverseTree(v *nwk.Node, counts []*count,
-	  np, tp string) []*count {
+  func traverseTree(v *nwk.Node, counts map[int]*Count,
+	  np, tp string) {
 	  if v == nil {
-		  return counts
+		  return
 	  }
+	  //<<Add count, Pr. \ref{pr:fit}>>
+	  traverseTree(v.Child, counts, np, tp)
+	  traverseTree(v.Sib, counts, np, tp)
 	  //<<Analyze $v$, Pr. \ref{pr:fit}>>
-	  counts = traverseTree(v.Child, counts, np, tp)
-	  counts = traverseTree(v.Sib, counts, np, tp)
-	  return counts
+  }
+#+end_src
+#+begin_export latex
+Only internal nodes split the tree, so if $v$ is an internal node, we
+create and store a count for it. In the count we store the label of
+$v$ and, if $v$ isn't the root, also the label of its parent and the
+distance to it.
+#+end_export
+#+begin_src go <<Add count, Pr. \ref{pr:fit}>>=
+  if v.Child != nil {
+	  count := new(Count)
+	  count.label = v.Label
+	  if v.Parent != nil {
+		  count.dp = v.Length
+		  count.parent = v.Parent.Label
+	  }
+	  counts[v.Id] = count
   }
 #+end_src
 #+begin_export latex
 If the current node is a leaf, we check its label, to make sure it is
 either a target or a neighbor. If the current node is not a leaf, it
 is an internal node. In that case we also check its label and count
-the nodes in its subtree.
+the targets and neighbors.
 #+end_export
 #+begin_src go <<Analyze $v$, Pr. \ref{pr:fit}>>=
   if v.Child == nil {
 	  //<<Check leaf label, Pr. \ref{pr:fit}>>
   } else {
 	  //<<Check internal node label, Pr. \ref{pr:fit}>>
-	  //<<Count nodes in subtree, Pr. \ref{pr:fit}>>
+	  //<<Count targets and neighbors, Pr. \ref{pr:fit}>>
   }
 #+end_src
 #+begin_export latex
-If the leaf label is neither target nor neighbor, something is wrong
-and we bail with message.
+If the leaf label is either a target or a neighbor, we increment the
+corresponding values of its parent. Otherwise, something is wrong and
+we bail with message.
 #+end_export
 #+begin_src go <<Check leaf label, Pr. \ref{pr:fit}>>=
-  if !strings.HasPrefix(v.Label, np) &&
-	  !strings.HasPrefix(v.Label, tp) {
+  if strings.HasPrefix(v.Label, np) {
+	  counts[v.Parent.Id].vn += 1.0
+  } else if strings.HasPrefix(v.Label, tp) {
+	  counts[v.Parent.Id].vt += 1.0
+  } else {
 	  log.Fatalf("%q is neither target nor neighbor",
 		  v.Label)
   }
@@ -235,45 +254,13 @@ We make sure all internal nodes are labeled.
   "strings"
 #+end_src
 #+begin_export latex
-To count nodes in the subtree, we need another recursive function,
-\ty{countNodes}.
+We count the targets and neighbors by incrementing the corresponding
+counter in the parent---unless we're a the root.
 #+end_export
-#+begin_src go <<Count nodes in subtree, Pr. \ref{pr:fit}>>=
-  c := new(count)
-  c.id = v.Id
-  c.label = v.Label
-  c.parent = "-"
+#+begin_src go <<Count targets and neighbors, Pr. \ref{pr:fit}>>=
   if v.Parent != nil {
-	  c.parent = v.Parent.Label
-  }
-  countNodes(v.Child, c, tp)
-  counts = append(counts, c)
-#+end_src
-#+begin_export latex
-Inside \ty{countNodes} we check whether we are dealing with a leaf, in
-which case we classify it. Then we complete the recursion.
-#+end_export
-#+begin_src go <<Functions, Pr. \ref{pr:fit}>>=
-  func countNodes(v *nwk.Node, c *count, tp string) {
-	  if v == nil {
-		  return
-	  }
-	  if v.Child == nil {
-		  //<<Classify leaf, Pr. \ref{pr:fit}>>
-	  }
-	  countNodes(v.Child, c, tp)
-	  countNodes(v.Sib, c, tp)
-  }
-#+end_src
-#+begin_export latex
-A leaf is either a target or a neighbor and we increment the
-corresponding counter.
-#+end_export
-#+begin_src go <<Classify leaf, Pr. \ref{pr:fit}>>=
-  if strings.HasPrefix(v.Label, tp) {
-	  c.vt++
-  } else {
-	  c.vn++
+	  counts[v.Parent.Id].vt += counts[v.Id].vt
+	  counts[v.Parent.Id].vn += counts[v.Id].vn
   }
 #+end_src
 #+begin_export latex
@@ -288,17 +275,14 @@ and sort the counts.
 We calculate splits according to equation~(\ref{eq:spl}). First, we
 determine the total counts of targets and neighbors, $n_{\rm t}$ and
 $n_{\rm n}$. These are the counts of targets and neighbors for the
-root, which are stored in the first entry of \ty{counts}. Having read
-the totals from this entry, we discard it, as it is the one internal
-node that doesn't split the tree.
+root.
 #+end_export
 #+begin_src go <<Calculate splits, Pr. \ref{pr:fit}>>=
-  nt := counts[0].vt
-  nn := counts[0].vn
-  counts = counts[1:]
+  nt := counts[tree.Id].vt
+  nn := counts[tree.Id].vn
 #+end_src
 #+begin_export latex
-We iterate over the remaining counts. For each count we calculate the
+We iterate over the counts. For each count we calculate the
 number of neighbors in the neighborhood,
 \[
 v^{\ast}_{\rm n}=n_{\rm n} - v_{\rm n}.
@@ -313,11 +297,15 @@ Then we apply equation~(\ref{eq:spl}) to compute the split percentage.
   }
 #+end_src
 #+begin_export latex
-We sort the counts by casting them to the sortable type
-\ty{countsSlice}, which we still have to define.
+We sort the counts by converting them to a slice and casting that to
+the sortable type \ty{countsSlice}, which we still have to define.
 #+end_export
 #+begin_src go <<Sort counts, Pr. \ref{pr:fit}>>=
-  sort.Sort(countsSlice(counts))
+  cs := make([]*Count, 0)
+  for _, count := range counts {
+	  cs = append(cs, count)
+  }
+  sort.Sort(countsSlice(cs))
 #+end_src
 #+begin_export latex
 We import \ty{sort}.
@@ -329,7 +317,7 @@ We import \ty{sort}.
 We declare the type \ty{countsSlice}.
 #+end_export
 #+begin_src go <<Types, Pr. \ref{pr:fit}>>=
-  type countsSlice []*count
+  type countsSlice []*Count
 #+end_src
 #+begin_export latex
 We implement the three methods of the sort interface, \ty{Len},
@@ -372,16 +360,17 @@ We import \ty{os} and \ty{tabwriter}.
   "text/tabwriter"
 #+end_src
 #+begin_export latex
-We print the splits in three columns, clade, parent, and split. We
-print the headers for these three columns and then the maximal
-splits. These all have the same split percentage as the top scorer.
+We print the splits in four columns, clade, parent, distance to
+parent, and split. We print the headers for these three columns and
+then the maximal splits. These all have the same split percentage as
+the top scorer.
 #+end_export
 #+begin_src go <<Print maximal splits, Pr. \ref{pr:fit}>>=
-  fmt.Fprint(w, "#Clade\tParent\tSplit (%)\n")
+  fmt.Fprint(w, "#Clade\tParent\tDist(Parent)\tSplit (%)\n")
   i := 0
-  for i < len(counts) && counts[0].sv == counts[i].sv {
-	  fmt.Fprintf(w, "%s\t%s\t%.1f\n", counts[i].label,
-		  counts[i].parent, counts[i].sv)
+  for i < len(cs) && cs[0].sv == cs[i].sv {
+	  fmt.Fprintf(w, "%s\t%s\t%g\t%.1f\n", cs[i].label,
+		  cs[i].parent, cs[i].dp, cs[i].sv)
 	  i++
   }
 #+end_src
@@ -395,12 +384,9 @@ We import \ty{fmt}.
 We print the remaining splits.
 #+end_export
 #+begin_src go <<Print remaining splits, Pr. \ref{pr:fit}>>=
-  for i < len(counts) {
-	  if counts[i].label == "" {
-		  counts[i].label = "-"
-	  }
-	  fmt.Fprintf(w, "%s\t%s\t%.1f\n", counts[i].label,
-		  counts[i].parent, counts[i].sv)
+  for i < len(cs) {
+	  fmt.Fprintf(w, "%s\t%s\t%g\t%.1f\n", cs[i].label,
+		  cs[i].parent, cs[i].dp, cs[i].sv)
 	  i++
   }
 #+end_src
