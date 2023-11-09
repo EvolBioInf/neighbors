@@ -360,18 +360,24 @@ We import \ty{os} and \ty{tabwriter}.
   "text/tabwriter"
 #+end_src
 #+begin_export latex
-We print the splits in four columns, clade, parent, distance to
-parent, and split. We print the headers for these three columns and
-then the maximal splits. These all have the same split percentage as
-the top scorer.
+We print the splits in six columns, clade, targets, neighbors, parent,
+distance to parent, and split. We print the headers for these three
+columns and then the maximal splits. These all have the same split
+percentage as the top scorer. The root has no parent, so we replace
+the root's parent label with a hyphen.
 #+end_export
 #+begin_src go <<Print maximal splits, Pr. \ref{pr:fit}>>=
-  fmt.Fprint(w, "#Clade\tParent\tDist(Parent)\tSplit (%)\n")
+  fmt.Fprint(w, "#Clade\tTargets\tNeighbors\tSplit (%)\t" +
+	  "Parent\tDist(Parent)\n")
   i := 0
-  for i < len(cs) && cs[0].sv == cs[i].sv {
-	  fmt.Fprintf(w, "%s\t%s\t%g\t%.1f\n", cs[i].label,
-		  cs[i].parent, cs[i].dp, cs[i].sv)
-	  i++
+  for ; i < len(cs) && cs[0].sv == cs[i].sv; i++ {
+	  pl := cs[i].parent
+	  if pl == "" {
+		  pl = "-"
+	  }
+	  fmt.Fprintf(w, "%s\t%d\t%d\t%.1f\t%s\t%g\n",
+		  cs[i].label, cs[i].vt, cs[i].vn,
+		  cs[i].sv, pl, cs[i].dp)
   }
 #+end_src
 #+begin_export latex
@@ -384,10 +390,14 @@ We import \ty{fmt}.
 We print the remaining splits.
 #+end_export
 #+begin_src go <<Print remaining splits, Pr. \ref{pr:fit}>>=
-  for i < len(cs) {
-	  fmt.Fprintf(w, "%s\t%s\t%g\t%.1f\n", cs[i].label,
-		  cs[i].parent, cs[i].dp, cs[i].sv)
-	  i++
+  for ; i < len(cs); i++ {
+	  pl := cs[i].parent
+	  if pl == "" {
+		  pl = "-"
+	  }
+	  fmt.Fprintf(w, "%s\t%d\t%d\t%.1f\t%s\t%g\n",
+		  cs[i].label, cs[i].vt, cs[i].vn,
+		  cs[i].sv, pl, cs[i].dp)
   }
 #+end_src
 #+begin_export latex
