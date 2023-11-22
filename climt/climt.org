@@ -1,0 +1,386 @@
+#+begin_export latex
+\section{\ty{climt}}
+The program \ty{climt} climbs a phylogenetic tree. It takes as input a
+phylogeny and a node label and returns the node's chain of ancestors
+up to the root. For each node it also prints the length of the branch
+to the ancestor and the cumulative branch length. So its output
+consists of four columns, \emph{Back}, \emph{Node}, \emph{Branch
+Length}, and \emph{Cumulative Branch Length}. Like the output of
+\ty{ants}, the output of \ty{climt} starts at the root and ends at the
+target node, for example,
+\begin{verbatim}
+# Back   Node   Branch Length   Cumulative Branch Length
+2        1      0               0.16
+1        5      0.11            0.05
+0        13     0.05            0
+\end{verbatim}
+Instead of climbing up the tree toward the root, the user can also opt
+to climb down. However, while climbing up goes all the way to the
+root, climbing down is just by one level to the direct children. This
+keeps the output legible.
+\subsection*{Implementation}
+The outline of \ty{climt} has hooks for imports, functions, and the
+logic of the main function.\bpr{climt}{pr:cli}
+#+end_export
+#+begin_src go <<climt.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr. \ref{pr:cli}>>
+  )
+
+  //<<Functions, Pr. \ref{pr:cli}>>
+  func main() {
+	  //<<Main function, Pr. \ref{pr:cli}>>
+  }
+#+end_src
+#+begin_export latex
+\epr In the main function we set the name of \ty{climt} and its usage,
+declare the options, parse the options, and parse the input files.
+#+end_export
+#+begin_src go <<Main function, Pr. \ref{pr:cli}>>=
+  util.SetName("climt")
+  //<<Set usage, Pr. \ref{pr:cli}>>
+  //<<Declare options, Pr. \ref{pr:cli}>>
+  //<<Parse options, Pr. \ref{pr:cli}>>
+  //<<Parse input files, Pr. \ref{pr:cli}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_export latex
+The usage consists of three parts, the actual usage message, an
+explanation of the program's purpose, and an example command.
+#+end_export
+#+begin_src go <<Set usage, Pr. \ref{pr:cli}>>=
+  u := "climt [option]... v [inputFile]..."
+  p := "Climb a phylogenetic tree starting at node v."
+  e := "climt someTaxon foo.nwk"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_export latex
+We import \ty{clio}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_export latex
+We declare the obligatory version option. Apart from that, we also
+allow the user to switch from the default mode of climbing up the
+tree, that is, toward the root, to climbing down.
+#+end_export
+#+begin_src go <<Declare options, Pr. \ref{pr:cli}>>=
+  optV := flag.Bool("v", false, "version")
+  optD := flag.Bool("d", false, "climb down one level")
+#+end_src
+#+begin_export latex
+We import \ty{flag}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
+  "flag"
+#+end_src
+#+begin_export latex
+We parse the options and respond to a request for the version as this
+stops \ty{climt}.
+#+end_export
+#+begin_src go <<Parse options, Pr. \ref{pr:cli}>>=
+  flag.Parse()
+  if *optV {
+	  util.PrintInfo("climt")
+  }
+#+end_src
+#+begin_export latex
+The next token on the command line is the name of the node from where
+we start climbing. If the user hasn't provided a node name, we bail
+with a friendly message. The remaining tokens on the command line are
+the names of input files. We parse each input file with the function
+\ty{scan}, which takes as argument the name of the starting node and
+the ``down'' option.
+#+end_export
+#+begin_src go <<Parse input files, Pr. \ref{pr:cli}>>=
+  args := flag.Args()
+  if len(args) == 0 {
+	  log.Fatal("please provide a starting node")
+  }
+  start := args[0]
+  files := args[1:]
+  clio.ParseFiles(files, scan, start, optD)
+#+end_src
+#+begin_export latex
+We import \ty{log}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
+  "log"
+#+end_src
+#+begin_export latex
+Inside \ty{scan} we first retrieve the name of the start node and the
+``down'' option. Then we iterate over the trees in the current
+file. For each tree we determine its start node and climb from there.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:cli}>>=
+  func scan(r io.Reader, args ...interface{}) {
+	  start := args[0].(string)
+	  optD := args[1].(*bool)
+	  sc := nwk.NewScanner(r)
+	  for sc.Scan() {
+		  root := sc.Tree()
+		  //<<Find start node, Pr. \ref{pr:cli}>>
+		  //<<Climb tree, Pr. \ref{pr:cli}>>
+	  }
+  }
+#+end_src
+#+begin_export latex
+We import \ty{io} and \ty{nwk}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
+  "io"
+  "github.com/evolbioinf/nwk"
+#+end_src
+#+begin_export latex
+We search for the start node, $v$, using the function
+\ty{findStart}. If we don't find the start node, we exit with return
+value 1, like \ty{grep} does.
+#+end_export
+#+begin_src go <<Find start node, Pr. \ref{pr:cli}>>=
+  var v *nwk.Node
+  findStart(root, &v, start)
+  if v == nil {
+	  os.Exit(1)
+  }
+#+end_src
+#+begin_export latex
+The function \ty{findStart} traverses the tree recursively and
+analyzes each node, $v$.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:cli}>>=
+  func findStart(root *nwk.Node, v **nwk.Node, start string) {
+	  if root == nil {
+		  return
+	  }
+	  if root.Label == start {
+		  *v = root
+	  }
+	  findStart(root.Child, v, start)
+	  findStart(root.Sib, v, start)
+  }
+#+end_src
+#+begin_export latex
+We climb either down or up the tree.
+#+end_export
+#+begin_src go <<Climb tree, Pr. \ref{pr:cli}>>=
+  if *optD {
+	  //<<Climb down, Pr. \ref{pr:cli}>>
+  } else {
+	  //<<Climb up, Pr. \ref{pr:cli}>>
+  }
+#+end_src
+#+begin_export latex
+We import \ty{fmt} and \ty{os}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
+  "fmt"
+  "os"
+#+end_src
+#+begin_export latex
+When climbing down a tree, we get the children of $v$ and print them.
+#+end_export
+#+begin_src go <<Climb down, Pr. \ref{pr:cli}>>=
+  //<<Get children, Pr. \ref{pr:cli}>>
+  //<<Print children, Pr. \ref{pr:cli}>>
+#+end_src
+#+begin_export latex
+We store the children as a slice of nodes.
+#+end_export
+#+begin_src go <<Get children, Pr. \ref{pr:cli}>>=
+  children := make([]*nwk.Node, 0)
+  np := v.Child
+  for np != nil {
+	  children = append(children, np)
+	  np = np.Sib
+  }
+#+end_src
+#+begin_export latex
+If we found any children, we print them as a table, which we format
+using a \ty{tabwriter}. The table consists of a header and a row
+listing the children. Having printed the table, we flush the
+\ty{tabwriter}.
+#+end_export
+#+begin_src go <<Print children, Pr. \ref{pr:cli}>>=
+  if len(children) > 0 {
+	  w := tabwriter.NewWriter(os.Stdout, 0,
+		  1, 3, ' ', 0)
+	  //<<Print children header, Pr. \ref{pr:cli}>>
+	  //<<Print children row, Pr. \ref{pr:cli}>>
+	  w.Flush()
+  }
+#+end_src
+#+begin_export latex
+We import the \ty{tabwriter}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
+  "text/tabwriter"
+#+end_src
+#+begin_export latex
+In the header of our table we distinguish between one or more
+children.
+#+end_export
+#+begin_src go <<Print children header, Pr. \ref{pr:cli}>>=
+  fmt.Fprint(w, "#Parent\tChild")
+  if len(children) > 1 {
+	  fmt.Fprint(w, "ren")
+  }
+  fmt.Fprint(w, "\n")
+#+end_src
+#+begin_export latex
+The child row consists of the name of the parent, followed by the
+names of its children separated by blanks.
+#+end_export
+#+begin_src go <<Print children row, Pr. \ref{pr:cli}>>=
+  fmt.Fprintf(w, "%s\t", start)
+  for i, child := range children {
+	  if i > 0 {
+		  fmt.Fprint(w, " ")
+	  }
+	  fmt.Fprintf(w, "%s", child.Label)
+  }
+  fmt.Fprint(w, "\n")
+#+end_src
+#+begin_export latex
+When climbing the tree, we encounter the nodes in the order
+child/parent, but we would like to print them in the order
+parent/child, so that on the screen the root is \emph{up}. To get the
+printing order from the climbing order, we first collect all the
+ancestors in a slice. Then we calculate the cumulative length of their
+branches, before we print the ancestor table, again using a
+\ty{tabwriter}.
+#+end_export
+#+begin_src go <<Climb up, Pr. \ref{pr:cli}>>=
+  //<<Collect ancestors, Pr. \ref{pr:cli}>>
+  cumLen := v.UpDistance(root)
+  w := tabwriter.NewWriter(os.Stdout, 0, 1, 3, ' ', 0)
+  //<<Print ancestor header, Pr. \ref{pr:cli}>>
+  //<<Print ancestor table, Pr. \ref{pr:cli}>>
+  w.Flush()
+#+end_src
+#+begin_export latex
+Like the children, we collect the ancestors in a slice of nodes.
+#+end_export
+#+begin_src go <<Collect ancestors, Pr. \ref{pr:cli}>>=
+  ancestors := make([]*nwk.Node, 0)
+  np := v
+  for np != nil {
+	  ancestors = append(ancestors, np)
+	  np = np.Parent
+  }
+#+end_src
+#+begin_export latex
+The ancestor table consists of four columns, the steps \emph{back},
+the node label, the branch length, and the cumulative branch length.
+#+end_export
+#+begin_src go <<Print ancestor header, Pr. \ref{pr:cli}>>=
+  fmt.Fprint(w, "# Back\tNode\tBranch Length\t" +
+	  "Cumulative Branch Length\n")
+#+end_src
+#+begin_export latex
+When printing the table of ancestors, we inverse the climbing
+order. While doing so, we repeatedly subtract the length of the
+upcoming branch from the current value of the cumulative length. To
+ensure that our last value is zero, we round the floats. Since
+\ty{float64} provides approximately 15 decimal digits of
+precision~\cite[p. 56]{don16:go}, that is the precision we round to.
+#+end_export
+#+begin_src go <<Print ancestor table, Pr. \ref{pr:cli}>>=
+  n := len(ancestors)
+  ratio := math.Pow(10, 15.0)
+  for i := n-1; i >= 0; i-- {
+	  x := math.Round(cumLen*ratio) / ratio
+	  fmt.Fprintf(w, "%d\t%s\t%g\t%g\n", i,
+		  ancestors[i].Label,
+		  ancestors[i].Length, x)
+	  if i > 0 {
+		  cumLen -= ancestors[i-1].Length
+	  }
+  }
+#+end_src
+#+begin_export latex
+We import \ty{math}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
+  "math"
+#+end_src
+#+begin_export latex
+We're done writing \ty{climt}, so let's test it.
+\subsection*{Testing}
+The outline of our testing code for \ty{climt} has hooks for imports
+and the logic of the main function.
+#+end_export
+#+begin_src go <<climt_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr. \ref{pr:cli}>>
+  )
+
+  func TestClimt(t *testing.T) {
+	  //<<Testing, Pr. \ref{pr:cli}>>
+  }
+#+end_src
+#+begin_export latex
+We construct a set of tests and run each one in a loop.
+#+end_export
+#+begin_src go <<Testing, Pr. \ref{pr:cli}>>=
+  tests := make([]*exec.Cmd, 0)
+  //<<Construct tests, Pr. \ref{pr:cli}>>
+  for i, test := range tests {
+	  //<<Run test, Pr. \ref{pr:cli}>>
+  }
+#+end_src
+#+begin_export latex
+We import \ty{exec}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:cli}>>=
+  "os/exec"
+#+end_src
+#+begin_export latex
+We run our tests on the tree in file \ty{test.nwk} with starting node
+300. Using these two inputs, we construct two tests, one with only
+default options, the other with the ``down'' option, \ty{-d}.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:cli}>>=
+  f := "test.nwk"
+  s := "300"
+  test := exec.Command("./climt", s , f)
+  tests = append(tests, test)
+  test = exec.Command("./climt", "-d", s, f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+For a given test we compare the result we get with the result we want,
+which is stored in files \ty{r1.txt} and \ty{r2.txt}.
+#+end_export
+#+begin_src go <<Run test, Pr. \ref{pr:cli}>>=
+  get, err := test.Output()
+  if err != nil {
+	  t.Error(err)
+  }
+  f := "r" + strconv.Itoa(i+1) + ".txt"
+  want, err := os.ReadFile(f)
+  if err != nil {
+	  t.Error(err)
+  }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strconv}, \ty{os}, and \ty{bytes}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:cli}>>=
+  "strconv"
+  "os"
+  "bytes"
+#+end_src
