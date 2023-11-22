@@ -1,4 +1,4 @@
-progs = ants dree land fintac makeNeiDb neighbors outliers pickle taxi
+progs = ants climt dree land fintac makeNeiDb neighbors outliers pickle taxi
 packs = util tdb # Order matters
 
 all:
