@@ -7,17 +7,31 @@ to the ancestor and the cumulative branch length. So its output
 consists of four columns, \emph{Back}, \emph{Node}, \emph{Branch
 Length}, and \emph{Cumulative Branch Length}. Like the output of
 \ty{ants}, the output of \ty{climt} starts at the root and ends at the
-target node, for example,
+target node, for example, if we climb in \ty{test.nwk} from node 300,
+we get its parent 292, its grand parent 291, and so on:
 \begin{verbatim}
 # Back   Node   Branch Length   Cumulative Branch Length
-2        1      0               0.16
-1        5      0.11            0.05
-0        13     0.05            0
+9        1      0               0.012098
+8        77     4.7e-05         0.012051
+7        85     0.00412         0.007931
+6        268    0.00122         0.006711
+5        270    0.000302        0.006409
+4        271    0.000313        0.006096
+3        290    0.000155        0.005941
+2        291    0.000471        0.00547
+1        292    0.00501         0.00046
+0        300    0.00046         0
 \end{verbatim}
 Instead of climbing up the tree toward the root, the user can also opt
 to climb down. However, while climbing up goes all the way to the
 root, climbing down is just by one level to the direct children. This
-keeps the output legible.
+keeps the output legible. Here's an example showing that in
+\ty{test.nwk} node 292 has two children, node 300 as expected from
+above, and node 293:
+\begin{verbatim}
+# Parent   Children
+292        293 300
+\end{verbatim}
 \subsection*{Implementation}
 The outline of \ty{climt} has hooks for imports, functions, and the
 logic of the main function.\bpr{climt}{pr:cli}
@@ -228,7 +242,7 @@ In the header of our table we distinguish between one or more
 children.
 #+end_export
 #+begin_src go <<Print children header, Pr. \ref{pr:cli}>>=
-  fmt.Fprint(w, "#Parent\tChild")
+  fmt.Fprint(w, "# Parent\tChild")
   if len(children) > 1 {
 	  fmt.Fprint(w, "ren")
   }
