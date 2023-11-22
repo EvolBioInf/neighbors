@@ -1,4 +1,4 @@
-SRC1 =   makeNeiDb.tex taxi.tex ants.tex neighbors.tex dree.tex fintac.tex land.tex outliers.tex pickle.tex tdb.tex tutorial.tex util.tex
+SRC1 =   makeNeiDb.tex taxi.tex ants.tex climt.tex neighbors.tex dree.tex fintac.tex land.tex outliers.tex pickle.tex tdb.tex tutorial.tex util.tex
 SRC2 =   header.tex introduction.tex neighborsDoc.tex
 
 all: neighborsDoc.pdf
@@ -16,6 +16,8 @@ taxi.tex: ../taxi/taxi.org
 	awk -f ../scripts/preWeave.awk ../taxi/taxi.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > taxi.tex
 ants.tex: ../ants/ants.org
 	awk -f ../scripts/preWeave.awk ../ants/ants.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > ants.tex
+climt.tex: ../climt/climt.org
+	awk -f ../scripts/preWeave.awk ../climt/climt.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > climt.tex
 neighbors.tex: ../neighbors/neighbors.org
 	awk -f ../scripts/preWeave.awk ../neighbors/neighbors.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > neighbors.tex
 dree.tex: ../dree/dree.org

@@ -40,38 +40,41 @@ where $s(v)$ returns the nodes in the subtree rooted on $v$, and
 $p(v)$ the parent of $v$. This set subtraction is implemented in the
 program \ty{neighbors}.
 
-The Neighbors package consists of the nine programs listed in
-Table~\ref{tab:pro} and is centered on an \ty{sqlite3} database that
-combines taxonomy and genome information. 
+The Neighbors package consists of the ten programs listed in
+Table~\ref{tab:pro}. Five of these programs are based on the taxonomy,
+four on a phylogeny, and one, \ty{outliers}, on numerical data.
+
 \begin{table}
-\caption{The nine programs of Neighbors}\label{tab:pro}
+\caption{The ten programs of Neighbors}\label{tab:pro}
 \begin{center}
-\begin{tabular}{lll}
+\begin{tabular}{rlll}
 \hline
-\# & Name & Function\\\hline
-1 & \ty{ants} & list the ancestors of a taxon\\
-2 & \ty{dree} & draw taxonomic tree rooted on taxid\\
-3 & \ty{fintac} & find target clade\\
-4 & \ty{land} & label nodes in Newick tree\\
-5 & \ty{makeNeiDb} & construct taxonomy and genomes database\\
-6 & \ty{neighbors} & complete targets and list neighbors\\
-7 & \ty{outliers} & find outliers in a set of numerical data\\
-8 & \ty{pickle} & pick clades in a Newick tree\\
-9 & \ty{taxi} & get taxon-ID from taxon name\\\hline
+\# & Name & Based on & Function\\\hline
+1 & \ty{ants} & taxonomy & list ancestors\\
+2 & \ty{climt} & phylogeny & climb tree\\
+3 & \ty{dree} & taxonomy & draw tree\\
+4 & \ty{fintac} & phylogeny & find target clade\\
+5 & \ty{land} & phylogeny & label nodes\\
+6 & \ty{makeNeiDb} & taxonomy & make neighbors database\\
+7 & \ty{neighbors} & taxonomy & find neighbors (and targets)\\
+8 & \ty{outliers} & numbers & find outliers\\
+9 & \ty{pickle} & phylogeny & pick clades\\
+10 & \ty{taxi} & taxonomy & get taxon-ID for taxon name\\\hline
 \end{tabular}
 \end{center}
 \end{table}
 
-The database, let's call it \ty{neidb}, is built using the
-program \ty{makeNeiDb}. As shown in Figure~\ref{fig:db}, \ty{neidb}
-consists of two tables, \ty{genome} and \ty{taxon}. Each genome comes
-from an organism identified by its taxon-ID, has a size, a status, a
-genome accession, and one or more replicons, which are lumped in one
-attribute. Each genome belongs to a taxon. A taxon has a unique
-taxon-ID, which serves as primary key. A taxon also has a parent, a
-rank, and a name. Since several genomes may have been sequenced for a
-given taxon, the attribute \ty{taxid} in table \ty{genome} is not
-unique, which is why that table has no primary key.
+The taxonomy is presented as an \ty{sqlite} database, let's call
+it \ty{neidb}, which is built using the program \ty{makeNeiDb}. As
+shown in Figure~\ref{fig:db}, \ty{neidb} consists of two
+tables, \ty{genome} and \ty{taxon}. Each genome comes from an organism
+identified by its taxon-ID, has a size, a status, a genome accession,
+and one or more replicons, which are lumped in one attribute. Each
+genome belongs to a taxon. A taxon has a unique taxon-ID, which serves
+as primary key. A taxon also has a parent, a rank, and a name. Since
+several genomes may have been sequenced for a given taxon, the
+attribute \ty{taxid} in table \ty{genome} is not unique, which is why
+that table has no primary key.
 
 \begin{figure}
   \begin{center}
@@ -102,9 +105,10 @@ compute a phylogeny from our target and neighbor genomes. A program
 for doing this efficiently is \ty{phylonium}~\cite{klo20:phy}.
 
 The phylogenies of targets and neighbors may comprise hundreds of
-taxa. Neighbors contains three programs to help analyze such large
-phylogenies, \ty{land} for labeling nodes, \ty{pickle} for picking
-nodes, and \ty{fintac} for finding the target clade.
+taxa. To help analyze such large phylogenies, Neighbors
+contains \ty{land} for labeling nodes, \ty{pickle} for picking nodes,
+\ty{fintac} for finding the target clade, and \ty{climt} for climbing
+the tree.
 
 Even a clean set of phylogenetic targets might still contain genomes
 that are outliers in some way, for example with respect to their

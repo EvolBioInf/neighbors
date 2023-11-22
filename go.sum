@@ -2,5 +2,5 @@ github.com/evolbioinf/clio v0.0.0-20230620105705-02d07225d27e h1:csibfpCOoKLYtIs
 github.com/evolbioinf/clio v0.0.0-20230620105705-02d07225d27e/go.mod h1:Jh4QPiChVHZHe7fwj+xcSs6kUcQbQVzsd/ht3PIoaaU=
 github.com/evolbioinf/nwk v0.0.0-20230911105541-eb9548008fda h1:pGyxLc5n8NvdBtiHbquLMtiDO3mpjCWAVnS10dNYqjs=
 github.com/evolbioinf/nwk v0.0.0-20230911105541-eb9548008fda/go.mod h1:AduknVpv3xviFarKiTVjKI73aA5fje7tY3k8ILXwB8I=
-github.com/mattn/go-sqlite3 v1.14.16 h1:yOQRA0RpS5PFz/oikGwBEqvAWhWg5ufRz4ETLjwpU1Y=
-github.com/mattn/go-sqlite3 v1.14.16/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
+github.com/mattn/go-sqlite3 v1.14.18 h1:JL0eqdCOq6DJVNPSvArO/bIV9/P7fbGrV00LZHc+5aI=
+github.com/mattn/go-sqlite3 v1.14.18/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
