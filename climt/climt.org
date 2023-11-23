@@ -4,33 +4,35 @@ The program \ty{climt} climbs a phylogenetic tree. It takes as input a
 phylogeny and a node label and returns the node's chain of ancestors
 up to the root. For each node it also prints the length of the branch
 to the ancestor and the cumulative branch length. So its output
-consists of four columns, \emph{Back}, \emph{Node}, \emph{Branch
+consists of four columns, \emph{Up}, \emph{Node}, \emph{Branch
 Length}, and \emph{Cumulative Branch Length}. Like the output of
 \ty{ants}, the output of \ty{climt} starts at the root and ends at the
-target node, for example, if we climb in \ty{test.nwk} from node 300,
-we get its parent 292, its grand parent 291, and so on:
+target node. For example, if we climb in \ty{test.nwk} from node 303,
+we reach the root in nine steps up the tree. The chain of ancestors
+consists of parent 295, grand parent 294, and so on, up to node 1, the
+root.
 \begin{verbatim}
-# Back   Node   Branch Length   Cumulative Branch Length
-9        1      0               0.012098
-8        77     4.7e-05         0.012051
-7        85     0.00412         0.007931
-6        268    0.00122         0.006711
-5        270    0.000302        0.006409
-4        271    0.000313        0.006096
-3        290    0.000155        0.005941
-2        291    0.000471        0.00547
-1        292    0.00501         0.00046
-0        300    0.00046         0
+# Up   Node   Branch Length   Cumulative Branch Length
+9      1      0               0.0120347
+8      77     5.47e-05        0.01198
+7      85     0.00406         0.00792
+6      271    0.00128         0.00664
+5      273    0.000212        0.006428
+4      274    0.000425        0.006003
+3      293    0.000132        0.005871
+2      294    0.000526        0.005345
+1      295    0.00488         0.000465
+0      303    0.000465        0
 \end{verbatim}
 Instead of climbing up the tree toward the root, the user can also opt
 to climb down. However, while climbing up goes all the way to the
-root, climbing down is just by one level to the direct children. This
-keeps the output legible. Here's an example showing that in
-\ty{test.nwk} node 292 has two children, node 300 as expected from
-above, and node 293:
+root, climbing down all the way to the leaves could lead to large
+output that is illegible. So we just climb down by one level to the
+direct children. Here's an example showing that in \ty{test.nwk} node
+295 has two children, node 303 as expected from above, and node 296:
 \begin{verbatim}
 # Parent   Children
-292        293 300
+295        296 303
 \end{verbatim}
 \subsection*{Implementation}
 The outline of \ty{climt} has hooks for imports, functions, and the
@@ -291,32 +293,56 @@ Like the children, we collect the ancestors in a slice of nodes.
   }
 #+end_src
 #+begin_export latex
-The ancestor table consists of four columns, the steps \emph{back},
-the node label, the branch length, and the cumulative branch length.
+The ancestor table consists of four columns, the steps \emph{up} the
+tree, the node label, the branch length, and the cumulative branch
+length.
 #+end_export
 #+begin_src go <<Print ancestor header, Pr. \ref{pr:cli}>>=
-  fmt.Fprint(w, "# Back\tNode\tBranch Length\t" +
+  fmt.Fprint(w, "# Up\tNode\tBranch Length\t" +
 	  "Cumulative Branch Length\n")
 #+end_src
 #+begin_export latex
-When printing the table of ancestors, we inverse the climbing
-order. While doing so, we repeatedly subtract the length of the
-upcoming branch from the current value of the cumulative length. To
-ensure that our last value is zero, we round the floats. Since
-\ty{float64} provides approximately 15 decimal digits of
-precision~\cite[p. 56]{don16:go}, that is the precision we round to.
+When printing the table of ancestors, we inverse the climbing order,
+so the root is in the first row and the starting node in the
+last. While iterating over the ancestors in inverse order, we
+repeatedly subtract the length of the upcoming branch from the current
+value of the cumulative length. The imprecision of floating point
+representation means that we cannot be sure that addition and
+subtraction are exactly reversible. To ensure that in our table we
+revisit the exact branch lengths of the values we originally put in,
+we round the cumulative lengths before printing them.
 #+end_export
 #+begin_src go <<Print ancestor table, Pr. \ref{pr:cli}>>=
   n := len(ancestors)
-  ratio := math.Pow(10, 15.0)
   for i := n-1; i >= 0; i-- {
-	  x := math.Round(cumLen*ratio) / ratio
-	  fmt.Fprintf(w, "%d\t%s\t%g\t%g\n", i,
-		  ancestors[i].Label,
-		  ancestors[i].Length, x)
+	  //<<Round cumulative length, Pr. \ref{pr:cli}>>
+	  //<<Print cumulative length, Pr. \ref{pr:cli}>>
 	  if i > 0 {
 		  cumLen -= ancestors[i-1].Length
 	  }
+  }
+#+end_src
+#+begin_export latex
+We round a float, $f$, to $s$ significant digits by remembering basic
+arithmetic,
+\begin{equation}\label{eq:round}
+f\leftarrow \frac{\mbox{round}(f\times x)}{x},
+\end{equation}
+where $x=10^s$.  The question is, which value should we use for $s$?
+Since \ty{float64} provides approximately 15 decimal digits of
+precision~\cite[p. 56]{don16:go}, that is, $s=15$. As a further
+complication, we might end up rounding to a negative zero. Since a
+negative zero is not less than zero, we use the dedicated function
+\ty{Signbit} to find out whether $f$ is negative, in which case we
+multiply it by $-1$.
+#+end_export
+#+begin_src go <<Round cumulative length, Pr. \ref{pr:cli}>>=
+  f := cumLen
+  s := 15.0
+  x := math.Pow(10, s)
+  f = math.Round(f*x) / x
+  if math.Signbit(f) {
+	  f *= -1.0
   }
 #+end_src
 #+begin_export latex
@@ -324,6 +350,18 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
   "math"
+#+end_src
+#+begin_export latex
+We print the steps back the label of the current ancestor, and its
+branch length, and the rounded cumulative branch length we just
+calculated.
+#+end_export
+#+begin_src go <<Print cumulative length, Pr. \ref{pr:cli}>>=
+  fmt.Fprintf(w, "%d\t%s\t%g\t%g\n",
+	  i,
+	  ancestors[i].Label,
+	  ancestors[i].Length,
+	  f)
 #+end_src
 #+begin_export latex
 We're done writing \ty{climt}, so let's test it.
@@ -361,12 +399,12 @@ We import \ty{exec}.
 #+end_src
 #+begin_export latex
 We run our tests on the tree in file \ty{test.nwk} with starting node
-300. Using these two inputs, we construct two tests, one with only
+303. Using these two inputs, we construct two tests, one with only
 default options, the other with the ``down'' option, \ty{-d}.
 #+end_export
 #+begin_src go <<Construct tests, Pr. \ref{pr:cli}>>=
   f := "test.nwk"
-  s := "300"
+  s := "303"
   test := exec.Command("./climt", s , f)
   tests = append(tests, test)
   test = exec.Command("./climt", "-d", s, f)
