@@ -1,16 +1,16 @@
 #+begin_export latex
 \section{\ty{climt}}
-The program \ty{climt} climbs a phylogenetic tree. It takes as input a
-phylogeny and a node label and returns the node's chain of ancestors
-up to the root. For each node it also prints the length of the branch
-to the ancestor and the cumulative branch length. So its output
-consists of four columns, \emph{Up}, \emph{Node}, \emph{Branch
-Length}, and \emph{Cumulative Branch Length}. Like the output of
-\ty{ants}, the output of \ty{climt} starts at the root and ends at the
-target node. For example, if we climb in \ty{test.nwk} from node 303,
-we reach the root in nine steps up the tree. The chain of ancestors
+The program \ty{climt} climbs a tree. It takes as input a phylogenetic
+tree and a node label and returns the node's chain of ancestors up to
+the root. For each node it also prints the length of the branch to the
+ancestor and the cumulative branch length. So its output consists of
+four columns, \emph{Up}, \emph{Node}, \emph{Branch Length}, and
+\emph{Cumulative Branch Length}. Like the output of \ty{ants}, the
+output of \ty{climt} starts at the root and ends at the target
+node. For example, if we climb in \ty{test.nwk} from node 303, we
+reach the root in nine steps up the tree. The chain of ancestors
 consists of parent 295, grand parent 294, and so on, up to node 1, the
-root.
+root:
 \begin{verbatim}
 # Up   Node   Branch Length   Cumulative Branch Length
 9      1      0               0.0120347
@@ -323,18 +323,20 @@ we round the cumulative lengths before printing them.
   }
 #+end_src
 #+begin_export latex
-We round a float, $f$, to $s$ significant digits by remembering basic
-arithmetic,
+We round a float, $f$, to $s$ significant digits by multiplying by
+$10^s$, rounding, and dividing again by $10^s$,
 \begin{equation}\label{eq:round}
-f\leftarrow \frac{\mbox{round}(f\times x)}{x},
+f\leftarrow \frac{\mbox{round}(f\times 10^s)}{10^s}.
 \end{equation}
-where $x=10^s$.  The question is, which value should we use for $s$?
-Since \ty{float64} provides approximately 15 decimal digits of
-precision~\cite[p. 56]{don16:go}, that is, $s=15$. As a further
-complication, we might end up rounding to a negative zero. Since a
-negative zero is not less than zero, we use the dedicated function
-\ty{Signbit} to find out whether $f$ is negative, in which case we
-multiply it by $-1$.
+The question is, which value should we use for $s$?  Since
+\ty{float64} provides approximately 15 decimal digits of
+precision~\cite[p. 56]{don16:go}, we use $s=15$.
+
+As a further complication, we might end up rounding to a negative
+zero. Since a negative zero is not less than zero, we can't test for
+negativity by testing for $<0$. Instead, we use the dedicated function
+\ty{Signbit}, which returns true for negative arguments, including
+negative zero.
 #+end_export
 #+begin_src go <<Round cumulative length, Pr. \ref{pr:cli}>>=
   f := cumLen
