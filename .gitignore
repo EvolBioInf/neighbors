@@ -13,6 +13,7 @@ doc/*.toc
 doc/ants.tex
 doc/climt.tex
 doc/dree.tex
+doc/edist.tex
 doc/fintac.tex
 doc/makeNeiDb.tex
 doc/neighbors.tex
@@ -29,6 +30,7 @@ doc/util.tex
 ants/ants
 climt/climt
 dree/dree
+edist/edist
 fintac/fintac
 makeNeiDb/makeNeiDb
 makeNeiDb/test.db

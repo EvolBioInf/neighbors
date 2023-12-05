@@ -1,0 +1,354 @@
+#+begin_export latex
+\section{\ty{edist}}
+The Neighbors package is focused on the discovery of phylogenetically
+correct targets and neighbors based on their taxonomy. The phylogeny
+we calculate is based on a distance matrix, which in turn is
+calculated from the underlying genome sequences using
+\ty{phylonium}~\cite{klo20:phy}. Similarly, we classify target
+candidates based on their distances to some reference strain. The
+question is, what is the threshold distance for inclusion among the
+targets? To find out, we need to extract the distances between the
+targets from the original distance matrix.
+
+The program \ty{edist} is designed for extracting distances from
+distance matrices. It reads a distance matrix in PHYLIP format as
+produced, for example, by \ty{phylonium}. It also reads a list of
+taxon names, as might be returned by \ty{pickle}. The program
+\ty{edist} then reduces the input distance matrix to the distance
+matrix for the input taxa and prints it. The user can also opt to
+print the complement, the distance matrix for the taxa \emph{not} in
+the input.
+
+\subsection*{Implementation}
+Our outline of \ty{edist} has hooks for imports, functions, and the
+logic of the main function.
+\bpr{edist}{pr:edi}
+#+end_export
+#+begin_src go <<edist.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr. \ref{pr:edi}>>
+  )
+  //<<Functions, Pr. \ref{pr:edi}>>
+  func main() {
+	  //<<Main function, Pr. \ref{pr:edi}>>
+  }
+#+end_src
+#+begin_export latex
+\epr In the main function we set the program name and its usage,
+declare the options, parse the options, and parse the input.
+#+end_export
+#+begin_src go <<Main function, Pr. \ref{pr:edi}>>=
+  util.SetName("edist")
+  //<<Set usage, Pr. \ref{pr:edi}>>
+  //<<Declare options, Pr. \ref{pr:edi}>>
+  //<<Parse options, Pr. \ref{pr:edi}>>
+  //<<Parse input, Pr. \ref{pr:edi}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:edi}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_export latex
+The usage consists of three parts, the actual usage message, an
+explanation of the purpose of \ty{edist}, and an example command.
+#+end_export
+#+begin_src go <<Set usage, Pr. \ref{pr:edi}>>=
+  u := "edist [option]... <distMat.txt> [names.txt]..."
+  p := "Extract distances from distance matrix."
+  e := "edist o157.dist taxa.txt"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_export latex
+We import \ty{clio}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:edi}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_export latex
+Apart from the obligatory version, we declare only one option,
+\ty{-c}, for printing the complement of the matrix printed by default.
+#+end_export
+#+begin_src go <<Declare options, Pr. \ref{pr:edi}>>=
+  optV := flag.Bool("v", false, "version")
+  optC := flag.Bool("c", false, "complement")
+#+end_src
+#+begin_export latex
+We import \ty{flag}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:edi}>>=
+  "flag"
+#+end_src
+#+begin_export latex
+We parse the options and respond to the request for the version, as
+fulfilling this request also stops the program. The remaining tokes on
+the command line are taken as file names. The first of these is the
+name of the distance matrix, which we read, unless the user hasn't
+provided one. In that case we kindly ask for one.
+#+end_export
+#+begin_src go <<Parse options, Pr. \ref{pr:edi}>>=
+  flag.Parse()
+  if *optV {
+	  util.Version()
+  }
+  var dm *dist.DistMat
+  files := flag.Args()
+  if len(files) == 0 {
+	  log.Fatal("please provide a distance matrix")
+  } else {
+	  //<<Read distance matrix, Pr. \ref{pr:edi}>>
+  }
+#+end_src
+#+begin_export latex
+We import \ty{dist} and \ty{log}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:edi}>>=
+  "github.com/evolbioinf/dist"
+  "log"
+#+end_src
+#+begin_export latex
+We read the distance matrix using a bespoke scanner. If something goes
+wrong while scanning the distance matrix, we bail with a friendly
+message.
+#+end_export
+#+begin_src go <<Read distance matrix, Pr. \ref{pr:edi}>>=
+  f, err := os.Open(files[0])
+  util.Check(err)
+  sc := dist.NewScanner(f)
+  if sc.Scan() {
+	  dm = sc.DistanceMatrix()
+  } else {
+	  log.Fatal("couldn't read distance matrix")
+  }
+#+end_src
+#+begin_export latex
+We import \ty{os}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:edi}>>=
+  "os"
+#+end_src
+#+begin_export latex
+The remaining tokens on the command line are taken as files containing
+sets of taxon names as they appear in the distance matrix. The names
+of these files are submitted to the function \ty{parseFiles}, which
+applies the function \ty{parse} to each one. The function \ty{parse},
+in turn takes as arguments the distance matrix and the complement
+switch.
+#+end_export
+#+begin_src go <<Parse input, Pr. \ref{pr:edi}>>=
+  files = files[1:]
+  clio.ParseFiles(files, parse, dm, *optC)
+#+end_src
+#+begin_export latex
+Inside \ty{parse} we first retrieve the arguments we just passed. Then
+we copy the distance matrix, read the taxa and check them, create the
+delete list, delete the taxa in the delete list form the distance
+matrix, and print the reduced matrix.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:edi}>>=
+  func parse(r io.Reader, args ...interface{}) {
+	  //<<Retrieve arguments, Pr. \ref{pr:edi}>>
+	  //<<Copy distance matrix, Pr. \ref{pr:edi}>>
+	  //<<Read input taxa, Pr. \ref{pr:edi}>>
+	  //<<Check input taxa, Pr. \ref{pr:edi}>>
+	  //<<Create delete list, Pr. \ref{pr:edi}>>
+	  //<<Delete taxa, Pr. \ref{pr:edi}>>
+	  //<<Print reduced distance matrix, Pr. \ref{pr:edi}>>
+  }
+#+end_src
+#+begin_export latex
+We import \ty{io}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:edi}>>=
+  "io"
+#+end_src
+#+begin_export latex
+We retrieve the distance matrix and the complement switch.
+#+end_export
+#+begin_src go <<Retrieve arguments, Pr. \ref{pr:edi}>>=
+  dm := args[0].(*dist.DistMat)
+  cmpl := args[1].(bool)
+#+end_src
+#+begin_export latex
+We make a new distance matrix and copy the original into it.
+#+end_export
+#+begin_src go <<Copy distance matrix, Pr. \ref{pr:edi}>>=
+  n := len(dm.Names)
+  nm := dist.NewDistMat(n)
+  for i := 0; i < n; i++ {
+	  nm.Names[i] = dm.Names[i]
+	  for j := 0; j < n; j++ {
+		  nm.Matrix[i][j] = dm.Matrix[i][j]
+	  }
+  }
+#+end_src
+#+begin_export latex
+We use a scanner to scan the list of taxa and store their names in a
+map.
+#+end_export
+#+begin_src go <<Read input taxa, Pr. \ref{pr:edi}>>=
+  taxa := make(map[string]bool)
+  sc := bufio.NewScanner(r)
+  for sc.Scan() {
+	  taxa[sc.Text()] = true
+  }
+#+end_src
+#+begin_export latex
+We import \ty{bufio}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:edi}>>=
+  "bufio"
+#+end_src
+#+begin_export latex
+We store the names of the taxa in the distance matrix as a map and
+check that this map contains all the taxa just read. If not, something
+has gone wrong and we bail with a message.
+#+end_export
+#+begin_src go <<Check input taxa, Pr. \ref{pr:edi}>>=
+  names := make(map[string]bool)
+  for _, name := range nm.Names {
+	  names[name] = true
+  }
+  for taxon, _ := range taxa {
+	  if !names[taxon] {
+		  log.Fatalf("%s not in matrix\n", taxon)
+	  }
+  }
+#+end_src
+#+begin_export latex
+We iterate over the names in the distance matrix, which we may or may
+not find in the taxon list.
+#+end_export
+#+begin_src go <<Create delete list, Pr. \ref{pr:edi}>>=
+  dl := make([]string, 0)
+  for name, _ := range names {
+	  if taxa[name] {
+		  //<<Found name, Pr. \ref{pr:edi}>>
+	  } else {
+		  //<<Didn't find name, Pr. \ref{pr:edi}>>
+	  }
+  }
+#+end_src
+#+begin_export latex
+If we found a name in the taxon list, we add it to the delete list if
+we are in complement mode.
+#+end_export
+#+begin_src go <<Found name, Pr. \ref{pr:edi}>>=
+  if cmpl {
+	  dl = append(dl, name)
+  }
+#+end_src
+#+begin_export latex
+If we didn't find a name in the taxon list, we add it to the delete
+list if we are \emph{not} in complement mode.
+#+end_export
+#+begin_src go <<Didn't find name, Pr. \ref{pr:edi}>>=
+  if !cmpl {
+	  dl = append(dl, name)
+  }
+#+end_src
+#+begin_export latex
+We iterate over the entries in the delete list, look up their
+positions in the matrix, and delete them from the matrix.
+#+end_export
+#+begin_src go <<Delete taxa, Pr. \ref{pr:edi}>>=
+  for _, x := range dl {
+	  i := sort.SearchStrings(nm.Names, x)
+	  nm.Delete(i)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{sort}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:edi}>>=
+  "sort"
+#+end_src
+#+begin_export latex
+We print the reduced distance matrix by implicitly calling its
+\ty{String} method.
+#+end_export
+#+begin_src go <<Print reduced distance matrix, Pr. \ref{pr:edi}>>=
+  fmt.Printf("%s", nm)
+#+end_src
+#+begin_export latex
+We import \ty{fmt}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:edi}>>=
+  "fmt"
+#+end_src
+#+begin_export latex
+We have finished writing \ty{edist}, let's test it.
+\subsection*{Testing}
+The outline of our testing code has hooks for imports and the testing
+logic.
+#+end_export
+#+begin_src go <<edist_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr. \ref{pr:edi}>>
+  )
+
+  func TestEdist(t *testing.T) {
+	  //<<Testing, Pr. \ref{pr:edi}>>
+  }
+#+end_src
+#+begin_export latex
+We construct a set of tests and run them.
+#+end_export
+#+begin_src go <<Testing, Pr. \ref{pr:edi}>>=
+  tests := make([]*exec.Cmd, 0)
+  //<<Construct tests, Pr. \ref{pr:edi}>>
+  for i, test := range tests {
+	  //<<Run test, Pr. \ref{pr:edi}>>
+  }
+#+end_src
+#+begin_export latex
+We import \ty{exec}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:edi}>>=
+  "os/exec"
+#+end_src
+#+begin_export latex
+We run our tests on the distance matrix \ty{o157.dist} and the taxon
+list \ty{taxa.txt}. There are two tests, the first in default mode,
+the second in complement mode.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:edi}>>=
+  d := "o157.dist"
+  n := "taxa.txt"
+  test := exec.Command("./edist", d, n)
+  tests = append(tests, test)
+  test = exec.Command("./edist", "-c", d, n)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We run the test and compare the result we get to the result we want,
+which is stored in the files \ty{r1.txt} and \ty{r2.txt}.
+#+end_export
+#+begin_src go <<Run test, Pr. \ref{pr:edi}>>=
+  get, err := test.Output()
+  if err != nil {
+	  t.Error(err)
+  }
+  f := "r" + strconv.Itoa(i+1) + ".txt"
+  want, err := os.ReadFile(f)
+  if err != nil {
+	  t.Error(err)
+  }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strconv}, \ty{os}, and \ty{bytes}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:edi}>>=
+  "strconv"
+  "os"
+  "bytes"
+#+end_src
