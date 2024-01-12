@@ -23,7 +23,7 @@ neighborhood, that is, the number of neighbors \emph{outside} of
 $v$. Now we can look for the node that maximizes the percent split
 between targets and neighbors,
 \begin{equation}\label{eq:spl}
-s(v)=\frac{v_{\rm t} + v^{\ast}_{\rm n}}{n_{\rm n}+n_{\rm t}}\times 100.
+s(v)=\frac{v_{\rm t}/n_{\rm t} + v^{\ast}_{\rm n}/n_{\rm n}}{2}\times 100.
 \end{equation}
 This quantity ranges from 0, if $v$ contains no targets and all
 neighbors, to 100, if $v$ contains all targets and no neighbors.
@@ -292,8 +292,8 @@ Then we apply equation~(\ref{eq:spl}) to compute the split percentage.
 #+begin_src go <<Calculate splits, Pr. \ref{pr:fit}>>=
   for _, count := range counts {
 	  van := nn - count.vn
-	  count.sv = float64(count.vt + van) /
-		  float64(nt + nn) * 100
+	  count.sv = (float64(count.vt) / float64(nt) +
+		  float64(van) / float64(nn) ) / 2.0 * 100
   }
 #+end_src
 #+begin_export latex
