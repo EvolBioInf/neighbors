@@ -293,7 +293,7 @@ Then we apply equation~(\ref{eq:spl}) to compute the split percentage.
   for _, count := range counts {
 	  van := nn - count.vn
 	  count.sv = (float64(count.vt) / float64(nt) +
-		  float64(van) / float64(nn) ) / 2.0 * 100
+		  float64(van) / float64(nn)) / 2.0 * 100
   }
 #+end_src
 #+begin_export latex
