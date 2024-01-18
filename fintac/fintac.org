@@ -23,7 +23,7 @@ neighborhood, that is, the number of neighbors \emph{outside} of
 $v$. Now we can look for the node that maximizes the percent split
 between targets and neighbors,
 \begin{equation}\label{eq:spl}
-s(v)=\frac{v_{\rm t}/n_{\rm t} + v^{\ast}_{\rm n}/n_{\rm n}}{2}\times 100.
+s(v)=\frac{v_{\rm t} + v^{\ast}_{\rm n}}{n_{\rm n} + n_{\rm t}}\times 100.
 \end{equation}
 This quantity ranges from 0, if $v$ contains no targets and all
 neighbors, to 100, if $v$ contains all targets and no neighbors.
@@ -193,46 +193,44 @@ analyzes the node post order.
   }
 #+end_src
 #+begin_export latex
-Only internal nodes split the tree, so if $v$ is an internal node, we
-create and store a count for it. In the count we store the label of
-$v$ and, if $v$ isn't the root, also the label of its parent and the
-distance to it.
+We create and store a count for each node. In the count we
+store the label of $v$ and, if $v$ isn't the root, also the label of
+its parent and the distance to it.
 #+end_export
 #+begin_src go <<Add count, Pr. \ref{pr:fit}>>=
-  if v.Child != nil {
-	  count := new(Count)
-	  count.label = v.Label
-	  if v.Parent != nil {
-		  count.dp = v.Length
-		  count.parent = v.Parent.Label
-	  }
-	  counts[v.Id] = count
+  count := new(Count)
+  count.label = v.Label
+  if v.Parent != nil {
+	  count.dp = v.Length
+	  count.parent = v.Parent.Label
   }
+  counts[v.Id] = count
 #+end_src
 #+begin_export latex
 If the current node is a leaf, we check its label, to make sure it is
 either a target or a neighbor. If the current node is not a leaf, it
-is an internal node. In that case we also check its label and count
-the targets and neighbors.
+is an internal node. In that case we also check its label to make sure
+it actually has a label. In either case we count the targets and
+neighbors.
 #+end_export
 #+begin_src go <<Analyze $v$, Pr. \ref{pr:fit}>>=
   if v.Child == nil {
 	  //<<Check leaf label, Pr. \ref{pr:fit}>>
   } else {
 	  //<<Check internal node label, Pr. \ref{pr:fit}>>
-	  //<<Count targets and neighbors, Pr. \ref{pr:fit}>>
   }
+  //<<Count targets and neighbors, Pr. \ref{pr:fit}>>
 #+end_src
 #+begin_export latex
-If the leaf label is either a target or a neighbor, we increment the
-corresponding values of its parent. Otherwise, something is wrong and
-we bail with message.
+If the leaf label is either a target or a neighbor, we set its
+corresponding counter. Otherwise, something is wrong and we bail with
+message.
 #+end_export
 #+begin_src go <<Check leaf label, Pr. \ref{pr:fit}>>=
   if strings.HasPrefix(v.Label, np) {
-	  counts[v.Parent.Id].vn += 1.0
+	  counts[v.Id].vn = 1.0
   } else if strings.HasPrefix(v.Label, tp) {
-	  counts[v.Parent.Id].vt += 1.0
+	  counts[v.Id].vt = 1.0
   } else {
 	  log.Fatalf("%q is neither target nor neighbor",
 		  v.Label)
@@ -292,8 +290,8 @@ Then we apply equation~(\ref{eq:spl}) to compute the split percentage.
 #+begin_src go <<Calculate splits, Pr. \ref{pr:fit}>>=
   for _, count := range counts {
 	  van := nn - count.vn
-	  count.sv = (float64(count.vt) / float64(nt) +
-		  float64(van) / float64(nn)) / 2.0 * 100
+	  count.sv = float64(count.vt + van) /
+		  float64(nt + nn) * 100
   }
 #+end_src
 #+begin_export latex

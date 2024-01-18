@@ -61,5 +61,6 @@ tutorial/tlen.dat
 
 # Misc
 dree/makeRes.sh
+edist/
 neighbors-docker
 tutorial/drawTrees.sh
