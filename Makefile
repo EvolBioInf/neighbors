@@ -24,6 +24,7 @@ test:
 		make test -C $$prog; \
 	done
 docker:
-	cd docker; \
+	git clone https://github.com/IvanTsers/neighbors-docker; \
+	cd neighbors-docker; \
 	sudo docker build -t neighbors .; \
 	cd ..

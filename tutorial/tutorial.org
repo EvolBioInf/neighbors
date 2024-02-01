@@ -126,7 +126,7 @@ genome sequences.
 \end{figure}
 #+end_export
 #+begin_src sh <<query.sh>>=
-  dree 83334 neidb | dot -T x11
+  dree 83334 neidb
 #+end_src
 #+begin_export latex
 We saw previously that the parent of 83334 is taxon 562. To find out
@@ -301,15 +301,10 @@ genomes. It is available from the \ty{datasets} web site,
 \end{center}
 We restrict our analysis to genomes with assembly-level ``complete''
 and exclude genomes flagged as ``atypical''. We download the genomes
-in ``dehydrated'' form. \textbf{Attention:} the data were accessed on
-31 January 2024. The number of available genomes of interest may, of
-course, change with time. This can affect the downstream analysis, so
-one should keep track of it. In this tutorial, we proceed with the
-data available on the given date.
-
-We begin with the target genomes, of which there are 143. This means
-out of the 329 target genomes across all assembly levels, only 143 are
-typical and complete. We save the target genomes in \ty{tdata.zip}.
+in ``dehydrated'' form. We begin with the target genomes, of which
+there are 143. This means out of the 329 target genomes across all
+assembly levels, only 143 are typical and complete. We save the target
+genomes in \ty{tdata.zip}.
 #+end_export
 #+begin_src sh <<query.sh>>=
   datasets download genome accession \
@@ -320,8 +315,8 @@ typical and complete. We save the target genomes in \ty{tdata.zip}.
 	   --filename tdata.zip
 #+end_src
 #+begin_export latex
-We repeat the download for the neighbor genomes, where only 307 out of
-the 3128 pass muster.
+We repeat the download for the neighbor genomes, where only 306 out of
+the 3127 pass muster.
 #+end_export
 #+begin_src sh <<query.sh>>=
   datasets download genome accession \
@@ -351,7 +346,7 @@ We rehydrate the 143 target genomes.
   datasets rehydrate --directory tdata
 #+end_src
 #+begin_export latex
-We rehydrate the 307 neighbor genomes.
+We rehydrate the 306 neighbor genomes.
 #+end_export
 #+begin_src sh <<query.sh>>=
   datasets rehydrate --directory ndata
@@ -409,7 +404,7 @@ part of Neighbors, and save the final tree in \ty{o157.nwk}.
 The tree in \ty{o157.nwk} is in the popular Newick format, and you can
 render it with your favorite tree plotting program. One example of
 such a program is \ty{plotTree} from the biobox. Its default plot
-dimensions are too small for our tree of 450 taxa, so we set the
+dimensions are too small for our tree of 449 taxa, so we set the
 dimensions to $1200\times 1200$ pixels.
 #+end_export
 #+begin_src sh <<query.sh>>=
@@ -426,7 +421,7 @@ that the targets are concentrated in the top part of the tree.
 #+end_src
 #+begin_export latex
 To further explore the target region of our tree, let's pick the
-subtree rooted on node 269 as it appears to contain most targets and a
+subtree rooted on node 268 as it appears to contain most targets and a
 bit of neighbor context. We do this with \ty{pickle} in tree mode,
 \ty{-t}. We now see that node 291 contains a lone target, while its
 other child, node 292, contains most of the targets and a closely
@@ -434,17 +429,17 @@ related neighbor clade.
 #+end_export
 #+begin_src sh <<query.sh>>=
   sed 's/n[^f]*fna/n/g' o157.nwk |
-      pickle -t 269 |
+      pickle -t 268 |
       plotTree -d 1200,1200 
 #+end_src
 #+begin_export latex
 To make the target clade easier to read, we further zoom into it by
-picking node 293. This shows us that the targets are in clade 301,
-while its sister clade 294 contains eight neighbors.
+picking node 292. This shows us that the targets are in clade 300,
+while its sister clade 293 contains eight neighbors.
 #+end_export
 #+begin_src sh <<query.sh>>=
   sed 's/n[^f]*fna/n/g' o157.nwk |
-      pickle -t 293 |
+      pickle -t 292 |
       plotTree -d 1200,1200 
 #+end_src
 #+begin_export latex
@@ -453,7 +448,7 @@ neighbors interspersed in our target clade. We count nine such
 misclassified taxa, which we treat as targets in subsequent analyses.
 #+end_export
 #+begin_src sh <<query.sh>>=
-  pickle 301 o157.nwk |
+  pickle 300 o157.nwk |
       grep -c '^n'
 #+end_src
 #+begin_export latex
@@ -469,7 +464,7 @@ both the leaf labels and node labels. Nodes can be removed by using
 #+end_src
 #+begin_export latex
 Now we also reduce the target labels to their first character and plot
-the reduced tree rooted on 292 shown in Figure~\ref{fig:o157}.
+the reduced tree rooted on 291 shown in Figure~\ref{fig:o157}.
 \begin{figure}
 \begin{center}
 \includegraphics{../tutorial/ec2.ps}
@@ -481,12 +476,12 @@ the reduced tree rooted on 292 shown in Figure~\ref{fig:o157}.
 #+end_export
 #+begin_src sh <<query.sh>>=
   sed -E 's/([nt])[^f]*fna/\1/g' o157.nwk |
-      pickle -t 292 |
+      pickle -t 291 |
       pickle -t -c 312 |
       plotTree -d 1200,1200
 #+end_src
 #+begin_export latex
-In Figure~\ref{fig:o157} clade 301 is our target clade, which took us
+In Figure~\ref{fig:o157} clade 300 is our target clade, which took us
 a while to discover. Our discovery process is encapsulated in the
 program \ty{fintac}, which finds the target clade by looking for the
 clade that maximizes the sum of the targets inside its subtree and the
@@ -497,8 +492,8 @@ neighbors outside.
 #+end_src
 #+begin_export latex
 \begin{verbatim}
-#Clade  Targets  Neighbors  Split (%)  Parent  Dist(Parent)
-301     141      9          97.6       293     0.00046
+#Clade  Parent  Split (%)
+300     292     97.6
 \end{verbatim}
 We can also use the \ty{-a} option of \ty{fintac} to list all splits.
 #+end_export
@@ -507,20 +502,24 @@ We can also use the \ty{-a} option of \ty{fintac} to list all splits.
 #+end_src
 #+begin_export latex
 \begin{verbatim}
-#Clade   Neighbors  Split (%)  Parent  Dist(Parent)
-301      9          97.6       293     0.00046
-303      9          97.1       301     0.000106
-305      9          96.7       303     0.000115
-292      17         96.0       291     0.000471
-...
+#Clade  Parent  Split (%)
+300     292     97.6
+302     300     97.1
+304     302     96.7
+291     290     96.0
+290     271     95.8
+292     291     95.8
+311     304     95.1
+312     311     94.9
+271     270     91.5
 \end{verbatim}
-The closely related sister clade of 301, 294, is made up of
-neighbors. As we already noted, the root of this partial tree, 292, is
+The closely related sister clade of 300, 293, is made up of
+neighbors. As we already noted, the root of this partial tree, 291, is
 connected to a singleton branch leading to a target. This is one of
-two taxonomic targets outside of clade 301.
+two taxonomic targets outside of clade 300.
 #+end_export
 #+begin_src sh <<query.sh>>=
-  pickle -c 301 o157.nwk | grep '^t'
+  pickle -c 300 o157.nwk | grep '^t'
 #+end_src
 #+begin_export latex
 \begin{verbatim}
@@ -529,11 +528,11 @@ tGCA_003722195.1_ASM372219v1_genomic.fna
 \end{verbatim}
 
 Since the distance between this lone putative target and
-the many targets in clade 301 is substantial, we reassign the loner as
+the many targets in clade 300 is substantial, we reassign the loner as
 a neighbor.
 
 We begin our search for markers by splitting our tree into targets,
-i. e. clade 301, and neighbors, the precise difinition of which comes
+i. e. clade 300, and neighbors, the precise difinition of which comes
 later.
 
 To separate the targets, we make a directory, \ty{targets}. Then we
@@ -542,7 +541,7 @@ clade. For each taxon we create a symbolic link to the original data.
 #+end_export
 #+begin_src sh <<query.sh>>=
   mkdir targets
-  pickle 301 o157.nwk |
+  pickle 300 o157.nwk |
       grep -v '^#' |
       while read a; do
 	  ln -s $(pwd)/all/$a $(pwd)/targets/$a
@@ -551,11 +550,11 @@ clade. For each taxon we create a symbolic link to the original data.
 #+begin_export latex
 The program \ty{fur} works on the idea that the \emph{closest}
 neighbors are the most informative for marker discovery. So we
-construct our neighbor set from the genomes in clade 294.
+construct our neighbor set from the genomes in clade 293.
 #+end_export
 #+begin_src sh <<query.sh>>=
   mkdir neighbors
-  pickle 294 o157.nwk |
+  pickle 293 o157.nwk |
       grep -v '^#' |
       while read a; do
 	  ln -s $(pwd)/all/$a $(pwd)/neighbors/$a
@@ -564,59 +563,59 @@ construct our neighbor set from the genomes in clade 294.
 #+begin_export latex
 In preparation for running \ty{fur}, we make its database with
 \ty{makeFurDb}. Since the database is used to compare the targets in
-node 301 with the neighbors in node 294, we call it \ty{301\_294.db}. Its
+node 300 with the neighbors in node 293, we call it \ty{300\_293.db}. Its
 construction takes approximately 25 s.
 #+end_export
 #+begin_src sh <<query.sh>>=
-  makeFurDb -t targets/ -n neighbors/ -d 301_294.db
+  makeFurDb -t targets/ -n neighbors/ -d 300_293.db
 #+end_src
 #+begin_export latex
 Given the database, we can apply \ty{fur} to it. This takes nine
-seconds and returns 8.5 kb marker candidates, of which 2 kb are
-\ty{N}s. We save these sequences in the file \ty{301\_294.fasta}.
+seconds and returns 8.6 kb marker candidates, of which 2.2 kb are
+\ty{N}s. We save these sequences in the file \ty{300\_293.fasta}.
 #+end_export
 #+begin_src sh <<query.sh>>=
-  fur -d 301_294.db > 301_294.fasta
+  fur -d 300_293.db > 300_293.fasta
 #+end_src
 #+begin_export latex
 \begin{verbatim}
   Step           Sequences  Length    Ns
   -------------  ---------  ------    --
-  Subtraction_1        248  230358     0
-  Intersection          41   16772   578
-  Subtraction_2         12    8525  2047
+  Subtraction_1        247  226718     0
+  Intersection          44   16383   504
+  Subtraction_2         12    8668  2201
 \end{verbatim}
 
 To check whether these markers crosshybridize with markers in the
 wider neighborhood, we repeat the analysis with a neighborhood
-consisting of everything but node 301 making up the neighborhood.
+consisting of everything but node 300 making up the neighborhood.
 #+end_export
 #+begin_src sh <<query.sh>>=
   rm neighbors/*
-  pickle -c 301 o157.nwk |
+  pickle -c 300 o157.nwk |
       grep -v '^#' |
       while read a; do
 	  ln -s $(pwd)/all/$a $(pwd)/neighbors/$a
       done
 #+end_src
 #+begin_export latex
-The new database compares clade 301 to everything else in the tree, so
-we call it \ty{301.db}. Its construction takes 13.5 minutes.
+The new database compares clade 300 to everything else in the tree, so
+we call it \ty{300.db}. Its construction takes 13.5 minutes.
 #+end_export
 #+begin_src sh <<query.sh>>=
-  makeFurDb -t targets -n neighbors -d 301.db
+  makeFurDb -t targets -n neighbors -d 300.db
 #+end_src
 #+begin_export latex
 Now the intersection step of \ty{fur} comes up empty.
 #+end_export
 #+begin_src sh <<query.sh>>=
-  fur -d 301.db
+  fur -d 300.db
 #+end_src
 #+begin_export latex
 \begin{verbatim} 
   Step           Sequences  Length  Ns
   -------------  ---------  ------  --
-  Subtraction_1         25   24244   0
+  Subtraction_1         30   24281   0
   Intersection           0       0   0
 \end{verbatim}
 
@@ -671,16 +670,15 @@ subtraction step.
 #+begin_src sh <<query.sh>>=
   awk '$2==4.869019e+06' tlen.dat
   rm targets/tGCA_030908645.1_ASM3090864v1_genomic.fna
-  makeFurDb -t targets -n neighbors -o -d 301.db
-  fur -d 301.db
+  makeFurDb -t targets -n neighbors -o -d 300.db
+  fur -d 300.db
 #+end_src
 #+begin_export latex
-\clearpage
 \begin{verbatim}
   Step           Sequences  Length  Ns
   -------------  ---------  ------  --
-  Subtraction_1         40   29376   0
-  Intersection           7    2781  12
+  Subtraction_1         39   28967   0
+  Intersection           7    2750  13
   Subtraction_2          0       0   0
 \end{verbatim}
 #+end_export
@@ -691,53 +689,54 @@ sensitive megablast mode, which leaves two fragment with a total of
 210 bp. Not much, but much more than nothing.
 #+end_export
 #+begin_src sh <<query.sh>>=
-  fur -m -d 301.db
+  fur -d -m 300.db
 #+end_src
 #+begin_export latex
 \begin{verbatim}
+fur -m -d 300.db/ > 300.fasta
   Step           Sequences  Length  Ns
   -------------  ---------  ------  --
-  Subtraction_1         40   29376   0
-  Intersection           7    2781  12
+  Subtraction_1         39   28967   0
+  Intersection           7    2750  13
   Subtraction_2          2     210   0
 \end{verbatim}
 #+end_export
 #+begin_export latex
 In an attempt to improve our marker yield, we look for nested
 markers. Notice that in Figure~\ref{fig:o157} the branch separating
-node 292 from node 293 is much longer than the branch separating
-clades 301 and 294. So we begin our search for nested markers by again
-looking for regions that distinguish targets 301 from neighbors 294,
+node 291 from node 292 is much longer than the branch separating
+clades 300 and 293. So we begin our search for nested markers by again
+looking for regions that distinguish targets 300 from neighbors 293,
 only this time we don't include the extremely short genome. In a
 second step we'll compare targets 292 to everything else. But first we
-compare 301 vs. 294, which gives 13.1 kb markers with almost 5 kb
-\ty{N}s, up from 8.5 kb in our previous analysis.
+compare 300 vs. 293, which gives 13.3 kb markers with almost 5 kb
+\ty{N}s, up from 8.8 kb in our previous analysis.
 #+end_export
 #+begin_src sh <<query.sh>>=
   rm neighbors/*
-  pickle 294 o157.nwk |
+  pickle 293 o157.nwk |
 	grep -v '^#' |
 	while read a; do
 	    ln -s $(pwd)/all/$a $(pwd)/neighbors/$a
 	done
-  makeFurDb -t targets -n neighbors -d 301_294.db -o
-  fur -d 301_294.db > 301_294.fasta
+  makeFurDb -t targets -n neighbors -d 300_293.db -o
+  fur -d 300_293.db > 300_293.fasta
 #+end_src
 #+begin_export latex
 \begin{verbatim}
   Step           Sequences  Length    Ns
   -------------  ---------  ------    --
-  Subtraction_1        340  258815     0
-  Intersection         114   35229   708
-  Subtraction_2         15   13126  4709
+  Subtraction_1        331  255255     0
+  Intersection         108   33484   691
+  Subtraction_2         15   13279  4863
 \end{verbatim}
 
-Now we compare 293 to the rest. We begin by preparing the targets and
+Now we compare 292 to the rest. We begin by preparing the targets and
 remove the extra short genome.
 #+end_export
 #+begin_src sh <<query.sh>>=
   rm targets/*
-  pickle 293 o157.nwk |
+  pickle 292 o157.nwk |
       grep -v '^#' |
       while read a; do
 	  ln -s $(pwd)/all/$a $(pwd)/targets/$a
@@ -749,7 +748,7 @@ And now the neighbors.
 #+end_export
 #+begin_src sh <<query.sh>>=
   rm neighbors/*
-  pickle -c 293 o157.nwk |
+  pickle -c 292 o157.nwk |
       grep -v '^#' |
       while read a; do
 	  ln -s $(pwd)/all/$a $(pwd)/neighbors/$a
@@ -757,24 +756,24 @@ And now the neighbors.
 #+end_src
 #+begin_export latex
 We run \ty{makeFurDb} and \ty{fur} to find a very poor yield in
-default mode, but with megablast mode there are 4 kb markers, of
+default mode, but with megablast mode there are 3.2 kb markers, of
 which half a kb is \ty{N}s. That's a start.
 #+end_export
 #+begin_src sh <<query.sh>>=
-  makeFurDb -t targets -n neighbors -d 293.db
-  fur -m -d 293.db > 293.fasta
+  makeFurDb -t targets -n neighbors -d 292.db
+  fur -m -d 292.db > 292.fasta
 #+end_src
 #+begin_export latex
 \begin{verbatim}
   Step           Sequences  Length   Ns
   -------------  ---------  ------   --
-  Subtraction_1        246   82059    0
-  Intersection         112   19116  781
-  Subtraction_2         18    4021  556
+  Subtraction_1        218   78859    0
+  Intersection         107   18743  852
+  Subtraction_2         12    3188  555
 \end{verbatim}
 The next step in the design of diagnostic markers would be to
-construct PCR primers based on \ty{293.fasta} and
-\ty{301\_294.fasta}. We would then test \emph{in silico} the
+construct PCR primers based on \ty{292.fasta} and
+\ty{300\_293.fasta}. We would then test \emph{in silico} the
 specificity and sensitivity of the pair of primers in detecting
 \emph{E. coli} O157:H7. Any primers from the \emph{in silico} work
 would ultimately need to be tested in the lab.

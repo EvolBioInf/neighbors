@@ -40,12 +40,14 @@ and `texlive-fonts-extra`. Then execute
 ## Run Docker Container 
 As an alternative to building `neighbors` from scratch, we also post it as a [docker
   container](https://hub.docker.com/r/itsers/neighbors). The container
-  includes all programs needed to work through the tutorial in `neighborsDoc.pdf`.
+  includes all programs needed to work through the tutorial in `~/tutorial.txt`.
   -  `$ docker pull itsers/neighbors`
   -  `$ docker container run --detach-keys="ctrl-@" -h neighbors -it itsers/neighbors`
 ## Make the Docker Container
 The command  
 `$ make docker`  
-starts building a local copy of the docker image.
+pulls the repository
+`https://github.com/IvanTsers/neighbors-docker`, and starts building a
+local copy of the docker image.
 ## License
 [GNU General Public License](https://www.gnu.org/licenses/gpl.html)
