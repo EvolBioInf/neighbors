@@ -236,23 +236,44 @@
   }
 #+end_src
 #+begin_src latex
-  We look up the genome accessions that belong to each taxon-ID through
-  a method call on the database. The genomes are stored in a map between
-  taxon-IDs and string slices.
+  We look up the target and the neighbor genomes and store them in a map
+  between taxon-IDs and string slices.
 #+end_src
 #+begin_src go <<Look up genomes, Pr.~\ref{pr:neig}>>=
   genomes := make(map[int][]string)
-  for _, t := range targets {
-	  genomes[t] = taxdb.Accessions(t)
-  }
-  for _, t := range neighbors {
-	  genomes[t] = taxdb.Accessions(t)
+  //<<Look up target genomes, Pr.~\ref{pr:neig}>>
+  //<<Look up neighbor genomes, Pr.~\ref{pr:neig}>>
+#+end_src
+#+begin_src latex
+  We use method calls on the database to look up the accessions of the
+  assemblies that belong to each target. It appears that if a target has
+  no accession, this is returned as a \ty{-}. So we check for this and
+  store the target if it has at least one accession.
+#+end_src
+#+begin_src go <<Look up target genomes, Pr.~\ref{pr:neig}>>=
+  for _, target := range targets {
+	  g := taxdb.Accessions(target)
+	  if len(g) > 0 && g[0] != "-" {
+		  genomes[target] = g
+	  }
   }
 #+end_src
-#+begin_export latex
-The result consists either of a list of accessions or of the full
-report.
-#+end_export
+#+begin_src latex
+  Similarly, if a neighbor has at least one genome accession, we store
+  it.
+#+end_src
+#+begin_src go <<Look up neighbor genomes, Pr.~\ref{pr:neig}>>=
+  for _, neighbor := range neighbors {
+	  g := taxdb.Accessions(neighbor)
+	  if len(g) > 0 && g[0] != "-" {
+		  genomes[neighbor] = g
+	  }
+  }
+#+end_src
+#+begin_src latex
+  The result consists either of a list of accessions or of the full
+  report.
+#+end_src
 #+begin_src go <<Print result, Pr.~\ref{pr:neig}>>=
   if optL {
 	  //<<List accessions, Pr.~\ref{pr:neig}>>
