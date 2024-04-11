@@ -9,6 +9,9 @@ neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2)
 	latex neighborsDoc.tex
 	dvips neighborsDoc -o -q
 	ps2pdf -dALLOWPSTRANSPARENCY neighborsDoc.ps
+	if [ -d /mnt/c/Users/haubold/ownCloud\ -\ haubold@evolbio.mpg.de@owncloud.gwdg.de/docs/ ]; then \
+		cp neighborsDoc.pdf /mnt/c/Users/haubold/ownCloud\ -\ haubold@evolbio.mpg.de@owncloud.gwdg.de/docs/; \
+	fi
 
 makeNeiDb.tex: ../makeNeiDb/makeNeiDb.org 
 	awk -f ../scripts/preWeave.awk ../makeNeiDb/makeNeiDb.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > makeNeiDb.tex

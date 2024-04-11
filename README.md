@@ -11,7 +11,7 @@ removed. However, for large candidate sets a search of
 [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) can be time
 consuming. It is also not necessary, as evolutionary biology tells us
 that the vast majority of cross-reactive material is contained in the
-targets' closest phylogenetic neighbors. The programs in `neighbors`
+targets' closest phylogenetic neighbors. The programs in [`neighbors`](https://owncloud.gwdg.de/index.php/s/iBtUxwYqrUA2rbj)
 help identify the target and neighbor genomes currently
 available in [RefSeq](https://www.ncbi.nlm.nih.gov/refseq/). 
 
