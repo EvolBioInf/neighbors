@@ -25,7 +25,10 @@ further analyzed *in silico* and
 ## Author
 [Bernhard Haubold](http://guanine.evolbio.mpg.de/), `haubold@evolbio.mpg.de`
 ## Make the Programs
-Install additional packages.
+If you are on a Ubuntu system, you should be able to install the
+additional packages by running the script
+[`setup.sh`](scripts/setup.sh). On other systems something similar
+should work.
 
 `bash scripts/setup.sh`
 
@@ -34,13 +37,14 @@ Make the programs.
 `make`
 
 The directory `bin` now contains the ten executables of the
-package, additional scripts are in
+package. Put them somewhere in your `PATH`. Additional scripts are in
 `scripts`.
 
 The
 [documentation](https://owncloud.gwdg.de/index.php/s/iBtUxwYqrUA2rbj)
 comes with a tutorial. To work through it, additional programs need to
-be installed.
+be installed. Again, on Ubuntu you can simply run the script
+[`setupTutorial.sh`](scripts/setupTutorial.sh).
 
 `bash scripts/setupTutorial.sh`
 ## Run Docker Container 
