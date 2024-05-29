@@ -1,9 +1,10 @@
 all : util
 
-util: util.go
+util:
 	go build util.go
 util.go: util.org
 	bash ../scripts/org2nw util.org | notangle -Rutil.go | gofmt > util.go
+tangle: util.go util_test.go
 .PHONY: test
 test: util_test.go util.go
 	go test -v

@@ -10,6 +10,14 @@ all:
 		make -C $$prog; \
 		cp $$prog/$$prog bin; \
 	done
+tangle:
+	for pack in $(packs); do \
+		make tangle -C $$pack; \
+	done
+	for prog in $(progs); do \
+		make tangle -C $$prog; \
+	done
+	make tangle -C tutorial
 .PHONY: doc test docker
 doc:
 	make -C doc
@@ -18,11 +26,17 @@ clean:
 		make clean -C $$prog; \
 	done
 	make clean -C doc
-test:
+	make clean -C tutorial
+	rm -f bin/*
+test: data
 	echo test
 	for prog in $(progs) $(packs); do \
 		make test -C $$prog; \
 	done
+data:
+	wget https://owncloud.gwdg.de/index.php/s/V7DMhBIziwUNqkC/download
+	tar -xvzf download
+	rm download
 docker:
 	cd docker; \
 	sudo docker build -t neighbors .; \

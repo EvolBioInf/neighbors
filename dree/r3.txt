@@ -1,18 +1,18 @@
 digraph g {
 	rankdir=LR
-	207598 -> 9596
-	9598 [color="lightsalmon",style=filled]
-	9596 -> 9598
-	37012 [color="lightsalmon",style=filled]
-	9598 -> 37012
-	9597 [color="lightsalmon",style=filled]
-	9596 -> 9597
 	207598 -> 9592
 	9593 [color="lightsalmon",style=filled]
 	9592 -> 9593
 	9595 [color="lightsalmon",style=filled]
 	9593 -> 9595
+	207598 -> 9596
+	9597 [color="lightsalmon",style=filled]
+	9596 -> 9597
+	9598 [color="lightsalmon",style=filled]
+	9596 -> 9598
 	207598 -> 9605
 	9606 [color="lightsalmon",style=filled]
 	9605 -> 9606
+	37012 [color="lightsalmon",style=filled]
+	9598 -> 37012
 }

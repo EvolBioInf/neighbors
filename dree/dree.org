@@ -214,15 +214,23 @@ up the tree.
   }
 #+end_src
 #+begin_export latex
-By default we draw the subtree graph, but the user might also have
-opted for listing the taxa in the subtree.
+Before we draw the subtree, we ensure stable output by sorting the
+integers that make up the subtree. Then we draw the subtree graph,
+unless the user has opted for listing the taxa in the subtree.
 #+end_export
 #+begin_src go <<Draw subtree, Pr.~\ref{pr:dr}>>=
+  sort.Ints(subtree)
   if *optL {
 	  //<<List subtree, Pr.~\ref{pr:dr}>>
   } else {
 	  //<<Draw subtree graph, Pr.~\ref{pr:dr}>>
   }
+#+end_src
+#+begin_export latex
+We import \ty{sort}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+  "sort"
 #+end_src
 #+begin_export latex
 We list the subtree in a table consisting of three mandatory columns,

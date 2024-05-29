@@ -1,7 +1,7 @@
 # Taxid  Rank        Genomes
-9598     species     5
-37012    subspecies  1
-9597     species     3
 9593     species     2
 9595     subspecies  5
+9597     species     3
+9598     species     5
 9606     species     1047
+37012    subspecies  1
