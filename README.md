@@ -25,10 +25,17 @@ further analyzed *in silico* and
 ## Author
 [Bernhard Haubold](http://guanine.evolbio.mpg.de/), `haubold@evolbio.mpg.de`
 ## Make the Programs
-If you are on a Ubuntu system, you should be able to install the
-additional packages by running the script
-[`setup.sh`](scripts/setup.sh). On other systems something similar
-should work.
+If you are on a Ubuntu system like Ubuntu on
+[wsl](https://learn.microsoft.com/en-us/windows/wsl/install) under
+MS-Windows or the [Ubuntu Docker
+container](https://hub.docker.com/_/ubuntu), you can clone the
+repository and change into it.
+
+`git clone https://github.com/evolbioinf/neighbors`  
+`cd neighbors`
+
+Then install the additional dependencies by running the script
+[`setup.sh`](scripts/setup.sh).
 
 `bash scripts/setup.sh`
 
@@ -43,7 +50,7 @@ package. Put them somewhere in your `PATH`. Additional scripts are in
 The
 [documentation](https://owncloud.gwdg.de/index.php/s/iBtUxwYqrUA2rbj)
 comes with a tutorial. To work through it, additional programs need to
-be installed. Again, on Ubuntu you can simply run the script
+be installed. Again, on Ubuntu you can run the script
 [`setupTutorial.sh`](scripts/setupTutorial.sh).
 
 `bash scripts/setupTutorial.sh`
