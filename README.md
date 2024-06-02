@@ -25,7 +25,7 @@ further analyzed *in silico* and
 ## Author
 [Bernhard Haubold](http://guanine.evolbio.mpg.de/), `haubold@evolbio.mpg.de`
 ## Make the Programs
-If you are on a Ubuntu system like Ubuntu on
+If you are on an Ubuntu system like Ubuntu on
 [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) under
 MS-Windows or the [Ubuntu Docker
 container](https://hub.docker.com/_/ubuntu), you can clone the
