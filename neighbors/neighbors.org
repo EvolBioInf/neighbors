@@ -245,18 +245,33 @@
   //<<Look up neighbor genomes, Pr.~\ref{pr:neig}>>
 #+end_src
 #+begin_src latex
-  We use method calls on the database to look up the accessions of the
-  assemblies that belong to each target. It appears that if a target has
-  no accession, this is returned as a \ty{-}. So we check for this and
-  store the target if it has at least one accession.
+  We use a method call on the database to look up the accessions of the
+  assemblies that belong to each target. It appears that the list
+  returned by the method call can contain hyphens in lieu of true
+  accessions. So we clean up the list and store it if it contains at
+  least one genuine entry.
 #+end_src
 #+begin_src go <<Look up target genomes, Pr.~\ref{pr:neig}>>=
   for _, target := range targets {
-	  g := taxdb.Accessions(target)
-	  if len(g) > 0 && g[0] != "-" {
-		  genomes[target] = g
+	  accessions := taxdb.Accessions(target)
+	  //<<Remove hyphens from accessions, Pr.~\ref{pr:neig}>>
+	  if len(accessions) > 0 {
+		  genomes[target] = accessions
 	  }
   }
+#+end_src
+#+begin_export latex
+We remove the hyphens from the list of accessions.
+#+end_export
+#+begin_src go <<Remove hyphens from accessions, Pr.~\ref{pr:neig}>>=
+  i := 0
+  for _, accession := range accessions {
+	  if accession != "-" {
+		  accessions[i] = accession
+		  i++
+	  }
+  }
+  accessions = accessions[:i]
 #+end_src
 #+begin_src latex
   Similarly, if a neighbor has at least one genome accession, we store
@@ -264,9 +279,10 @@
 #+end_src
 #+begin_src go <<Look up neighbor genomes, Pr.~\ref{pr:neig}>>=
   for _, neighbor := range neighbors {
-	  g := taxdb.Accessions(neighbor)
-	  if len(g) > 0 && g[0] != "-" {
-		  genomes[neighbor] = g
+	  accessions := taxdb.Accessions(neighbor)
+	  //<<Remove hyphens from accessions, Pr.~\ref{pr:neig}>>
+	  if len(accessions) > 0 {
+		  genomes[neighbor] = accessions
 	  }
   }
 #+end_src
@@ -302,7 +318,7 @@ first list the targets, then the neighbors.
 #+end_src
 #+begin_export latex
 For each target we get the list of genome accessions and print each
-one.
+accession.
 #+end_export
 #+begin_src go <<List targets, Pr.~\ref{pr:neig}>>=
   sample := "t"
@@ -321,7 +337,7 @@ We list the neighbors like we just listed the targets.
   for _, neighbor := range neighbors {
 	  accessions := genomes[neighbor]
 	  for _, accession := range accessions {
-		    fmt.Fprintf(w, "%s\t%s\n", sample, accession)
+		  fmt.Fprintf(w, "%s\t%s\n", sample, accession)
 	  }
   }
 #+end_src

@@ -62,15 +62,31 @@ func parse(r io.Reader, args ...interface{}) {
 	}
 	genomes := make(map[int][]string)
 	for _, target := range targets {
-		g := taxdb.Accessions(target)
-		if len(g) > 0 && g[0] != "-" {
-			genomes[target] = g
+		accessions := taxdb.Accessions(target)
+		i := 0
+		for _, accession := range accessions {
+			if accession != "-" {
+				accessions[i] = accession
+				i++
+			}
+		}
+		accessions = accessions[:i]
+		if len(accessions) > 0 {
+			genomes[target] = accessions
 		}
 	}
 	for _, neighbor := range neighbors {
-		g := taxdb.Accessions(neighbor)
-		if len(g) > 0 && g[0] != "-" {
-			genomes[neighbor] = g
+		accessions := taxdb.Accessions(neighbor)
+		i := 0
+		for _, accession := range accessions {
+			if accession != "-" {
+				accessions[i] = accession
+				i++
+			}
+		}
+		accessions = accessions[:i]
+		if len(accessions) > 0 {
+			genomes[neighbor] = accessions
 		}
 	}
 	if optL {
