@@ -30,7 +30,7 @@ clean:
 	rm -f bin/*
 test: data
 	echo test
-	for prog in $(progs) $(packs); do \
+	for prog in $(packs) $(progs); do \
 		make test -C $$prog; \
 	done
 data:
