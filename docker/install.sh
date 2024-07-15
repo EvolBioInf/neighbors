@@ -55,20 +55,6 @@ make install
 cd /home/jdoe
 rm -rf phylonium
 
-# install macle
-git clone https://github.com/simongog/sdsl-lite
-cd sdsl-lite
-./install.sh
-cd /home/jdoe
-rm -rf sdsl-lite
-
-git clone https://github.com/EvolBioInf/macle
-cd macle
-make
-cp ./build/macle /usr/local/bin/macle
-cd /home/jdoe
-rm -rf macle
-
 # install fur
 apt-get -y install gnuplot 
 git clone https://github.com/EvolBioInf/fur
@@ -88,6 +74,3 @@ rm -rf /install.sh /usr/local/go /root/go* /root/.cache \
 apt-get -y remove \
 	git texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra \
 	texlive-base texlive-latex-recommended texlive-pstricks texlive-science \
-    
-apt-get -y autoremove
-apt-get clean
