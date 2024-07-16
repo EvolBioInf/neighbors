@@ -4,7 +4,7 @@
 apt-get update
 apt-get -y upgrade
 apt-get -y install apt-utils sudo wget git make cmake unzip \
-	autoconf build-essential noweb less pkg-config \
+	autoconf build-essential less pkg-config \
 	libgsl-dev libdivsufsort-dev libdivsufsort3 \
 	libbsd-dev libbsd-dev libgsl-dev libsdsl-dev \
 	ncbi-blast+ graphviz
