@@ -4,11 +4,10 @@
 apt-get update
 apt-get -y upgrade
 apt-get -y install apt-utils sudo wget git make cmake unzip \
-	autoconf build-essential noweb less pkg-config \
+	autoconf build-essential less pkg-config \
 	libgsl-dev libdivsufsort-dev libdivsufsort3 \
 	libbsd-dev libbsd-dev libgsl-dev libsdsl-dev \
-	ncbi-blast+ graphviz gnuplot texlive-science \
-	texlive-pstricks texlive-latex-extra texlive-fonts-extra
+	ncbi-blast+ graphviz
 apt-get clean
 
 # find and install current golang version
@@ -38,12 +37,12 @@ git clone https://github.com/EvolBioInf/neighbors
 cd neighbors
 make
 cp ./bin/* /usr/local/bin
-
-# compile neighbors docs with the tutorial
-make doc
-mv doc/neighborsDoc.pdf /home/jdoe
 cd /home/jdoe
 rm -rf neighbors
+
+# downlod neighborsDoc with the tutorial
+cd /home/jdoe
+wget -O neighborsDoc.pdf https://owncloud.gwdg.de/index.php/s/iBtUxwYqrUA2rbj/download
 
 # install phylonium
 git clone https://github.com/evolbioinf/phylonium
@@ -54,20 +53,6 @@ make
 make install
 cd /home/jdoe
 rm -rf phylonium
-
-# install macle
-git clone https://github.com/simongog/sdsl-lite
-cd sdsl-lite
-./install.sh
-cd /home/jdoe
-rm -rf sdsl-lite
-
-git clone https://github.com/EvolBioInf/macle
-cd macle
-make
-cp ./build/macle /usr/local/bin/macle
-cd /home/jdoe
-rm -rf macle
 
 # install fur
 apt-get -y install gnuplot 
@@ -81,13 +66,6 @@ rm -rf fur
 # make a folder in /home/jdoe to share it with the host
 mkdir neighbors_share
 
-# remove dependencies that are no more necessary
+# remove unnecessary files
 rm -rf /install.sh /usr/local/go /root/go* /root/.cache \
     /usr/lib/go* /usr/share/go* /usr/share/icons
-
-apt-get -y remove \
-	git texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra \
-	texlive-base texlive-latex-recommended texlive-pstricks texlive-science \
-    
-apt-get -y autoremove
-apt-get clean
