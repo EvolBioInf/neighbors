@@ -14,6 +14,7 @@ neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2)
 	latex neighborsDoc.tex
 	dvips neighborsDoc -o -q
 	ps2pdf -dALLOWPSTRANSPARENCY neighborsDoc.ps
+publish: neighborsDoc.pdf
 	if [ -d /mnt/c/Users/haubold/ownCloud\ -\ haubold@evolbio.mpg.de@owncloud.gwdg.de/docs/ ]; then \
 		cp neighborsDoc.pdf /mnt/c/Users/haubold/ownCloud\ -\ haubold@evolbio.mpg.de@owncloud.gwdg.de/docs/; \
 	fi
