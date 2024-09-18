@@ -246,22 +246,41 @@
 #+end_src
 #+begin_src latex
   We use a method call on the database to look up the accessions of the
-  assemblies that belong to each target. It appears that the list
-  returned by the method call can contain hyphens in lieu of true
-  accessions. So we clean up the list and store it if it contains at
-  least one genuine entry.
+  assemblies that belong to each target. We check the slice of
+  accessions returned, and if afterwards the slice still contains at
+  least one entry, we store it.
 #+end_src
 #+begin_src go <<Look up target genomes, Pr.~\ref{pr:neig}>>=
   for _, target := range targets {
 	  accessions := taxdb.Accessions(target)
-	  //<<Remove hyphens from accessions, Pr.~\ref{pr:neig}>>
+	  //<<Check accessions, Pr.~\ref{pr:neig}>>
 	  if len(accessions) > 0 {
 		  genomes[target] = accessions
 	  }
   }
 #+end_src
 #+begin_export latex
-We remove the hyphens from the list of accessions.
+It appears that the slice of accessions can contain hyphens in lieu of
+true accessions. As an additional complication, neighbor queries for
+some viruses, for example HIV (taxid 11709), return accession strings
+like
+\begin{verbatim}
+NC_001654.1/U21603.1
+\end{verbatim}
+and
+\begin{verbatim}
+Unknown:NC_001450.1/
+\end{verbatim}
+So we remove the hyphens, split at the forward slash, and finally
+split at the colon.
+#+end_export
+#+begin_src go <<Check accessions, Pr.~\ref{pr:neig}>>=
+  //<<Remove hyphens from accessions, Pr.~\ref{pr:neig}>>
+  //<<Split accessions at forward slash, Pr.~\ref{pr:neig}>>
+  //<<Split accessions at colon, Pr.~\ref{pr:neig}>>
+#+end_src
+#+begin_export latex
+We remove the hyphens from the slice of accessions and reslice it.
 #+end_export
 #+begin_src go <<Remove hyphens from accessions, Pr.~\ref{pr:neig}>>=
   i := 0
@@ -273,14 +292,46 @@ We remove the hyphens from the list of accessions.
   }
   accessions = accessions[:i]
 #+end_src
+#+begin_export latex
+We split accession strings at the forward slash and keep the first
+entry of the array returned. If there's no forward slash, that first
+entry is simply the input string. Also, note that for the example
+\begin{verbatim}
+Unknown:NC_001450.1/
+\end{verbatim}
+this step removes the trailing slash.
+#+end_export
+#+begin_src go <<Split accessions at forward slash, Pr.~\ref{pr:neig}>>=
+  for i := 0; i < len(accessions); i++ {
+	  arr := strings.Split(accessions[i], "/")
+	  accessions[i] = arr[0]
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strings}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "strings"
+#+end_src
+#+begin_export latex
+If an accession contains a colon, we pick the accession to its right.
+#+end_export
+#+begin_src go <<Split accessions at colon, Pr.~\ref{pr:neig}>>=
+  for i := 0; i < len(accessions); i++ {
+	  arr := strings.Split(accessions[i], ":")
+	  if len(arr) > 1 {
+		  accessions[i] = arr[1]
+	  }
+  }
+#+end_src
 #+begin_src latex
-  Similarly, if a neighbor has at least one genome accession, we store
-  it.
+  Like for the targets, if a neighbor has at least one genome accession,
+  we store it.
 #+end_src
 #+begin_src go <<Look up neighbor genomes, Pr.~\ref{pr:neig}>>=
   for _, neighbor := range neighbors {
 	  accessions := taxdb.Accessions(neighbor)
-	  //<<Remove hyphens from accessions, Pr.~\ref{pr:neig}>>
+	  //<<Check accessions, Pr.~\ref{pr:neig}>>
 	  if len(accessions) > 0 {
 		  genomes[neighbor] = accessions
 	  }

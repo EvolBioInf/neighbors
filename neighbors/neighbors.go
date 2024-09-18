@@ -71,6 +71,16 @@ func parse(r io.Reader, args ...interface{}) {
 			}
 		}
 		accessions = accessions[:i]
+		for i := 0; i < len(accessions); i++ {
+			arr := strings.Split(accessions[i], "/")
+			accessions[i] = arr[0]
+		}
+		for i := 0; i < len(accessions); i++ {
+			arr := strings.Split(accessions[i], ":")
+			if len(arr) > 1 {
+				accessions[i] = arr[1]
+			}
+		}
 		if len(accessions) > 0 {
 			genomes[target] = accessions
 		}
@@ -85,6 +95,16 @@ func parse(r io.Reader, args ...interface{}) {
 			}
 		}
 		accessions = accessions[:i]
+		for i := 0; i < len(accessions); i++ {
+			arr := strings.Split(accessions[i], "/")
+			accessions[i] = arr[0]
+		}
+		for i := 0; i < len(accessions); i++ {
+			arr := strings.Split(accessions[i], ":")
+			if len(arr) > 1 {
+				accessions[i] = arr[1]
+			}
+		}
 		if len(accessions) > 0 {
 			genomes[neighbor] = accessions
 		}
