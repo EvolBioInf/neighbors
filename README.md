@@ -48,7 +48,7 @@ package. Put them somewhere in your `PATH`. Additional scripts are in
 `scripts`.
 
 The
-[documentation](https://owncloud.gwdg.de/index.php/s/iBtUxwYqrUA2rbj)
+[documentation](https://owncloud.gwdg.de/index.php/s/MlypXN3t5XUhvZJ)
 comes with a tutorial. To work through it, additional programs need to
 be installed. Again, on Ubuntu you can run the script
 [`setupTutorial.sh`](scripts/setupTutorial.sh).
@@ -58,7 +58,7 @@ be installed. Again, on Ubuntu you can run the script
 As an alternative to building `neighbors` from scratch, we also post it as a [docker
   container](https://hub.docker.com/r/itsers/neighbors). The container
   includes all programs needed to work through the tutorial in
-  [`neighborsDoc.pdf`](https://owncloud.gwdg.de/index.php/s/iBtUxwYqrUA2rbj).
+  [`neighborsDoc.pdf`](https://owncloud.gwdg.de/index.php/s/MlypXN3t5XUhvZJ).
   
   `docker pull itsers/neighbors`  
   `docker container run --detach-keys="ctrl-@" -h neighbors -it itsers/neighbors`
