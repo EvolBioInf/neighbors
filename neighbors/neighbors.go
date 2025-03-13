@@ -20,6 +20,7 @@ func parse(r io.Reader, args ...interface{}) {
 	taxdb := args[0].(*tdb.TaxonomyDB)
 	optL := args[1].(bool)
 	optG := args[2].(bool)
+	optLT := args[3].(bool)
 	var taxa []int
 	sc := bufio.NewScanner(r)
 	for sc.Scan() {
@@ -109,7 +110,24 @@ func parse(r io.Reader, args ...interface{}) {
 			genomes[neighbor] = accessions
 		}
 	}
-	if optL {
+	if optLT {
+		sample := "t"
+		for _, target := range targets {
+			name := taxdb.Name(target)
+			accessions := genomes[target]
+			for _, accession := range accessions {
+				fmt.Fprintf(os.Stdout, "%s\t%s\t%s\n", sample, accession, name)
+			}
+		}
+		sample = "n"
+		for _, neighbor := range neighbors {
+			name := taxdb.Name(neighbor)
+			accessions := genomes[neighbor]
+			for _, accession := range accessions {
+				fmt.Fprintf(os.Stdout, "%s\t%s\t%s\n", sample, accession, name)
+			}
+		}
+	} else if optL {
 		w := tabwriter.NewWriter(os.Stdout, 1, 0, 2, ' ', 0)
 		fmt.Fprintf(w, "# Sample\tAccession\n")
 		sample := "t"
@@ -176,6 +194,7 @@ func main() {
 	optV := flag.Bool("v", false, "version")
 	optG := flag.Bool("g", false, "genome sequences only")
 	optL := flag.Bool("l", false, "list genomes")
+	optLT := flag.Bool("lt", false, "list genomes with taxa names")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("neighbors")
@@ -188,5 +207,5 @@ func main() {
 	}
 	taxdb := tdb.OpenTaxonomyDB(files[0])
 	files = files[1:]
-	clio.ParseFiles(files, parse, taxdb, *optL, *optG)
+	clio.ParseFiles(files, parse, taxdb, *optL, *optG, *optLT)
 }

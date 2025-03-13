@@ -63,6 +63,7 @@
   optV := flag.Bool("v", false, "version")
   optG := flag.Bool("g", false, "genome sequences only")
   optL := flag.Bool("l", false, "list genomes")
+  optLT := flag.Bool("lt", false, "list genomes with taxa names")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -118,7 +119,7 @@
   as arguments.
 #+end_src
 #+begin_src go <<Parse input files, Pr.~\ref{pr:neig}>>=
-  clio.ParseFiles(files, parse, taxdb, *optL, *optG)
+  clio.ParseFiles(files, parse, taxdb, *optL, *optG, *optLT)
 #+end_src
 #+begin_src latex
   Inside \ty{parse}, we retrieve the taxonomy database, the list option,
@@ -132,6 +133,7 @@
 	  taxdb := args[0].(*tdb.TaxonomyDB)
 	  optL := args[1].(bool)
 	  optG := args[2].(bool)
+	  optLT := args[3].(bool)
 	  //<<Read taxon-IDs, Pr.~\ref{pr:neig}>>
 	  //<<Compute targets, Pr.~\ref{pr:neig}>>
 	  //<<Compute neighbors, Pr.~\ref{pr:neig}>>
@@ -338,15 +340,57 @@ If an accession contains a colon, we pick the accession to its right.
   }
 #+end_src
 #+begin_src latex
-  The result consists either of a list of accessions or of the full
-  report.
+  The result consists either of a tab-separated list of accessions with
+  taxa names, a formatted list of accessions or of the full report.
 #+end_src
 #+begin_src go <<Print result, Pr.~\ref{pr:neig}>>=
-  if optL {
+  if optLT {
+	  //<<List accessions with taxa names, Pr.~\ref{pr:neig}>>
+  } else if optL {
 	  //<<List accessions, Pr.~\ref{pr:neig}>>
   } else {
 	  //<<Print report, Pr.~\ref{pr:neig}>>
   }
+#+end_src
+#+begin_export latex
+We list the accessions as tab-separated values. The accessions table
+has a header consisting of the sample (target or neighbor), the
+accession, and the corresponding taxon name. We first list the
+targets, then the neighbors.
+
+#+end_export
+#+begin_src go <<List accessions with taxa names, Pr.~\ref{pr:neig}>>=
+  //<<List targets with taxa names>>
+  //<<List neighbors with taxa names>>
+#+end_src
+#+begin_export latex
+For each target we get its name, the list of genome accessions and
+print everything.
+#+end_export
+#+begin_src go <<List targets with taxa names>>=
+  sample := "t"
+  for _, target := range targets {
+	  name := taxdb.Name(target)
+	  accessions := genomes[target]
+	  for _, accession := range accessions {
+		  fmt.Fprintf(os.Stdout, "%s\t%s\t%s\n",
+			  sample, accession, name)
+	  }
+  }
+#+end_src
+#+begin_export latex
+Likewise, we list the neighbors.
+#+end_export
+#+begin_src go <<List neighbors with taxa names>>=
+    sample = "n"
+    for _, neighbor := range neighbors {
+	    name := taxdb.Name(neighbor)
+	    accessions := genomes[neighbor]
+	    for _, accession := range accessions {
+		    fmt.Fprintf(os.Stdout, "%s\t%s\t%s\n",
+			    sample, accession, name) 
+	    }
+    }
 #+end_src
 #+begin_export latex
 We list the accessions in a table constructed with a \ty{tabwriter},
