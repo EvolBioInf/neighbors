@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 	"text/tabwriter"
@@ -37,11 +38,23 @@ func parse(r io.Reader, args ...interface{}) {
 	optA := args[0].(*bool)
 	optN := args[1].(*string)
 	optT := args[2].(*string)
+	optP := args[3].(*string)
 	sc := nwk.NewScanner(r)
+	var pattern *regexp.Regexp
 	for sc.Scan() {
 		tree := sc.Tree()
 		counts := make(map[int]*Count)
-		traverseTree(tree, counts, *optN, *optT)
+		if *optP != "" {
+			var err error
+			pattern, err = regexp.Compile(*optP)
+			if err != nil {
+				log.Fatalf("Failed to compile the regexp %s:%v\n",
+					*optP, err)
+			}
+			traverseTreeWithPattern(tree, counts, pattern)
+		} else {
+			traverseTree(tree, counts, *optN, *optT)
+		}
 		nt := counts[tree.Id].vt
 		nn := counts[tree.Id].vn
 		for _, count := range counts {
@@ -79,6 +92,37 @@ func parse(r io.Reader, args ...interface{}) {
 			}
 		}
 		w.Flush()
+	}
+}
+func traverseTreeWithPattern(v *nwk.Node, counts map[int]*Count,
+	pattern *regexp.Regexp) {
+	if v == nil {
+		return
+	}
+	count := new(Count)
+	count.label = v.Label
+	if v.Parent != nil {
+		count.dp = v.Length
+		count.parent = v.Parent.Label
+	}
+	counts[v.Id] = count
+	traverseTreeWithPattern(v.Child, counts, pattern)
+	traverseTreeWithPattern(v.Sib, counts, pattern)
+	if v.Child == nil {
+		if pattern.MatchString(v.Label) {
+			counts[v.Id].vt = 1.0
+		} else {
+			counts[v.Id].vn = 1.0
+		}
+	} else {
+		if v.Label == "" {
+			log.Fatal("please label internal nodes " +
+				"using land")
+		}
+	}
+	if v.Parent != nil {
+		counts[v.Parent.Id].vt += counts[v.Id].vt
+		counts[v.Parent.Id].vn += counts[v.Id].vn
 	}
 }
 func traverseTree(v *nwk.Node, counts map[int]*Count,
@@ -124,14 +168,22 @@ func main() {
 	optA := flag.Bool("a", false, "all splits (default maximal)")
 	optN := flag.String("n", "n", "neighbor prefix")
 	optT := flag.String("t", "t", "target prefix")
+	optP := flag.String("p", "", "target pattern")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("fintac")
 	}
+
+	if *optP != "" && (*optT != "t" || *optN != "n") {
+		log.Fatal("Please use either target " +
+			"and neighbor prefixes or " +
+			"a target pattern")
+	}
+
 	if *optN == *optT {
 		log.Fatal("Please use distinct target " +
 			"and neighbor prefixes.")
 	}
 	files := flag.Args()
-	clio.ParseFiles(files, parse, optA, optN, optT)
+	clio.ParseFiles(files, parse, optA, optN, optT, optP)
 }

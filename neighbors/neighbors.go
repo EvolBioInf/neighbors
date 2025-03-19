@@ -116,7 +116,8 @@ func parse(r io.Reader, args ...interface{}) {
 			name := taxdb.Name(target)
 			accessions := genomes[target]
 			for _, accession := range accessions {
-				fmt.Fprintf(os.Stdout, "%s\t%s\t%s\n", sample, accession, name)
+				fmt.Fprintf(os.Stdout, "%s\t%s\t%s\n",
+					sample, accession, name)
 			}
 		}
 		sample = "n"
@@ -124,7 +125,8 @@ func parse(r io.Reader, args ...interface{}) {
 			name := taxdb.Name(neighbor)
 			accessions := genomes[neighbor]
 			for _, accession := range accessions {
-				fmt.Fprintf(os.Stdout, "%s\t%s\t%s\n", sample, accession, name)
+				fmt.Fprintf(os.Stdout, "%s\t%s\t%s\n",
+					sample, accession, name)
 			}
 		}
 	} else if optL {

@@ -27,6 +27,17 @@ s(v)=\frac{v_{\rm t} + v^{\ast}_{\rm n}}{n_{\rm n} + n_{\rm t}}\times 100.
 \end{equation}
 This quantity ranges from 0, if $v$ contains no targets and all
 neighbors, to 100, if $v$ contains all targets and no neighbors.
+
+As an alternative to using explicit prefixes to distinguish targets
+and neighbors, one can specify a pattern that identifies target clade
+names. For example, in a multispecies tree where leaf labels contain
+species names, one can search for a specific name to define the target
+clade. If we are looking for \textit{Pseudomonas putida} in a
+three-species \textit{Pseudomonas} tree (e.g., \textit{P. aeruginosa},
+\textit{P. putida}, \textit{P. fulva}), the program will count leaves
+matching "\textit{Pseudomonas putida}" as targets ($v_{\rm t}$) and
+all others as neighbors ($v_{\rm n}$).
+
 \subsection*{Implementation}
 The outline of \ty{fintac} has hooks for imports, types, methods,
 functions, and the logic of the main function.  \bpr{dree}{pr:fit}
@@ -74,14 +85,15 @@ We import \ty{clio}.
 #+begin_export latex
 Apart from the obligatory version option (\ty{-v}), we declare an
 option for listing all splits, instead of the default maximal
-splits. We also declare an option for the neighbor prefix and the
-target prefix.
+splits. We also declare an option for the neighbor prefix, the target
+prefix, and the target pattern.
 #+end_export
 #+begin_src go <<Declare options, Pr. \ref{pr:fit}>>=
   optV := flag.Bool("v", false, "version")
   optA := flag.Bool("a", false, "all splits (default maximal)")
   optN := flag.String("n", "n", "neighbor prefix")
   optT := flag.String("t", "t", "target prefix")
+  optP := flag.String("p", "", "target pattern")
 #+end_src
 #+begin_export latex
 We import \ty{flag}.
@@ -91,14 +103,22 @@ We import \ty{flag}.
 #+end_src
 #+begin_export latex
 We parse the options and respond to \ty{-v}, as this stops the
-program. We also check that the target and neighbor prefixes are
-distinct and bail with a friendly message otherwise.
+program. We check that the target pattern flag is not used together
+with the prefix flags. We also check that the target and neighbor
+prefixes are distinct and bail with a friendly message otherwise.
 #+end_export
 #+begin_src go <<Parse options, Pr. \ref{pr:fit}>>=
   flag.Parse()
   if *optV {
 	  util.PrintInfo("fintac")
   }
+
+  if *optP != "" && (*optT != "t" || *optN != "n") {
+	  log.Fatal("Please use either target " +
+		  "and neighbor prefixes or " +
+		  "a target pattern")
+  }
+
   if *optN == *optT {
 	  log.Fatal("Please use distinct target " +
 		  "and neighbor prefixes.")
@@ -115,23 +135,25 @@ We import \ty{util} and \ty{log}.
 The remaining tokens on the command line are interpreted as the names
 of input files. These are passed to the function \ty{ParseFiles},
 which applies the function \ty{parse} to each file. The function
-\ty{parse}, in turn, takes the options \ty{-a}, \ty{-n}, and \ty{-t}
-as arguments.
+\ty{parse}, in turn, takes the options \ty{-a}, \ty{-n}, \ty{-t}, and
+\ty{-p} as arguments.
 #+end_export
 #+begin_src go <<Parse input files, Pr. \ref{pr:fit}>>=
   files := flag.Args()
-  clio.ParseFiles(files, parse, optA, optN, optT)
+  clio.ParseFiles(files, parse, optA, optN, optT, optP)
 #+end_src
 #+begin_export latex
-Inside \ty{parse}, we retrieve the options, iterate over the trees
-inside the current file, and analyze each tree.
+Inside \ty{parse}, we retrieve the options, initialize a pattern, and
+iterate over the trees inside the current file, and analyze each tree.
 #+end_export
 #+begin_src go <<Functions, Pr. \ref{pr:fit}>>=
   func parse(r io.Reader, args ...interface{}) {
 	  optA := args[0].(*bool)
 	  optN := args[1].(*string)
 	  optT := args[2].(*string)
+	  optP := args[3].(*string)
 	  sc := nwk.NewScanner(r)
+	  var pattern *regexp.Regexp
 	  for sc.Scan() {
 		  tree := sc.Tree()
 		  //<<Analyze tree, Pr. \ref{pr:fit}>>
@@ -139,11 +161,12 @@ inside the current file, and analyze each tree.
   }
 #+end_src
 #+begin_export latex
-We import \ty{io} and \ty{nwk}.
+We import \ty{io}, \ty{nwk}, and \ty{regexp}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
   "io"
   "github.com/evolbioinf/nwk"
+  "regexp"
 #+end_src
 #+begin_export latex
 To analyze a tree, we count nodes, process the counts, and print
@@ -155,12 +178,19 @@ them.
   //<<Print counts, Pr. \ref{pr:fit}>>
 #+end_src
 #+begin_export latex
-We traverse the tree by calling the function \ty{traverseTree}, which
-takes as arguments a map, the neighbor prefix, and the target prefix.
+We traverse the tree by calling the function
+\ty{traverseTreeWithPattern} if a pattern is specified. Otherwise we
+call \ty{traverseTree}, which takes as arguments a map, the neighbor
+prefix, and the target prefix.
 #+end_export
 #+begin_src go <<Count nodes, Pr. \ref{pr:fit}>>=
   counts := make(map[int]*Count)
-  traverseTree(tree, counts, *optN, *optT)
+  if *optP != "" {
+	  //<<Compile the pattern, Pr. \ref{pr:fit}>>
+	  traverseTreeWithPattern(tree, counts, pattern)
+  } else {
+	  traverseTree(tree, counts, *optN, *optT)
+  }
 #+end_src
 #+begin_export latex
 A count is understood per node; so it consists of the node label, the
@@ -176,20 +206,32 @@ distance to the parent.
   }
 #+end_src
 #+begin_export latex
-The function \ty{traverseTree} recursively traverses the subtree of
-its input node. For each node it adds a count pre order and
-analyzes the node post order.
+We compile the pattern as a regular expression.
+#+end_export
+#+begin_src go <<Compile the pattern, Pr. \ref{pr:fit}>>=
+  var err error
+  pattern, err = regexp.Compile(*optP)
+  if err != nil {
+	  log.Fatalf("Failed to compile the regexp %s:%v\n",
+		  *optP, err)
+  }
+#+end_src
+#+begin_export latex
+The function \ty{traverseTreeWithPattern} recursively traverses the
+subtree of its input node. For each node it searches the pattern and
+adds a count pre order and searches for the pattern in the node post
+order.
 #+end_export
 #+begin_src go <<Functions, Pr. \ref{pr:fit}>>=
-  func traverseTree(v *nwk.Node, counts map[int]*Count,
-	  np, tp string) {
+  func traverseTreeWithPattern(v *nwk.Node, counts map[int]*Count,
+	  pattern *regexp.Regexp) {
 	  if v == nil {
 		  return
 	  }
 	  //<<Add count, Pr. \ref{pr:fit}>>
-	  traverseTree(v.Child, counts, np, tp)
-	  traverseTree(v.Sib, counts, np, tp)
-	  //<<Analyze $v$, Pr. \ref{pr:fit}>>
+	  traverseTreeWithPattern(v.Child, counts, pattern)
+	  traverseTreeWithPattern(v.Sib, counts, pattern)
+	  //<<Analyze $v$ using the pattern, Pr. \ref{pr:fit}>>
   }
 #+end_src
 #+begin_export latex
@@ -207,13 +249,74 @@ its parent and the distance to it.
   counts[v.Id] = count
 #+end_src
 #+begin_export latex
+If the current node is a leaf, we look for a match in its label. If
+the current node is not a leaf, it is an internal node. In that case
+we also check its label to make sure it actually has a label. In
+either case we count the targets and neighbors.
+#+end_export
+#+begin_src go <<Analyze $v$ using the pattern, Pr. \ref{pr:fit}>>=
+  if v.Child == nil {
+	  //<<Match the pattern in leaf label, Pr. \ref{pr:fit}>>
+  } else {
+	  //<<Check internal node label, Pr. \ref{pr:fit}>>
+  }
+  //<<Count targets and neighbors, Pr. \ref{pr:fit}>>
+#+end_src
+#+begin_export latex
+If the leaf label matches the pattern, we set its target counter to
+one. Otherwise, we set the neighbor counter.
+#+end_export
+#+begin_src go <<Match the pattern in leaf label, Pr. \ref{pr:fit}>>=
+  if pattern.MatchString(v.Label) {
+	  counts[v.Id].vt = 1.0
+  } else {
+	  counts[v.Id].vn = 1.0
+  }
+#+end_src
+#+begin_export latex
+We make sure all internal nodes are labeled.
+#+end_export
+#+begin_src go <<Check internal node label, Pr. \ref{pr:fit}>>=
+  if v.Label == "" {
+	  log.Fatal("please label internal nodes " +
+		  "using land")
+  }
+#+end_src
+#+begin_export latex
+We count the targets and neighbors by incrementing the corresponding
+counter in the parent---unless we're a the root.
+#+end_export
+#+begin_src go <<Count targets and neighbors, Pr. \ref{pr:fit}>>=
+  if v.Parent != nil {
+	  counts[v.Parent.Id].vt += counts[v.Id].vt
+	  counts[v.Parent.Id].vn += counts[v.Id].vn
+  }
+#+end_src
+#+begin_export latex
+The function \ty{traverseTree} recursively traverses the subtree of
+its input node. For each node it adds a count pre order and
+analyzes the node post order using target and neighbor prefixes.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:fit}>>=
+  func traverseTree(v *nwk.Node, counts map[int]*Count,
+	  np, tp string) {
+	  if v == nil {
+		  return
+	  }
+	  //<<Add count, Pr. \ref{pr:fit}>>
+	  traverseTree(v.Child, counts, np, tp)
+	  traverseTree(v.Sib, counts, np, tp)
+	  //<<Analyze $v$ using prefixes, Pr. \ref{pr:fit}>>
+  }
+#+end_src
+#+begin_export latex
 If the current node is a leaf, we check its label, to make sure it is
 either a target or a neighbor. If the current node is not a leaf, it
 is an internal node. In that case we also check its label to make sure
 it actually has a label. In either case we count the targets and
 neighbors.
 #+end_export
-#+begin_src go <<Analyze $v$, Pr. \ref{pr:fit}>>=
+#+begin_src go <<Analyze $v$ using prefixes, Pr. \ref{pr:fit}>>=
   if v.Child == nil {
 	  //<<Check leaf label, Pr. \ref{pr:fit}>>
   } else {
@@ -239,27 +342,8 @@ message.
 #+begin_export latex
 We import \ty{strings}.
 #+end_export
-#+begin_export latex
-We make sure all internal nodes are labeled.
-#+end_export
-#+begin_src go <<Check internal node label, Pr. \ref{pr:fit}>>=
-  if v.Label == "" {
-	  log.Fatal("please label internal nodes " +
-		  "using land")
-  }
-#+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
   "strings"
-#+end_src
-#+begin_export latex
-We count the targets and neighbors by incrementing the corresponding
-counter in the parent---unless we're a the root.
-#+end_export
-#+begin_src go <<Count targets and neighbors, Pr. \ref{pr:fit}>>=
-  if v.Parent != nil {
-	  counts[v.Parent.Id].vt += counts[v.Id].vt
-	  counts[v.Parent.Id].vn += counts[v.Id].vn
-  }
 #+end_src
 #+begin_export latex
 We now have the raw counts in hand. From these we calculate the splits
