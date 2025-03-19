@@ -1,4 +1,3 @@
-*/*.go
 data
 test
 bin
@@ -12,6 +11,7 @@ doc/neighborsDoc.ps
 doc/*.toc
 doc/ants.tex
 doc/climt.tex
+doc/date.txt
 doc/dree.tex
 doc/edist.tex
 doc/fintac.tex
@@ -25,6 +25,7 @@ doc/taxi.tex
 doc/tdb.tex
 doc/tutorial.tex
 doc/util.tex
+doc/version.txt
 
 # Programs and databases
 ants/ants
@@ -63,5 +64,6 @@ tutorial/tlen.dat
 
 # Misc
 dree/makeRes.sh
+edist/
 neighbors-docker
 tutorial/drawTrees.sh

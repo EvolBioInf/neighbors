@@ -124,10 +124,13 @@
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
-  We print the taxon-IDs, the parents' IDs, and the corresponding names
-  in a table. We layout the table using a \ty{tabwriter}.
+  Before we print the taxon-IDs, we sort them to ensure the output is
+  reproducible. Then we print the taxon-IDs, the parents' IDs, and the
+  corresponding names in a table. We layout the table using a
+  \ty{tabwriter}.
 #+end_src
 #+begin_src go <<Print taxon-IDs, Pr.~\ref{pr:tax}>>=
+  sort.Ints(taxa)
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
   defer w.Flush()
   fmt.Fprintf(w, "# ID\tParent\tName\n")
@@ -138,9 +141,10 @@
   }
 #+end_src
 #+begin_src latex
-  We import \ty{tabwriter}.
+  We import \ty{sort} and \ty{tabwriter}.
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:tax}>>=
+  "sort"
   "text/tabwriter"
 #+end_src
 #+begin_src latex

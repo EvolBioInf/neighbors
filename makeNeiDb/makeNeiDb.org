@@ -117,7 +117,7 @@
   }
 #+end_src
 #+begin_src latex
-  We construct a set of tests and them in a loop.
+  We construct a set of tests and run them in a loop.
 #+end_src
 #+begin_src go <<Testing, Pr.~\ref{pr:db}>>=
   var tests []*exec.Cmd

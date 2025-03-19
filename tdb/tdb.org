@@ -1054,7 +1054,7 @@ parent and reset the parent slice to empty.
   \ty{Replicons}, and print out the result.
 #+end_src
 #+begin_src go <<Test \ty{Replicons}, Pa.~\ref{pa:tdb}>>=
-  d2 := p + "tax.db"
+  d2 := p + "neidb"
   taxdb = OpenTaxonomyDB(d2)
   tid := 866775
   reps := taxdb.Replicons(tid)

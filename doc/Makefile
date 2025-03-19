@@ -1,14 +1,23 @@
 SRC1 =   makeNeiDb.tex taxi.tex ants.tex climt.tex edist.tex neighbors.tex dree.tex fintac.tex land.tex outliers.tex pickle.tex tdb.tex tutorial.tex util.tex
 SRC2 =   header.tex introduction.tex neighborsDoc.tex
 
+date = $(shell git log | grep -m 1 Date | sed -r 's/Date: +[A-Z][a-z]+ ([A-Z][a-z]+) ([0-9]+) [^ ]+ ([0-9]+) .+/\2_\1_\3/')
+version = $(shell git describe)
+
 all: neighborsDoc.pdf
-neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2) 
+neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2)
+	echo $(date) | tr '_' ' ' > date.txt
+	echo $(version) | tr '-' ' ' | awk '{printf "%s", $$1; if ($$2) printf "-%s", $$2; printf "\n"}' > version.txt
 	latex neighborsDoc.tex
 	bibtex neighborsDoc
 	latex neighborsDoc.tex
 	latex neighborsDoc.tex
 	dvips neighborsDoc -o -q
 	ps2pdf -dALLOWPSTRANSPARENCY neighborsDoc.ps
+publish: neighborsDoc.pdf
+	if [ -d /mnt/c/Users/haubold/ownCloud\ -\ haubold@evolbio.mpg.de@owncloud.gwdg.de/docs/ ]; then \
+		cp neighborsDoc.pdf /mnt/c/Users/haubold/ownCloud\ -\ haubold@evolbio.mpg.de@owncloud.gwdg.de/docs/; \
+	fi
 
 makeNeiDb.tex: ../makeNeiDb/makeNeiDb.org 
 	awk -f ../scripts/preWeave.awk ../makeNeiDb/makeNeiDb.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > makeNeiDb.tex

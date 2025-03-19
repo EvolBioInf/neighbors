@@ -1,9 +1,11 @@
-1|1|root|no rank
-2|1|Viruses|superkingdom
-3|1|cellular organisms|genus
-4|3|Bacteria|species
-5|3|Archaea|species
-6|3|Eukaryota|genus
-7|5|Euryarchaeota|species
-8|2|Plasmaviridae|genus
-9|2|Fuselloviridae|species
+1|1||rank0
+2|1|name2|rank1
+3|1|name3|rank1
+4|3||rank2
+5|3||rank2
+6|3||rank2
+7|5||rank3
+8|2||rank2
+9|2||rank2
+10|9||rank3
+11|9||rank3

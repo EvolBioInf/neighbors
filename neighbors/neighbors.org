@@ -63,6 +63,7 @@
   optV := flag.Bool("v", false, "version")
   optG := flag.Bool("g", false, "genome sequences only")
   optL := flag.Bool("l", false, "list genomes")
+  optLT := flag.Bool("lt", false, "list genomes with taxa names")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -118,7 +119,7 @@
   as arguments.
 #+end_src
 #+begin_src go <<Parse input files, Pr.~\ref{pr:neig}>>=
-  clio.ParseFiles(files, parse, taxdb, *optL, *optG)
+  clio.ParseFiles(files, parse, taxdb, *optL, *optG, *optLT)
 #+end_src
 #+begin_src latex
   Inside \ty{parse}, we retrieve the taxonomy database, the list option,
@@ -132,6 +133,7 @@
 	  taxdb := args[0].(*tdb.TaxonomyDB)
 	  optL := args[1].(bool)
 	  optG := args[2].(bool)
+	  optLT := args[3].(bool)
 	  //<<Read taxon-IDs, Pr.~\ref{pr:neig}>>
 	  //<<Compute targets, Pr.~\ref{pr:neig}>>
 	  //<<Compute neighbors, Pr.~\ref{pr:neig}>>
@@ -236,29 +238,159 @@
   }
 #+end_src
 #+begin_src latex
-  We look up the genome accessions that belong to each taxon-ID through
-  a method call on the database. The genomes are stored in a map between
-  taxon-IDs and string slices.
+  We look up the target and the neighbor genomes and store them in a map
+  between taxon-IDs and string slices.
 #+end_src
 #+begin_src go <<Look up genomes, Pr.~\ref{pr:neig}>>=
   genomes := make(map[int][]string)
-  for _, t := range targets {
-	  genomes[t] = taxdb.Accessions(t)
-  }
-  for _, t := range neighbors {
-	  genomes[t] = taxdb.Accessions(t)
+  //<<Look up target genomes, Pr.~\ref{pr:neig}>>
+  //<<Look up neighbor genomes, Pr.~\ref{pr:neig}>>
+#+end_src
+#+begin_src latex
+  We use a method call on the database to look up the accessions of the
+  assemblies that belong to each target. We check the slice of
+  accessions returned, and if afterwards the slice still contains at
+  least one entry, we store it.
+#+end_src
+#+begin_src go <<Look up target genomes, Pr.~\ref{pr:neig}>>=
+  for _, target := range targets {
+	  accessions := taxdb.Accessions(target)
+	  //<<Check accessions, Pr.~\ref{pr:neig}>>
+	  if len(accessions) > 0 {
+		  genomes[target] = accessions
+	  }
   }
 #+end_src
 #+begin_export latex
-The result consists either of a list of accessions or of the full
-report.
+It appears that the slice of accessions can contain hyphens in lieu of
+true accessions. As an additional complication, neighbor queries for
+some viruses, for example HIV (taxid 11709), return accession strings
+like
+\begin{verbatim}
+NC_001654.1/U21603.1
+\end{verbatim}
+and
+\begin{verbatim}
+Unknown:NC_001450.1/
+\end{verbatim}
+So we remove the hyphens, split at the forward slash, and finally
+split at the colon.
 #+end_export
+#+begin_src go <<Check accessions, Pr.~\ref{pr:neig}>>=
+  //<<Remove hyphens from accessions, Pr.~\ref{pr:neig}>>
+  //<<Split accessions at forward slash, Pr.~\ref{pr:neig}>>
+  //<<Split accessions at colon, Pr.~\ref{pr:neig}>>
+#+end_src
+#+begin_export latex
+We remove the hyphens from the slice of accessions and reslice it.
+#+end_export
+#+begin_src go <<Remove hyphens from accessions, Pr.~\ref{pr:neig}>>=
+  i := 0
+  for _, accession := range accessions {
+	  if accession != "-" {
+		  accessions[i] = accession
+		  i++
+	  }
+  }
+  accessions = accessions[:i]
+#+end_src
+#+begin_export latex
+We split accession strings at the forward slash and keep the first
+entry of the array returned. If there's no forward slash, that first
+entry is simply the input string. Also, note that for the example
+\begin{verbatim}
+Unknown:NC_001450.1/
+\end{verbatim}
+this step removes the trailing slash.
+#+end_export
+#+begin_src go <<Split accessions at forward slash, Pr.~\ref{pr:neig}>>=
+  for i := 0; i < len(accessions); i++ {
+	  arr := strings.Split(accessions[i], "/")
+	  accessions[i] = arr[0]
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strings}.
+#+end_export
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "strings"
+#+end_src
+#+begin_export latex
+If an accession contains a colon, we pick the accession to its right.
+#+end_export
+#+begin_src go <<Split accessions at colon, Pr.~\ref{pr:neig}>>=
+  for i := 0; i < len(accessions); i++ {
+	  arr := strings.Split(accessions[i], ":")
+	  if len(arr) > 1 {
+		  accessions[i] = arr[1]
+	  }
+  }
+#+end_src
+#+begin_src latex
+  Like for the targets, if a neighbor has at least one genome accession,
+  we store it.
+#+end_src
+#+begin_src go <<Look up neighbor genomes, Pr.~\ref{pr:neig}>>=
+  for _, neighbor := range neighbors {
+	  accessions := taxdb.Accessions(neighbor)
+	  //<<Check accessions, Pr.~\ref{pr:neig}>>
+	  if len(accessions) > 0 {
+		  genomes[neighbor] = accessions
+	  }
+  }
+#+end_src
+#+begin_src latex
+  The result consists either of a tab-separated list of accessions with
+  taxa names, a formatted list of accessions or of the full report.
+#+end_src
 #+begin_src go <<Print result, Pr.~\ref{pr:neig}>>=
-  if optL {
+  if optLT {
+	  //<<List accessions with taxa names, Pr.~\ref{pr:neig}>>
+  } else if optL {
 	  //<<List accessions, Pr.~\ref{pr:neig}>>
   } else {
 	  //<<Print report, Pr.~\ref{pr:neig}>>
   }
+#+end_src
+#+begin_export latex
+We list the accessions as tab-separated values. The accessions table
+has a header consisting of the sample (target or neighbor), the
+accession, and the corresponding taxon name. We first list the
+targets, then the neighbors.
+
+#+end_export
+#+begin_src go <<List accessions with taxa names, Pr.~\ref{pr:neig}>>=
+  //<<List targets with taxa names>>
+  //<<List neighbors with taxa names>>
+#+end_src
+#+begin_export latex
+For each target we get its name, the list of genome accessions and
+print everything.
+#+end_export
+#+begin_src go <<List targets with taxa names>>=
+  sample := "t"
+  for _, target := range targets {
+	  name := taxdb.Name(target)
+	  accessions := genomes[target]
+	  for _, accession := range accessions {
+		  fmt.Fprintf(os.Stdout, "%s\t%s\t%s\n",
+			  sample, accession, name)
+	  }
+  }
+#+end_src
+#+begin_export latex
+Likewise, we list the neighbors.
+#+end_export
+#+begin_src go <<List neighbors with taxa names>>=
+    sample = "n"
+    for _, neighbor := range neighbors {
+	    name := taxdb.Name(neighbor)
+	    accessions := genomes[neighbor]
+	    for _, accession := range accessions {
+		    fmt.Fprintf(os.Stdout, "%s\t%s\t%s\n",
+			    sample, accession, name) 
+	    }
+    }
 #+end_src
 #+begin_export latex
 We list the accessions in a table constructed with a \ty{tabwriter},
@@ -281,7 +413,7 @@ first list the targets, then the neighbors.
 #+end_src
 #+begin_export latex
 For each target we get the list of genome accessions and print each
-one.
+accession.
 #+end_export
 #+begin_src go <<List targets, Pr.~\ref{pr:neig}>>=
   sample := "t"
@@ -300,7 +432,7 @@ We list the neighbors like we just listed the targets.
   for _, neighbor := range neighbors {
 	  accessions := genomes[neighbor]
 	  for _, accession := range accessions {
-		    fmt.Fprintf(w, "%s\t%s\n", sample, accession)
+		  fmt.Fprintf(w, "%s\t%s\n", sample, accession)
 	  }
   }
 #+end_src

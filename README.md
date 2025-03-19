@@ -1,4 +1,4 @@
-# `neighbors`
+# [`neighbors`](https://owncloud.gwdg.de/index.php/s/MlypXN3t5XUhvZJ)
 ## Description
 Identify target and neighbor genomes for marker discovery.
 ## Introduction
@@ -25,29 +25,48 @@ further analyzed *in silico* and
 ## Author
 [Bernhard Haubold](http://guanine.evolbio.mpg.de/), `haubold@evolbio.mpg.de`
 ## Make the Programs
-Make sure you've installed the packages `git`, `golang`,
-`make`, `noweb`, and `sqlite3`.  
-  `$ make`  
-  The directory `bin` now contains the seven executables of the
-  package, additional scripts are in
-  `scripts`.
-## Make the Documentation
-Make sure you've installed the packages `git`, `make`, `noweb`, `texlive-science`,
-`texlive-pstricks`, `texlive-latex-extra`,
-and `texlive-fonts-extra`. Then execute  
-  `$ make doc`  
-  The documentation is now in `doc/neighborsDoc.pdf`. 
+If you are on an Ubuntu system like Ubuntu on
+[wsl](https://learn.microsoft.com/en-us/windows/wsl/install) under
+MS-Windows or the [Ubuntu Docker
+container](https://hub.docker.com/_/ubuntu), you can clone the
+repository and change into it.
+
+`git clone https://github.com/evolbioinf/neighbors`  
+`cd neighbors`
+
+Then install the additional dependencies by running the script
+[`setup.sh`](scripts/setup.sh).
+
+`bash scripts/setup.sh`
+
+Make the programs.
+
+`make`
+
+The directory `bin` now contains the ten executables of the
+package. Put them somewhere in your `PATH`. Additional scripts are in
+`scripts`.
+
+The
+[documentation](https://owncloud.gwdg.de/index.php/s/MlypXN3t5XUhvZJ)
+comes with a tutorial. To work through it, additional programs need to
+be installed. Again, on Ubuntu you can run the script
+[`setupTutorial.sh`](scripts/setupTutorial.sh).
+
+`bash scripts/setupTutorial.sh`
 ## Run Docker Container 
 As an alternative to building `neighbors` from scratch, we also post it as a [docker
   container](https://hub.docker.com/r/itsers/neighbors). The container
-  includes all programs needed to work through the tutorial in `~/tutorial.txt`.
-  -  `$ docker pull itsers/neighbors`
-  -  `$ docker container run --detach-keys="ctrl-@" -h neighbors -it itsers/neighbors`
+  includes all programs needed to work through the tutorial in
+  [`neighborsDoc.pdf`](https://owncloud.gwdg.de/index.php/s/MlypXN3t5XUhvZJ).
+  
+  `docker pull itsers/neighbors`  
+  `docker container run --detach-keys="ctrl-@" -h neighbors -it itsers/neighbors`
 ## Make the Docker Container
-The command  
-`$ make docker`  
-pulls the repository
-`https://github.com/IvanTsers/neighbors-docker`, and starts building a
-local copy of the docker image.
+The command
+
+`make docker`
+
+starts building a local copy of the docker image.
 ## License
 [GNU General Public License](https://www.gnu.org/licenses/gpl.html)
