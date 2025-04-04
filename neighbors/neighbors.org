@@ -111,10 +111,40 @@
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
-  If the user gave target taxa, we collect them in a slice of integers.
+  If the user gave target taxa, we check (s)he didn't also give input
+  files. Then we collect the targets in the slice of integers we
+  declare.
 #+end_src
 #+begin_src go <<Respond to \ty{-t}, Pr.~\ref{pr:neig}>>=
   var targets []int
+  if *optT != "" {
+	  //<<Check there are no input files, Pr.~\ref{pr:neig}>>
+	  //<<Collect targets, Pr.~\ref{pr:neig}>>
+  }
+#+end_src
+#+begin_src latex
+  If the user combined \ty{-t} with input files, something is wrong and
+  we bail with a friendly message.
+#+end_src
+#+begin_src go <<Check there are no input files, Pr.~\ref{pr:neig}>>=
+  if len(flag.Args()) > 1 {
+	  m := "please use either -t or input files, " +
+		  "not both"
+	  fmt.Fprintln(os.Stderr, m)
+	  os.Exit(1)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{fmt} and \ty{os}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "fmt"
+  "os"
+#+end_src
+#+begin_src latex
+  We collect the target accessions in a slice of integers.
+#+end_src
+#+begin_src go <<Collect targets, Pr.~\ref{pr:neig}>>=
   if *optT != "" {
 	  ts := strings.Split(*optT, ",")
 	  for _, t := range ts {
@@ -147,10 +177,9 @@
   files = files[1:]
 #+end_src
 #+begin_src latex
-  We import \ty{os} and \ty{tdb}.
+  We import \ty{tdb}.
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
-  "os"
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
@@ -392,12 +421,6 @@ to it. Then we list the targets and neighbors.
   fmt.Fprintf(w, "# Sample\tAccession\n")
   //<<List targets, Pr.~\ref{pr:neig}>>
   //<<List neighbors, Pr.~\ref{pr:neig}>>
-#+end_src
-#+begin_src latex
-  We import \ty{fmt}.
-#+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
-  "fmt"
 #+end_src
 #+begin_export latex
 For each target we get the list of genome accessions and print each

@@ -197,11 +197,19 @@ func main() {
 	}
 	var targets []int
 	if *optT != "" {
-		ts := strings.Split(*optT, ",")
-		for _, t := range ts {
-			target, e := strconv.Atoi(t)
-			util.Check(e)
-			targets = append(targets, target)
+		if len(flag.Args()) > 1 {
+			m := "please use either -t or input files, " +
+				"not both"
+			fmt.Fprintln(os.Stderr, m)
+			os.Exit(1)
+		}
+		if *optT != "" {
+			ts := strings.Split(*optT, ",")
+			for _, t := range ts {
+				target, e := strconv.Atoi(t)
+				util.Check(e)
+				targets = append(targets, target)
+			}
 		}
 	}
 	files := flag.Args()
