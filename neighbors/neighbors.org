@@ -24,28 +24,31 @@
   }
 #+end_src
 #+begin_src latex
-  \epr
-  In the main function we set the usage, declare the options, parse
-  the options, and parse the input files.
+  \epr In the main function we set the usage, declare the options, parse
+  the options, and respond to them. Then we open the database connection
+  and parse the input files.
 #+end_src
 #+begin_src go <<Main function, Pr.~\ref{pr:neig}>>=
   //<<Set usage, Pr.~\ref{pr:neig}>>
   //<<Declare options, Pr.~\ref{pr:neig}>>
   //<<Parse options, Pr.~\ref{pr:neig}>>
+  //<<Respond to options, Pr.~\ref{pr:neig}>>
+  //<<Open database connection, Pr.~\ref{pr:neig}>>
   //<<Parse input files, Pr.~\ref{pr:neig}>>
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
   purpose of \ty{neighbors}, and an example command. In the usage we
   clarify that the first argument of \ty{neighbors} is the name of the
-  taxonomy database.
+  taxonomy database. In the example we show how to enter the human taxon
+  ID, 9606, as target.
 #+end_src
 #+begin_src go <<Set usage, Pr.~\ref{pr:neig}>>=
   u := "neighbors [-h] [option]... <db> [targets.txt]..."
   p := "Given a taxonomy database computed with makeNeiDb and " +
-	  "a set of target taxon-IDs, find their closest " +
+	  "a set of target taxon IDs, find their closest " +
 	  "taxonomic neighbors."
-  e := "neighbors neidb targetIds.txt"
+  e := "neighbors -t 9606 neidb"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -55,14 +58,22 @@
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  Apart from the version, we declare an option to restrict the output to
-  taxa with genomes (\ty{-g}), and an option to just list the genomes
-  (\ty{-l}).
+  Apart from the version, we declare four more options:
+  \begin{itemize}
+  \item \ty{-g}: restrict output to taxa with one or more genomes
+  \item \ty{-l}: just list the genomes
+  \item \ty{-t}: comma-delimited list of target taxon-IDs instead of IDs
+    from files
+  \item \ty{-T}: tab-delimited output instead of pretty printing
+  \end{itemize}
 #+end_src
 #+begin_src go <<Declare options, Pr.~\ref{pr:neig}>>=
   optV := flag.Bool("v", false, "version")
   optG := flag.Bool("g", false, "genome sequences only")
   optL := flag.Bool("l", false, "list genomes")
+  optT := flag.String("t", "", "comma-delimited targets")
+  optTT := flag.Bool("T", false, "tab-delimited output " +
+	  "(default pretty-printing)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -71,104 +82,105 @@
   "flag"
 #+end_src
 #+begin_src latex
-  We parse the options and respond to \ty{-v} as this stops
-  \ty{neighbors}. The remaining token on the command line are taken as
-  file names, the first of which is the mandatory database. If it isn't
-  provided, we kindly request it. Then we open the taxonomy database and
-  remove the database name from the list of input files.
+  We parse the options.
 #+end_src
 #+begin_src go <<Parse options, Pr.~\ref{pr:neig}>>=
   flag.Parse()
+#+end_src
+#+begin_src latex
+  We respond to the version option, \ty{-v}, and the target taxon IDs,
+  \ty{-t}.
+#+end_src
+#+begin_src go <<Respond to options, Pr.~\ref{pr:neig}>>=
+  //<<Respond to \ty{-v}, Pr.~\ref{pr:neig}>>
+  //<<Respond to \ty{-t}, Pr.~\ref{pr:neig}>>
+#+end_src
+#+begin_src latex
+  If the user requested the version, we print the program information,
+  which includes the version.
+#+end_src
+#+begin_src go <<Respond to \ty{-v}, Pr.~\ref{pr:neig}>>=
   if *optV {
 	  util.PrintInfo("neighbors")
   }
-  files := flag.Args()
-  if len(files) == 0 {
-	  fmt.Fprintf(os.Stderr,
-		  "please provide a database name\n")
-	  os.Exit(0)
-  }
-  //<<Open taxonomy database, Pr.~\ref{pr:neig}>>
-  files = files[1:]
 #+end_src
 #+begin_src latex
-  We import \ty{util}, \ty{fmt}, and \ty{os}.
+  We import \ty{util}.
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
   "github.com/evolbioinf/neighbors/util"
-  "fmt"
-  "os"
 #+end_src
 #+begin_src latex
-  We open a connection to the taxonomy database.
+  If the user gave target taxa, we collect them in a slice of integers.
 #+end_src
-#+begin_src go <<Open taxonomy database, Pr.~\ref{pr:neig}>>=
-  taxdb := tdb.OpenTaxonomyDB(files[0])
+#+begin_src go <<Respond to \ty{-t}, Pr.~\ref{pr:neig}>>=
+  var targets []int
+  if *optT != "" {
+	  ts := strings.Split(*optT, ",")
+	  for _, t := range ts {
+		  target, e := strconv.Atoi(t)
+		  util.Check(e)
+		  targets = append(targets, target)
+	  }
+  }
 #+end_src
 #+begin_src latex
-  We import \ty{tdb}.
+  We import \ty{strings} and \ty{strconv}.
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "strings"
+  "strconv"
+#+end_src
+#+begin_src latex
+  The remaining tokens on the command line are file names. There should
+  be at least one, the database. If there isn't, we bail with a friendly
+  message, otherwise we open a database connection and remove the
+  database name from the slice of file names.
+#+end_src
+#+begin_src go <<Open database connection, Pr.~\ref{pr:neig}>>=
+  files := flag.Args()
+  if len(files) < 1 {
+	  fmt.Fprintf(os.Stderr, "please enter a datbase")
+	  os.Exit(1)
+  }
+  taxdb := tdb.OpenTaxonomyDB(files[0])
+  files = files[1:]
+#+end_src
+#+begin_src latex
+  We import \ty{os} and \ty{tdb}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "os"
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
-  The input files are parsed using the function \ty{clio.ParseFiles},
-  which takes as argument the function \ty{parse}. In turn, \ty{parse}
-  takes the database connection, the list option, and the genomes option
-  as arguments.
+  If the user supplied targets via \ty{-t}, we calculate targets and
+  neighbors from them using a function we still have to write,
+  \ty{calcTarNei}. Otherwise, we parse the remaining files using the
+  function \ty{clio.ParseFiles}. It takes as argument the function
+  \ty{parse}. In turn, \ty{parse} takes as arguments the database
+  connection, the list option, the genomes option and the tab option.
 #+end_src
 #+begin_src go <<Parse input files, Pr.~\ref{pr:neig}>>=
-  clio.ParseFiles(files, parse, taxdb, *optL, *optG)
+  if len(targets) > 0 {
+	  calcTarNei(targets, taxdb, *optL, *optG, *optTT)
+  } else {
+	  clio.ParseFiles(files, parse, taxdb, *optL,
+		  ,*optG, *optTT)
+  }
 #+end_src
 #+begin_src latex
-  Inside \ty{parse}, we retrieve the taxonomy database, the list option,
-  and the genomes option. Then we read the taxon-IDs and compute two new
-  sets of taxon-IDs, the targets, and the neighbors. For each element of
-  these sets we also look up the genome accessions. Then we print the
-  combined result.
+  The function \ty{calcTarNei} computes the targets and neighbors, looks
+  up the respective genomes, and prints the result.
 #+end_src
 #+begin_src go <<Functions, Pr.~\ref{pr:neig}>>=
-  func parse(r io.Reader, args ...interface{}) {
-	  taxdb := args[0].(*tdb.TaxonomyDB)
-	  optL := args[1].(bool)
-	  optG := args[2].(bool)
-	  //<<Read taxon-IDs, Pr.~\ref{pr:neig}>>
+  func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
+	  list, onlyG, tab bool) {
 	  //<<Compute targets, Pr.~\ref{pr:neig}>>
 	  //<<Compute neighbors, Pr.~\ref{pr:neig}>>
 	  //<<Look up genomes, Pr.~\ref{pr:neig}>>
 	  //<<Print result, Pr.~\ref{pr:neig}>>
   }
-#+end_src
-#+begin_src latex
-  We import \ty{io}.
-#+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
-  "io"
-#+end_src
-#+begin_src latex
-  We read the taxon-IDs as a slice of integers from the input file. We
-  ignore blank lines and lines starting with a hash.
-#+end_src
-#+begin_src go <<Read taxon-IDs, Pr.~\ref{pr:neig}>>=
-  var taxa []int
-  sc := bufio.NewScanner(r)
-  for sc.Scan() {
-	  s := sc.Text()
-	  if s == "" || s[0] == '#' { continue }
-	  i, err := strconv.Atoi(s)
-	  if err != nil {
-		  log.Fatalf("couldn't convert %q", s)
-	  }
-	  taxa = append(taxa, i)
-  }
-#+end_src
-#+begin_src latex
-  We import \ty{bufio}, \ty{strconv}, and \ty{log}.
-#+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
-  "bufio"
-  "strconv"
-  "log"
 #+end_src
 #+begin_src latex
   The targets are nodes of the subtree of the most recent common
@@ -338,34 +350,54 @@ If an accession contains a colon, we pick the accession to its right.
   }
 #+end_src
 #+begin_src latex
-  The result consists either of a list of accessions or of the full
-  report.
+  We print the result using a \ty{Writer}. So we construct one and flush
+  it again at the end. In between, the result consists either of a list
+  of accessions, or of the full report.
 #+end_src
 #+begin_src go <<Print result, Pr.~\ref{pr:neig}>>=
-  if optL {
+  var w io.Writer
+  //<<Construct \ty{Writer}, Pr.~\ref{pr:neig}>>
+  if list {
 	  //<<List accessions, Pr.~\ref{pr:neig}>>
   } else {
 	  //<<Print report, Pr.~\ref{pr:neig}>>
   }
+  //<<Flush writer, Pr.~\ref{pr:neig}>>
 #+end_src
-#+begin_export latex
-We list the accessions in a table constructed with a \ty{tabwriter},
-which we flush at the end. The accessions table has a header
-consisting of the sample (target or neighbor) and the accession. We
-first list the targets, then the neighbors.
-#+end_export
-#+begin_src go <<List accessions, Pr.~\ref{pr:neig}>>=
-  w := tabwriter.NewWriter(os.Stdout, 1, 0, 2, ' ', 0)
-  fmt.Fprintf(w, "# Sample\tAccession\n")
-  //<<List targets, Pr.~\ref{pr:neig}>>
-  //<<List neighbors, Pr.~\ref{pr:neig}>>
-  w.Flush()
+#+begin_src latex
+  The user can choose between tab-delimited and the default
+  pretty-printed output. For tab-delimited output we use the standard
+  output stream. For pretty-printing we use a tabwriter. Notice that we
+  only need to flush the tab writer at the end, not the stdout.
+#+end_src
+#+begin_src go <<Construct \ty{Writer}, Pr.~\ref{pr:neig}>>=
+  if tab {
+	  w = os.Stdout
+  } else {
+	  w = tabwriter.NewWriter(os.Stdout, 1, 0, 2, ' ', 0)
+  }
 #+end_src
 #+begin_src latex
   We import \ty{tabwriter}.
 #+end_src
 #+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
   "text/tabwriter"
+#+end_src
+#+begin_export latex
+We list the accessions in a table, which is printed using a
+\ty{Writer}. So we declare the writer, construct it, and print the header
+to it. Then we list the targets and neighbors.
+#+end_export
+#+begin_src go <<List accessions, Pr.~\ref{pr:neig}>>=
+  fmt.Fprintf(w, "# Sample\tAccession\n")
+  //<<List targets, Pr.~\ref{pr:neig}>>
+  //<<List neighbors, Pr.~\ref{pr:neig}>>
+#+end_src
+#+begin_src latex
+  We import \ty{fmt}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "fmt"
 #+end_src
 #+begin_export latex
 For each target we get the list of genome accessions and print each
@@ -398,19 +430,17 @@ We list the neighbors like we just listed the targets.
   that is, the MRCA of the targets and neighbors combined. Then we print
   a table of results consisting of four columns: the taxon
   type---neighbor or target, the taxon-ID, taxon name, and the genome
-  accessions. Like the replicon list, we typeset again the report table
-  using a tab writer and flush it at the end.
+  accessions.
 #+end_src
 #+begin_src go <<Print report, Pr.~\ref{pr:neig}>>=
   mrcaTname := taxdb.Name(mrcaT)
   mrcaAname := taxdb.Name(mrcaA)
   fmt.Printf("# MRCA(targets): %d, %s\n", mrcaT, mrcaTname)
-  fmt.Printf("# MRCA(targets+neighbors): %d, %s\n", mrcaA, mrcaAname)
-  w := tabwriter.NewWriter(os.Stdout, 1, 0, 2, ' ', 0)
+  fmt.Printf("# MRCA(targets+neighbors): %d, %s\n", mrcaA,
+	  mrcaAname)
   fmt.Fprint(w, "# Type\tTaxon-ID\tName\tGenomes\n")
   //<<Print targets, Pr.~\ref{pr:neig}>>
   //<<Print neighbors, Pr.~\ref{pr:neig}>>
-  w.Flush()
 #+end_src
 #+begin_src latex
   Targets that were already in the input are marked as type ``t'', new
@@ -426,7 +456,7 @@ We list the neighbors like we just listed the targets.
 	  if len(genomes[target]) > 0 {
 		  g = strings.Join(genomes[target], "|")
 	  }
-	  if optG && g == "-" { continue }
+	  if onlyG && g == "-" { continue }
 	  fmt.Fprintf(w, "%s\t%d\t%s\t%s\n", t, target,
 		  taxdb.Name(target),
 		  strings.TrimPrefix(g, " "))
@@ -449,10 +479,68 @@ We import \ty{strings}.
 	  if len(genomes[neighbor]) > 0 {
 		  g = strings.Join(genomes[neighbor], "|")
 	  }
-	  if optG && g == "-" { continue }
+	  if onlyG && g == "-" { continue }
 	  n := taxdb.Name(neighbor)
 	  fmt.Fprintf(w, "n\t%d\t%s\t%s\n", neighbor, n,
 		  strings.TrimPrefix(g, " "))
+  }
+#+end_src
+#+begin_src latex
+  Inside \ty{parse}, we retrieve the taxonomy database, the list option,
+  the genomes option, and the tab option. Then we read the taxon-IDs and
+  call \ty{calcTarNei}.
+#+end_src
+#+begin_src go <<Functions, Pr.~\ref{pr:neig}>>=
+  func parse(r io.Reader, args ...interface{}) {
+	  taxdb := args[0].(*tdb.TaxonomyDB)
+	  optL := args[1].(bool)
+	  optG := args[2].(bool)
+	  optTT := args[3].(bool)
+	  var taxa []int
+	  //<<Read taxon-IDs, Pr.~\ref{pr:neig}>>
+	  calcTarNei(taxa, taxdb, optL, optG, optTT)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{io}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "io"
+#+end_src
+#+begin_src latex
+  We read the taxon-IDs as a slice of integers from the input file. We
+  ignore blank lines and lines starting with a hash.
+#+end_src
+#+begin_src go <<Read taxon-IDs, Pr.~\ref{pr:neig}>>=
+  sc := bufio.NewScanner(r)
+  for sc.Scan() {
+	  s := sc.Text()
+	  if s == "" || s[0] == '#' { continue }
+	  i, err := strconv.Atoi(s)
+	  if err != nil {
+		  log.Fatalf("couldn't convert %q", s)
+	  }
+	  taxa = append(taxa, i)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{bufio}, \ty{strconv}, and \ty{log}.
+#+end_src
+#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+  "bufio"
+  "strconv"
+  "log"
+#+end_src
+#+begin_src latex
+  The last step in printing the result is to flush the tabwriter---if
+  indeed we are dealing with one. So we test whether the user opted
+  for pretty-printing, in which case we assert we are dealing with a
+  tabwriter and flush it.
+#+end_src
+#+begin_src go <<Flush writer, Pr.~\ref{pr:neig}>>=
+  if !tab {
+	  tw := w.(*tabwriter.Writer)
+	  tw.Flush()
   }
 #+end_src
 #+begin_src latex
@@ -492,9 +580,8 @@ We import \ty{strings}.
 #+end_src
 #+begin_src latex
   We run \ty{neighbors} on the full database with four sets of
-  target-IDs, \ty{tid1.txt}, \ty{tid2.txt}, and so on. On \ty{tid4.txt}
-  we also test the list option (\ty{-l}) and the genomes option
-  (\ty{-g}).
+  target-IDs, \ty{tid1.txt}, \ty{tid2.txt}, and so on. Then we test the
+  options.
 #+end_src
 #+begin_src go <<Construct tests, Pr.~\ref{pr:neig}>>=
   db := "../data/neidb"
@@ -503,16 +590,56 @@ We import \ty{strings}.
 	  test := exec.Command("./neighbors", db, in)
 	  tests = append(tests, test)
   }
-  test := exec.Command("./neighbors", "-l", db, "tid4.txt")
-  tests = append(tests, test)
-  test = exec.Command("./neighbors", "-g", db, "tid4.txt")
-  tests = append(tests, test)
+  //<<Test options, Pr.~\ref{pr:neig}>>
 #+end_src
 #+begin_src latex
   We import \ty{strconv}.
 #+end_src
 #+begin_src go <<Testing imports, Pr.~\ref{pr:neig}>>=
   "strconv"
+#+end_src
+#+begin_src latex
+  We test the four options list, \ty{-l}, genomes, \ty{-g}, tab,
+  \ty{-T}, and targets, \ty{-t}.
+#+end_src
+#+begin_src go <<Test options, Pr.~\ref{pr:neig}>>=
+  //<<Test \ty{-l}, Pr.~\ref{pr:neig}>>
+  //<<Test \ty{-g}, Pr.~\ref{pr:neig}>>
+  //<<Test \ty{-T}, Pr.~\ref{pr:neig}>>
+  //<<Test \ty{-t}, Pr.~\ref{pr:neig}>>
+#+end_src
+#+begin_src latex
+We test the list option, \ty{-l}, on \ty{tid4.txt}.
+#+end_src
+#+begin_src go <<Test \ty{-l}, Pr.~\ref{pr:neig}>>=
+  test := exec.Command("./neighbors", "-l", db, "tid4.txt")
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  Similarly, we test the genomes only option, \ty{-g}, on \ty{tid4.txt}.
+#+end_src
+#+begin_src go <<Test \ty{-g}, Pr.~\ref{pr:neig}>>=
+  test = exec.Command("./neighbors", "-g", db, "tid4.txt")
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  We also run the tab option, \ty{-T} on \ty{tid4.txt}.
+#+end_src
+#+begin_src go <<Test \ty{-T}, Pr.~\ref{pr:neig}>>=
+  test = exec.Command("./neighbors", "-T", db, "tid4.txt")
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  The targets option, \ty{-t} doesn't require an input file. We run it
+  first on a single taxon ID, then on two. The taxon IDs are taken from
+  our friend \ty{tid4.txt}.
+#+end_src
+#+begin_src go <<Test \ty{-t}, Pr.~\ref{pr:neig}>>=
+  test = exec.Command("./neighbors", "-t", "866775", db)
+  tests = append(tests, test)
+  test = exec.Command("./neighbors", "-t",
+	  "866775,1216979", db)
+  tests = append(tests, test)
 #+end_src
 #+begin_src latex
   For a given test we compare the result we get with the result we want,

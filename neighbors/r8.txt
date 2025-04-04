@@ -1,0 +1,5 @@
+# MRCA(targets): 866775, Aerococcus urinae ACS-120-V-Col10a
+# MRCA(targets+neighbors): 1376, Aerococcus urinae
+# Type  Taxon-ID  Name                                       Genomes
+t       866775    Aerococcus urinae ACS-120-V-Col10a         GCA_000193205.1
+n       1216979   Aerococcus urinae NBRC 15544 = CCUG 36881  GCA_001544335.1

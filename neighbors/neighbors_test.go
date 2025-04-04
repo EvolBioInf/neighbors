@@ -20,6 +20,13 @@ func TestNeighbors(t *testing.T) {
 	tests = append(tests, test)
 	test = exec.Command("./neighbors", "-g", db, "tid4.txt")
 	tests = append(tests, test)
+	test = exec.Command("./neighbors", "-T", db, "tid4.txt")
+	tests = append(tests, test)
+	test = exec.Command("./neighbors", "-t", "866775", db)
+	tests = append(tests, test)
+	test = exec.Command("./neighbors", "-t",
+		"866775,1216979", db)
+	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()
 		if err != nil {

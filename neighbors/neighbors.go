@@ -16,23 +16,8 @@ import (
 	"text/tabwriter"
 )
 
-func parse(r io.Reader, args ...interface{}) {
-	taxdb := args[0].(*tdb.TaxonomyDB)
-	optL := args[1].(bool)
-	optG := args[2].(bool)
-	var taxa []int
-	sc := bufio.NewScanner(r)
-	for sc.Scan() {
-		s := sc.Text()
-		if s == "" || s[0] == '#' {
-			continue
-		}
-		i, err := strconv.Atoi(s)
-		if err != nil {
-			log.Fatalf("couldn't convert %q", s)
-		}
-		taxa = append(taxa, i)
-	}
+func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
+	list, onlyG, tab bool) {
 	mrcaT := taxdb.MRCA(taxa)
 	targets := taxdb.Subtree(mrcaT)
 	newTargets := make(map[int]bool)
@@ -109,8 +94,13 @@ func parse(r io.Reader, args ...interface{}) {
 			genomes[neighbor] = accessions
 		}
 	}
-	if optL {
-		w := tabwriter.NewWriter(os.Stdout, 1, 0, 2, ' ', 0)
+	var w io.Writer
+	if tab {
+		w = os.Stdout
+	} else {
+		w = tabwriter.NewWriter(os.Stdout, 1, 0, 2, ' ', 0)
+	}
+	if list {
 		fmt.Fprintf(w, "# Sample\tAccession\n")
 		sample := "t"
 		for _, target := range targets {
@@ -126,13 +116,12 @@ func parse(r io.Reader, args ...interface{}) {
 				fmt.Fprintf(w, "%s\t%s\n", sample, accession)
 			}
 		}
-		w.Flush()
 	} else {
 		mrcaTname := taxdb.Name(mrcaT)
 		mrcaAname := taxdb.Name(mrcaA)
 		fmt.Printf("# MRCA(targets): %d, %s\n", mrcaT, mrcaTname)
-		fmt.Printf("# MRCA(targets+neighbors): %d, %s\n", mrcaA, mrcaAname)
-		w := tabwriter.NewWriter(os.Stdout, 1, 0, 2, ' ', 0)
+		fmt.Printf("# MRCA(targets+neighbors): %d, %s\n", mrcaA,
+			mrcaAname)
 		fmt.Fprint(w, "# Type\tTaxon-ID\tName\tGenomes\n")
 		for _, target := range targets {
 			t := "t"
@@ -143,7 +132,7 @@ func parse(r io.Reader, args ...interface{}) {
 			if len(genomes[target]) > 0 {
 				g = strings.Join(genomes[target], "|")
 			}
-			if optG && g == "-" {
+			if onlyG && g == "-" {
 				continue
 			}
 			fmt.Fprintf(w, "%s\t%d\t%s\t%s\n", t, target,
@@ -156,37 +145,76 @@ func parse(r io.Reader, args ...interface{}) {
 			if len(genomes[neighbor]) > 0 {
 				g = strings.Join(genomes[neighbor], "|")
 			}
-			if optG && g == "-" {
+			if onlyG && g == "-" {
 				continue
 			}
 			n := taxdb.Name(neighbor)
 			fmt.Fprintf(w, "n\t%d\t%s\t%s\n", neighbor, n,
 				strings.TrimPrefix(g, " "))
 		}
-		w.Flush()
 	}
+	if !tab {
+		tw := w.(*tabwriter.Writer)
+		tw.Flush()
+	}
+}
+func parse(r io.Reader, args ...interface{}) {
+	taxdb := args[0].(*tdb.TaxonomyDB)
+	optL := args[1].(bool)
+	optG := args[2].(bool)
+	optTT := args[3].(bool)
+	var taxa []int
+	sc := bufio.NewScanner(r)
+	for sc.Scan() {
+		s := sc.Text()
+		if s == "" || s[0] == '#' {
+			continue
+		}
+		i, err := strconv.Atoi(s)
+		if err != nil {
+			log.Fatalf("couldn't convert %q", s)
+		}
+		taxa = append(taxa, i)
+	}
+	calcTarNei(taxa, taxdb, optL, optG, optTT)
 }
 func main() {
 	u := "neighbors [-h] [option]... <db> [targets.txt]..."
 	p := "Given a taxonomy database computed with makeNeiDb and " +
-		"a set of target taxon-IDs, find their closest " +
+		"a set of target taxon IDs, find their closest " +
 		"taxonomic neighbors."
-	e := "neighbors neidb targetIds.txt"
+	e := "neighbors -t 9606 neidb"
 	clio.Usage(u, p, e)
 	optV := flag.Bool("v", false, "version")
 	optG := flag.Bool("g", false, "genome sequences only")
 	optL := flag.Bool("l", false, "list genomes")
+	optT := flag.String("t", "", "comma-delimited targets")
+	optTT := flag.Bool("T", false, "tab-delimited output "+
+		"(default pretty-printing)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("neighbors")
 	}
+	var targets []int
+	if *optT != "" {
+		ts := strings.Split(*optT, ",")
+		for _, t := range ts {
+			target, e := strconv.Atoi(t)
+			util.Check(e)
+			targets = append(targets, target)
+		}
+	}
 	files := flag.Args()
-	if len(files) == 0 {
-		fmt.Fprintf(os.Stderr,
-			"please provide a database name\n")
-		os.Exit(0)
+	if len(files) < 1 {
+		fmt.Fprintf(os.Stderr, "please enter a datbase")
+		os.Exit(1)
 	}
 	taxdb := tdb.OpenTaxonomyDB(files[0])
 	files = files[1:]
-	clio.ParseFiles(files, parse, taxdb, *optL, *optG)
+	if len(targets) > 0 {
+		calcTarNei(targets, taxdb, *optL, *optG, *optTT)
+	} else {
+		clio.ParseFiles(files, parse, taxdb, *optL,
+			*optG, *optTT)
+	}
 }

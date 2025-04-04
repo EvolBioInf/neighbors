@@ -1,0 +1,210 @@
+# MRCA(targets): 1376, Aerococcus urinae
+# MRCA(targets+neighbors): 1375, Aerococcus
+# Type  Taxon-ID  Name                                              Genomes
+tt      1376      Aerococcus urinae                                 GCA_001543175.1|GCA_016026975.1|GCA_002087935.1|GCA_003286735.1|GCA_905112985.1|GCA_905125285.1|GCA_003286875.1|GCA_003286525.1|GCA_002884575.1|GCA_003286805.1|GCA_905115105.1|GCA_003286595.1|GCA_905115165.1|GCA_003286585.1|GCA_905115195.1|GCA_003286895.1|GCA_905125205.1|GCA_905112955.1|GCA_905111125.1|GCA_003286695.1|GCA_905112975.1|GCA_905125235.1|GCA_905115125.1|GCA_905125305.1|GCA_905115155.1|GCA_905125245.1|GCA_905115095.1|GCA_905125255.1|GCA_905111885.1|GCA_905125265.1|GCA_905125275.1|GCA_905125325.1|GCA_905113075.1|GCA_003286755.1|GCA_905115145.1|GCA_003286515.1|GCA_003286825.1|GCA_905111135.1|GCA_905113065.1|GCA_905125315.1|GCA_905111875.1|GCA_905112965.1|GCA_905112995.1|GCA_905115075.1|GCA_002884955.1|GCA_002847665.1|GCA_905125335.1|GCA_008726315.1|GCA_905115225.1|GCA_905125225.1|GCA_003286845.1|GCA_905125295.1|GCA_905125195.1|GCA_003286645.1|GCA_905115205.1|GCA_905115135.1|GCA_003286665.1|GCA_008726845.1|GCA_008726285.1|GCA_003286635.1|GCA_008726675.1|GCA_003286555.1|GCA_008726885.1|GCA_905115115.1|GCA_001649715.1|GCA_905113055.1|GCA_002871915.1|GCA_002847625.1|GCA_002847705.1|GCA_008726385.1|GCA_905115085.1|GCA_018919305.1|GCA_008726475.1|GCA_905113045.1|GCA_003286795.1|GCA_003286565.1|GCA_003286725.1|GCA_003286715.1
+t       866775    Aerococcus urinae ACS-120-V-Col10a                GCA_000193205.1
+t       1216979   Aerococcus urinae NBRC 15544 = CCUG 36881         GCA_001544335.1
+n       1377      Aerococcus viridans                               GCA_001543285.1|GCA_900445095.1|GCA_002083135.2|GCA_002871935.1|GCA_900445105.1|GCA_002280005.1
+n       51665     Aerococcus urinaeequi                             GCA_001518795.1|GCA_001543205.1|GCA_014931015.1|GCA_014050425.1|GCA_014050435.1|GCA_014050445.1|GCA_001719605.1|GCA_003542755.1|GCA_022781615.1|GCA_020743935.1
+n       79233     Aerococcus sp. LV65.5:W1                          -
+n       87541     Aerococcus christensenii                          GCA_001543105.1|GCA_002861505.1|GCA_001552755.1
+n       119206    Aerococcus sanguinicola                           GCA_905113025.1|GCA_001543145.1|GCA_905113005.1|GCA_905113035.1|GCA_905109855.1|GCA_905113015.1|GCA_905125215.1|GCA_905109795.1|GCA_905115175.1|GCA_008726925.1|GCA_002847725.1|GCA_008802315.1
+n       128944    Aerococcus urinaehominis                          GCA_001543245.1|GCA_900103385.1
+n       189666    environmental samples                             -
+n       189667    uncultured Aerococcus sp.                         -
+n       260382    Aerococcus sp. GIC15                              -
+n       339624    Aerococcus sp. HPC 555                            -
+n       339630    Aerococcus sp. HPC 569                            -
+n       339642    Aerococcus sp. HPC 594                            -
+n       339644    Aerococcus sp. HPC 597                            -
+n       345659    Aerococcus sp. UMB 29                             -
+n       371602    Aerococcus suis                                   GCA_900176325.1|GCA_022780685.1
+n       392431    Aerococcus sp. YTHM-17                            -
+n       394344    Aerococcus sp. zf-93-I                            -
+n       403770    Aerococcus sp. LB-P1-29                           -
+n       407804    Aerococcus sp. Na3-1                              -
+n       423346    Aerococcus sp. 28565-2                            -
+n       423347    Aerococcus sp. 5076NH                             -
+n       431401    Aerococcus sp. RODAN2                             -
+n       497972    Aerococcus sp. P3-2                               -
+n       505847    Aerococcus sp. SMCC G885                          -
+n       525247    Aerococcus christensenii DSM 15819 = CCUG 28831   GCA_001466745.1
+n       562815    Aerococcus sp. qy17                               -
+n       570180    Aerococcus sp. 4101                               -
+n       570181    Aerococcus sp. 4102                               -
+n       570182    Aerococcus sp. 4103                               -
+n       576079    Aerococcus sp. ZXM063                             -
+n       582856    Aerococcus sp. KSL 4-362                          -
+n       655812    Aerococcus viridans ATCC 11563 = CCUG 4311        GCA_000178435.1
+n       682994    Aerococcus sp. M2T9B3                             -
+n       682995    Aerococcus sp. M3T9B11                            -
+n       702111    Aerococcus sp. GDLAMI-N1                          -
+n       741108    Aerococcus sp. 1C                                 -
+n       749741    Aerococcus sp. 3417/04                            -
+n       760178    Aerococcus sp. STR_45NG28                         -
+n       760179    Aerococcus sp. STR_49NG24                         -
+n       858647    Aerococcus sp. EX336960VC24                       -
+n       867197    Aerococcus sp. SBL                                -
+n       885474    Aerococcus sp. R-38529                            -
+n       889568    Aerococcus sp. 27F07n-MB1-8b                      -
+n       930151    Aerococcus sp. B43(2010)                          -
+n       943948    Aerococcus sp. PSBCRG1-1                          -
+n       946166    Aerococcus sp. F3(2011)                           -
+n       1005147   Aerococcus sp. PK35_S1                            -
+n       1045502   Aerococcus sp. I10B-00258                         -
+n       1076286   Aerococcus sp. BPD-1                              -
+n       1076287   Aerococcus sp. BPD-3                              -
+n       1076288   Aerococcus sp. BPD-6                              -
+n       1113936   Aerococcus sp. NBRC 105209                        -
+n       1116503   Aerococcus sp. X16-CRBM-E14                       -
+n       1116512   Aerococcus sp. X28-CRBM-E14                       -
+n       1116513   Aerococcus sp. X30-CRBM-E14                       -
+n       1116523   Aerococcus sp. X42-CRBM-E14                       -
+n       1116534   Aerococcus sp. X53-CRBM-E14                       -
+n       1116539   Aerococcus sp. X8-CRBM-E14                        -
+n       1116540   Aerococcus sp. X9-CRBM-E14                        -
+n       1116550   Aerococcus sp. I13-CRBM-T3P21                     -
+n       1116551   Aerococcus sp. I22-CRBM-T3P21                     -
+n       1116552   Aerococcus sp. I24-CRBM-T3P21                     -
+n       1116553   Aerococcus sp. I26-CRBM-T3P21                     -
+n       1116555   Aerococcus sp. I30-CRBM-T3P21                     -
+n       1116556   Aerococcus sp. I45-CRBM-T3P21                     -
+n       1116557   Aerococcus sp. I52-CRBM-T3P21                     -
+n       1116558   Aerococcus sp. I61-CRBM-T3P21                     -
+n       1116559   Aerococcus sp. I79-CRBM-T3P21                     -
+n       1116561   Aerococcus sp. I85-CRBM-T3P21                     -
+n       1116673   Aerococcus sp. alfa36-PCA-E3-2                    -
+n       1116698   Aerococcus sp. C137-PCA-T3P21                     -
+n       1116699   Aerococcus sp. C138-PCA-T3P21                     -
+n       1116700   Aerococcus sp. C150-PCA-T3P21                     -
+n       1116702   Aerococcus sp. C17-PCA-T3P21                      -
+n       1116703   Aerococcus sp. C179-PCA-T3P21                     -
+n       1116704   Aerococcus sp. C201-PCA-T3P21                     -
+n       1116705   Aerococcus sp. C203-PCA-T3P21                     -
+n       1116706   Aerococcus sp. C28-PCA-T3P21                      -
+n       1116708   Aerococcus sp. C36-PCA-T3P21                      -
+n       1116710   Aerococcus sp. C45-PCA-T3P21                      -
+n       1116711   Aerococcus sp. C65-PCA-T3P21                      -
+n       1116712   Aerococcus sp. C7-PCA-T3P21                       -
+n       1116713   Aerococcus sp. C70-PCA-T3P21                      -
+n       1116716   Aerococcus sp. C78-PCA-T3P21                      -
+n       1116717   Aerococcus sp. C91-PCA-T3P21                      -
+n       1116718   Aerococcus sp. C92-PCA-T3P21                      -
+n       1116753   Aerococcus sp. Z16-SB-E14                         -
+n       1116754   Aerococcus sp. Z19-SB-E14                         -
+n       1116756   Aerococcus sp. Z20-SB-E14                         -
+n       1116757   Aerococcus sp. Z23-SB-E14                         -
+n       1116758   Aerococcus sp. Z26-SB-E14                         -
+n       1116759   Aerococcus sp. Z29-SB-E14                         -
+n       1116761   Aerococcus sp. Z31-SB-E14                         -
+n       1116762   Aerococcus sp. Z33-SB-E14                         -
+n       1116763   Aerococcus sp. Z34-SB-E14                         -
+n       1116764   Aerococcus sp. Z35-SB-E14                         -
+n       1116765   Aerococcus sp. Z36-SB-E14                         -
+n       1116766   Aerococcus sp. Z37-SB-E14                         -
+n       1116767   Aerococcus sp. Z38-SB-E14                         -
+n       1116770   Aerococcus sp. Z7-SB-E14                          -
+n       1116771   Aerococcus sp. Z8-SB-E14                          -
+n       1116786   Aerococcus sp. S12-SB-T2P11                       -
+n       1116787   Aerococcus sp. S18-SB-T2P11                       -
+n       1116788   Aerococcus sp. S7-SB-T2P11                        -
+n       1116790   Aerococcus sp. T75-SB-T3P11                       -
+n       1116791   Aerococcus sp. T86-SB-T3P11                       -
+n       1116792   Aerococcus sp. T9-SB-T3P11                        -
+n       1116793   Aerococcus sp. T90-SB-T3P11                       -
+n       1116794   Aerococcus sp. T96-SB-T3P11                       -
+n       1120952   Aerococcus urinaeequi DSM 20341 = CCUG 28094      GCA_000425085.1
+n       1134846   Aerococcus sp. GCNN9_I                            -
+n       1175629   Aerococcus viridans LL1                           GCA_000262085.1
+n       1185773   Aerococcus sp. enrichment culture clone WW1_3-68  -
+n       1224906   Aerococcus sp. KK-14                              -
+n       1230807   Aerococcus sp. AECF-2                             -
+n       1230808   Aerococcus sp. AECF-27a                           -
+n       1230809   Aerococcus sp. AECF-4                             -
+n       1230810   Aerococcus sp. AECF-6                             -
+n       1230811   Aerococcus sp. AECF-7                             -
+n       1255702   Aerococcus viridans TL327A                        -
+n       1285196   Aerococcus sp. JSA07                              -
+n       1323230   Aerococcus vaginalis                              -
+n       1329219   Aerococcus sp. RS-BIG-35                          -
+n       1353053   Aerococcus sp. DFO-AE7-6c                         -
+n       1353054   Aerococcus sp. DFW-AE7-6a                         -
+n       1355662   Aerococcus sp. I12B-01124                         -
+n       1394735   Aerococcus sp. PJF10                              -
+n       1444354   Aerococcus sp. M_Sw_oHS_05/11_6_3(1)              -
+n       1444355   Aerococcus sp. M_Sw_oHS_06/11_6_3(2)              -
+n       1444356   Aerococcus sp. M_Sw_oHS_07/11_7_2(1)              -
+n       1444357   Aerococcus sp. M_Sw_oHS_08/11_5_2(1)              -
+n       1444358   Aerococcus sp. M_Sw_oHS_08/11_6_1(2)              -
+n       1444359   Aerococcus sp. M_Sw_oHS_09/10_2_2(2)              -
+n       1444360   Aerococcus sp. M_Sw_oHS_10/10_11_2(2)             -
+n       1449441   Aerococcus sp. DF34-E                             -
+n       1449442   Aerococcus sp. DF9n-C                             -
+n       1449443   Aerococcus sp. N8-C                               -
+n       1472884   Aerococcus sp. ZI1                                -
+n       1495954   Aerococcus sp. AK-42                              -
+n       1537282   Aerococcus sp. PJSI34                             -
+n       1537283   Aerococcus sp. PJSI36                             -
+n       1572773   Aerococcus sp. HMW-22                             -
+n       1579802   Aerococcus sp. HMW22_42                           -
+n       1579803   Aerococcus sp. HMW22_43                           -
+n       1579804   Aerococcus sp. HMW22_48                           -
+n       1579805   Aerococcus sp. HMW22_60                           -
+n       1581058   Aerococcus sp. HMSC23C02                          GCA_001806805.1
+n       1581084   Aerococcus sp. HMSC10H05                          GCA_001806975.1
+n       1581129   Aerococcus sp. HMSC06H08                          GCA_001807425.1
+n       1641649   Aerococcus sp. sed118                             -
+n       1647656   Aerococcus sp. S41                                -
+n       1651813   Aerococcus sp. 148a                               -
+n       1662124   Aerococcus sp. KK05                               -
+n       1672770   Aerococcus sp. N360PBVB02_1492r                   -
+n       1672771   Aerococcus sp. N360PBVB02_16S_27f                 -
+n       1679548   Aerococcus sp. MRSA147B15_13_3E                   -
+n       1679549   Aerococcus sp. MRSA150B15_13_3E                   -
+n       1680917   Aerococcus sp. A06_41                             -
+n       1680918   Aerococcus sp. B06_42                             -
+n       1680919   Aerococcus sp. C06_43                             -
+n       1680920   Aerococcus sp. C07_51                             -
+n       1680921   Aerococcus sp. D06_44                             -
+n       1680922   Aerococcus sp. E07_53                             -
+n       1680923   Aerococcus sp. F07_54                             -
+n       1680924   Aerococcus sp. G06_47                             -
+n       1680925   Aerococcus sp. G07_55                             -
+n       1680926   Aerococcus sp. G10_79                             -
+n       1680927   Aerococcus sp. H02_16                             -
+n       1680928   Aerococcus sp. H06_48                             -
+n       1680929   Aerococcus sp. H07_56                             -
+n       1692033   Aerococcus sp. G18.53                             -
+n       1715105   Aerococcus sp. HMSC062A02                         GCA_001809535.1
+n       1715159   Aerococcus sp. HMSC062B07                         GCA_001809895.1
+n       1715184   Aerococcus sp. HMSC035B07                         GCA_001836025.1
+n       1729605   Aerococcus sp. C26                                -
+n       1729606   Aerococcus sp. F116                               -
+n       1733940   Aerococcus sp. bw5                                -
+n       1734451   Aerococcus sp. PKL11                              -
+n       1739288   Aerococcus sp. HMSC075D05                         GCA_001811135.1
+n       1739333   Aerococcus sp. HMSC072A12                         GCA_001811965.1
+n       1739396   Aerococcus sp. HMSC061A03                         GCA_001813115.1
+n       1794329   Aerococcus sp. 307B4_12EGalle                     -
+n       1794330   Aerococcus sp. 323B3_12EGalle                     -
+n       1794331   Aerococcus sp. 615B2_12EGalle                     -
+n       1794332   Aerococcus sp. 616B2_12EGalle                     -
+n       1808495   Aerococcus sp. BR-36                              -
+n       1813377   Aerococcus sp. ADMK8                              -
+n       1834720   Aerococcus sp. HGLP-34                            -
+n       1834721   Aerococcus sp. HGLP-35                            -
+n       1844430   Aerococcus sp. BYHD2-1                            -
+n       1844431   Aerococcus sp. BYHD2-11                           -
+n       1844432   Aerococcus sp. BYHD3-1                            -
+n       1844462   Aerococcus sp. BYHD1-1                            -
+n       1862355   Aerococcus sp. 245CL                              -
+n       1862391   Aerococcus sp. SKR2                               -
+n       1872398   Aerococcus sp.                                    GCA_022768285.1|GCA_017474445.1
+n       1945961   Aerococcus sp. UBA6277                            GCA_002440555.1
+n       1981982   Aerococcus sp. 1KP-2016                           GCA_002252085.1
+n       2487350   Aerococcus sp. SJQ22                              GCA_003797145.1
+n       2618060   unclassified Aerococcus                           -
+n       2654098   Aerococcus sp. PSL25                              -
+n       2730366   Aerococcus sp. 1D-463                             -
+n       2730367   Aerococcus sp. 1D-488                             -
+n       2730390   Aerococcus sp. 1D-1724                            -
