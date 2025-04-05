@@ -13,6 +13,7 @@ $(exe).go: $(exe).org
 		bash ../scripts/org2nw $(exe).org | notangle -R$(exe).go | gofmt > $(exe).go;\
 	fi
 test: $(exe)_test.go $(exe)
+	@rm -f test.db
 	@go test
 $(exe)_test.go: $(exe).org
 	if [ "$(nw)" != "" ]; then\
