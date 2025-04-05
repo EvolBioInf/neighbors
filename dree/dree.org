@@ -44,11 +44,11 @@
   package main
 
   import (
-	  //<<Imports, Pr.~\ref{pr:dr}>>
+	  //<<Imports, Pr. \ref{pr:dr}>>
   )
 
   func main() {
-	  //<<Main function, Pr.~\ref{pr:dr}>>
+	  //<<Main function, Pr. \ref{pr:dr}>>
   }
 #+end_src
 #+begin_src latex
@@ -56,19 +56,19 @@
   In the main function we set the usage, declare the options, and parse
   them. Then we get the subtree we're after, annotate it, and print it.
 #+end_src
-#+begin_src go <<Main function, Pr.~\ref{pr:dr}>>=
-  //<<Set usage, Pr.~\ref{pr:dr}>>
-  //<<Declare options, Pr.~\ref{pr:dr}>>
-  //<<Parse options, Pr.~\ref{pr:dr}>>
-  //<<Get subtree, Pr.~\ref{pr:dr}>>
-  //<<Annotate subtree, Pr.~\ref{pr:dr}>>
-  //<<Draw subtree, Pr.~\ref{pr:dr}>>
+#+begin_src go <<Main function, Pr. \ref{pr:dr}>>=
+  //<<Set usage, Pr. \ref{pr:dr}>>
+  //<<Declare options, Pr. \ref{pr:dr}>>
+  //<<Parse options, Pr. \ref{pr:dr}>>
+  //<<Get subtree, Pr. \ref{pr:dr}>>
+  //<<Annotate subtree, Pr. \ref{pr:dr}>>
+  //<<Draw subtree, Pr. \ref{pr:dr}>>
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
   purpose of \ty{dree}, and an example command.
 #+end_src
-#+begin_src go <<Set usage, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Set usage, Pr. \ref{pr:dr}>>=
   u := "dree [-h] [option]... <taxon-ID> <db>"
   p := "Get the taxonomy rooted on a specific taxon."
   e := "dree -n -g 207598 neidb | dot -T x11"
@@ -77,7 +77,7 @@
 #+begin_src latex
   We import \ty{clio}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
@@ -85,7 +85,7 @@
   instead of the default taxon-ID, \ty{-n}, the other to print only taxa
   with genome sequences, \ty{-g}.
 #+end_src
-#+begin_src go <<Declare options, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Declare options, Pr. \ref{pr:dr}>>=
   optV := flag.Bool("v", false, "version")
   optN := flag.Bool("n", false,
 	  "print names instead of taxon-IDs")
@@ -96,7 +96,7 @@
 #+begin_src latex
   We import \ty{flag}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "flag"
 #+end_src
 #+begin_src latex
@@ -104,19 +104,19 @@
   \ty{dree}. Then we get the taxon-ID and the database name. Using the
   database name we open the database connection.
 #+end_src
-#+begin_src go <<Parse options, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Parse options, Pr. \ref{pr:dr}>>=
   flag.Parse()
   if *optV {
 	  util.PrintInfo("dree")
   }
-  //<<Get taxon-ID, Pr.~\ref{pr:dr}>>
-  //<<Get database name, Pr.~\ref{pr:dr}>>
-  //<<Open database connection, Pr.~\ref{pr:dr}>>
+  //<<Get taxon-ID, Pr. \ref{pr:dr}>>
+  //<<Get database name, Pr. \ref{pr:dr}>>
+  //<<Open database connection, Pr. \ref{pr:dr}>>
 #+end_src
 #+begin_src latex
   We import \ty{util}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
@@ -124,7 +124,7 @@
   and database, in that order. If we don't have two tokens, we bail with
   a friendly message. We convert the taxonomy-ID to an integer.
 #+end_src
-#+begin_src go <<Get taxon-ID, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Get taxon-ID, Pr. \ref{pr:dr}>>=
   tokens := flag.Args()
   if len(tokens) != 2 {
 	  fmt.Fprintf(os.Stderr,
@@ -139,7 +139,7 @@
 #+begin_src latex
   We import \ty{fmt}, \ty{os}, \ty{strconv}, and \ty{log}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "fmt"
   "os"
   "strconv"
@@ -148,25 +148,25 @@
 #+begin_src latex
   The database name is the second token.
 #+end_src
-#+begin_src go <<Get database name, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Get database name, Pr. \ref{pr:dr}>>=
   dbname := tokens[1]
 #+end_src
 #+begin_src latex
   We open a connection to the taxonomy database.
 #+end_src
-#+begin_src go <<Open database connection, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Open database connection, Pr. \ref{pr:dr}>>=
   taxdb := tdb.OpenTaxonomyDB(dbname)
 #+end_src
 #+begin_src latex
   We import \ty{tdb}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
   We get the subtree we're looking for.
 #+end_src
-#+begin_src go <<Get subtree, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Get subtree, Pr. \ref{pr:dr}>>=
   subtree := taxdb.Subtree(tid)
 #+end_src
 #+begin_src latex
@@ -177,17 +177,17 @@
   information. Then we mark nodes with genomes and nodes with genomes in
   subtree.
 #+end_src
-#+begin_src go <<Annotate subtree, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Annotate subtree, Pr. \ref{pr:dr}>>=
   hasGenome := make(map[int]bool)
   hasGsub := make(map[int]bool)
-  //<<Mark nodes with genomes, Pr.~\ref{pr:dr}>>
-  //<<Mark nodes with genomes in subtree, Pr.~\ref{pr:dr}>>
+  //<<Mark nodes with genomes, Pr. \ref{pr:dr}>>
+  //<<Mark nodes with genomes in subtree, Pr. \ref{pr:dr}>>
 #+end_src
-#+begin_export latex
+#+begin_src latex
 We iterate over the nodes and mark those with genomes. These nodes are
 also the initial set of nodes with genomes in their subtree.
-#+end_export
-#+begin_src go <<Mark nodes with genomes, Pr.~\ref{pr:dr}>>=
+#+end_src
+#+begin_src go <<Mark nodes with genomes, Pr. \ref{pr:dr}>>=
   for _, v := range subtree {
 	  if len(taxdb.Accessions(v)) > 0 {
 		  hasGenome[v] = true
@@ -195,12 +195,12 @@ also the initial set of nodes with genomes in their subtree.
 	  }
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 To find the nodes with genomes in their subtrees, we iterate over the
 nodes and for each node with a genome in it subtree, we propagate this
 up the tree.
-#+end_export
-#+begin_src go <<Mark nodes with genomes in subtree, Pr.~\ref{pr:dr}>>=
+#+end_src
+#+begin_src go <<Mark nodes with genomes in subtree, Pr. \ref{pr:dr}>>=
   for _, v := range subtree {
 	  if hasGsub[v] {
 		  u := v
@@ -213,33 +213,33 @@ up the tree.
 	  }
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 Before we draw the subtree, we ensure stable output by sorting the
 integers that make up the subtree. Then we draw the subtree graph,
 unless the user has opted for listing the taxa in the subtree.
-#+end_export
-#+begin_src go <<Draw subtree, Pr.~\ref{pr:dr}>>=
+#+end_src
+#+begin_src go <<Draw subtree, Pr. \ref{pr:dr}>>=
   sort.Ints(subtree)
   if *optL {
-	  //<<List subtree, Pr.~\ref{pr:dr}>>
+	  //<<List subtree, Pr. \ref{pr:dr}>>
   } else {
-	  //<<Draw subtree graph, Pr.~\ref{pr:dr}>>
+	  //<<Draw subtree graph, Pr. \ref{pr:dr}>>
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 We import \ty{sort}.
-#+end_export
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+#+end_src
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "sort"
 #+end_src
-#+begin_export latex
+#+begin_src latex
 We list the subtree in a table consisting of three mandatory columns,
 taxon-ID, rank, and the number of genomes. In addition, the user might
 have opted for names. We construct this table with a
 \ty{tabwriter}. Then we iterate over the nodes and list each one. At
 the end we flush the tabwriter.
-#+end_export
-#+begin_src go <<List subtree, Pr.~\ref{pr:dr}>>=
+#+end_src
+#+begin_src go <<List subtree, Pr. \ref{pr:dr}>>=
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
   fmt.Fprint(w, "# Taxid\tRank\tGenomes")
   if *optN {
@@ -247,21 +247,21 @@ the end we flush the tabwriter.
   }
   fmt.Fprint(w, "\n")
   for _, v := range subtree {
-	  //<<List one node, Pr.~\ref{pr:dr}>>
+	  //<<List one node, Pr. \ref{pr:dr}>>
   }
   w.Flush()
 #+end_src
-#+begin_export latex
+#+begin_src latex
 We import \ty{tabwriter}.
-#+end_export
-#+begin_src go <<Imports, Pr.~\ref{pr:dr}>>=
+#+end_src
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "text/tabwriter"
 #+end_src
-#+begin_export latex
+#+begin_src latex
 The user might have opted to list only taxon nodes with genomes and/or
 to add names to taxa.
-#+end_export
-#+begin_src go <<List one node, Pr.~\ref{pr:dr}>>=
+#+end_src
+#+begin_src go <<List one node, Pr. \ref{pr:dr}>>=
   n := len(taxdb.Accessions(v))
   if !*optG || n > 0 {
 	  r := taxdb.Rank(v)
@@ -284,12 +284,12 @@ to add names to taxa.
   oriented left to right rather than the default top to bottom. For each
   node $v$ in the subtree we print $v$ and its parent.
 #+end_src
-#+begin_src go <<Draw subtree graph, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Draw subtree graph, Pr. \ref{pr:dr}>>=
   t1 := "\t%d [color=\"lightsalmon\",style=filled]\n"
   t2 := "\t%d [label=\"%s\"]\n"
   fmt.Printf("digraph g {\n\trankdir=LR\n")
   for _, v := range subtree {
-	  //<<Print $v$ and its parent, Pr.~\ref{pr:dr}>>
+	  //<<Print $v$ and its parent, Pr. \ref{pr:dr}>>
   }
   fmt.Printf("}\n")
 #+end_src
@@ -301,9 +301,9 @@ to add names to taxa.
   $v$, in other words, if $v$ is not the global root, we also print $p$
   and the connecting edge.
 #+end_src
-#+begin_src go <<Print $v$ and its parent, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Print $v$ and its parent, Pr. \ref{pr:dr}>>=
   if !*optG || (*optG && hasGsub[v]) {
-	  //<<Print $v$, Pr.~\ref{pr:dr}>>
+	  //<<Print $v$, Pr. \ref{pr:dr}>>
 	  if v != tid {
 		  p := taxdb.Parent(v)
 		  if p != v {
@@ -316,7 +316,7 @@ to add names to taxa.
   If the node has a genome attached, or the user asked for names, we
   print an attribute line for $v$. 
 #+end_src
-#+begin_src go <<Print $v$, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Print $v$, Pr. \ref{pr:dr}>>=
   if hasGenome[v] {
 	  fmt.Printf(t1, v)
   }
@@ -336,27 +336,27 @@ to add names to taxa.
 
   import (
 	  "testing"
-	  //<<Testing imports, Pr.~\ref{pr:dr}>>
+	  //<<Testing imports, Pr. \ref{pr:dr}>>
   )
 
   func TestDree(t *testing.T) {
-	  //<<Testing, Pr.~\ref{pr:dr}>>
+	  //<<Testing, Pr. \ref{pr:dr}>>
   }
 #+end_src
 #+begin_src latex
   We construct tests and run them in a loop.
 #+end_src
-#+begin_src go <<Testing, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Testing, Pr. \ref{pr:dr}>>=
   var tests []*exec.Cmd
-  //<<Construct tests, Pr.~\ref{pr:dr}>>
+  //<<Construct tests, Pr. \ref{pr:dr}>>
   for i, test := range tests {
-	  //<<Run test, Pr.~\ref{pr:dr}>>
+	  //<<Run test, Pr. \ref{pr:dr}>>
   }
 #+end_src
 #+begin_src latex
   We import \ty{exec}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:dr}>>=
   "os/exec"
 #+end_src
 #+begin_src latex
@@ -364,7 +364,7 @@ to add names to taxa.
   207598. First with no options, then with names, then with
   genomes, then with list.
 #+end_src
-#+begin_src go <<Construct tests, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:dr}>>=
   n := "207598"
   d := "../data/neidb"
   test := exec.Command("./dree", n, d)
@@ -376,11 +376,11 @@ to add names to taxa.
   test = exec.Command("./dree", "-l", n, d)
   tests = append(tests, test)
 #+end_src
-#+begin_export latex
+#+begin_src latex
 The list option can be combined with genome, and name, yielding
 another three combinations to test.
-#+end_export
-#+begin_src go <<Construct tests, Pr.~\ref{pr:dr}>>=
+#+end_src
+#+begin_src go <<Construct tests, Pr. \ref{pr:dr}>>=
   test = exec.Command("./dree", "-l", "-g", n, d)
   tests = append(tests, test)
   test = exec.Command("./dree", "-l", "-n", n, d)
@@ -392,7 +392,7 @@ another three combinations to test.
   For each test we compare the output we get with the output we want,
   which is contained in \ty{r1.txt}, \ty{r2.txt}, and so on.
 #+end_src
-#+begin_src go <<Run test, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Run test, Pr. \ref{pr:dr}>>=
   get, err := test.Output()
   if err != nil {
 	  t.Errorf("couldn't run %q", test)
@@ -409,7 +409,7 @@ another three combinations to test.
 #+begin_src latex
   We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:dr}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:dr}>>=
   "strconv"
   "io/ioutil"
   "bytes"

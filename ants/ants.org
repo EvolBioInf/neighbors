@@ -12,11 +12,11 @@
   package main
 
   import (
-	  //<<Imports, Pr.~\ref{pr:ant}>>
+	  //<<Imports, Pr. \ref{pr:ant}>>
   )
 
   func main() {
-	  //<<Main function, Pr.~\ref{pr:ant}>>
+	  //<<Main function, Pr. \ref{pr:ant}>>
   }
 #+end_src
 #+begin_src latex
@@ -24,18 +24,18 @@
   In the main function we set the usage, declare the options, parse the
   options, get the ancestors, and print them.
 #+end_src
-#+begin_src go <<Main function, Pr.~\ref{pr:ant}>>=
-  //<<Set usage, Pr.~\ref{pr:ant}>>
-  //<<Declare options, Pr.~\ref{pr:ant}>>
-  //<<Parse options, Pr.~\ref{pr:ant}>>
-  //<<Get ancestors, Pr.~\ref{pr:ant}>>
-  //<<Print ancestors, Pr.~\ref{pr:ant}>>
+#+begin_src go <<Main function, Pr. \ref{pr:ant}>>=
+  //<<Set usage, Pr. \ref{pr:ant}>>
+  //<<Declare options, Pr. \ref{pr:ant}>>
+  //<<Parse options, Pr. \ref{pr:ant}>>
+  //<<Get ancestors, Pr. \ref{pr:ant}>>
+  //<<Print ancestors, Pr. \ref{pr:ant}>>
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
   purpose of \ty{ants}, and an example command.
 #+end_src
-#+begin_src go <<Set usage, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Set usage, Pr. \ref{pr:ant}>>=
   u := "ants [option] <taxon-ID> <db>"
   p := "Get a taxon's ancestors."
   e := "ants 9606 neidb"
@@ -44,19 +44,19 @@
 #+begin_src latex
   We import \ty{clio}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:ant}>>=
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
   There's only one option, the version.
 #+end_src
-#+begin_src go <<Declare options, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Declare options, Pr. \ref{pr:ant}>>=
   var optV = flag.Bool("v", false, "version")
 #+end_src 
 #+begin_src latex
   We import \ty{flag}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:ant}>>=
   "flag"
 #+end_src
 #+begin_src latex
@@ -64,13 +64,13 @@
   program. Then we extract the remaining arguments, check there are two
   of them, and store the taxon-ID and the database.
 #+end_src
-#+begin_src go <<Parse options, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Parse options, Pr. \ref{pr:ant}>>=
   flag.Parse()
   if *optV {
 	  util.PrintInfo("ants")
   }
   args := flag.Args()
-  //<<Check arguments, Pr.~\ref{pr:ant}>>
+  //<<Check arguments, Pr. \ref{pr:ant}>>
   tid, err := strconv.Atoi(args[0])
   if err != nil { log.Fatal(err) }
   db := args[1]
@@ -78,7 +78,7 @@
 #+begin_src latex
   We import \ty{util}, \ty{strconv}, and \ty{log}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:ant}>>=
   "github.com/evolbioinf/neighbors/util"
   "strconv"
   "log"
@@ -87,7 +87,7 @@
   If the user didn't submit two arguments, something is bound to have
   gone wrong and we bail with a friendly message.
 #+end_src
-#+begin_src go <<Check arguments, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Check arguments, Pr. \ref{pr:ant}>>=
   if len(args) != 2 {
 	  m := "please provide a taxon and a database"
 	  fmt.Fprintf(os.Stderr, "%s\n", m)
@@ -97,7 +97,7 @@
 #+begin_src latex
   We import \ty{fmt} and \ty{os}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:ant}>>=
   "fmt"
   "os"
 #+end_src
@@ -107,7 +107,7 @@
   from the current taxon, we haven't yet reached the root and keep
   climbing.
 #+end_src
-#+begin_src go <<Get ancestors, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Get ancestors, Pr. \ref{pr:ant}>>=
   taxdb := tdb.OpenTaxonomyDB(db)
   var ants []int
   ants = append(ants, tid)
@@ -121,7 +121,7 @@
 #+begin_src latex
   We import \ty{tdb}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:ant}>>=
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
@@ -129,7 +129,7 @@
   remote. To make the result look nice, we print a table and lay it out
   with a \ty{tabwriter}.
 #+end_src
-#+begin_src go <<Print ancestors, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Print ancestors, Pr. \ref{pr:ant}>>=
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
   defer w.Flush()
   fmt.Fprintf(w, "# Back\tID\tName\tRank\n")
@@ -143,7 +143,7 @@
 #+begin_src latex
   We import \ty{tabwriter}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:ant}>>=
   "text/tabwriter"
 #+end_src
 #+begin_src latex
@@ -157,34 +157,34 @@
 
   import (
 	  "testing"
-	  //<<Testing imports, Pr.~\ref{pr:ant}>>
+	  //<<Testing imports, Pr. \ref{pr:ant}>>
   )
 
   func TestAnts(t *testing.T) {
-	  //<<Testing, Pr.~\ref{pr:ant}>>
+	  //<<Testing, Pr. \ref{pr:ant}>>
   }
 #+end_src
 #+begin_src latex
   We construct a set of tests and iterate over them.
 #+end_src
-#+begin_src go <<Testing, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Testing, Pr. \ref{pr:ant}>>=
   var tests []*exec.Cmd
-  //<<Construct tests, Pr.~\ref{pr:ant}>>
+  //<<Construct tests, Pr. \ref{pr:ant}>>
   for i, test := range tests {
-	  //<<Run test, Pr.~\ref{pr:ant}>>
+	  //<<Run test, Pr. \ref{pr:ant}>>
   }
 #+end_src
 #+begin_src latex
   We import \ty{exec}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:ant}>>=
   "os/exec"
 #+end_src
 #+begin_src latex
   A single test should suffice for now, for which we start from
   \emph{Homo sapiens} (9606).
 #+end_src
-#+begin_src go <<Construct tests, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:ant}>>=
   tid := "9606"
   db := "../data/neidb"
   test := exec.Command("./ants", tid, db)
@@ -194,7 +194,7 @@
   When running the test, we compare the result we get with the result we
   want contained in \ty{r1.txt}.
 #+end_src
-#+begin_src go <<Run test, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Run test, Pr. \ref{pr:ant}>>=
   get, err := test.Output()
   if err != nil { t.Error(err) }
   f := "r" + strconv.Itoa(i + 1) + ".txt"
@@ -207,7 +207,7 @@
 #+begin_src latex
   We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:ant}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:ant}>>=
   "strconv"
   "io/ioutil"
   "bytes"

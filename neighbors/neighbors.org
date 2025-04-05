@@ -16,11 +16,11 @@
   package main
 
   import (
-	  //<<Imports, Pr.~\ref{pr:neig}>>
+	  //<<Imports, Pr. \ref{pr:neig}>>
   )
-  //<<Functions, Pr.~\ref{pr:neig}>>
+  //<<Functions, Pr. \ref{pr:neig}>>
   func main() {
-	  //<<Main function, Pr.~\ref{pr:neig}>>
+	  //<<Main function, Pr. \ref{pr:neig}>>
   }
 #+end_src
 #+begin_src latex
@@ -28,13 +28,13 @@
   the options, and respond to them. Then we open the database connection
   and parse the input files.
 #+end_src
-#+begin_src go <<Main function, Pr.~\ref{pr:neig}>>=
-  //<<Set usage, Pr.~\ref{pr:neig}>>
-  //<<Declare options, Pr.~\ref{pr:neig}>>
-  //<<Parse options, Pr.~\ref{pr:neig}>>
-  //<<Respond to options, Pr.~\ref{pr:neig}>>
-  //<<Open database connection, Pr.~\ref{pr:neig}>>
-  //<<Parse input files, Pr.~\ref{pr:neig}>>
+#+begin_src go <<Main function, Pr. \ref{pr:neig}>>=
+  //<<Set usage, Pr. \ref{pr:neig}>>
+  //<<Declare options, Pr. \ref{pr:neig}>>
+  //<<Parse options, Pr. \ref{pr:neig}>>
+  //<<Respond to options, Pr. \ref{pr:neig}>>
+  //<<Open database connection, Pr. \ref{pr:neig}>>
+  //<<Parse input files, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
@@ -43,7 +43,7 @@
   taxonomy database. In the example we show how to enter the human taxon
   ID, 9606, as target.
 #+end_src
-#+begin_src go <<Set usage, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Set usage, Pr. \ref{pr:neig}>>=
   u := "neighbors [-h] [option]... <db> [targets.txt]..."
   p := "Given a taxonomy database computed with makeNeiDb and " +
 	  "a set of target taxon IDs, find their closest " +
@@ -54,7 +54,7 @@
 #+begin_src latex
   We import \ty{clio}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
@@ -67,7 +67,7 @@
   \item \ty{-T}: tab-delimited output instead of pretty printing
   \end{itemize}
 #+end_src
-#+begin_src go <<Declare options, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Declare options, Pr. \ref{pr:neig}>>=
   optV := flag.Bool("v", false, "version")
   optG := flag.Bool("g", false, "genome sequences only")
   optL := flag.Bool("l", false, "list genomes")
@@ -78,28 +78,28 @@
 #+begin_src latex
   We import \ty{flag}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "flag"
 #+end_src
 #+begin_src latex
   We parse the options.
 #+end_src
-#+begin_src go <<Parse options, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Parse options, Pr. \ref{pr:neig}>>=
   flag.Parse()
 #+end_src
 #+begin_src latex
   We respond to the version option, \ty{-v}, and the target taxon IDs,
   \ty{-t}.
 #+end_src
-#+begin_src go <<Respond to options, Pr.~\ref{pr:neig}>>=
-  //<<Respond to \ty{-v}, Pr.~\ref{pr:neig}>>
-  //<<Respond to \ty{-t}, Pr.~\ref{pr:neig}>>
+#+begin_src go <<Respond to options, Pr. \ref{pr:neig}>>=
+  //<<Respond to \ty{-v}, Pr. \ref{pr:neig}>>
+  //<<Respond to \ty{-t}, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
   If the user requested the version, we print the program information,
   which includes the version.
 #+end_src
-#+begin_src go <<Respond to \ty{-v}, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Respond to \ty{-v}, Pr. \ref{pr:neig}>>=
   if *optV {
 	  util.PrintInfo("neighbors")
   }
@@ -107,7 +107,7 @@
 #+begin_src latex
   We import \ty{util}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
@@ -115,18 +115,18 @@
   files. Then we collect the targets in the slice of integers we
   declare.
 #+end_src
-#+begin_src go <<Respond to \ty{-t}, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Respond to \ty{-t}, Pr. \ref{pr:neig}>>=
   var targets []int
   if *optT != "" {
-	  //<<Check there are no input files, Pr.~\ref{pr:neig}>>
-	  //<<Collect targets, Pr.~\ref{pr:neig}>>
+	  //<<Check there are no input files, Pr. \ref{pr:neig}>>
+	  //<<Collect targets, Pr. \ref{pr:neig}>>
   }
 #+end_src
 #+begin_src latex
   If the user combined \ty{-t} with input files, something is wrong and
   we bail with a friendly message.
 #+end_src
-#+begin_src go <<Check there are no input files, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Check there are no input files, Pr. \ref{pr:neig}>>=
   if len(flag.Args()) > 1 {
 	  m := "please use either -t or input files, " +
 		  "not both"
@@ -137,14 +137,14 @@
 #+begin_src latex
   We import \ty{fmt} and \ty{os}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "fmt"
   "os"
 #+end_src
 #+begin_src latex
   We collect the target accessions in a slice of integers.
 #+end_src
-#+begin_src go <<Collect targets, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Collect targets, Pr. \ref{pr:neig}>>=
   if *optT != "" {
 	  ts := strings.Split(*optT, ",")
 	  for _, t := range ts {
@@ -157,7 +157,7 @@
 #+begin_src latex
   We import \ty{strings} and \ty{strconv}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "strings"
   "strconv"
 #+end_src
@@ -167,7 +167,7 @@
   message, otherwise we open a database connection and remove the
   database name from the slice of file names.
 #+end_src
-#+begin_src go <<Open database connection, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Open database connection, Pr. \ref{pr:neig}>>=
   files := flag.Args()
   if len(files) < 1 {
 	  fmt.Fprintf(os.Stderr, "please enter a datbase")
@@ -179,7 +179,7 @@
 #+begin_src latex
   We import \ty{tdb}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
@@ -190,7 +190,7 @@
   \ty{parse}. In turn, \ty{parse} takes as arguments the database
   connection, the list option, the genomes option and the tab option.
 #+end_src
-#+begin_src go <<Parse input files, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Parse input files, Pr. \ref{pr:neig}>>=
   if len(targets) > 0 {
 	  calcTarNei(targets, taxdb, *optL, *optG, *optTT)
   } else {
@@ -202,13 +202,13 @@
   The function \ty{calcTarNei} computes the targets and neighbors, looks
   up the respective genomes, and prints the result.
 #+end_src
-#+begin_src go <<Functions, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Functions, Pr. \ref{pr:neig}>>=
   func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 	  list, onlyG, tab bool) {
-	  //<<Compute targets, Pr.~\ref{pr:neig}>>
-	  //<<Compute neighbors, Pr.~\ref{pr:neig}>>
-	  //<<Look up genomes, Pr.~\ref{pr:neig}>>
-	  //<<Print result, Pr.~\ref{pr:neig}>>
+	  //<<Compute targets, Pr. \ref{pr:neig}>>
+	  //<<Compute neighbors, Pr. \ref{pr:neig}>>
+	  //<<Look up genomes, Pr. \ref{pr:neig}>>
+	  //<<Print result, Pr. \ref{pr:neig}>>
   }
 #+end_src
 #+begin_src latex
@@ -220,15 +220,15 @@
   new targets not contained in the taxa submitted. We mark these new
   targets.
 #+end_src
-#+begin_src go <<Compute targets, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Compute targets, Pr. \ref{pr:neig}>>=
   mrcaT := taxdb.MRCA(taxa)
   targets := taxdb.Subtree(mrcaT)
-  //<<Mark new targets, Pr.~\ref{pr:neig}>>
+  //<<Mark new targets, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
   The new targets are put in a map.
 #+end_src
-#+begin_src go <<Mark new targets, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Mark new targets, Pr. \ref{pr:neig}>>=
   newTargets := make(map[int]bool)
   sort.Ints(taxa)
   l := len(taxa)
@@ -242,7 +242,7 @@
 #+begin_src latex
   We import \ty{sort}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "sort"
 #+end_src
 #+begin_src latex
@@ -252,19 +252,19 @@
   no nodes other than the target(s), we keep moving it up the tree until
   we've found at least one neighbor.
 #+end_src
-#+begin_src go <<Compute neighbors, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Compute neighbors, Pr. \ref{pr:neig}>>=
   var neighbors []int
   mrcaA := mrcaT
   for len(neighbors) == 0 {
 	  mrcaA = taxdb.Parent(mrcaA)
 	  nodes := taxdb.Subtree(mrcaA)
-	  //<<Subtract targets from the nodes, Pr.~\ref{pr:neig}>>
+	  //<<Subtract targets from the nodes, Pr. \ref{pr:neig}>>
   }
 #+end_src
 #+begin_src latex
   Nodes that are not targets or \ty{mrcaA} must be neighbors.
 #+end_src
-#+begin_src go <<Subtract targets from the nodes, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Subtract targets from the nodes, Pr. \ref{pr:neig}>>=
   sort.Ints(targets)
   l = len(targets)
   for _, node := range nodes {
@@ -280,10 +280,10 @@
   We look up the target and the neighbor genomes and store them in a map
   between taxon-IDs and string slices.
 #+end_src
-#+begin_src go <<Look up genomes, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Look up genomes, Pr. \ref{pr:neig}>>=
   genomes := make(map[int][]string)
-  //<<Look up target genomes, Pr.~\ref{pr:neig}>>
-  //<<Look up neighbor genomes, Pr.~\ref{pr:neig}>>
+  //<<Look up target genomes, Pr. \ref{pr:neig}>>
+  //<<Look up neighbor genomes, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
   We use a method call on the database to look up the accessions of the
@@ -291,16 +291,16 @@
   accessions returned, and if afterwards the slice still contains at
   least one entry, we store it.
 #+end_src
-#+begin_src go <<Look up target genomes, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Look up target genomes, Pr. \ref{pr:neig}>>=
   for _, target := range targets {
 	  accessions := taxdb.Accessions(target)
-	  //<<Check accessions, Pr.~\ref{pr:neig}>>
+	  //<<Check accessions, Pr. \ref{pr:neig}>>
 	  if len(accessions) > 0 {
 		  genomes[target] = accessions
 	  }
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 It appears that the slice of accessions can contain hyphens in lieu of
 true accessions. As an additional complication, neighbor queries for
 some viruses, for example HIV (taxid 11709), return accession strings
@@ -314,16 +314,16 @@ Unknown:NC_001450.1/
 \end{verbatim}
 So we remove the hyphens, split at the forward slash, and finally
 split at the colon.
-#+end_export
-#+begin_src go <<Check accessions, Pr.~\ref{pr:neig}>>=
-  //<<Remove hyphens from accessions, Pr.~\ref{pr:neig}>>
-  //<<Split accessions at forward slash, Pr.~\ref{pr:neig}>>
-  //<<Split accessions at colon, Pr.~\ref{pr:neig}>>
 #+end_src
-#+begin_export latex
+#+begin_src go <<Check accessions, Pr. \ref{pr:neig}>>=
+  //<<Remove hyphens from accessions, Pr. \ref{pr:neig}>>
+  //<<Split accessions at forward slash, Pr. \ref{pr:neig}>>
+  //<<Split accessions at colon, Pr. \ref{pr:neig}>>
+#+end_src
+#+begin_src latex
 We remove the hyphens from the slice of accessions and reslice it.
-#+end_export
-#+begin_src go <<Remove hyphens from accessions, Pr.~\ref{pr:neig}>>=
+#+end_src
+#+begin_src go <<Remove hyphens from accessions, Pr. \ref{pr:neig}>>=
   i := 0
   for _, accession := range accessions {
 	  if accession != "-" {
@@ -333,7 +333,7 @@ We remove the hyphens from the slice of accessions and reslice it.
   }
   accessions = accessions[:i]
 #+end_src
-#+begin_export latex
+#+begin_src latex
 We split accession strings at the forward slash and keep the first
 entry of the array returned. If there's no forward slash, that first
 entry is simply the input string. Also, note that for the example
@@ -341,23 +341,23 @@ entry is simply the input string. Also, note that for the example
 Unknown:NC_001450.1/
 \end{verbatim}
 this step removes the trailing slash.
-#+end_export
-#+begin_src go <<Split accessions at forward slash, Pr.~\ref{pr:neig}>>=
+#+end_src
+#+begin_src go <<Split accessions at forward slash, Pr. \ref{pr:neig}>>=
   for i := 0; i < len(accessions); i++ {
 	  arr := strings.Split(accessions[i], "/")
 	  accessions[i] = arr[0]
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 We import \ty{strings}.
-#+end_export
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+end_src
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "strings"
 #+end_src
-#+begin_export latex
+#+begin_src latex
 If an accession contains a colon, we pick the accession to its right.
-#+end_export
-#+begin_src go <<Split accessions at colon, Pr.~\ref{pr:neig}>>=
+#+end_src
+#+begin_src go <<Split accessions at colon, Pr. \ref{pr:neig}>>=
   for i := 0; i < len(accessions); i++ {
 	  arr := strings.Split(accessions[i], ":")
 	  if len(arr) > 1 {
@@ -369,10 +369,10 @@ If an accession contains a colon, we pick the accession to its right.
   Like for the targets, if a neighbor has at least one genome accession,
   we store it.
 #+end_src
-#+begin_src go <<Look up neighbor genomes, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Look up neighbor genomes, Pr. \ref{pr:neig}>>=
   for _, neighbor := range neighbors {
 	  accessions := taxdb.Accessions(neighbor)
-	  //<<Check accessions, Pr.~\ref{pr:neig}>>
+	  //<<Check accessions, Pr. \ref{pr:neig}>>
 	  if len(accessions) > 0 {
 		  genomes[neighbor] = accessions
 	  }
@@ -383,15 +383,15 @@ If an accession contains a colon, we pick the accession to its right.
   it again at the end. In between, the result consists either of a list
   of accessions, or of the full report.
 #+end_src
-#+begin_src go <<Print result, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Print result, Pr. \ref{pr:neig}>>=
   var w io.Writer
-  //<<Construct \ty{Writer}, Pr.~\ref{pr:neig}>>
+  //<<Construct \ty{Writer}, Pr. \ref{pr:neig}>>
   if list {
-	  //<<List accessions, Pr.~\ref{pr:neig}>>
+	  //<<List accessions, Pr. \ref{pr:neig}>>
   } else {
-	  //<<Print report, Pr.~\ref{pr:neig}>>
+	  //<<Print report, Pr. \ref{pr:neig}>>
   }
-  //<<Flush writer, Pr.~\ref{pr:neig}>>
+  //<<Flush writer, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
   The user can choose between tab-delimited and the default
@@ -399,7 +399,7 @@ If an accession contains a colon, we pick the accession to its right.
   output stream. For pretty-printing we use a tabwriter. Notice that we
   only need to flush the tab writer at the end, not the stdout.
 #+end_src
-#+begin_src go <<Construct \ty{Writer}, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Construct \ty{Writer}, Pr. \ref{pr:neig}>>=
   if tab {
 	  w = os.Stdout
   } else {
@@ -409,24 +409,24 @@ If an accession contains a colon, we pick the accession to its right.
 #+begin_src latex
   We import \ty{tabwriter}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "text/tabwriter"
 #+end_src
-#+begin_export latex
+#+begin_src latex
 We list the accessions in a table, which is printed using a
 \ty{Writer}. So we declare the writer, construct it, and print the header
 to it. Then we list the targets and neighbors.
-#+end_export
-#+begin_src go <<List accessions, Pr.~\ref{pr:neig}>>=
-  fmt.Fprintf(w, "# Sample\tAccession\n")
-  //<<List targets, Pr.~\ref{pr:neig}>>
-  //<<List neighbors, Pr.~\ref{pr:neig}>>
 #+end_src
-#+begin_export latex
+#+begin_src go <<List accessions, Pr. \ref{pr:neig}>>=
+  fmt.Fprintf(w, "# Sample\tAccession\n")
+  //<<List targets, Pr. \ref{pr:neig}>>
+  //<<List neighbors, Pr. \ref{pr:neig}>>
+#+end_src
+#+begin_src latex
 For each target we get the list of genome accessions and print each
 accession.
-#+end_export
-#+begin_src go <<List targets, Pr.~\ref{pr:neig}>>=
+#+end_src
+#+begin_src go <<List targets, Pr. \ref{pr:neig}>>=
   sample := "t"
   for _, target := range targets {
 	  accessions := genomes[target]
@@ -435,10 +435,10 @@ accession.
 	  }
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 We list the neighbors like we just listed the targets.
-#+end_export
-#+begin_src go <<List neighbors, Pr.~\ref{pr:neig}>>=
+#+end_src
+#+begin_src go <<List neighbors, Pr. \ref{pr:neig}>>=
   sample = "n"
   for _, neighbor := range neighbors {
 	  accessions := genomes[neighbor]
@@ -455,15 +455,15 @@ We list the neighbors like we just listed the targets.
   type---neighbor or target, the taxon-ID, taxon name, and the genome
   accessions.
 #+end_src
-#+begin_src go <<Print report, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Print report, Pr. \ref{pr:neig}>>=
   mrcaTname := taxdb.Name(mrcaT)
   mrcaAname := taxdb.Name(mrcaA)
   fmt.Printf("# MRCA(targets): %d, %s\n", mrcaT, mrcaTname)
   fmt.Printf("# MRCA(targets+neighbors): %d, %s\n", mrcaA,
 	  mrcaAname)
   fmt.Fprint(w, "# Type\tTaxon-ID\tName\tGenomes\n")
-  //<<Print targets, Pr.~\ref{pr:neig}>>
-  //<<Print neighbors, Pr.~\ref{pr:neig}>>
+  //<<Print targets, Pr. \ref{pr:neig}>>
+  //<<Print neighbors, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
   Targets that were already in the input are marked as type ``t'', new
@@ -471,7 +471,7 @@ We list the neighbors like we just listed the targets.
   punctuated by pipe symbols. If the user requested only taxa with
   genomes, we restrict our output to them.
 #+end_src
-#+begin_src go <<Print targets, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Print targets, Pr. \ref{pr:neig}>>=
   for _, target := range targets {
 	  t := "t"
 	  if newTargets[target] { t = "tt" }
@@ -485,17 +485,17 @@ We list the neighbors like we just listed the targets.
 		  strings.TrimPrefix(g, " "))
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 We import \ty{strings}.
-#+end_export
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+end_src
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "strings"
 #+end_src
 #+begin_src latex
   Neighbors are marked as type ``n''. Since the targets were already
   sorted, we sort the neighbors, too.
 #+end_src
-#+begin_src go <<Print neighbors, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Print neighbors, Pr. \ref{pr:neig}>>=
   sort.Ints(neighbors)
   for _, neighbor := range neighbors {
 	  g := "-"
@@ -513,28 +513,28 @@ We import \ty{strings}.
   the genomes option, and the tab option. Then we read the taxon-IDs and
   call \ty{calcTarNei}.
 #+end_src
-#+begin_src go <<Functions, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Functions, Pr. \ref{pr:neig}>>=
   func parse(r io.Reader, args ...interface{}) {
 	  taxdb := args[0].(*tdb.TaxonomyDB)
 	  optL := args[1].(bool)
 	  optG := args[2].(bool)
 	  optTT := args[3].(bool)
 	  var taxa []int
-	  //<<Read taxon-IDs, Pr.~\ref{pr:neig}>>
+	  //<<Read taxon-IDs, Pr. \ref{pr:neig}>>
 	  calcTarNei(taxa, taxdb, optL, optG, optTT)
   }
 #+end_src
 #+begin_src latex
   We import \ty{io}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "io"
 #+end_src
 #+begin_src latex
   We read the taxon-IDs as a slice of integers from the input file. We
   ignore blank lines and lines starting with a hash.
 #+end_src
-#+begin_src go <<Read taxon-IDs, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Read taxon-IDs, Pr. \ref{pr:neig}>>=
   sc := bufio.NewScanner(r)
   for sc.Scan() {
 	  s := sc.Text()
@@ -549,7 +549,7 @@ We import \ty{strings}.
 #+begin_src latex
   We import \ty{bufio}, \ty{strconv}, and \ty{log}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "bufio"
   "strconv"
   "log"
@@ -560,7 +560,7 @@ We import \ty{strings}.
   for pretty-printing, in which case we assert we are dealing with a
   tabwriter and flush it.
 #+end_src
-#+begin_src go <<Flush writer, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Flush writer, Pr. \ref{pr:neig}>>=
   if !tab {
 	  tw := w.(*tabwriter.Writer)
 	  tw.Flush()
@@ -578,27 +578,27 @@ We import \ty{strings}.
 
   import (
 	  "testing"
-	  //<<Testing imports, Pr.~\ref{pr:neig}>>
+	  //<<Testing imports, Pr. \ref{pr:neig}>>
   )
 
   func TestNeighbors(t *testing.T) {
-	  //<<Testing, Pr.~\ref{pr:neig}>>
+	  //<<Testing, Pr. \ref{pr:neig}>>
   }
 #+end_src
 #+begin_src latex
   We construct a set of tests and run each one.
 #+end_src
-#+begin_src go <<Testing, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Testing, Pr. \ref{pr:neig}>>=
   var tests []*exec.Cmd
-  //<<Construct tests, Pr.~\ref{pr:neig}>>
+  //<<Construct tests, Pr. \ref{pr:neig}>>
   for i, test := range tests {
-	  //<<Run test, Pr.~\ref{pr:neig}>>
+	  //<<Run test, Pr. \ref{pr:neig}>>
   }
 #+end_src
 #+begin_src latex
   We import \ty{exec}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:neig}>>=
   "os/exec"
 #+end_src
 #+begin_src latex
@@ -606,49 +606,49 @@ We import \ty{strings}.
   target-IDs, \ty{tid1.txt}, \ty{tid2.txt}, and so on. Then we test the
   options.
 #+end_src
-#+begin_src go <<Construct tests, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:neig}>>=
   db := "../data/neidb"
   for i := 1; i <= 4; i++ {
 	  in := "tid" + strconv.Itoa(i) + ".txt"
 	  test := exec.Command("./neighbors", db, in)
 	  tests = append(tests, test)
   }
-  //<<Test options, Pr.~\ref{pr:neig}>>
+  //<<Test options, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
   We import \ty{strconv}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:neig}>>=
   "strconv"
 #+end_src
 #+begin_src latex
   We test the four options list, \ty{-l}, genomes, \ty{-g}, tab,
   \ty{-T}, and targets, \ty{-t}.
 #+end_src
-#+begin_src go <<Test options, Pr.~\ref{pr:neig}>>=
-  //<<Test \ty{-l}, Pr.~\ref{pr:neig}>>
-  //<<Test \ty{-g}, Pr.~\ref{pr:neig}>>
-  //<<Test \ty{-T}, Pr.~\ref{pr:neig}>>
-  //<<Test \ty{-t}, Pr.~\ref{pr:neig}>>
+#+begin_src go <<Test options, Pr. \ref{pr:neig}>>=
+  //<<Test \ty{-l}, Pr. \ref{pr:neig}>>
+  //<<Test \ty{-g}, Pr. \ref{pr:neig}>>
+  //<<Test \ty{-T}, Pr. \ref{pr:neig}>>
+  //<<Test \ty{-t}, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
 We test the list option, \ty{-l}, on \ty{tid4.txt}.
 #+end_src
-#+begin_src go <<Test \ty{-l}, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Test \ty{-l}, Pr. \ref{pr:neig}>>=
   test := exec.Command("./neighbors", "-l", db, "tid4.txt")
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
   Similarly, we test the genomes only option, \ty{-g}, on \ty{tid4.txt}.
 #+end_src
-#+begin_src go <<Test \ty{-g}, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Test \ty{-g}, Pr. \ref{pr:neig}>>=
   test = exec.Command("./neighbors", "-g", db, "tid4.txt")
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
   We also run the tab option, \ty{-T} on \ty{tid4.txt}.
 #+end_src
-#+begin_src go <<Test \ty{-T}, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Test \ty{-T}, Pr. \ref{pr:neig}>>=
   test = exec.Command("./neighbors", "-T", db, "tid4.txt")
   tests = append(tests, test)
 #+end_src
@@ -657,7 +657,7 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   first on a single taxon ID, then on two. The taxon IDs are taken from
   our friend \ty{tid4.txt}.
 #+end_src
-#+begin_src go <<Test \ty{-t}, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Test \ty{-t}, Pr. \ref{pr:neig}>>=
   test = exec.Command("./neighbors", "-t", "866775", db)
   tests = append(tests, test)
   test = exec.Command("./neighbors", "-t",
@@ -668,7 +668,7 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   For a given test we compare the result we get with the result we want,
   which is contained in files \ty{r1.txt}, \ty{r2.txt}, and so on.
 #+end_src
-#+begin_src go <<Run test, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Run test, Pr. \ref{pr:neig}>>=
   get, err := test.Output()
   if err != nil {
 	  t.Errorf("couldn't run %q", test)
@@ -685,7 +685,7 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
 #+begin_src latex
   We import \ty{ioutil} and \ty{bytes}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:neig}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:neig}>>=
   "io/ioutil"
   "bytes"
 #+end_src

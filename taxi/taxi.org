@@ -16,11 +16,11 @@
   package main
 
   import (
-	  //<<Imports, Pr.~\ref{pr:tax}>>
+	  //<<Imports, Pr. \ref{pr:tax}>>
   )
 
   func main() {
-	  //<<Main function, Pr.~\ref{pr:tax}>>
+	  //<<Main function, Pr. \ref{pr:tax}>>
   }
 #+end_src
 #+begin_src latex
@@ -28,18 +28,18 @@
   In the \ty{main} function we set the usage, declare the options, parse
   the options, get the taxon-IDs, and print them.
 #+end_src
-#+begin_src go <<Main function, Pr.~\ref{pr:tax}>>=
-  //<<Set usage, Pr.~\ref{pr:tax}>>
-  //<<Declare options, Pr.~\ref{pr:tax}>>
-  //<<Parse options, Pr.~\ref{pr:tax}>>
-  //<<Get taxon-IDs, Pr.~\ref{pr:tax}>>
-  //<<Print taxon-IDs, Pr.~\ref{pr:tax}>>
+#+begin_src go <<Main function, Pr. \ref{pr:tax}>>=
+  //<<Set usage, Pr. \ref{pr:tax}>>
+  //<<Declare options, Pr. \ref{pr:tax}>>
+  //<<Parse options, Pr. \ref{pr:tax}>>
+  //<<Get taxon-IDs, Pr. \ref{pr:tax}>>
+  //<<Print taxon-IDs, Pr. \ref{pr:tax}>>
 #+end_src
 #+begin_src latex
   The usage consists of three parts: The actual usage message, an
   explanation of the purpose of \ty{taxi}, and an example command.
 #+end_src
-#+begin_src go <<Set usage, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Set usage, Pr. \ref{pr:tax}>>=
   u := "taxi [option] <scientific-name> <db>"
   p := "Take user from scientific name to taxon-ID."
   e := "taxi \"homo sapiens\" neidb"
@@ -48,20 +48,20 @@
 #+begin_src latex
   We import \ty{clio}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
   Apart from the version, we declare the substring option.
 #+end_src
-#+begin_src go <<Declare options, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Declare options, Pr. \ref{pr:tax}>>=
   var optV = flag.Bool("v", false, "version")
   var optS = flag.Bool("s", false, "substring match")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
   "flag"
 #+end_src
 #+begin_src latex
@@ -71,11 +71,11 @@
   the database. We store both names, and if the user opted for substring
   matching, we bookend the taxon name with percent characters.
 #+end_src
-#+begin_src go <<Parse options, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Parse options, Pr. \ref{pr:tax}>>=
   flag.Parse()
   if *optV { util.PrintInfo("taxi") }
   args := flag.Args()
-  //<<Check arguments, Pr.~\ref{pr:tax}>>
+  //<<Check arguments, Pr. \ref{pr:tax}>>
   name := args[0]
   db := args[1]
   if *optS {
@@ -85,7 +85,7 @@
 #+begin_src latex
   We import \ty{util} and \ty{fmt}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
   "github.com/evolbioinf/neighbors/util"
   "fmt"
 #+end_src
@@ -93,7 +93,7 @@
   If the user didn't provide a taxon and a database, we send a friendly
   message and quit.
 #+end_src
-#+begin_src go <<Check arguments, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Check arguments, Pr. \ref{pr:tax}>>=
   m := "please provide a taxon and a database"
   if len(args) != 2 {
 	  fmt.Fprintf(os.Stderr, "%s\n", m)
@@ -103,14 +103,14 @@
 #+begin_src latex
   We import \ty{os}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
   "os"
 #+end_src
 #+begin_src latex
   We get the taxon-IDs through a method call on the taxonomy
   database. If we don't find any taxa, we're done.
 #+end_src
-#+begin_src go <<Get taxon-IDs, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Get taxon-IDs, Pr. \ref{pr:tax}>>=
   taxdb := tdb.OpenTaxonomyDB(db)
   taxa := taxdb.Taxids(name)
   if len(taxa) == 0 {
@@ -120,7 +120,7 @@
 #+begin_src latex
   We import \ty{tdb}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
@@ -129,7 +129,7 @@
   corresponding names in a table. We layout the table using a
   \ty{tabwriter}.
 #+end_src
-#+begin_src go <<Print taxon-IDs, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Print taxon-IDs, Pr. \ref{pr:tax}>>=
   sort.Ints(taxa)
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
   defer w.Flush()
@@ -143,7 +143,7 @@
 #+begin_src latex
   We import \ty{sort} and \ty{tabwriter}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
   "sort"
   "text/tabwriter"
 #+end_src
@@ -159,34 +159,34 @@
 
   import (
 	  "testing"
-	  //<<Testing imports, Pr.~\ref{pr:tax}>>
+	  //<<Testing imports, Pr. \ref{pr:tax}>>
   )
 
   func TestTaxi(t *testing.T) {
-	  //<<Testing, Pr.~\ref{pr:tax}>>
+	  //<<Testing, Pr. \ref{pr:tax}>>
   }
 #+end_src
 #+begin_src latex
   We construct the tests and iterate over them.
 #+end_src
-#+begin_src go <<Testing, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Testing, Pr. \ref{pr:tax}>>=
   var tests []*exec.Cmd
-  //<<Construct tests, Pr.~\ref{pr:tax}>>
+  //<<Construct tests, Pr. \ref{pr:tax}>>
   for i, test := range tests {
-	  //<<Run test, Pr.~\ref{pr:tax}>>
+	  //<<Run test, Pr. \ref{pr:tax}>>
   }
 #+end_src
 #+begin_src latex
   We import \ty{exec}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:tax}>>=
   "os/exec"
 #+end_src
 #+begin_src latex
   Our query is ``homo sapiens'', which we run in default mode and in
   substring mode.
 #+end_src
-#+begin_src go <<Construct tests, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:tax}>>=
   q := "homo sapiens"
   d := "../data/neidb"
   test := exec.Command("./taxi", q, d)
@@ -199,7 +199,7 @@
   want. The results we want are contained in the files \ty{r1.txt} and
   \ty{r2.txt}.
 #+end_src
-#+begin_src go <<Run test, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Run test, Pr. \ref{pr:tax}>>=
   get, err := test.Output()
   if err != nil { t.Error(err) }
   f := "r" + strconv.Itoa(i + 1) + ".txt"
@@ -212,7 +212,7 @@
 #+begin_src latex
   We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:tax}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:tax}>>=
   "strconv"
   "io/ioutil"
   "bytes"

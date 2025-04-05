@@ -10,18 +10,18 @@
   package tdb
 
   import (
-	  //<<Imports, Pa.~\ref{pa:tdb}>>
+	  //<<Imports, Pa. \ref{pa:tdb}>>
   )
-  //<<Types, Pa.~\ref{pa:tdb}>>
-  //<<Methods, Pa.~\ref{pa:tdb}>>
-  //<<Functions, Pa.~\ref{pa:tdb}>>
+  //<<Types, Pa. \ref{pa:tdb}>>
+  //<<Methods, Pa. \ref{pa:tdb}>>
+  //<<Functions, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   \epa The package \ty{tdb} has two central types: \ty{TaxonDB} wraps
   the relational database shown in Figure~\ref{fig:db} and \ty{Taxonomy}
   is the taxonomic tree.
 #+end_src
-#+begin_src go <<Types, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Types, Pa. \ref{pa:tdb}>>=
   type TaxonomyDB struct {
 	  db *sql.DB
   }
@@ -30,7 +30,7 @@
   We import \ty{sql}. In addition, we import a driver for \ty{sqlite3},
   \ty{go-sqlite3}, using a blank import.
 #+end_src
-#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
   "database/sql"
   _ "github.com/mattn/go-sqlite3"
 #+end_src
@@ -41,23 +41,23 @@
   the database. It opens these files, opens a new database, constructs
   the database, closes the files, and closes the database.
 #+end_src
-#+begin_src go <<Functions, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
   // NewTaxonomyDB takes as parameters the names
   // of the five data files and the database name,
   // and constructs the database from them.
   func NewTaxonomyDB(nodes, names, prokaryotes,
 	  eukaryotes, viruses, dbName string) {
-	  //<<Open files, Pa.~\ref{pa:tdb}>>
-	  //<<Open database, Pa.~\ref{pa:tdb}>>
-	  //<<Construct database, Pa.~\ref{pa:tdb}>>
-	  //<<Close database, Pa.~\ref{pa:tdb}>>
-	  //<<Close files, Pa.~\ref{pa:tdb}>>
+	  //<<Open files, Pa. \ref{pa:tdb}>>
+	  //<<Open database, Pa. \ref{pa:tdb}>>
+	  //<<Construct database, Pa. \ref{pa:tdb}>>
+	  //<<Close database, Pa. \ref{pa:tdb}>>
+	  //<<Close files, Pa. \ref{pa:tdb}>>
   }
 #+end_src
 #+begin_src latex
   We open the five input tables.
 #+end_src
-#+begin_src go <<Open files, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Open files, Pa. \ref{pa:tdb}>>=
   of := util.Open(nodes)
   af := util.Open(names)
   pf := util.Open(prokaryotes)
@@ -67,29 +67,29 @@
 #+begin_src latex
   We import \ty{util}.
 #+end_src
-#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   Before opening the database, we check whether it already exists. If we
   cannot open the database, we abort.
 #+end_src
-#+begin_src go <<Open database, Pa.~\ref{pa:tdb}>>=
-  //<<Does database exist? Pa.~\ref{pa:tdb}>>
+#+begin_src go <<Open database, Pa. \ref{pa:tdb}>>=
+  //<<Does database exist? Pa. \ref{pa:tdb}>>
   db, err := sql.Open("sqlite3", dbName)
   if err != nil { log.Fatal(err) }
 #+end_src
 #+begin_src latex
   We import \ty{log}.
 #+end_src
-#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
   "log"
 #+end_src
 #+begin_src latex
   If we are asked to build a new database on top of an existing one, the
   user has probably made a mistake, so we bow out.
 #+end_src
-#+begin_src go <<Does database exist? Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Does database exist? Pa. \ref{pa:tdb}>>=
   _, err := os.Stat(dbName)
   if err == nil {
 	  fmt.Fprintf(os.Stderr, "database %s already exists\n",
@@ -100,7 +100,7 @@
 #+begin_src latex
   We import \ty{os} and \ty{fmt}.
 #+end_src
-#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
   "os"
   "fmt"
 #+end_src
@@ -108,17 +108,17 @@
   To construct the database, we construct the input tables, and load
   their counterparts in the database.
 #+end_src
-#+begin_src go <<Construct database, Pa.~\ref{pa:tdb}>>=
-  //<<Construct tables, Pa.~\ref{pa:tdb}>>
-  //<<Load tables, Pa.~\ref{pa:tdb}>>
+#+begin_src go <<Construct database, Pa. \ref{pa:tdb}>>=
+  //<<Construct tables, Pa. \ref{pa:tdb}>>
+  //<<Load tables, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   As illustrated in Figure~\ref{fig:db}, we construct two tables,
   \ty{taxon} and \ty{genome}.
 #+end_src
-#+begin_src go <<Construct tables, Pa.~\ref{pa:tdb}>>=
-  //<<Construct table \ty{taxon}, Pa.~\ref{pa:tdb}>>
-  //<<Construct table \ty{genome}, Pa.~\ref{pa:tdb}>>
+#+begin_src go <<Construct tables, Pa. \ref{pa:tdb}>>=
+  //<<Construct table \ty{taxon}, Pa. \ref{pa:tdb}>>
+  //<<Construct table \ty{genome}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   Table \ty{taxon} has the attributes \ty{taxid}, \ty{parent},
@@ -133,7 +133,7 @@
   database by prefacing a query with \ty{explain query plan}. So we
   leave it at our index for \ty{parent}.
 #+end_src
-#+begin_src go <<Construct table \ty{taxon}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Construct table \ty{taxon}, Pa. \ref{pa:tdb}>>=
   sqlStmt := `create table taxon (
   taxid int, parent int, name text, rank text,
   primary key(taxid));
@@ -149,7 +149,7 @@
   key into \ty{taxon}. We also index the numerical attributes \ty{taxid}
   and \ty{size}.
 #+end_src
-#+begin_src go <<Construct table \ty{genome}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Construct table \ty{genome}, Pa. \ref{pa:tdb}>>=
   sqlStmt = `create table genome (
   taxid int, size real, replicons text, 
 	 accession text, status text,
@@ -164,9 +164,9 @@
   Since \ty{genome} has a foreign key referring to \ty{taxon}, we load
   \ty{taxon} before \ty{genome}.
 #+end_src
-#+begin_src go <<Load tables, Pa.~\ref{pa:tdb}>>=
-  //<<Load table \ty{taxon}, Pa.~\ref{pa:tdb}>>
-  //<<Load table \ty{genome}, Pa.~\ref{pa:tdb}>>
+#+begin_src go <<Load tables, Pa. \ref{pa:tdb}>>=
+  //<<Load table \ty{taxon}, Pa. \ref{pa:tdb}>>
+  //<<Load table \ty{genome}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex 
   To load \ty{taxon}, we simulate a join of \ty{nodes.dmp} and
@@ -174,7 +174,7 @@
   with the same four fields as the four attributes in
   Figure~\ref{fig:db}.
 #+end_src
-#+begin_src go <<Types, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Types, Pa. \ref{pa:tdb}>>=
   type taxon struct {
 	  taxid, parent int
 	  name, rank string
@@ -183,17 +183,17 @@
 #+begin_src latex
   We read the taxa into a map and insert them into the table \ty{taxon}.
 #+end_src
-#+begin_src go <<Load table \ty{taxon}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Load table \ty{taxon}, Pa. \ref{pa:tdb}>>=
   taxa := make(map[int]*taxon)
-  //<<Read taxa, Pa.~\ref{pa:tdb}>>
-  //<<Insert taxa, Pa.~\ref{pa:tdb}>>
+  //<<Read taxa, Pa. \ref{pa:tdb}>>
+  //<<Insert taxa, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   To read the taxa, we first parse the nodes file, then the names file.
 #+end_src
-#+begin_src go <<Read taxa, Pa.~\ref{pa:tdb}>>=
-  //<<Parse nodes file, Pa.~\ref{pa:tdb}>>
-  //<<Parse names file, Pa.~\ref{pa:tdb}>>
+#+begin_src go <<Read taxa, Pa. \ref{pa:tdb}>>=
+  //<<Parse nodes file, Pa. \ref{pa:tdb}>>
+  //<<Parse names file, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   We traverse the nodes file using a scanner. The first column contains
@@ -201,7 +201,7 @@
   rank. Columns are delimited by \verb+\t|\t+ and we convert the strings
   denoting IDs to integers before storing them.
 #+end_src
-#+begin_src go <<Parse nodes file, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Parse nodes file, Pa. \ref{pa:tdb}>>=
   scanner := bufio.NewScanner(of)
   for scanner.Scan() {
 	  row := scanner.Text()
@@ -218,7 +218,7 @@
 #+begin_src latex
   We import \ty{bufio}, \ty{strings}, and \ty{strconv}.
 #+end_src
-#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
   "bufio"
   "strings"
   "strconv"
@@ -226,7 +226,7 @@
 #+begin_src latex
   We are done with the nodes file and close it.
 #+end_src
-#+begin_src go <<Close files, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Close files, Pa. \ref{pa:tdb}>>=
   of.Close()
 #+end_src
 #+begin_src latex
@@ -235,7 +235,7 @@
   common, and more. We store the scientific names. To parse the file, we
   again use a scanner and split the columns at \verb+\t|\t+.
 #+end_src
-#+begin_src go <<Parse names file, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Parse names file, Pa. \ref{pa:tdb}>>=
   scanner = bufio.NewScanner(af)
   for scanner.Scan() {
 	  row := scanner.Text()
@@ -250,7 +250,7 @@
 #+begin_src latex
   We are done with the names file and close it.
 #+end_src
-#+begin_src go <<Close files, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Close files, Pa. \ref{pa:tdb}>>=
   af.Close()
 #+end_src
 #+begin_src latex
@@ -258,21 +258,21 @@
   \ty{taxon} table. We do this with a transaction, which takes a
   statement and prepares it, before we insert the individual rows.
 #+end_src
-#+begin_src go <<Insert taxa, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Insert taxa, Pa. \ref{pa:tdb}>>=
   tx, err := db.Begin()
   if err != nil { log.Fatal(err) }
   sqlStmt = "insert into taxon(taxid, parent, name, rank) " +
 	  "values(?, ?, ?, ?)"
   stmt, err := tx.Prepare(sqlStmt)
   if err != nil { log.Fatal(err) }
-  //<<Insert rows into table \ty{taxon}, Pa.~\ref{pa:tdb}>>
+  //<<Insert rows into table \ty{taxon}, Pa. \ref{pa:tdb}>>
   tx.Commit()
   stmt.Close()
 #+end_src
 #+begin_src latex
   Each entry in the \ty{taxa} map corresponds to a row in the table.
 #+end_src
-#+begin_src go <<Insert rows into table \ty{taxon}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Insert rows into table \ty{taxon}, Pa. \ref{pa:tdb}>>=
   for _, v := range taxa {
 	  _, err = stmt.Exec(v.taxid, v.parent, v.name, v.rank)
 	  if err != nil { log.Fatal(err) }
@@ -282,16 +282,16 @@
   The next table to load is \ty{genome}. Like the taxa, we read the
   genomes from input and insert them.
 #+end_src
-#+begin_src go <<Load table \ty{genome}, Pa.~\ref{pa:tdb}>>=
-  //<<Read genomes, Pa.~\ref{pa:tdb}>>
-  //<<Insert genomes, Pa.~\ref{pa:tdb}>>
+#+begin_src go <<Load table \ty{genome}, Pa. \ref{pa:tdb}>>=
+  //<<Read genomes, Pa. \ref{pa:tdb}>>
+  //<<Insert genomes, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   We read each genome into a struct that holds the four attributes shown
   in Figure~\ref{fig:db}, \ty{taxid}, \ty{replicons}, \ty{accession},
   \ty{status}, and \ty{size}.
 #+end_src
-#+begin_src go <<Types, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Types, Pa. \ref{pa:tdb}>>=
   type genome struct {
 	  taxid int
 	  replicons, accession, status string
@@ -303,17 +303,17 @@
   correspond to the three deep divisions of life, prokaryotes,
   eukaryotes, and viruses.
 #+end_src
-#+begin_src go <<Read genomes, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Read genomes, Pa. \ref{pa:tdb}>>=
   var genomes []genome
-  //<<Read prokaryote genomes, Pa.~\ref{pa:tdb}>>
-  //<<Read eukaryote genomes, Pa.~\ref{pa:tdb}>>
-  //<<Read virus genomes, Pa.~\ref{pa:tdb}>>
+  //<<Read prokaryote genomes, Pa. \ref{pa:tdb}>>
+  //<<Read eukaryote genomes, Pa. \ref{pa:tdb}>>
+  //<<Read virus genomes, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   In the prokaryote genomes file, we skip the header, split the columns
   at tabs, generate the genomes, and save them.
 #+end_src
-#+begin_src go <<Read prokaryote genomes, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Read prokaryote genomes, Pa. \ref{pa:tdb}>>=
   fn := pf.Name()
   scanner = bufio.NewScanner(pf)
   var gen genome
@@ -321,7 +321,7 @@
 	  row := scanner.Text()
 	  if row[0] == '#' { continue }
 	  fields := strings.Split(row, "\t")
-	  //<<Generate a prokaryote genome, Pa.~\ref{pa:tdb}>>
+	  //<<Generate a prokaryote genome, Pa. \ref{pa:tdb}>>
 	  genomes = append(genomes, gen)
   }
 #+end_src
@@ -344,7 +344,7 @@
     \end{center}
   \end{table}
 #+end_src
-#+begin_src go <<Generate a prokaryote genome, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Generate a prokaryote genome, Pa. \ref{pa:tdb}>>=
   if len(fields) < 19 {
 	  fmt.Fprintf(os.Stderr,
 		  "skipping truncated line in %q\n", fn)
@@ -361,24 +361,24 @@
 #+begin_src latex
   We close the prokaryote genomes file.
 #+end_src
-#+begin_src go <<Close files, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Close files, Pa. \ref{pa:tdb}>>=
   pf.Close()
 #+end_src
 #+begin_src latex
   Similarly, we read the file for eukaryote genomes.
 #+end_src
-#+begin_src go <<Read eukaryote genomes, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Read eukaryote genomes, Pa. \ref{pa:tdb}>>=
   fn = ef.Name()
   scanner = bufio.NewScanner(ef)
   for scanner.Scan() {
 	  row := scanner.Text()
 	  if row[0] == '#' { continue }
 	  fields := strings.Split(row, "\t")
-	  //<<Generate a eukaryote genome, Pa.~\ref{pa:tdb}>>
+	  //<<Generate a eukaryote genome, Pa. \ref{pa:tdb}>>
 	  genomes = append(genomes, gen)
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 Table~\ref{tab:eg} shows the columns in the table of eukaryote
 genomes. The taxon ID is in the second column, the size in the
 seventh, the assembly accession in the nineth, the replicons the
@@ -395,8 +395,8 @@ tenth, and the status in the 17th.
     }
   \end{center}
 \end{table}
-#+end_export
-#+begin_src go <<Generate a eukaryote genome, Pa.~\ref{pa:tdb}>>=
+#+end_src
+#+begin_src go <<Generate a eukaryote genome, Pa. \ref{pa:tdb}>>=
   if len(fields) < 10 {
 	  fmt.Fprintf(os.Stderr,
 		  "skipping truncated line in %q\n", fn)
@@ -413,20 +413,20 @@ tenth, and the status in the 17th.
 #+begin_src latex
   We close the eukaryote genomes file.
 #+end_src
-#+begin_src go <<Close files, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Close files, Pa. \ref{pa:tdb}>>=
   ef.Close()
 #+end_src
 #+begin_src latex
   We scan the file of viral genomes.
 #+end_src
-#+begin_src go <<Read virus genomes, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Read virus genomes, Pa. \ref{pa:tdb}>>=
   fn = vf.Name()
   scanner = bufio.NewScanner(vf)
   for scanner.Scan() {
 	  row := scanner.Text()
 	  if row[0] == '#' { continue }
 	  fields := strings.Split(row, "\t")
-	  //<<Generate a viral genome, Pa.~\ref{pa:tdb}>>
+	  //<<Generate a viral genome, Pa. \ref{pa:tdb}>>
 	  genomes = append(genomes, gen)
   }
 #+end_src
@@ -449,7 +449,7 @@ tenth, and the status in the 17th.
     \end{center}
   \end{table}
 #+end_src
-#+begin_src go <<Generate a viral genome, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Generate a viral genome, Pa. \ref{pa:tdb}>>=
   if len(fields) < 10 {
 	  fmt.Fprintf(os.Stderr,
 		  "skipping truncated line in %q", fn)
@@ -467,14 +467,14 @@ tenth, and the status in the 17th.
 #+begin_src latex
   We close the virus genomes file.
 #+end_src
-#+begin_src go <<Close files, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Close files, Pa. \ref{pa:tdb}>>=
   vf.Close()
 #+end_src
 #+begin_src latex
   To insert the genomes into the \ty{genomes} table, we use a
   transaction like we did for the \ty{taxon} table.
 #+end_src
-#+begin_src go <<Insert genomes, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Insert genomes, Pa. \ref{pa:tdb}>>=
   tx, err = db.Begin()
   if err != nil { log.Fatal(err) }
   sqlStmt = "insert into genome(taxid, replicons," +
@@ -482,14 +482,14 @@ tenth, and the status in the 17th.
 	  "values(?, ?, ?, ?, ?)"
   stmt, err = tx.Prepare(sqlStmt)
   if err != nil { log.Fatal(err) }
-  //<<Insert rows into table \ty{genome}, Pa.~\ref{pa:tdb}>>
+  //<<Insert rows into table \ty{genome}, Pa. \ref{pa:tdb}>>
   tx.Commit()
   stmt.Close()
 #+end_src
 #+begin_src latex
   We insert each entry in the \ty{genomes} slice into table \ty{genome}.
 #+end_src
-#+begin_src go <<Insert rows into table \ty{genome}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Insert rows into table \ty{genome}, Pa. \ref{pa:tdb}>>=
   for _, g := range genomes {
 	  _, err = stmt.Exec(g.taxid, g.replicons,
 		  g.size, g.accession, g.status)
@@ -499,7 +499,7 @@ tenth, and the status in the 17th.
 #+begin_src latex
   The database is constructed, so we close it.
 #+end_src
-#+begin_src go <<Close database, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Close database, Pa. \ref{pa:tdb}>>=
   db.Close()
 #+end_src
 #+begin_src latex
@@ -507,7 +507,7 @@ tenth, and the status in the 17th.
   The function \ty{OpenTaxonomyDB} opens an existing taxonomy database
   and returns a pointer to it.
 #+end_src
-#+begin_src go <<Functions, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
   // OpenTaxonomyDB opens an existing taxonomy database and returns a
   // pointer to it.
   func OpenTaxonomyDB(name string) *TaxonomyDB {
@@ -522,7 +522,7 @@ tenth, and the status in the 17th.
   \subsection{\ty{Close}}
   The method \ty{Close} closes a taxonomy database.
 #+end_src
-#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   // Close closes the taxonomy database.
   func (t *TaxonomyDB) Close() {
 	  t.db.Close()
@@ -536,11 +536,11 @@ tenth, and the status in the 17th.
   We query for replicons and then store them in the string slice we
   return.
 #+end_src
-#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Replicons(tid int) []string {
 	  var reps []string
-	  //<<Query for replicions, Pa.~\ref{pa:tdb}>>
-	  //<<Store replicons, Pa.~\ref{pa:tdb}>>
+	  //<<Query for replicions, Pa. \ref{pa:tdb}>>
+	  //<<Store replicons, Pa. \ref{pa:tdb}>>
 	  return reps
   }
 #+end_src
@@ -548,7 +548,7 @@ tenth, and the status in the 17th.
   We generate the query and execute it, which returns a set of table
   rows. The rows are later closed again.
 #+end_src
-#+begin_src go <<Query for replicions, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Query for replicions, Pa. \ref{pa:tdb}>>=
   tmpl := "select replicons from genome where taxid=%d " +
 	  "and replicons <> '-'"
   q := fmt.Sprintf(tmpl, tid)
@@ -561,13 +561,13 @@ tenth, and the status in the 17th.
 #+begin_src latex
   We import \ty{fmt}.
 #+end_src
-#+begin_src go <<Imports, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
   "fmt"
 #+end_src
 #+begin_src latex
   We append each replicon to our slice of replicons.
 #+end_src
-#+begin_src go <<Store replicons, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Store replicons, Pa. \ref{pa:tdb}>>=
   s := ""
   for rows.Next() {
 	  err := rows.Scan(&s)
@@ -585,11 +585,11 @@ tenth, and the status in the 17th.
   We query for accessions and then store them in the string slice we
   return.
 #+end_src
-#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Accessions(tid int) []string {
 	  var accessions []string
-	  //<<Query for accessions, Pa.~\ref{pa:tdb}>>
-	  //<<Store accessions, Pa.~\ref{pa:tdb}>>
+	  //<<Query for accessions, Pa. \ref{pa:tdb}>>
+	  //<<Store accessions, Pa. \ref{pa:tdb}>>
 	  return accessions
   }
 #+end_src
@@ -597,7 +597,7 @@ tenth, and the status in the 17th.
   We generate the query and execute it, which returns a set of table
   rows. The rows are later closed again.
 #+end_src
-#+begin_src go <<Query for accessions, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Query for accessions, Pa. \ref{pa:tdb}>>=
   tmpl := "select accession from genome where taxid=%d"
   q := fmt.Sprintf(tmpl, tid)
   rows, err := t.db.Query(q)
@@ -609,7 +609,7 @@ tenth, and the status in the 17th.
 #+begin_src latex
   We append each accession to our slice of replicons.
 #+end_src
-#+begin_src go <<Store accessions, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Store accessions, Pa. \ref{pa:tdb}>>=
   accession := ""
   for rows.Next() {
 	  err := rows.Scan(&accession)
@@ -625,20 +625,20 @@ tenth, and the status in the 17th.
   taxon's name. We construct the query, execute it, and extract the
   name.
 #+end_src
-#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   // Name returns a taxon's name.
   func (t *TaxonomyDB) Name(taxon int) string {
 	  n := ""
-	  //<<Construct name query, Pa.~\ref{pa:tdb}>>
-	  //<<Execute name query, Pa.~\ref{pa:tdb}>>
-	  //<<Extract name, Pa.~\ref{pa:tdb}>>
+	  //<<Construct name query, Pa. \ref{pa:tdb}>>
+	  //<<Execute name query, Pa. \ref{pa:tdb}>>
+	  //<<Extract name, Pa. \ref{pa:tdb}>>
 	  return n
   }
 #+end_src
 #+begin_src latex
   We construct the query from a string template.
 #+end_src
-#+begin_src go <<Construct name query, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Construct name query, Pa. \ref{pa:tdb}>>=
   tmpl := "select name from taxon where taxid=%d"
   q := fmt.Sprintf(tmpl, taxon)
 #+end_src
@@ -646,7 +646,7 @@ tenth, and the status in the 17th.
   We execute the query, which might throw an error. We also close the
   results table once we're done with it.
 #+end_src
-#+begin_src go <<Execute name query, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Execute name query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
   if err != nil {
 	  log.Fatal(err)
@@ -657,7 +657,7 @@ tenth, and the status in the 17th.
   Our results table contains only the requested single name. We scan
   this and catch potential errors.
 #+end_src
-#+begin_src go <<Extract name, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Extract name, Pa. \ref{pa:tdb}>>=
   rows.Next()
   err = rows.Scan(&n)
   if err != nil {
@@ -670,19 +670,19 @@ tenth, and the status in the 17th.
   !taxon's name. We construct the query, execute it, and extract the
   !name.
 #+end_src
-#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Rank(taxon int) string {
 	  rank := ""
-	  //<<Construct rank query, Pa.~\ref{pa:tdb}>>
-	  //<<Execute rank query, Pa.~\ref{pa:tdb}>>
-	  //<<Extract rank, Pa.~\ref{pa:tdb}>>
+	  //<<Construct rank query, Pa. \ref{pa:tdb}>>
+	  //<<Execute rank query, Pa. \ref{pa:tdb}>>
+	  //<<Extract rank, Pa. \ref{pa:tdb}>>
 	  return rank
   }
 #+end_src
 #+begin_src latex
   We construct the rank query from a string template.
 #+end_src
-#+begin_src go <<Construct rank query, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Construct rank query, Pa. \ref{pa:tdb}>>=
   tmpl := "select rank from taxon where taxid=%d"
   q := fmt.Sprintf(tmpl, taxon)
 #+end_src
@@ -690,7 +690,7 @@ tenth, and the status in the 17th.
   We execute the rank query, which might throw an error. We also close
   the results table once we're done with it.
 #+end_src
-#+begin_src go <<Execute rank query, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Execute rank query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
   if err != nil {
 	  log.Fatal(err)
@@ -701,7 +701,7 @@ tenth, and the status in the 17th.
   Our results table contains only the requested single rank. We scan
   this and catch potential errors.
 #+end_src
-#+begin_src go <<Extract rank, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Extract rank, Pa. \ref{pa:tdb}>>=
   rows.Next()
   err = rows.Scan(&rank)
   if err != nil {
@@ -714,20 +714,20 @@ tenth, and the status in the 17th.
   taxon ID of its parent. We construct the query, execute it, and
   extract the parent.
 #+end_src
-#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   // Parent returns a taxon's parent.
   func (t *TaxonomyDB) Parent(c int) int {
 	  p := 0
-	  //<<Construct parent query, Pa.~\ref{pa:tdb}>>
-	  //<<Execute parent query, Pa.~\ref{pa:tdb}>>
-	  //<<Extract parent, Pa.~\ref{pa:tdb}>>
+	  //<<Construct parent query, Pa. \ref{pa:tdb}>>
+	  //<<Execute parent query, Pa. \ref{pa:tdb}>>
+	  //<<Extract parent, Pa. \ref{pa:tdb}>>
 	  return p
   }
 #+end_src
 #+begin_src latex
   We construct the parent query from a string template.
 #+end_src
-#+begin_src go <<Construct parent query, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Construct parent query, Pa. \ref{pa:tdb}>>=
   tmpl := "select parent from taxon where taxid=%d"
   q := fmt.Sprintf(tmpl, c)
 #+end_src
@@ -736,7 +736,7 @@ tenth, and the status in the 17th.
   throw an error, which we catch. We also make sure the results table is
   eventually closed again.
 #+end_src
-#+begin_src go <<Execute parent query, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Execute parent query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
   if err != nil {
 	  log.Fatal(err)
@@ -747,7 +747,7 @@ tenth, and the status in the 17th.
   Our results table contains at most one row with one entry, the
   parent. We extract this and catch possible errors.
 #+end_src
-#+begin_src go <<Extract parent, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Extract parent, Pa. \ref{pa:tdb}>>=
   rows.Next()
   err = rows.Scan(&p)
   if err != nil {
@@ -761,13 +761,13 @@ tenth, and the status in the 17th.
   children. The children are stored in an integer slice, which we
   construct at the start of the method and return at the end.
 #+end_src
-#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   // Children returns a taxon's children.
   func (t *TaxonomyDB) Children(p int) []int {
 	  c := make([]int, 0)
-	  //<<Construct children query, Pa.~\ref{pa:tdb}>>
-	  //<<Execute children query, Pa.~\ref{pa:tdb}>>
-	  //<<Extract children, Pa.~\ref{pa:tdb}>>
+	  //<<Construct children query, Pa. \ref{pa:tdb}>>
+	  //<<Execute children query, Pa. \ref{pa:tdb}>>
+	  //<<Extract children, Pa. \ref{pa:tdb}>>
 	  return c
   }
 #+end_src
@@ -775,7 +775,7 @@ tenth, and the status in the 17th.
   Like the parent query, we construct the children query from a string
   template.
 #+end_src
-#+begin_src go <<Construct children query, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Construct children query, Pa. \ref{pa:tdb}>>=
   tmpl := "select taxid from taxon where parent=%d"
   q := fmt.Sprintf(tmpl, p)
 #+end_src
@@ -783,7 +783,7 @@ tenth, and the status in the 17th.
   We execute the children query to get the results table, catch errors,
   and eventually close the results table again.
 #+end_src
-#+begin_src go <<Execute children query, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Execute children query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
   if err != nil {
 	  log.Fatal(err)
@@ -793,7 +793,7 @@ tenth, and the status in the 17th.
 #+begin_src latex
   We copy the children into the slice we've prepared for this purpose.
 #+end_src
-#+begin_src go <<Extract children, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Extract children, Pa. \ref{pa:tdb}>>=
   x := 0
   for rows.Next() {
 	  err = rows.Scan(&x)
@@ -808,7 +808,7 @@ tenth, and the status in the 17th.
   The method \ty{Subtree} returns all taxa in a subtree, including its
   root. It does this by calling the private function \ty{traverseSubtree}.
 #+end_src
-#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   // Subtree returns the taxa in the subtree rooted on the given taxon.
   func (t *TaxonomyDB) Subtree(r int) []int {
 	  taxa := make([]int, 0)
@@ -821,7 +821,7 @@ tenth, and the status in the 17th.
   avoid the infinite loop we would get if we included the root in the
   recursion.
 #+end_src
-#+begin_src go <<Functions, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
   func traverseSubtree(t *TaxonomyDB, r int, taxa []int) []int {
 	  taxa = append(taxa, r)
 	  ch := t.Children(r)
@@ -839,21 +839,21 @@ tenth, and the status in the 17th.
   taxon-IDs. We construct and execute the query for taxon-IDs, extract
   the IDs, and return them.
 #+end_src
-#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   // Taxids matches the name of a taxon and returns the corresponding
   // taxon-IDs.
   func (t *TaxonomyDB) Taxids(name string) []int {
 	  taxids := make([]int, 0)
-	  //<<Construct taxids query, Pa.~\ref{pa:tdb}>>
-	  //<<Execute taxids query, Pa.~\ref{pa:tdb}>>
-	  //<<Extract taxids, Pa.~\ref{pa:tdb}>>
+	  //<<Construct taxids query, Pa. \ref{pa:tdb}>>
+	  //<<Execute taxids query, Pa. \ref{pa:tdb}>>
+	  //<<Extract taxids, Pa. \ref{pa:tdb}>>
 	  return taxids
   }
 #+end_src
 #+begin_src latex
   We construct the query for taxon-IDs.
 #+end_src
-#+begin_src go <<Construct taxids query, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Construct taxids query, Pa. \ref{pa:tdb}>>=
   q := "select taxid from taxon where name like '%s'"
   q = fmt.Sprintf(q, name)
 #+end_src
@@ -861,7 +861,7 @@ tenth, and the status in the 17th.
   We execute the query for taxon-IDs and catch potential errors. We also
   make sure the result table is eventually closed again.
 #+end_src
-#+begin_src go <<Execute taxids query, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Execute taxids query, Pa. \ref{pa:tdb}>>=
   rows , err := t.db.Query(q)
   if err != nil {
 	  log.Fatal(err)
@@ -871,7 +871,7 @@ tenth, and the status in the 17th.
 #+begin_src latex
   We extract and store the taxon-IDs.
 #+end_src
-#+begin_src go <<Extract taxids, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Extract taxids, Pa. \ref{pa:tdb}>>=
   taxid := 0
   for rows.Next() {
 	  err = rows.Scan(&taxid)
@@ -890,26 +890,26 @@ tenth, and the status in the 17th.
   supplied and then search for the MRCA. If we haven't found one, we
   return -1.
 #+end_src
-#+begin_src go <<Methods, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) MRCA(ids []int) int {
 	  mrca := -1
-	  //<<Check IDs, Pa.~\ref{pa:tdb}>>
-	  //<<Search for MRCA, Pa.~\ref{pa:tdb}>>
+	  //<<Check IDs, Pa. \ref{pa:tdb}>>
+	  //<<Search for MRCA, Pa. \ref{pa:tdb}>>
 	  return mrca
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 If the ID list is empty, something went wrong and we throw an
 error. If the ID list contains a single entry, that is the MRCA.
-#+end_export
-#+begin_src go <<Check IDs, Pa.~\ref{pa:tdb}>>=
+#+end_src
+#+begin_src go <<Check IDs, Pa. \ref{pa:tdb}>>=
   if len(ids) == 0 {
 	  log.Fatal("Empty ID list in tdb.MRCA")
   } else if len(ids) == 1 {
 	  return ids[0]
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 There is a rich history of MRCA queries in computer
 science~\cite[ch. 3]{ohl13:bio}. However, instead of using the general
 solution to the problem, I construct a simpler solution that involves
@@ -922,51 +922,51 @@ the number of input taxa, the corresponding node is the
 MRCA. Otherwise, we climb to the parents and repeat. So we construct a
 variable to count descendants and variables for parents and
 children. Then we iterate over the parents.
-#+end_export
-#+begin_src go <<Search for MRCA, Pa.~\ref{pa:tdb}>>=
-  //<<Construct counter for descendants, Pa.~\ref{pa:tdb}>>
-  //<<Construct variables for parents and children, Pa.~\ref{pa:tdb}>>
-  //<<Iterate over parents, Pa.~\ref{pa:tdb}>>
 #+end_src
-#+begin_export latex
+#+begin_src go <<Search for MRCA, Pa. \ref{pa:tdb}>>=
+  //<<Construct counter for descendants, Pa. \ref{pa:tdb}>>
+  //<<Construct variables for parents and children, Pa. \ref{pa:tdb}>>
+  //<<Iterate over parents, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_src latex
 We store descendants in a map between a taxon ID, which is an integer,
 and the number of its descendants, another integer. The initial number
 of descendants of the taxa supplied is one.
-#+end_export
-#+begin_src go <<Construct counter for descendants, Pa.~\ref{pa:tdb}>>=
+#+end_src
+#+begin_src go <<Construct counter for descendants, Pa. \ref{pa:tdb}>>=
   desc := make(map[int]int)
   for _, id := range ids {
 	  desc[id] = 1
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 We store the parent and child taxa as integer slices. The children
 slice is initialized to the taxon IDs supplied.
-#+end_export
-#+begin_src go <<Construct variables for parents and children, Pa.~\ref{pa:tdb}>>=
+#+end_src
+#+begin_src go <<Construct variables for parents and children, Pa. \ref{pa:tdb}>>=
   parents := make([]int, 0)
   children := make([]int, 0)
   for _, id := range ids {
 	  children = append(children, id)
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 As long as we have more than a single child, i. e. haven't reached
 the root yet, we climb to the next set of parents and we replace the
 children by the parents.
-#+end_export
-#+begin_src go <<Iterate over parents, Pa.~\ref{pa:tdb}>>=
+#+end_src
+#+begin_src go <<Iterate over parents, Pa. \ref{pa:tdb}>>=
   for len(children) > 1 {
-	  //<<Climb to parents, Pa.~\ref{pa:tdb}>>
-	  //<<Replace parents by children, Pa.~\ref{pa:tdb}>>
+	  //<<Climb to parents, Pa. \ref{pa:tdb}>>
+	  //<<Replace parents by children, Pa. \ref{pa:tdb}>>
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 For each parent we reach, we check whether the number of its
 descendants is equal to the number of taxa submitted. If yes, we've
 found the MRCA and return it.
-#+end_export
-#+begin_src go <<Climb to parents, Pa.~\ref{pa:tdb}>>=
+#+end_src
+#+begin_src go <<Climb to parents, Pa. \ref{pa:tdb}>>=
   for _, child := range children {
 	  parent := t.Parent(child)
 	  desc[parent] += desc[child]
@@ -977,11 +977,11 @@ found the MRCA and return it.
 	  parents = append(parents, parent)
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 If the MRCA hasn't been found yet, we replace the children by the
 parent and reset the parent slice to empty.
-#+end_export
-#+begin_src go <<Replace parents by children, Pa.~\ref{pa:tdb}>>=
+#+end_src
+#+begin_src go <<Replace parents by children, Pa. \ref{pa:tdb}>>=
   if mrca == -1 {
 	  children = children[:0]
 	  for _, parent := range parents {
@@ -1005,7 +1005,7 @@ parent and reset the parent slice to empty.
   )
 
   func TestTdb(t *testing.T) {
-	  //<<Testing, Pa.~\ref{pa:tdb}>>
+	  //<<Testing, Pa. \ref{pa:tdb}>>
   }
 #+end_src
 #+begin_src latex
@@ -1013,19 +1013,19 @@ parent and reset the parent slice to empty.
   \ty{Replicons}, \ty{Name}, \ty{Parent}, \ty{Children}, \ty{Subtree},
   and \ty{Taxids}.
 #+end_src
-#+begin_src go <<Testing, Pa.~\ref{pa:tdb}>>=
-  //<<Test \ty{NewTaxonomyDB}, Pa.~\ref{pa:tdb}>>
-  //<<Test \ty{Replicons}, Pa.~\ref{pa:tdb}>>
-  //<<Test \ty{Name}, Pa.~\ref{pa:tdb}>>
-  //<<Test \ty{Parent}, Pa.~\ref{pa:tdb}>>
-  //<<Test \ty{Children}, Pa.~\ref{pa:tdb}>>
-  //<<Test \ty{Subtree}, Pa.~\ref{pa:tdb}>>
-  //<<Test \ty{Taxids}, Pa.~\ref{pa:tdb}>>
+#+begin_src go <<Testing, Pa. \ref{pa:tdb}>>=
+  //<<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Replicons}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Name}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Parent}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Children}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Subtree}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   We build a small database, \ty{taxSmall.db}.
 #+end_src
-#+begin_src go <<Test \ty{NewTaxonomyDB}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>=
   p := "../data/"
   no := p + "nodesTest.dmp"
   na := p + "namesTest.dmp"
@@ -1039,7 +1039,7 @@ parent and reset the parent slice to empty.
   We extract the full taxonomy from the small database and check it has
   11 entries.
 #+end_src
-#+begin_src go <<Test \ty{NewTaxonomyDB}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>=
   taxdb := OpenTaxonomyDB(d1)
   subtree := taxdb.Subtree(1)
   if len(subtree) != 11 {
@@ -1053,7 +1053,7 @@ parent and reset the parent slice to empty.
   We open a complete taxonomy, submit three taxon-IDs to the method
   \ty{Replicons}, and print out the result.
 #+end_src
-#+begin_src go <<Test \ty{Replicons}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Test \ty{Replicons}, Pa. \ref{pa:tdb}>>=
   d2 := p + "neidb"
   taxdb = OpenTaxonomyDB(d2)
   tid := 866775
@@ -1067,7 +1067,7 @@ parent and reset the parent slice to empty.
 #+begin_src latex
   We look up the name of taxon, 9606, \emph{Homo sapiens}.
 #+end_src
-#+begin_src go <<Test \ty{Name}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Test \ty{Name}, Pa. \ref{pa:tdb}>>=
   tid = 9606
   want = "Homo sapiens"
   get = taxdb.Name(tid)
@@ -1079,7 +1079,7 @@ parent and reset the parent slice to empty.
   The parent of \emph{Homo sapiens} is \emph{Homo} with taxon-ID
   9605.
 #+end_src
-#+begin_src go <<Test \ty{Parent}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Test \ty{Parent}, Pa. \ref{pa:tdb}>>=
   w := 9605
   g := taxdb.Parent(tid)
   if g != w {
@@ -1089,7 +1089,7 @@ parent and reset the parent slice to empty.
 #+begin_src latex
   \emph{Homo sapiens} (9606) has two children.
 #+end_src
-#+begin_src go <<Test \ty{Children}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Test \ty{Children}, Pa. \ref{pa:tdb}>>=
   w = 2
   g = len(taxdb.Children(tid))
   if g != w {
@@ -1099,7 +1099,7 @@ parent and reset the parent slice to empty.
 #+begin_src latex
   The \emph{Hominidae} subtree contains 26 nodes.
 #+end_src
-#+begin_src go <<Test \ty{Subtree}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Test \ty{Subtree}, Pa. \ref{pa:tdb}>>=
   tid = 207598
   w = 26
   taxa := taxdb.Subtree(tid)
@@ -1114,7 +1114,7 @@ parent and reset the parent slice to empty.
   ``h'' in \emph{homo}, which SQL matches to the upper-case ``H'' in the
   actual names.
 #+end_src
-#+begin_src go <<Test \ty{Taxids}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>=
   w = 11
   taxa = taxdb.Taxids("%homo sapiens%")
   g = len(taxa)
@@ -1125,9 +1125,9 @@ parent and reset the parent slice to empty.
 #+begin_src latex
   To test \ty{MRCA}, we construct several tests and run them in a loop.
 #+end_src
-#+begin_src go <<Test \ty{MRCA}, Pa.~\ref{pa:tdb}>>=
-  //<<Construct tests of \ty{MRCA}, Pa.~\ref{pa:tdb}>>
-  //<<Run tests of \ty{MRCA}, Pa.~\ref{pa:tdb}>>
+#+begin_src go <<Test \ty{MRCA}, Pa. \ref{pa:tdb}>>=
+  //<<Construct tests of \ty{MRCA}, Pa. \ref{pa:tdb}>>
+  //<<Run tests of \ty{MRCA}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   We look for the MRCAs of the following five sets of taxa in the tree
@@ -1140,7 +1140,7 @@ parent and reset the parent slice to empty.
   \item $\{4, 7, 6\}$
   \end{itemize}
 #+end_src
-#+begin_src go <<Construct tests of \ty{MRCA}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Construct tests of \ty{MRCA}, Pa. \ref{pa:tdb}>>=
   taxa := make([][]int, 0)
   var res []int
   taxa = append(taxa, []int{4, 7})
@@ -1157,7 +1157,7 @@ parent and reset the parent slice to empty.
 #+begin_src latex
   We loop over the tests.
 #+end_src
-#+begin_src go <<Run tests of \ty{MRCA}, Pa.~\ref{pa:tdb}>>=
+#+begin_src go <<Run tests of \ty{MRCA}, Pa. \ref{pa:tdb}>>=
   for i, taxon := range taxa {
 	  get := tax.MRCA(taxon)
 	  want := res[i]

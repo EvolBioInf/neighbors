@@ -14,28 +14,28 @@
   package main
 
   import (
-	  //<<Imports, Pr.~\ref{pr:pic}>>
+	  //<<Imports, Pr. \ref{pr:pic}>>
   )
-  //<<Functions, Pr.~\ref{pr:pic}>>
+  //<<Functions, Pr. \ref{pr:pic}>>
   func main() {
-	  //<<Main function, Pr.~\ref{pr:pic}>>
+	  //<<Main function, Pr. \ref{pr:pic}>>
   }
 #+end_src
 #+begin_src latex
   \epr In the main function we set the usage, declare the options, parse
   the options, and parse the input files.
 #+end_src
-#+begin_src go <<Main function, Pr.~\ref{pr:pic}>>=
-  //<<Set usage, Pr.~\ref{pr:pic}>>
-  //<<Declare options, Pr.~\ref{pr:pic}>>
-  //<<Parse options, Pr.~\ref{pr:pic}>>
-  //<<Parse input files, Pr.~\ref{pr:pic}>>
+#+begin_src go <<Main function, Pr. \ref{pr:pic}>>=
+  //<<Set usage, Pr. \ref{pr:pic}>>
+  //<<Declare options, Pr. \ref{pr:pic}>>
+  //<<Parse options, Pr. \ref{pr:pic}>>
+  //<<Parse input files, Pr. \ref{pr:pic}>>
 #+end_src
 #+begin_src latex
   The usage consists of three parts, the usage message proper, an
   explanation of the purpose of \ty{pickle}, and an example command.
 #+end_src
-#+begin_src go <<Set usage, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Set usage, Pr. \ref{pr:pic}>>=
   u := "pickle [option]... [foo.nwk]..."
   p := "Pick clades in Newick trees."
   e := "pickle 3,5 foo.nwk"
@@ -44,7 +44,7 @@
 #+begin_src latex
   We import \ty{clio}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:pic}>>=
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
@@ -52,7 +52,7 @@
   printing the tree picked, \ty{-t}, and an option for complementation,
   \ty{-c}.
 #+end_src
-#+begin_src go <<Declare options, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Declare options, Pr. \ref{pr:pic}>>=
   optV := flag.Bool("v", false, "version")
   optT := flag.Bool("t", false, "print tree")
   optC := flag.Bool("c", false, "complement")
@@ -60,7 +60,7 @@
 #+begin_src latex
   We import \ty{flag}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:pic}>>=
   "flag"
 #+end_src
 #+begin_src latex
@@ -69,7 +69,7 @@
   labels string. If the user hasn't supplied one, we bail with a
   friendly message. Otherwise we split the labels at commas.
 #+end_src
-#+begin_src go <<Parse options, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Parse options, Pr. \ref{pr:pic}>>=
   flag.Parse()
   if *optV {
 	  util.PrintInfo("pickle")
@@ -84,7 +84,7 @@
 #+begin_src latex
   We import \ty{util}, \ty{fmt}, \ty{os}, and \ty{strings}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:pic}>>=
   "github.com/evolbioinf/neighbors/util"
   "fmt"
   "os"
@@ -96,7 +96,7 @@
   input file. The function \ty{parse} in turn takes the slice of labels
   the tree option, and the complement option as arguments.
 #+end_src
-#+begin_src go <<Parse input files, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Parse input files, Pr. \ref{pr:pic}>>=
   clio.ParseFiles(args[1:], parse, labels, optT, optC)
 #+end_src
 #+begin_src latex
@@ -104,7 +104,7 @@
   the input trees, and for each tree print a table header and iterate
   over the labels of the selected nodes.
 #+end_src
-#+begin_src go <<Functions, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Functions, Pr. \ref{pr:pic}>>=
   func parse(r io.Reader, args ...interface{}) {
 	  labels := args[0].([]string)
 	  optT := args[1].(*bool)
@@ -112,22 +112,22 @@
 	  sc := nwk.NewScanner(r)
 	  for sc.Scan() {
 		  origRoot := sc.Tree()
-		  //<<Print table header, Pr.~\ref{pr:pic}>>
-		  //<<Iterate over labels, Pr.~\ref{pr:pic}>>
+		  //<<Print table header, Pr. \ref{pr:pic}>>
+		  //<<Iterate over labels, Pr. \ref{pr:pic}>>
 	  }
   }
 #+end_src
 #+begin_src latex
   We import \ty{io}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:pic}>>=
   "io"
 #+end_src
 #+begin_src latex
   The table header starts with a hash and says ``Selected clade'' if
   only one was selected, ``clades'' for plural.
 #+end_src
-#+begin_src go <<Print table header, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Print table header, Pr. \ref{pr:pic}>>=
   fmt.Printf("# Selected clade")
   if len(labels) > 1 {
 	  fmt.Printf("s")
@@ -139,22 +139,22 @@
   find the corresponding clade, complement it if requested, and print
   it.
 #+end_src
-#+begin_src go <<Iterate over labels, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Iterate over labels, Pr. \ref{pr:pic}>>=
   for _, label := range labels {
 	  t := origRoot.CopyClade()
-	  //<<Write clade header, Pr.~\ref{pr:pic}>>
-	  //<<Find clade, Pr.~\ref{pr:pic}>>
+	  //<<Write clade header, Pr. \ref{pr:pic}>>
+	  //<<Find clade, Pr. \ref{pr:pic}>>
 	  if *optC {
-		  //<<Complement clade, Pr.~\ref{pr:pic}>>
+		  //<<Complement clade, Pr. \ref{pr:pic}>>
 	  }
-	  //<<Print clade, Pr.~\ref{pr:pic}>>
+	  //<<Print clade, Pr. \ref{pr:pic}>>
   }
 #+end_src
 #+begin_src latex
   The clade header starts with a double hash, followed by ``complement
   of'', if appropriate, followed by the label of the focal node.
 #+end_src
-#+begin_src go <<Write clade header, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Write clade header, Pr. \ref{pr:pic}>>=
   fmt.Printf("## ")
   if *optC {
 	  fmt.Printf("Complement of ")
@@ -166,26 +166,26 @@
   using \ty{tree2slice} and then iterating over the nodes. If we cannot
   find the node, we exit with message.
 #+end_src
-#+begin_src go <<Find clade, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Find clade, Pr. \ref{pr:pic}>>=
   var nodes []*nwk.Node
   nodes = tree2slice(t, nodes)
   found := false
-  //<<Iterate over nodes, Pr.~\ref{pr:pic}>>
+  //<<Iterate over nodes, Pr. \ref{pr:pic}>>
   if !found {
 	  log.Fatalf("Couldn't find node %q.\n", label)
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 We import \ty{log}.
-#+end_export
-#+begin_src go <<Imports, Pr.~\ref{pr:pic}>>=
+#+end_src
+#+begin_src go <<Imports, Pr. \ref{pr:pic}>>=
   "log"
 #+end_src
 #+begin_src latex
   \ty{tree2slice} is  a recursive function that collects the nodes it
   encounters into a slice.
 #+end_src
-#+begin_src go <<Functions, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Functions, Pr. \ref{pr:pic}>>=
   func tree2slice(v *nwk.Node, ns []*nwk.Node) []*nwk.Node {
 	  if v == nil { return ns }
 	  ns = append(ns, v)
@@ -197,14 +197,14 @@ We import \ty{log}.
 #+begin_src latex
   We import \ty{nwk}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:pic}>>=
   "github.com/evolbioinf/nwk"
 #+end_src
-#+begin_export latex
+#+begin_src latex
 When iterating over the nodes, we look up the first one with a
 matching label and note that we found it.
-#+end_export
-#+begin_src go <<Iterate over nodes, Pr.~\ref{pr:pic}>>=
+#+end_src
+#+begin_src go <<Iterate over nodes, Pr. \ref{pr:pic}>>=
   var clade *nwk.Node
   for _, node := range nodes {
 	  if node.Label == label {
@@ -218,7 +218,7 @@ matching label and note that we found it.
   If the clade to be complemented is the root, we set the original tree
   to nil. Otherwise we remove the clade from the tree.
 #+end_src
-#+begin_src go <<Complement clade, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Complement clade, Pr. \ref{pr:pic}>>=
   if clade.Parent == nil {
 	  t = nil
   } else {
@@ -229,11 +229,11 @@ matching label and note that we found it.
   To print the clade, we either print its Newick tree or list its
   leaves.
 #+end_src
-#+begin_src go <<Print clade, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Print clade, Pr. \ref{pr:pic}>>=
   if *optT {
-	  //<<Print tree, Pr.~\ref{pr:pic}>>
+	  //<<Print tree, Pr. \ref{pr:pic}>>
   } else {
-	  //<<List leaves, Pr.~\ref{pr:pic}>>
+	  //<<List leaves, Pr. \ref{pr:pic}>>
   }
 #+end_src
 #+begin_src latex
@@ -242,7 +242,7 @@ matching label and note that we found it.
   avoid the sibling nodes and add the root through an opening
   parenthesis, the label, and the closing semicolon.
 #+end_src
-#+begin_src go <<Print tree, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Print tree, Pr. \ref{pr:pic}>>=
   if *optC {
 	  if t != nil {
 		  fmt.Printf("%s\n", t)
@@ -260,7 +260,7 @@ matching label and note that we found it.
   we start at the clade, we need to avoid its siblings, so we actually
   start at the clade's child.
 #+end_src
-#+begin_src go <<List leaves, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<List leaves, Pr. \ref{pr:pic}>>=
   if *optC {
 	  listLeaves(t)
   } else {
@@ -270,7 +270,7 @@ matching label and note that we found it.
 #+begin_src latex
   The function \ty{listLeaves} prints leaf labels recursively.
 #+end_src
-#+begin_src go <<Functions, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Functions, Pr. \ref{pr:pic}>>=
   func listLeaves(v *nwk.Node) {
 	  if v == nil { return }
 	  if v.Child == nil {
@@ -292,21 +292,21 @@ matching label and note that we found it.
 
   import (
 	  "testing"
-	  //<<Testing imports, Pr.~\ref{pr:pic}>>
+	  //<<Testing imports, Pr. \ref{pr:pic}>>
   )
 
   func TestPickle(t *testing.T) {
-	  //<<Testing, Pr.~\ref{pr:pic}>>
+	  //<<Testing, Pr. \ref{pr:pic}>>
   }
 #+end_src
 #+begin_src latex
   We construct a set of tests and then iterate over them.
 #+end_src
-#+begin_src go <<Testing, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Testing, Pr. \ref{pr:pic}>>=
   var tests []*exec.Cmd
-  //<<Construct tests, Pr.~\ref{pr:pic}>>
+  //<<Construct tests, Pr. \ref{pr:pic}>>
   for i, test := range tests {
-	  //<<Run test, Pr.~\ref{pr:pic}>>
+	  //<<Run test, Pr. \ref{pr:pic}>>
   }
 #+end_src
 #+begin_src latex
@@ -322,7 +322,7 @@ matching label and note that we found it.
     \caption{Tree for testing the program \ty{pickle}.}\label{fig:tree}
   \end{figure}
 #+end_src
-#+begin_src go <<Construct tests, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
   f := "test.nwk"
   test := exec.Command("./pickle", "7", f)
   tests = append(tests, test)
@@ -336,13 +336,13 @@ matching label and note that we found it.
 #+begin_src latex
   We import \ty{exec}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:pic}>>=
   "os/exec"
 #+end_src
 #+begin_src latex
   We repeat the basic tests with the complement switch.
 #+end_src
-#+begin_src go <<Construct tests, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
 test = exec.Command("./pickle", "-c", "7", f)
 tests = append(tests, test)
 test = exec.Command("./pickle", "-c", "7,3", f)
@@ -357,7 +357,7 @@ tests = append(tests, test)
 #+begin_src latex
   We repeat the basic tests with the tree switch.
 #+end_src
-#+begin_src go <<Construct tests, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
 test = exec.Command("./pickle", "-t", "7", f)
 tests = append(tests, test)
 test = exec.Command("./pickle", "-t", "7,3", f)
@@ -371,7 +371,7 @@ tests = append(tests, test)
   Our final set of tests are the four basic tests with the complement
   and the tree switch.
 #+end_src
-#+begin_src go <<Construct tests, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
 test = exec.Command("./pickle", "-c", "-t", "7", f)
 tests = append(tests, test)
 test = exec.Command("./pickle", "-c", "-t", "7,3", f)
@@ -386,7 +386,7 @@ tests = append(tests, test)
   want. The results we want are contained in the files \ty{r1.txt},
   \ty{r2.txt}, and so on.
 #+end_src
-#+begin_src go <<Run test, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Run test, Pr. \ref{pr:pic}>>=
   get, err := test.Output()
   if err != nil {
 	  t.Error(err)
@@ -403,7 +403,7 @@ tests = append(tests, test)
 #+begin_src latex
   We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:pic}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:pic}>>=
   "strconv"
   "io/ioutil"
   "bytes"

@@ -10,10 +10,10 @@
   package main
 
   import (
-	  //<<Imports, Pr.~\ref{pr:db}>>
+	  //<<Imports, Pr. \ref{pr:db}>>
   )
   func main() {
-	  //<<Main function, Pr.~\ref{pr:db}>>
+	  //<<Main function, Pr. \ref{pr:db}>>
   }
 #+end_src
 #+begin_src latex
@@ -21,11 +21,11 @@
   In the main function, we declare the options, set the usage, parse the
   options, and construct the database.
 #+end_src
-#+begin_src go <<Main function, Pr.~\ref{pr:db}>>=
-  //<<Declare options, Pr.~\ref{pr:db}>>
-  //<<Set usage, Pr.~\ref{pr:db}>>
-  //<<Parse options, Pr.~\ref{pr:db}>>
-  //<<Construct database, Pr.~\ref{pr:db}>>
+#+begin_src go <<Main function, Pr. \ref{pr:db}>>=
+  //<<Declare options, Pr. \ref{pr:db}>>
+  //<<Set usage, Pr. \ref{pr:db}>>
+  //<<Parse options, Pr. \ref{pr:db}>>
+  //<<Construct database, Pr. \ref{pr:db}>>
 #+end_src
 #+begin_src latex
   The program takes as input three files of genome information and two
@@ -33,7 +33,7 @@
   five files. In addition, we declare \ty{-d} to set the database name
   and \ty{-v} for printing the version.
 #+end_src
-#+begin_src go <<Declare options, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Declare options, Pr. \ref{pr:db}>>=
   var optP = flag.String("p", "prokaryotes.txt", "prokaryote genomes")
   var optE = flag.String("e", "eukaryotes.txt", "eukaryote genomes")
   var optI = flag.String("i", "viruses.txt", "virus genomes")
@@ -46,7 +46,7 @@
 #+begin_src latex
   We import \ty{flag}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:db}>>=
   "flag"
 #+end_src
 #+begin_src latex
@@ -54,7 +54,7 @@
   an explanation of the program's purpose, and an example command. In
   the explanation we cite the data sources.
 #+end_src
-#+begin_src go <<Set usage, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Set usage, Pr. \ref{pr:db}>>=
   u := "makeNeiDb [option]..."
   p := "Construct a taxonomy database for discovering neighbor genomes." +
 	  "\n\tGenomes:  <ftp>/genomes/GENOME_REPORTS/" +
@@ -67,13 +67,13 @@
 #+begin_src latex
   We import \ty{clio}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:db}>>=
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
   We parse the options and respond to \ty{-v}.
 #+end_src
-#+begin_src go <<Parse options, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Parse options, Pr. \ref{pr:db}>>=
   flag.Parse()
   if *optV {
 	  util.PrintInfo("makeNeiDb")
@@ -82,19 +82,19 @@
 #+begin_src latex
   We import \ty{util}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:db}>>=
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   The database construction is delegated to \ty{NewTaxonomyDB}.
 #+end_src
-#+begin_src go <<Construct database, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Construct database, Pr. \ref{pr:db}>>=
   tdb.NewTaxonomyDB(*optO, *optA, *optP, *optE, *optI, *optD)
 #+end_src
 #+begin_src latex
   We import \ty{tdb}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:db}>>=
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
@@ -109,33 +109,33 @@
 
   import (
 	  "testing"
-	  //<<Testing imports, Pr.~\ref{pr:db}>>
+	  //<<Testing imports, Pr. \ref{pr:db}>>
   )
 
   func TestMakeNeiDb(t *testing.T) {
-	  //<<Testing, Pr.~\ref{pr:db}>>
+	  //<<Testing, Pr. \ref{pr:db}>>
   }
 #+end_src
 #+begin_src latex
   We construct a set of tests and run them in a loop.
 #+end_src
-#+begin_src go <<Testing, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Testing, Pr. \ref{pr:db}>>=
   var tests []*exec.Cmd
-  //<<Construct tests, Pr.~\ref{pr:db}>>
+  //<<Construct tests, Pr. \ref{pr:db}>>
   for i, test := range tests {
-	  //<<Run test, Pr.~\ref{pr:db}>>
+	  //<<Run test, Pr. \ref{pr:db}>>
   }
 #+end_src
 #+begin_src latex
   We import \ty{exec}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:db}>>=
   "os/exec"
 #+end_src
 #+begin_src latex
   We construct a small database.
 #+end_src
-#+begin_src go <<Construct tests, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:db}>>=
   test := exec.Command("./makeNeiDb",
 	  "-a", "../data/namesTest.dmp",
 	  "-d", "test.db",
@@ -148,7 +148,7 @@
 #+begin_src latex
   Now we query the new database.
 #+end_src
-#+begin_src go <<Construct tests, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:db}>>=
   test = exec.Command("/usr/bin/sqlite3",
 	  "test.db",
 	  "select * from taxon order by taxid")
@@ -159,7 +159,7 @@
   want. The results we want are contained in files \ty{r1.txt} and
   \ty{r2.txt}.
 #+end_src
-#+begin_src go <<Run test, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Run test, Pr. \ref{pr:db}>>=
   get, err := test.Output()
   if err != nil {
 	  t.Errorf("couldn't run %q", test)
@@ -176,7 +176,7 @@
 #+begin_src latex
   We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:db}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:db}>>=
   "strconv"
   "io/ioutil"
   "bytes"

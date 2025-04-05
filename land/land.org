@@ -12,28 +12,28 @@
   package main
 
   import (
-	  //<<Imports, Pr.~\ref{pr:lan}>>
+	  //<<Imports, Pr. \ref{pr:lan}>>
   )
-  //<<Functions, Pr.~\ref{pr:lan}>>
+  //<<Functions, Pr. \ref{pr:lan}>>
   func main() {
-	  //<<Main function, Pr.~\ref{pr:lan}>>
+	  //<<Main function, Pr. \ref{pr:lan}>>
   }
 #+end_src
 #+begin_src latex
   \epr In the main function of \ty{land} we set the usage, declare the
   options, parse the options, and parse the input files.
 #+end_src
-#+begin_src go <<Main function, Pr.~\ref{pr:lan}>>=
-  //<<Set usage, Pr.~\ref{pr:lan}>>
-  //<<Declare options, Pr.~\ref{pr:lan}>>
-  //<<Parse options, Pr.~\ref{pr:lan}>>
-  //<<Parse input files, Pr.~\ref{pr:lan}>>
+#+begin_src go <<Main function, Pr. \ref{pr:lan}>>=
+  //<<Set usage, Pr. \ref{pr:lan}>>
+  //<<Declare options, Pr. \ref{pr:lan}>>
+  //<<Parse options, Pr. \ref{pr:lan}>>
+  //<<Parse input files, Pr. \ref{pr:lan}>>
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
   purpose of \ty{land}, and an example command.
 #+end_src
-#+begin_src go <<Set usage, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Set usage, Pr. \ref{pr:lan}>>=
   u := "land [option]... [treeFile]..."
   p := "Label the internal nodes in Newick trees."
   e := "land -p n foo.nwk"
@@ -42,14 +42,14 @@
 #+begin_src latex
   We import \ty{clio}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:lan}>>=
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
   The user can request the version (\ty{-v}), set a label prefix
   (\ty{-p}), or set a label suffix (\ty{-s}).
 #+end_src
-#+begin_src go <<Declare options, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Declare options, Pr. \ref{pr:lan}>>=
   var optV = flag.Bool("v", false, "version")
   var optP = flag.String("p", "", "prefix")
   var optS = flag.String("s", "", "suffix")
@@ -57,14 +57,14 @@
 #+begin_src latex
   We import \ty{flag}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:lan}>>=
   "flag"
 #+end_src
 #+begin_src latex
   We parse the options and respond to a request for the version, as this
   would terminate the program.
 #+end_src
-#+begin_src go <<Parse options, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Parse options, Pr. \ref{pr:lan}>>=
   flag.Parse()
   if *optV {
 	  util.PrintInfo("land")
@@ -73,7 +73,7 @@
 #+begin_src latex
   We import \ty{util}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:lan}>>=
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
@@ -83,7 +83,7 @@
   function \ty{parse}, which in turn takes as arguments the prefix and
   the suffix.
 #+end_src
-#+begin_src go <<Parse input files, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Parse input files, Pr. \ref{pr:lan}>>=
   files := flag.Args()
   clio.ParseFiles(files, parse, *optP, *optS)
 #+end_src
@@ -91,22 +91,22 @@
   Inside \ty{parse}, we retrieve the arguments we just passed and
   iterate over the input file.
 #+end_src
-#+begin_src go <<Functions, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Functions, Pr. \ref{pr:lan}>>=
   func parse(r io.Reader, args ...interface{}) {
-	  //<<Retrieve arguments, Pr.~\ref{pr:lan}>>
-	  //<<Iterate over input, Pr.~\ref{pr:lan}>>
+	  //<<Retrieve arguments, Pr. \ref{pr:lan}>>
+	  //<<Iterate over input, Pr. \ref{pr:lan}>>
   }
 #+end_src
 #+begin_src latex
   We import \ty{io}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:lan}>>=
   "io"
 #+end_src
 #+begin_src latex
   We retrieve the prefix and the suffix.
 #+end_src
-#+begin_src go <<Retrieve arguments, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Retrieve arguments, Pr. \ref{pr:lan}>>=
   pr := args[0].(string)
   su := args[1].(string)
 #+end_src
@@ -114,7 +114,7 @@
   We scan the trees in the input. Each tree is labeled starting with 1
   and printed.
 #+end_src
-#+begin_src go <<Iterate over input, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Iterate over input, Pr. \ref{pr:lan}>>=
   sc := nwk.NewScanner(r)
   for sc.Scan() {
 	  tree := sc.Tree()
@@ -125,29 +125,29 @@
 #+begin_src latex
   We import \ty{nwk} and \ty{fmt}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:lan}>>=
   "github.com/evolbioinf/nwk"
   "fmt"
 #+end_src
-#+begin_export latex
+#+begin_src latex
 Inside the function \ty{labelTree} we label the nodes in order.
-#+end_export
-#+begin_src go <<Functions, Pr.~\ref{pr:lan}>>=
+#+end_src
+#+begin_src go <<Functions, Pr. \ref{pr:lan}>>=
   func labelTree(v *nwk.Node, c int, pr, su string) int {
 	  if v == nil {
 		  return c
 	  }
-	  //<<Label node, Pr.~\ref{pr:lan}>>
+	  //<<Label node, Pr. \ref{pr:lan}>>
 	  c = labelTree(v.Child, c, pr, su)
 	  c = labelTree(v.Sib, c, pr, su)
 	  return c
   }
 #+end_src
-#+begin_export latex
+#+begin_src latex
 When labeling a node, we leave leaf nodes unchanged, but construct new
 labels for internal nodes.
-#+end_export
-#+begin_src go <<Label node, Pr.~\ref{pr:lan}>>=
+#+end_src
+#+begin_src go <<Label node, Pr. \ref{pr:lan}>>=
   l := v.Label
   if v.Child != nil {
 	  l = pr + strconv.Itoa(c) + su
@@ -158,7 +158,7 @@ labels for internal nodes.
 #+begin_src latex
   We import \ty{strconv}.
 #+end_src
-#+begin_src go <<Imports, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:lan}>>=
   "strconv"
 #+end_src
 #+begin_src latex
@@ -173,27 +173,27 @@ labels for internal nodes.
 
   import (
 	  "testing"
-	  //<<Testing imports, Pr.~\ref{pr:lan}>>
+	  //<<Testing imports, Pr. \ref{pr:lan}>>
   )
 
   func TestLand(t *testing.T) {
-	  //<<Testing, Pr.~\ref{pr:lan}>>
+	  //<<Testing, Pr. \ref{pr:lan}>>
   }
 #+end_src
 #+begin_src latex
   We construct a set of tests, iterate over them, and run each one.
 #+end_src
-#+begin_src go <<Testing, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Testing, Pr. \ref{pr:lan}>>=
   var tests []*exec.Cmd
-  //<<Construct tests, Pr.~\ref{pr:lan}>>
+  //<<Construct tests, Pr. \ref{pr:lan}>>
   for i, test := range tests {
-	  //<<Run test, Pr.~\ref{pr:lan}>>
+	  //<<Run test, Pr. \ref{pr:lan}>>
   }
 #+end_src
 #+begin_src latex
   We import \ty{exec}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:lan}>>=
   "os/exec"
 #+end_src
 #+begin_src latex
@@ -201,7 +201,7 @@ labels for internal nodes.
   prefix, and one where we set a suffix. Each test works on the tree
   contained in \ty{test.nwk}.
 #+end_src
-#+begin_src go <<Construct tests, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Construct tests, Pr. \ref{pr:lan}>>=
   f := "test.nwk"
   test := exec.Command("./land", f)
   tests = append(tests, test)
@@ -215,7 +215,7 @@ labels for internal nodes.
   want. The results we want are contained in files \ty{r1.txt},
   \ty{r2.txt}, and \ty{r3.txt}.
 #+end_src
-#+begin_src go <<Run test, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Run test, Pr. \ref{pr:lan}>>=
   get, err := test.Output()
   if err != nil {
 	  t.Error(err)
@@ -232,7 +232,7 @@ labels for internal nodes.
 #+begin_src latex
   We import \ty{strconv}, \ty{ioutil}, and \ty{bytes}.
 #+end_src
-#+begin_src go <<Testing imports, Pr.~\ref{pr:lan}>>=
+#+begin_src go <<Testing imports, Pr. \ref{pr:lan}>>=
   "strconv"
   "io/ioutil"
   "bytes"
