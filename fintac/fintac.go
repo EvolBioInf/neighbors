@@ -9,8 +9,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"sort"
-	"strings"
 	"text/tabwriter"
 )
 
@@ -35,13 +35,13 @@ func (c countsSlice) Swap(i, j int) {
 }
 func parse(r io.Reader, args ...interface{}) {
 	optA := args[0].(*bool)
-	optN := args[1].(*string)
-	optT := args[2].(*string)
+	tregex := args[1].(*regexp.Regexp)
+	nregex := args[2].(*regexp.Regexp)
 	sc := nwk.NewScanner(r)
 	for sc.Scan() {
 		tree := sc.Tree()
 		counts := make(map[int]*Count)
-		traverseTree(tree, counts, *optN, *optT)
+		traverseTree(tree, counts, tregex, nregex)
 		nt := counts[tree.Id].vt
 		nn := counts[tree.Id].vn
 		for _, count := range counts {
@@ -82,7 +82,7 @@ func parse(r io.Reader, args ...interface{}) {
 	}
 }
 func traverseTree(v *nwk.Node, counts map[int]*Count,
-	np, tp string) {
+	tregex, nregex *regexp.Regexp) {
 	if v == nil {
 		return
 	}
@@ -93,16 +93,33 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 		count.parent = v.Parent.Label
 	}
 	counts[v.Id] = count
-	traverseTree(v.Child, counts, np, tp)
-	traverseTree(v.Sib, counts, np, tp)
+	traverseTree(v.Child, counts, tregex, nregex)
+	traverseTree(v.Sib, counts, tregex, nregex)
 	if v.Child == nil {
-		if strings.HasPrefix(v.Label, np) {
-			counts[v.Id].vn = 1.0
-		} else if strings.HasPrefix(v.Label, tp) {
-			counts[v.Id].vt = 1.0
-		} else {
-			log.Fatalf("%q is neither target nor neighbor",
+		isTar := false
+		isNei := false
+		if tregex.MatchString(v.Label) {
+			isTar = true
+		}
+		if nregex == nil {
+			if !isTar {
+				isNei = true
+			}
+		} else if nregex.MatchString(v.Label) {
+			isNei = true
+		}
+		if isTar && isNei {
+			log.Fatalf("%q is a target and a neighbor",
 				v.Label)
+		}
+		if !isTar && !isNei {
+			log.Fatalf("%q is neither a target nor a neighbor",
+				v.Label)
+		}
+		if isTar {
+			counts[v.Id].vt = 1
+		} else {
+			counts[v.Id].vn = 1
 		}
 	} else {
 		if v.Label == "" {
@@ -122,16 +139,20 @@ func main() {
 	clio.Usage(u, p, e)
 	optV := flag.Bool("v", false, "version")
 	optA := flag.Bool("a", false, "all splits (default maximal)")
-	optN := flag.String("n", "n", "neighbor prefix")
-	optT := flag.String("t", "t", "target prefix")
+	optT := flag.String("t", "^t", "target regex")
+	optN := flag.String("n", "", "neighbor regex "+
+		"(default complement of -t)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("fintac")
 	}
-	if *optN == *optT {
-		log.Fatal("Please use distinct target " +
-			"and neighbor prefixes.")
+	tregex, err := regexp.Compile(*optT)
+	util.Check(err)
+	var nregex *regexp.Regexp
+	if *optN != "" {
+		nregex, err = regexp.Compile(*optN)
+		util.Check(err)
 	}
 	files := flag.Args()
-	clio.ParseFiles(files, parse, optA, optN, optT)
+	clio.ParseFiles(files, parse, optA, tregex, nregex)
 }
