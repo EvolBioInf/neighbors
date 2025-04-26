@@ -15,6 +15,7 @@ $(exe).go: $(exe).org
 test: $(exe)_test.go $(exe)
 	@rm -f test.db
 	@go test
+	cp test.db ../data
 $(exe)_test.go: $(exe).org
 	if [ "$(nw)" != "" ]; then\
 		bash ../scripts/org2nw $(exe).org | notangle -R$(exe)_test.go | gofmt > $(exe)_test.go;\

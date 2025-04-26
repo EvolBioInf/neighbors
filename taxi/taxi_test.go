@@ -11,7 +11,7 @@ import (
 func TestTaxi(t *testing.T) {
 	var tests []*exec.Cmd
 	q := "homo sapiens"
-	d := "../data/neidb"
+	d := "../data/test.db"
 	test := exec.Command("./taxi", q, d)
 	tests = append(tests, test)
 	test = exec.Command("./taxi", "-s", q, d)

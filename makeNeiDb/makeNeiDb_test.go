@@ -13,10 +13,9 @@ func TestMakeNeiDb(t *testing.T) {
 	test := exec.Command("./makeNeiDb",
 		"-a", "../data/namesTest.dmp",
 		"-d", "test.db",
-		"-e", "../data/eukaryotes.txt",
-		"-i", "../data/viruses.txt",
 		"-o", "../data/nodesTest.dmp",
-		"-p", "../data/prokaryotes.txt")
+		"-g", "../data/gbTest.txt",
+		"-r", "../data/rsTest.txt")
 	tests = append(tests, test)
 	test = exec.Command("/usr/bin/sqlite3",
 		"test.db",

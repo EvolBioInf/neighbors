@@ -186,7 +186,7 @@
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:ant}>>=
   tid := "9606"
-  db := "../data/neidb"
+  db := "../data/test.db"
   test := exec.Command("./ants", tid, db)
   tests = append(tests, test)
 #+end_src

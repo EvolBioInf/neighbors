@@ -102,19 +102,29 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 	}
 	if list {
 		fmt.Fprintf(w, "# Sample\tAccession\n")
-		sample := "t"
+		var acc []string
 		for _, target := range targets {
 			accessions := genomes[target]
 			for _, accession := range accessions {
-				fmt.Fprintf(w, "%s\t%s\n", sample, accession)
+				acc = append(acc, accession)
 			}
 		}
-		sample = "n"
+		sort.Strings(acc)
+		sample := "t"
+		for _, a := range acc {
+			fmt.Fprintf(w, "%s\t%s\n", sample, a)
+		}
+		acc = acc[:0]
 		for _, neighbor := range neighbors {
 			accessions := genomes[neighbor]
 			for _, accession := range accessions {
-				fmt.Fprintf(w, "%s\t%s\n", sample, accession)
+				acc = append(acc, accession)
 			}
+		}
+		sort.Strings(acc)
+		sample = "n"
+		for _, a := range acc {
+			fmt.Fprintf(w, "%s\t%s\n", sample, a)
 		}
 	} else {
 		mrcaTname := taxdb.Name(mrcaT)

@@ -8,9 +8,8 @@ import (
 )
 
 func main() {
-	var optP = flag.String("p", "prokaryotes.txt", "prokaryote genomes")
-	var optE = flag.String("e", "eukaryotes.txt", "eukaryote genomes")
-	var optI = flag.String("i", "viruses.txt", "virus genomes")
+	var optG = flag.String("g", "assembly_summary_genbank.txt", "genbank assemblies")
+	var optR = flag.String("r", "assembly_summary_refseq.txt", "refseq assemblies")
 	var optA = flag.String("a", "names.dmp", "taxonomic names")
 	var optO = flag.String("o", "nodes.dmp", "node information")
 	var optD = flag.String("d", "neidb", "database name")
@@ -18,8 +17,8 @@ func main() {
 		"program information")
 	u := "makeNeiDb [option]..."
 	p := "Construct a taxonomy database for discovering neighbor genomes." +
-		"\n\tGenomes:  <ftp>/genomes/GENOME_REPORTS/" +
-		"((pro|eu)karyotes|viruses).txt" +
+		"\n\tGenomes:  <ftp>/genomes/ASSEMBLY_REPORTS/assembly_summary_" +
+		"(genbank|refseq).txt" +
 		"\n\tTaxonomy: <ftp>/pub/taxonomy/taxdump.tar.gz" +
 		"\n\t<ftp>=ftp.ncbi.nlm.nih.gov"
 	e := "makeNeiDb -d myNew.db"
@@ -28,5 +27,5 @@ func main() {
 	if *optV {
 		util.PrintInfo("makeNeiDb")
 	}
-	tdb.NewTaxonomyDB(*optO, *optA, *optP, *optE, *optI, *optD)
+	tdb.NewTaxonomyDB(*optO, *optA, *optG, *optR, *optD)
 }

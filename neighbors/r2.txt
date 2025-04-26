@@ -1,5 +1,10 @@
-# MRCA(targets): 1216979, Aerococcus urinae NBRC 15544 = CCUG 36881
-# MRCA(targets+neighbors): 1376, Aerococcus urinae
-# Type  Taxon-ID  Name                                       Genomes
-t       1216979   Aerococcus urinae NBRC 15544 = CCUG 36881  GCA_001544335.1
-n       866775    Aerococcus urinae ACS-120-V-Col10a         GCA_000193205.1
+# MRCA(targets): 499232, Gorilla beringei
+# MRCA(targets+neighbors): 9592, Gorilla
+# Type  Taxon-ID  Name                       Genomes
+t       46359     Gorilla beringei graueri   -
+tt      499232    Gorilla beringei           GCA_963575185.1
+t       1159185   Gorilla beringei beringei  GCA_049640585.1|GCA_049640605.1
+n       9593      Gorilla gorilla            GCA_000167515.2|GCA_900199665.1
+n       9595      Gorilla gorilla gorilla    GCA_000151905.3|GCA_001484535.2|GCA_008122165.1|GCA_015021865.1|GCA_028885475.2|GCA_028885495.2|GCA_030174155.1|GCA_030174185.1|GCA_900006655.3|GCA_965153055.1|GCA_965153065.1|GCA_965153075.1
+n       183511    Gorilla gorilla uellensis  -
+n       406788    Gorilla gorilla diehli     -

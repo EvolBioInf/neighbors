@@ -366,7 +366,7 @@ to add names to taxa.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:dr}>>=
   n := "207598"
-  d := "../data/neidb"
+  d := "../data/test.db"
   test := exec.Command("./dree", n, d)
   tests = append(tests, test)
   test = exec.Command("./dree", "-n", n, d)

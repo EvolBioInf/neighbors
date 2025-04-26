@@ -188,7 +188,7 @@
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:tax}>>=
   q := "homo sapiens"
-  d := "../data/neidb"
+  d := "../data/test.db"
   test := exec.Command("./taxi", q, d)
   tests = append(tests, test)
   test = exec.Command("./taxi", "-s", q, d)

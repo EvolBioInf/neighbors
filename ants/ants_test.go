@@ -11,7 +11,7 @@ import (
 func TestAnts(t *testing.T) {
 	var tests []*exec.Cmd
 	tid := "9606"
-	db := "../data/neidb"
+	db := "../data/test.db"
 	test := exec.Command("./ants", tid, db)
 	tests = append(tests, test)
 	for i, test := range tests {

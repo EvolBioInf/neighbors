@@ -67,14 +67,13 @@ four on a phylogeny, and one, \ty{outliers}, on numerical data.
 The taxonomy is presented as an \ty{sqlite} database, let's call
 it \ty{neidb}, which is built using the program \ty{makeNeiDb}. As
 shown in Figure~\ref{fig:db}, \ty{neidb} consists of two
-tables, \ty{genome} and \ty{taxon}. Each genome comes from an organism
-identified by its taxon-ID, has a size, a status, a genome accession,
-and one or more replicons, which are lumped in one attribute. Each
-genome belongs to a taxon. A taxon has a unique taxon-ID, which serves
-as primary key. A taxon also has a parent, a rank, and a name. Since
-several genomes may have been sequenced for a given taxon, the
-attribute \ty{taxid} in table \ty{genome} is not unique, which is why
-that table has no primary key.
+tables, \ty{genome} and \ty{taxon}. Each genome has an accession,
+comes from an organism identified by its taxon-ID, has a size, and a
+status. Each genome belongs to a taxon. A taxon has a unique taxon-ID,
+which serves as primary key. A taxon also has a parent, a rank, and a
+name. Since several genomes may have been sequenced for a given taxon,
+the attribute \ty{taxid} in table \ty{genome} is not unique, which is
+why that table has no primary key.
 
 \begin{figure}
   \begin{center}

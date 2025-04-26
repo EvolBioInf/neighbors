@@ -28,15 +28,14 @@
   //<<Construct database, Pr. \ref{pr:db}>>
 #+end_src
 #+begin_src latex
-  The program takes as input three files of genome information and two
-  files of taxonomy information. Hence we declare five options for these
-  five files. In addition, we declare \ty{-d} to set the database name
+  The program takes as input two files of genome information and two
+  files of taxonomy information. Hence we declare four options for these
+  four files. In addition, we declare \ty{-d} to set the database name
   and \ty{-v} for printing the version.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:db}>>=
-  var optP = flag.String("p", "prokaryotes.txt", "prokaryote genomes")
-  var optE = flag.String("e", "eukaryotes.txt", "eukaryote genomes")
-  var optI = flag.String("i", "viruses.txt", "virus genomes")
+  var optG = flag.String("g", "assembly_summary_genbank.txt", "genbank assemblies")
+  var optR = flag.String("r", "assembly_summary_refseq.txt", "refseq assemblies")
   var optA = flag.String("a", "names.dmp", "taxonomic names")
   var optO = flag.String("o", "nodes.dmp", "node information")
   var optD = flag.String("d", "neidb", "database name")
@@ -57,8 +56,8 @@
 #+begin_src go <<Set usage, Pr. \ref{pr:db}>>=
   u := "makeNeiDb [option]..."
   p := "Construct a taxonomy database for discovering neighbor genomes." +
-	  "\n\tGenomes:  <ftp>/genomes/GENOME_REPORTS/" +
-	  "((pro|eu)karyotes|viruses).txt" +
+	  "\n\tGenomes:  <ftp>/genomes/ASSEMBLY_REPORTS/assembly_summary_" +
+	  "(genbank|refseq).txt" +
 	  "\n\tTaxonomy: <ftp>/pub/taxonomy/taxdump.tar.gz" +
 	  "\n\t<ftp>=ftp.ncbi.nlm.nih.gov"
   e := "makeNeiDb -d myNew.db"
@@ -89,7 +88,7 @@
   The database construction is delegated to \ty{NewTaxonomyDB}.
 #+end_src
 #+begin_src go <<Construct database, Pr. \ref{pr:db}>>=
-  tdb.NewTaxonomyDB(*optO, *optA, *optP, *optE, *optI, *optD)
+  tdb.NewTaxonomyDB(*optO, *optA, *optG, *optR, *optD)
 #+end_src
 #+begin_src latex
   We import \ty{tdb}.
@@ -139,10 +138,9 @@
   test := exec.Command("./makeNeiDb",
 	  "-a", "../data/namesTest.dmp",
 	  "-d", "test.db",
-	  "-e", "../data/eukaryotes.txt",
-	  "-i", "../data/viruses.txt",
 	  "-o", "../data/nodesTest.dmp",
-	  "-p", "../data/prokaryotes.txt")
+	  "-g", "../data/gbTest.txt",
+	  "-r", "../data/rsTest.txt")
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

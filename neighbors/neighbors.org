@@ -413,38 +413,62 @@ If an accession contains a colon, we pick the accession to its right.
   "text/tabwriter"
 #+end_src
 #+begin_src latex
-We list the accessions in a table, which is printed using a
-\ty{Writer}. So we declare the writer, construct it, and print the header
-to it. Then we list the targets and neighbors.
+  We print the table header before we list the targets and neighbors. To
+  make these listings reproducible, we sort the targets and neighbors
+  beforehand.
 #+end_src
 #+begin_src go <<List accessions, Pr. \ref{pr:neig}>>=
   fmt.Fprintf(w, "# Sample\tAccession\n")
+  //<<Sort targets, Pr. \ref{pr:neig}>>
   //<<List targets, Pr. \ref{pr:neig}>>
+  //<<Sort neighbors, Pr. \ref{pr:neig}>>
   //<<List neighbors, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
-For each target we get the list of genome accessions and print each
-accession.
+  To sort the targets, we store them as a slice of strings and sort
+  that.
 #+end_src
-#+begin_src go <<List targets, Pr. \ref{pr:neig}>>=
-  sample := "t"
+#+begin_src go <<Sort targets, Pr. \ref{pr:neig}>>=
+  var acc []string
   for _, target := range targets {
 	  accessions := genomes[target]
 	  for _, accession := range accessions {
-		  fmt.Fprintf(w, "%s\t%s\n", sample, accession)
+		  acc = append(acc, accession)
 	  }
+  }
+  sort.Strings(acc)
+#+end_src
+#+begin_src latex
+  We iterate over the sorted accessions and list them together with a
+  marker for \emph{target}, \ty{t}.
+#+end_src
+#+begin_src go <<List targets, Pr. \ref{pr:neig}>>=
+  sample := "t"
+  for _, a := range acc {
+	  fmt.Fprintf(w, "%s\t%s\n", sample, a)
   }
 #+end_src
 #+begin_src latex
-We list the neighbors like we just listed the targets.
+  We sort the neighbors like we just sorted the targets, by placing them
+  in the string slice we already used for the targets, and sorting that.
 #+end_src
-#+begin_src go <<List neighbors, Pr. \ref{pr:neig}>>=
-  sample = "n"
+#+begin_src go <<Sort neighbors, Pr. \ref{pr:neig}>>=
+  acc = acc[:0]
   for _, neighbor := range neighbors {
 	  accessions := genomes[neighbor]
 	  for _, accession := range accessions {
-		  fmt.Fprintf(w, "%s\t%s\n", sample, accession)
+		  acc = append(acc, accession)
 	  }
+  }
+  sort.Strings(acc)
+#+end_src
+#+begin_src latex
+  We list the neighbors together with their marker, \ty{n}.
+#+end_src
+#+begin_src go <<List neighbors, Pr. \ref{pr:neig}>>=
+  sample = "n"
+  for _, a := range acc {
+	  fmt.Fprintf(w, "%s\t%s\n", sample, a)
   }
 #+end_src
 #+begin_src latex
@@ -607,7 +631,7 @@ We import \ty{strings}.
   options.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:neig}>>=
-  db := "../data/neidb"
+  db := "../data/test.db"
   for i := 1; i <= 4; i++ {
 	  in := "tid" + strconv.Itoa(i) + ".txt"
 	  test := exec.Command("./neighbors", db, in)
@@ -658,10 +682,10 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   our friend \ty{tid4.txt}.
 #+end_src
 #+begin_src go <<Test \ty{-t}, Pr. \ref{pr:neig}>>=
-  test = exec.Command("./neighbors", "-t", "866775", db)
+  test = exec.Command("./neighbors", "-t", "46359", db)
   tests = append(tests, test)
   test = exec.Command("./neighbors", "-t",
-	  "866775,1216979", db)
+	  "46359,1159185", db)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

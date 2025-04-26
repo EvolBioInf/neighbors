@@ -8,31 +8,21 @@ func TestTdb(t *testing.T) {
 	p := "../data/"
 	no := p + "nodesTest.dmp"
 	na := p + "namesTest.dmp"
-	pr := p + "prokaryotes.txt"
-	eu := p + "eukaryotes.txt"
-	vi := p + "viruses.txt"
-	d1 := p + "taxSmall.db"
-	NewTaxonomyDB(no, na, pr, eu, vi, d1)
-	taxdb := OpenTaxonomyDB(d1)
-	subtree := taxdb.Subtree(1)
-	if len(subtree) != 11 {
-		t.Errorf("get %d rows, want 11", len(subtree))
+	gb := p + "gbTest.txt"
+	rs := p + "rsTest.txt"
+	db := p + "taxSmall.db"
+	NewTaxonomyDB(no, na, gb, rs, db)
+	taxdb := OpenTaxonomyDB(db)
+	subtree := taxdb.Subtree(207598)
+	if len(subtree) != 26 {
+		t.Errorf("get %d rows, want 26", len(subtree))
 		for _, s := range subtree {
 			println(s)
 		}
 	}
-	d2 := p + "neidb"
-	taxdb = OpenTaxonomyDB(d2)
-	tid := 866775
-	reps := taxdb.Replicons(tid)
-	get := reps[0]
-	want := "chromosome:NC_015278.1/CP002512.1"
-	if get != want {
-		t.Errorf("get: %q; want: %q", get, want)
-	}
-	tid = 9606
-	want = "Homo sapiens"
-	get = taxdb.Name(tid)
+	tid := 9606
+	want := "Homo sapiens"
+	get := taxdb.Name(tid)
 	if get != want {
 		t.Errorf("get: %q; want: %q", get, want)
 	}
@@ -53,10 +43,29 @@ func TestTdb(t *testing.T) {
 	if g != w {
 		t.Errorf("get %d nodes in subtree; want %d", g, w)
 	}
-	w = 11
+	w = 4
 	taxa = taxdb.Taxids("%homo sapiens%")
 	g = len(taxa)
 	if g != w {
 		t.Errorf("get %d taxa for homo sapiens; want %d", g, w)
+	}
+	targets := make([][]int, 0)
+	var res []int
+	targets = append(targets, []int{46359})
+	res = append(res, 46359)
+	targets = append(targets, []int{46359, 1159185})
+	res = append(res, 499232)
+	targets = append(targets, []int{46359, 406788})
+	res = append(res, 9592)
+	targets = append(targets, []int{37011, 9597})
+	res = append(res, 9596)
+	targets = append(targets, []int{37011, 9597, 46359})
+	res = append(res, 207598)
+	for i, target := range targets {
+		get := taxdb.MRCA(target)
+		want := res[i]
+		if get != want {
+			t.Errorf("get: %d\nwant: %d\n", get, want)
+		}
 	}
 }

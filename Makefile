@@ -1,5 +1,6 @@
-progs = ants climt dree land fintac makeNeiDb neighbors outliers pickle taxi
+progs = makeNeiDb ants climt dree land fintac neighbors outliers pickle taxi
 packs = util tdb # Order matters
+ftp = ftp.ncbi.nlm.nih.gov
 
 all:
 	test -d bin || mkdir bin
@@ -34,9 +35,11 @@ test: data
 		make test -C $$prog; \
 	done
 data:
-	wget https://owncloud.gwdg.de/index.php/s/V7DMhBIziwUNqkC/download
-	tar -xvzf download
-	rm download
+	mkdir -p data
+	cd data; wget $(ftp)/pub/taxonomy/taxdump.tar.gz; \
+		tar -xvzf taxdump.tar.gz; \
+		wget $(ftp)/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt; \
+		wget $(ftp)/genomes/ASSEMBLY_REPORTS/assembly_summary_refseq.txt
 docker:
 	cd docker; \
 	sudo docker build -t neighbors .; \

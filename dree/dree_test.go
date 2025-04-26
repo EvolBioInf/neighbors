@@ -11,7 +11,7 @@ import (
 func TestDree(t *testing.T) {
 	var tests []*exec.Cmd
 	n := "207598"
-	d := "../data/neidb"
+	d := "../data/test.db"
 	test := exec.Command("./dree", n, d)
 	tests = append(tests, test)
 	test = exec.Command("./dree", "-n", n, d)

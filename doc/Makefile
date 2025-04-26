@@ -1,5 +1,5 @@
 SRC1 =   makeNeiDb.tex taxi.tex ants.tex climt.tex neighbors.tex dree.tex fintac.tex land.tex outliers.tex pickle.tex tdb.tex tutorial.tex util.tex
-SRC2 =   header.tex introduction.tex neighborsDoc.tex
+SRC2 =   header.tex db.tex introduction.tex neighborsDoc.tex
 
 date = $(shell git log | grep -m 1 Date | sed -r 's/Date: +[A-Z][a-z]+ ([A-Z][a-z]+) ([0-9]+) [^ ]+ ([0-9]+) .+/\2_\1_\3/')
 version = $(shell git describe)

@@ -37,12 +37,14 @@ digraph g {
 	207598 [label="Homininae"]
 	406788 [label="Gorilla gorilla diehli"]
 	9593 -> 406788
+	499232 [color="lightsalmon",style=filled]
 	499232 [label="Gorilla beringei"]
 	9592 -> 499232
 	741158 [label="Homo sapiens subsp. 'Denisova'"]
 	9606 -> 741158
 	756884 [label="Pan troglodytes ellioti"]
 	9598 -> 756884
+	1159185 [color="lightsalmon",style=filled]
 	1159185 [label="Gorilla beringei beringei"]
 	499232 -> 1159185
 	1294088 [label="Pan troglodytes verus x troglodytes"]

@@ -10,7 +10,7 @@ import (
 
 func TestNeighbors(t *testing.T) {
 	var tests []*exec.Cmd
-	db := "../data/neidb"
+	db := "../data/test.db"
 	for i := 1; i <= 4; i++ {
 		in := "tid" + strconv.Itoa(i) + ".txt"
 		test := exec.Command("./neighbors", db, in)
@@ -22,10 +22,10 @@ func TestNeighbors(t *testing.T) {
 	tests = append(tests, test)
 	test = exec.Command("./neighbors", "-T", db, "tid4.txt")
 	tests = append(tests, test)
-	test = exec.Command("./neighbors", "-t", "866775", db)
+	test = exec.Command("./neighbors", "-t", "46359", db)
 	tests = append(tests, test)
 	test = exec.Command("./neighbors", "-t",
-		"866775,1216979", db)
+		"46359,1159185", db)
 	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()

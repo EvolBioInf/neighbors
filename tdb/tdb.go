@@ -21,36 +21,15 @@ type taxon struct {
 	name, rank    string
 }
 type genome struct {
-	taxid                        int
-	replicons, accession, status string
-	size                         float64
+	taxid             int
+	accession, status string
+	size              float64
+	written           bool
 }
 
 // Close closes the taxonomy database.
 func (t *TaxonomyDB) Close() {
 	t.db.Close()
-}
-
-// The method Replicons takes as parameter a taxon-ID and returns a slice of replicons.
-func (t *TaxonomyDB) Replicons(tid int) []string {
-	var reps []string
-	tmpl := "select replicons from genome where taxid=%d " +
-		"and replicons <> '-'"
-	q := fmt.Sprintf(tmpl, tid)
-	rows, err := t.db.Query(q)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-	s := ""
-	for rows.Next() {
-		err := rows.Scan(&s)
-		if err != nil {
-			log.Fatal(err)
-		}
-		reps = append(reps, s)
-	}
-	return reps
 }
 
 // The method Accessions takes as parameter a taxon-ID and returns a slice of assembly accessions.
@@ -199,7 +178,7 @@ func (t *TaxonomyDB) MRCA(ids []int) int {
 		for _, child := range children {
 			parent := t.Parent(child)
 			desc[parent] += desc[child]
-			if desc[parent] == len(ids) {
+			if desc[parent] >= len(ids) {
 				mrca = parent
 				break
 			}
@@ -219,15 +198,18 @@ func (t *TaxonomyDB) MRCA(ids []int) int {
 }
 
 // NewTaxonomyDB takes as parameters the names
-// of the five data files and the database name,
+// of the four data files and the database name,
 // and constructs the database from them.
-func NewTaxonomyDB(nodes, names, prokaryotes,
-	eukaryotes, viruses, dbName string) {
+func NewTaxonomyDB(nodes, names, genbank,
+	refseq, dbName string) {
 	of := util.Open(nodes)
+	defer of.Close()
 	af := util.Open(names)
-	pf := util.Open(prokaryotes)
-	ef := util.Open(eukaryotes)
-	vf := util.Open(viruses)
+	defer af.Close()
+	gf := util.Open(genbank)
+	defer gf.Close()
+	rf := util.Open(refseq)
+	defer rf.Close()
 	_, err := os.Stat(dbName)
 	if err == nil {
 		fmt.Fprintf(os.Stderr, "database %s already exists\n",
@@ -238,6 +220,7 @@ func NewTaxonomyDB(nodes, names, prokaryotes,
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 	sqlStmt := `create table taxon (
           taxid int, parent int, name text, rank text,
           primary key(taxid));
@@ -246,7 +229,7 @@ func NewTaxonomyDB(nodes, names, prokaryotes,
 		log.Fatal(err)
 	}
 	sqlStmt = `create table genome (
-          taxid int, size real, replicons text, 
+          taxid int, size real, 
                    accession text, status text,
           foreign key(taxid) references taxon(taxid));
           create index genome_taxid_idx on genome(taxid);
@@ -301,115 +284,97 @@ func NewTaxonomyDB(nodes, names, prokaryotes,
 	}
 	tx.Commit()
 	stmt.Close()
-	var genomes []genome
-	fn := pf.Name()
-	scanner = bufio.NewScanner(pf)
-	var gen genome
+	rsGenomes := make(map[string]*genome)
+	scanner = bufio.NewScanner(rf)
 	for scanner.Scan() {
 		row := scanner.Text()
 		if row[0] == '#' {
 			continue
 		}
 		fields := strings.Split(row, "\t")
-		if len(fields) < 19 {
-			fmt.Fprintf(os.Stderr,
-				"skipping truncated line in %q\n", fn)
-			continue
-		}
-		gen.taxid, err = strconv.Atoi(fields[1])
-		if err != nil {
-			log.Fatal(err)
-		}
-		gen.size, err = strconv.ParseFloat(fields[6], 64)
-		if err != nil {
-			gen.size = -1.0
-		}
-		gen.replicons = fields[8]
-		gen.status = fields[15]
-		gen.accession = fields[18]
-		genomes = append(genomes, gen)
-	}
-	fn = ef.Name()
-	scanner = bufio.NewScanner(ef)
-	for scanner.Scan() {
-		row := scanner.Text()
-		if row[0] == '#' {
-			continue
-		}
-		fields := strings.Split(row, "\t")
-		if len(fields) < 10 {
-			fmt.Fprintf(os.Stderr,
-				"skipping truncated line in %q\n", fn)
-			continue
-		}
-		gen.taxid, err = strconv.Atoi(fields[1])
-		if err != nil {
-			log.Fatal(err)
-		}
-		gen.size, err = strconv.ParseFloat(fields[6], 64)
-		if err != nil {
-			gen.size = -1.0
-		}
-		gen.accession = fields[8]
-		gen.replicons = fields[9]
-		gen.status = fields[16]
-		genomes = append(genomes, gen)
-	}
-	fn = vf.Name()
-	scanner = bufio.NewScanner(vf)
-	for scanner.Scan() {
-		row := scanner.Text()
-		if row[0] == '#' {
-			continue
-		}
-		fields := strings.Split(row, "\t")
-		if len(fields) < 10 {
-			fmt.Fprintf(os.Stderr,
-				"skipping truncated line in %q", fn)
-			continue
-		}
-		gen.taxid, err = strconv.Atoi(fields[1])
-		if err != nil {
-			log.Fatal(err)
-		}
-		gen.size, err = strconv.ParseFloat(fields[6], 64)
-		if err != nil {
-			gen.size = -1.0
-		}
-		if gen.size > 0 {
-			gen.size /= 1000.0
-		}
-		gen.replicons = fields[9]
-		gen.accession = fields[9]
-		gen.status = fields[14]
-		genomes = append(genomes, gen)
+		k := coreAcc(fields[0])
+		g := fields2genome(fields)
+		rsGenomes[k] = g
 	}
 	tx, err = db.Begin()
-	if err != nil {
-		log.Fatal(err)
-	}
-	sqlStmt = "insert into genome(taxid, replicons," +
-		"size, accession, status) " +
-		"values(?, ?, ?, ?, ?)"
+	util.Check(err)
+	sqlStmt = "insert into genome(accession, " +
+		"taxid, status, size) " +
+		"values(?, ?, ?, ?)"
 	stmt, err = tx.Prepare(sqlStmt)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, g := range genomes {
-		_, err = stmt.Exec(g.taxid, g.replicons,
-			g.size, g.accession, g.status)
-		if err != nil {
-			log.Fatal(err)
+	util.Check(err)
+	defer tx.Commit()
+	defer stmt.Close()
+	scanner = bufio.NewScanner(gf)
+	for scanner.Scan() {
+		row := scanner.Text()
+		if row[0] == '#' {
+			continue
 		}
+		fields := strings.Split(row, "\t")
+		ca := coreAcc(fields[0])
+		var g *genome
+		if _, ok := rsGenomes[ca]; ok {
+			g = rsGenomes[ca]
+			rsGenomes[ca].written = true
+		} else {
+			g = fields2genome(fields)
+		}
+		_, err = stmt.Exec(g.accession, g.taxid,
+			g.status, g.size)
+		util.Check(err)
 	}
-	tx.Commit()
-	stmt.Close()
-	db.Close()
-	of.Close()
-	af.Close()
-	pf.Close()
-	ef.Close()
-	vf.Close()
+	for _, g := range rsGenomes {
+		if g.written {
+			continue
+		}
+		_, err = stmt.Exec(g.accession, g.taxid,
+			g.status, g.size)
+	}
+	scanner = bufio.NewScanner(gf)
+	for scanner.Scan() {
+		row := scanner.Text()
+		if row[0] == '#' {
+			continue
+		}
+		fields := strings.Split(row, "\t")
+		ca := coreAcc(fields[0])
+		var g *genome
+		if _, ok := rsGenomes[ca]; ok {
+			g = rsGenomes[ca]
+			rsGenomes[ca].written = true
+		} else {
+			g = fields2genome(fields)
+		}
+		_, err = stmt.Exec(g.accession, g.taxid,
+			g.status, g.size)
+		util.Check(err)
+	}
+	for _, g := range rsGenomes {
+		if g.written {
+			continue
+		}
+		_, err = stmt.Exec(g.accession, g.taxid,
+			g.status, g.size)
+	}
+}
+func coreAcc(acc string) string {
+	s := strings.Index(acc, "_") + 1
+	e := strings.Index(acc, ".")
+	core := acc[s:e]
+	return core
+}
+func fields2genome(fields []string) *genome {
+	acc := fields[0]
+	id, err := strconv.Atoi(fields[5])
+	util.Check(err)
+	stat := fields[11]
+	si, err := strconv.Atoi(fields[25])
+	util.Check(err)
+	sf := float64(si) / 1000000.0
+	g := genome{accession: acc, taxid: id,
+		status: stat, size: sf}
+	return &g
 }
 
 // OpenTaxonomyDB opens an existing taxonomy database and returns a
