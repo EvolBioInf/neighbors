@@ -19,7 +19,7 @@ tangle:
 		make tangle -C $$prog; \
 	done
 	make tangle -C tutorial
-.PHONY: doc test docker
+.PHONY: data doc test docker
 doc:
 	make -C doc
 clean:
