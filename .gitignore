@@ -49,6 +49,7 @@ doc/version.txt
 ants/ants
 climt/climt
 dree/dree
+dree/dree.sh
 fintac/fintac
 makeNeiDb/makeNeiDb
 makeNeiDb/test.db
@@ -65,13 +66,13 @@ tutorial/*.fasta
 tutorial/acc.txt
 tutorial/all/
 tutorial/db.sh
+tutorial/lpn.dist
+tutorial/lpn.nwk
 tutorial/nacc.txt
 tutorial/neidb
 tutorial/ndata.zip
 tutorial/ndata/
 tutorial/neighbors/
-tutorial/o157.dist
-tutorial/o157.nwk
 tutorial/query.sh
 tutorial/tacc.txt
 tutorial/targets/

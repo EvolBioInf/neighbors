@@ -47,7 +47,8 @@ func TestTdb(t *testing.T) {
 	taxa = taxdb.Taxids("%homo sapiens%")
 	g = len(taxa)
 	if g != w {
-		t.Errorf("get %d taxa for homo sapiens; want %d", g, w)
+		t.Errorf("get %d taxa for homo sapiens; want %d",
+			g, w)
 	}
 	targets := make([][]int, 0)
 	var res []int
@@ -66,6 +67,53 @@ func TestTdb(t *testing.T) {
 		want := res[i]
 		if get != want {
 			t.Errorf("get: %d\nwant: %d\n", get, want)
+		}
+	}
+	want = "contig"
+	acc := "GCA_049640585.1"
+	get = taxdb.Level(acc)
+	if want != get {
+		t.Errorf("get: %s\nwant: %s\n", get, want)
+	}
+	accessions := []string{
+		"GCA_000002115.2",
+		"GCA_000004845.2",
+		"GCA_000181135.1"}
+	levels := make(map[string]bool)
+	levels["complete"] = true
+	filteredAcc := taxdb.FilterAccessions(accessions, levels)
+	if len(filteredAcc) != 0 {
+		t.Errorf("want 0 accessions, get %d\n", len(filteredAcc))
+	}
+	levels["chromosome"] = true
+	filteredAcc = taxdb.FilterAccessions(accessions, levels)
+	if len(filteredAcc) != 1 {
+		t.Errorf("want 1 accession, get %d\n", len(filteredAcc))
+	}
+	if accessions[0] != filteredAcc[0] {
+		t.Errorf("want:\n%s\nget:\n%s\n",
+			accessions[0],
+			filteredAcc[0])
+	}
+	levels["scaffold"] = true
+	filteredAcc = taxdb.FilterAccessions(accessions, levels)
+	if len(filteredAcc) != 2 {
+		t.Errorf("want 2 accessions, get %d\n", len(filteredAcc))
+	}
+	for i, a := range filteredAcc {
+		if accessions[i] != a {
+			t.Errorf("want:\n%s\nget:\n%s\n",
+				accessions[i],
+				a)
+		}
+	}
+	levels["contig"] = true
+	filteredAcc = taxdb.FilterAccessions(accessions, levels)
+	for i, accession := range accessions {
+		if filteredAcc[i] != accession {
+			t.Errorf("want:\n%s\nget:\n%s\n",
+				accession,
+				filteredAcc[i])
 		}
 	}
 }

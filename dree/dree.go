@@ -10,6 +10,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"text/tabwriter"
 )
 
@@ -24,9 +25,27 @@ func main() {
 	optG := flag.Bool("g", false,
 		"only taxa with genome sequences")
 	optL := flag.Bool("l", false, "list taxa")
+	optLL := flag.String("L", "", util.LevelMsg())
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("dree")
+	}
+	knowns := util.AssemblyLevels()
+	levels := make(map[string]bool)
+	var requests []string
+	if *optLL != "" {
+		requests = strings.Split(*optLL, ",")
+	}
+	if len(requests) > 0 {
+		for _, request := range requests {
+			if knowns[request] {
+				levels[request] = true
+			} else {
+				log.Fatalf("unknown level %q", request)
+			}
+		}
+	} else {
+		levels = knowns
 	}
 	tokens := flag.Args()
 	if len(tokens) != 2 {
@@ -39,12 +58,15 @@ func main() {
 		log.Fatalf("couldn't convert %q", tokens[0])
 	}
 	dbname := tokens[1]
-	taxdb := tdb.OpenTaxonomyDB(dbname)
-	subtree := taxdb.Subtree(tid)
+	neidb := tdb.OpenTaxonomyDB(dbname)
+	subtree := neidb.Subtree(tid)
+
 	hasGenome := make(map[int]bool)
 	hasGsub := make(map[int]bool)
 	for _, v := range subtree {
-		if len(taxdb.Accessions(v)) > 0 {
+		acc := neidb.Accessions(v)
+		acc = neidb.FilterAccessions(acc, levels)
+		if len(acc) > 0 {
 			hasGenome[v] = true
 			hasGsub[v] = true
 		}
@@ -52,11 +74,11 @@ func main() {
 	for _, v := range subtree {
 		if hasGsub[v] {
 			u := v
-			p := taxdb.Parent(u)
+			p := neidb.Parent(u)
 			for u != tid {
 				hasGsub[p] = true
 				u = p
-				p = taxdb.Parent(u)
+				p = neidb.Parent(u)
 			}
 		}
 	}
@@ -69,12 +91,15 @@ func main() {
 		}
 		fmt.Fprint(w, "\n")
 		for _, v := range subtree {
-			n := len(taxdb.Accessions(v))
-			if !*optG || n > 0 {
-				r := taxdb.Rank(v)
-				fmt.Fprintf(w, "%d\t%s\t%d", v, r, n)
+			numAcc := 0
+			acc := neidb.Accessions(v)
+			acc = neidb.FilterAccessions(acc, levels)
+			numAcc = len(acc)
+			if !*optG || numAcc > 0 {
+				r := neidb.Rank(v)
+				fmt.Fprintf(w, "%d\t%s\t%d", v, r, numAcc)
 				if *optN {
-					a := taxdb.Name(v)
+					a := neidb.Name(v)
 					fmt.Fprintf(w, "\t%s", a)
 				}
 				fmt.Fprintf(w, "\n")
@@ -91,10 +116,10 @@ func main() {
 					fmt.Printf(t1, v)
 				}
 				if *optN {
-					fmt.Printf(t2, v, taxdb.Name(v))
+					fmt.Printf(t2, v, neidb.Name(v))
 				}
 				if v != tid {
-					p := taxdb.Parent(v)
+					p := neidb.Parent(v)
 					if p != v {
 						fmt.Printf("\t%d -> %d\n", p, v)
 					}

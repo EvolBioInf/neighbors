@@ -13,20 +13,21 @@ Users of programs like \ty{fur} need to know the neighbors of their
 targets. But how can neighbors be discovered, if they aren't already
 known? To answer this question, consider the toy taxonomy in
 Figure~\ref{fig:tax}, where the numbers are taxon-IDs that are linked
-to genome accessions. Let taxa 7 and 4 be our targets. Their most
-recent common ancestor is 3. This implies there are three additional
-targets, 3, 5, and 6. The neighbors are the nodes in the subtree
-rooted on 3's parent, minus the parent and minus the targets. So in
-our example there are five neighbors, 2, 8, 9, 10, and 11. Notice that
-we look up all nodes in a subtree, not just the leaves, as genome
-sequences might be associated with taxa in terminal and internal
-nodes.
+to genome accessions. Let taxa 7 and 4 be our targets shown in
+bold. Their most recent common ancestor is 3. This implies there are
+three additional targets, 3, 5, and 6. The neighbors are the nodes in
+the subtree rooted on 3's parent, minus the parent and minus the
+targets. So in our example there are five neighbors, 2, 8, 9, 10, and
+11. Notice that we look up all nodes in a subtree, not just the
+leaves, as genome sequences might be associated with taxa in terminal
+and internal nodes.
 
 \begin{figure}
 \begin{center}
 \input{tree}
 \end{center}
-\caption{Toy taxonomy.}\label{fig:tax}
+\caption{Toy taxonomy for finding targets and neighbors; the original
+targets are shown in bold.}\label{fig:tax}
 \end{figure}
 
 To put this a bit more formally, let $m$ be the most recent common
@@ -64,16 +65,14 @@ four on a phylogeny, and one, \ty{outliers}, on numerical data.
 \end{center}
 \end{table}
 
-The taxonomy is presented as an \ty{sqlite} database, let's call
+The taxonomy is supplied as an \ty{sqlite} database, let's call
 it \ty{neidb}, which is built using the program \ty{makeNeiDb}. As
 shown in Figure~\ref{fig:db}, \ty{neidb} consists of two
-tables, \ty{genome} and \ty{taxon}. Each genome has an accession,
-comes from an organism identified by its taxon-ID, has a size, and a
-status. Each genome belongs to a taxon. A taxon has a unique taxon-ID,
-which serves as primary key. A taxon also has a parent, a rank, and a
-name. Since several genomes may have been sequenced for a given taxon,
-the attribute \ty{taxid} in table \ty{genome} is not unique, which is
-why that table has no primary key.
+tables, \ty{genome} and \ty{taxon}. Each genome has a unique
+accession, which also serves as primary key, comes from an organism
+identified by its taxon-ID, has a size, and an assembly level. Each
+genome belongs to a taxon. A taxon has a unique taxon-ID, which serves
+as primary key. A taxon also has a parent, a rank, and a name.
 
 \begin{figure}
   \begin{center}
@@ -83,8 +82,8 @@ why that table has no primary key.
 \end{figure}
 
 Once the database is constructed, we can query it. The tutorial shows
-how to do for \emph{E. coli} O157:H7. It is a notorious food-borne
-pathogen that can cause severe diarrhea in humans. The
+how to do that for \emph{Leginonella pneumophila}. It is a notorious
+water-borne pathogen that can cause pneumonia in humans. The
 program \ty{taxi} gives us the taxon-ID for \emph{E. coli} O157:H7. It
 is often useful to place this taxon-ID into context, for which we have
 two programs, \ty{dree} and \ty{andi}. Starting from a
@@ -98,18 +97,19 @@ set of target and neighbor genomes currently available.
 
 The genomes returned by \ty{neighbors} form the raw material for
 marker discovery. However, the classification into targets and
-neighbors retrieved from the taxonomy often contradicts the phylogeny
-calculated from the target and neighbor genomes. So we should always
-compute a phylogeny from our target and neighbor genomes. A program
-for doing this efficiently is \ty{phylonium}~\cite{klo20:phy}.
+neighbors retrieved from the taxonomy may contradict the phylogeny
+calculated from the target and neighbor genomes to determine the final
+list of target and neighbor genomes. So we compute a phylogeny from
+our target and neighbor genomes. A program for doing this efficiently
+is \ty{phylonium}~\cite{klo20:phy}.
 
 The phylogenies of targets and neighbors may comprise hundreds of
 taxa. To help analyze such large phylogenies, Neighbors
 contains \ty{land} for labeling nodes, \ty{pickle} for picking nodes,
 \ty{fintac} for finding the target clade, and \ty{climt} for climbing
-the tree.
+the phylogenetic tree.
 
 Even a clean set of phylogenetic targets might still contain genomes
 that are outliers in some way, for example with respect to their
 genome lengths. The program \ty{outliers} helps find such
-outliers. The tutorial contains the details.
+outliers.

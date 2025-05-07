@@ -58,13 +58,18 @@
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  Apart from the version, we declare four more options:
+  Apart from the version, we declare five more options:
   \begin{itemize}
   \item \ty{-g}: restrict output to taxa with one or more genomes
   \item \ty{-l}: just list the genomes
-  \item \ty{-t}: comma-delimited list of target taxon-IDs instead of IDs
+  \item \ty{-t}: target taxon-IDs in comma-delimited list instead of IDs
     from files
   \item \ty{-T}: tab-delimited output instead of pretty printing
+  \item \ty{-L}: assembly level; this is modeled on the option
+    \ty{--assembly-level} of the program \ty{datasets}, which restricts
+    output to genomes of one or more assembly levels. Like the taxon-IDs
+    of targets, levels can be combined in a comma-delimited string. If
+    no level is given, we return all accessions.
   \end{itemize}
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:neig}>>=
@@ -74,12 +79,14 @@
   optT := flag.String("t", "", "comma-delimited targets")
   optTT := flag.Bool("T", false, "tab-delimited output " +
 	  "(default pretty-printing)")
+  optLL := flag.String("L", "", util.LevelMsg())
 #+end_src
 #+begin_src latex
-  We import \ty{flag}.
+  We import \ty{flag} and \ty{util}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "flag"
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   We parse the options.
@@ -88,12 +95,13 @@
   flag.Parse()
 #+end_src
 #+begin_src latex
-  We respond to the version option, \ty{-v}, and the target taxon IDs,
-  \ty{-t}.
+  We respond to the version option, \ty{-v}, the target taxon IDs,
+  \ty{-t}, and the assembly level, \ty{-L}.
 #+end_src
 #+begin_src go <<Respond to options, Pr. \ref{pr:neig}>>=
   //<<Respond to \ty{-v}, Pr. \ref{pr:neig}>>
   //<<Respond to \ty{-t}, Pr. \ref{pr:neig}>>
+  //<<Respond to \ty{-L}, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
   If the user requested the version, we print the program information,
@@ -103,12 +111,6 @@
   if *optV {
 	  util.PrintInfo("neighbors")
   }
-#+end_src
-#+begin_src latex
-  We import \ty{util}.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
-  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   If the user gave target taxa, we check (s)he didn't also give input
@@ -142,16 +144,14 @@
   "os"
 #+end_src
 #+begin_src latex
-  We collect the target accessions in a slice of integers.
+  We collect the target accessions.
 #+end_src
 #+begin_src go <<Collect targets, Pr. \ref{pr:neig}>>=
-  if *optT != "" {
-	  ts := strings.Split(*optT, ",")
-	  for _, t := range ts {
-		  target, e := strconv.Atoi(t)
-		  util.Check(e)
-		  targets = append(targets, target)
-	  }
+  ts := strings.Split(*optT, ",")
+  for _, t := range ts {
+	  target, e := strconv.Atoi(t)
+	  util.Check(e)
+	  targets = append(targets, target)
   }
 #+end_src
 #+begin_src latex
@@ -162,6 +162,44 @@
   "strconv"
 #+end_src
 #+begin_src latex
+  We begin our response to the levels option by getting the dictionary
+  of known levels, \ty{knowns}. If the user requested one or more
+  levels, we iterate over them. Otherwise the known levels become the
+  desired \ty{levels}.
+#+end_src
+#+begin_src go <<Respond to \ty{-L}, Pr. \ref{pr:neig}>>=
+  knowns := util.AssemblyLevels()
+  levels := make(map[string]bool)
+  var requests []string
+  if *optLL != "" {
+	  requests = strings.Split(*optLL, ",")
+  }
+  if len(requests) > 0 {
+	  //<<Iterate over requested levels, Pr. \ref{pr:neig}>>
+  } else {
+	  levels = knowns
+  }
+#+end_src
+#+begin_src latex
+  We iterate over the levels set by the user, and if a known level was
+  requested, we mark that; otherwise we bail with a message.
+#+end_src
+#+begin_src go <<Iterate over requested levels, Pr. \ref{pr:neig}>>=
+  for _, request := range requests {
+	  if knowns[request] {
+		  levels[request] = true
+	  } else {
+		  log.Fatalf("unknown level %q", request)
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{log}.
+#+end_src
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
+  "log"
+#+end_src
+#+begin_src latex
   The remaining tokens on the command line are file names. There should
   be at least one, the database. If there isn't, we bail with a friendly
   message, otherwise we open a database connection and remove the
@@ -170,7 +208,7 @@
 #+begin_src go <<Open database connection, Pr. \ref{pr:neig}>>=
   files := flag.Args()
   if len(files) < 1 {
-	  fmt.Fprintf(os.Stderr, "please enter a datbase")
+	  fmt.Fprintf(os.Stderr, "please enter a datbase\n")
 	  os.Exit(1)
   }
   taxdb := tdb.OpenTaxonomyDB(files[0])
@@ -188,14 +226,16 @@
   \ty{calcTarNei}. Otherwise, we parse the remaining files using the
   function \ty{clio.ParseFiles}. It takes as argument the function
   \ty{parse}. In turn, \ty{parse} takes as arguments the database
-  connection, the list option, the genomes option and the tab option.
+  connection, the list option, the genomes option, the tab option, and
+  the map of requested levels.
 #+end_src
 #+begin_src go <<Parse input files, Pr. \ref{pr:neig}>>=
   if len(targets) > 0 {
-	  calcTarNei(targets, taxdb, *optL, *optG, *optTT)
+	  calcTarNei(targets, taxdb, *optL, *optG,
+		  ,*optTT, levels)
   } else {
 	  clio.ParseFiles(files, parse, taxdb, *optL,
-		  ,*optG, *optTT)
+		  ,*optG, *optTT, levels)
   }
 #+end_src
 #+begin_src latex
@@ -204,7 +244,7 @@
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:neig}>>=
   func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
-	  list, onlyG, tab bool) {
+	  list, onlyG, tab bool, levels map[string]bool) {
 	  //<<Compute targets, Pr. \ref{pr:neig}>>
 	  //<<Compute neighbors, Pr. \ref{pr:neig}>>
 	  //<<Look up genomes, Pr. \ref{pr:neig}>>
@@ -215,13 +255,21 @@
   The targets are nodes of the subtree of the most recent common
   ancestor of the taxon-IDs we just read. We call this MRCA the
   target-MRCA, \ty{mrcaT}, and calculate it from the partial taxonomy of
-  the targets. The subtree rooted on the \ty{mrcaT} contains the
-  complete set of targets. This complete set of targets might contain
-  new targets not contained in the taxa submitted. We mark these new
-  targets.
+  the targets. It is possible that \ty{mrcaT} is also the root, in which
+  case it is impossible to find any neighbors and we bail.
+
+  The subtree rooted on the \ty{mrcaT} contains the complete set of
+  targets. This complete set of targets might contain new targets not
+  contained in the taxa submitted. We mark these new targets.
 #+end_src
 #+begin_src go <<Compute targets, Pr. \ref{pr:neig}>>=
   mrcaT := taxdb.MRCA(taxa)
+  if taxdb.Parent(mrcaT) == mrcaT {
+	  m := "no neighbors as %d is the most " +
+		  "recenct common ancestor of " +
+		  "the targets and root"
+	  log.Fatalf(m, mrcaT)
+  }
   targets := taxdb.Subtree(mrcaT)
   //<<Mark new targets, Pr. \ref{pr:neig}>>
 #+end_src
@@ -248,9 +296,9 @@
 #+begin_src latex
   The neighbors are the nodes in the subtree of the parent of the
   target-MRCA, minus the targets and the parent. We call the parent of
-  the target-MRC the analysis-MRCA, \ty{mrcaA}. If the analysis-MRCA has
-  no nodes other than the target(s), we keep moving it up the tree until
-  we've found at least one neighbor.
+  the target-MRCA the analysis-MRCA, \ty{mrcaA}. If the analysis-MRCA
+  has no nodes other than the target(s), we keep moving it up the tree
+  until we've found at least one neighbor.
 #+end_src
 #+begin_src go <<Compute neighbors, Pr. \ref{pr:neig}>>=
   var neighbors []int
@@ -287,81 +335,16 @@
 #+end_src
 #+begin_src latex
   We use a method call on the database to look up the accessions of the
-  assemblies that belong to each target. We check the slice of
-  accessions returned, and if afterwards the slice still contains at
-  least one entry, we store it.
+  assemblies that belong to each target and have the appropriate
+  assembly level. We check the assembly levels of the accessions
+  returned, and store the remaining entries if any.
 #+end_src
 #+begin_src go <<Look up target genomes, Pr. \ref{pr:neig}>>=
   for _, target := range targets {
 	  accessions := taxdb.Accessions(target)
-	  //<<Check accessions, Pr. \ref{pr:neig}>>
+	  accessions = taxdb.FilterAccessions(accessions, levels)
 	  if len(accessions) > 0 {
 		  genomes[target] = accessions
-	  }
-  }
-#+end_src
-#+begin_src latex
-It appears that the slice of accessions can contain hyphens in lieu of
-true accessions. As an additional complication, neighbor queries for
-some viruses, for example HIV (taxid 11709), return accession strings
-like
-\begin{verbatim}
-NC_001654.1/U21603.1
-\end{verbatim}
-and
-\begin{verbatim}
-Unknown:NC_001450.1/
-\end{verbatim}
-So we remove the hyphens, split at the forward slash, and finally
-split at the colon.
-#+end_src
-#+begin_src go <<Check accessions, Pr. \ref{pr:neig}>>=
-  //<<Remove hyphens from accessions, Pr. \ref{pr:neig}>>
-  //<<Split accessions at forward slash, Pr. \ref{pr:neig}>>
-  //<<Split accessions at colon, Pr. \ref{pr:neig}>>
-#+end_src
-#+begin_src latex
-We remove the hyphens from the slice of accessions and reslice it.
-#+end_src
-#+begin_src go <<Remove hyphens from accessions, Pr. \ref{pr:neig}>>=
-  i := 0
-  for _, accession := range accessions {
-	  if accession != "-" {
-		  accessions[i] = accession
-		  i++
-	  }
-  }
-  accessions = accessions[:i]
-#+end_src
-#+begin_src latex
-We split accession strings at the forward slash and keep the first
-entry of the array returned. If there's no forward slash, that first
-entry is simply the input string. Also, note that for the example
-\begin{verbatim}
-Unknown:NC_001450.1/
-\end{verbatim}
-this step removes the trailing slash.
-#+end_src
-#+begin_src go <<Split accessions at forward slash, Pr. \ref{pr:neig}>>=
-  for i := 0; i < len(accessions); i++ {
-	  arr := strings.Split(accessions[i], "/")
-	  accessions[i] = arr[0]
-  }
-#+end_src
-#+begin_src latex
-We import \ty{strings}.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
-  "strings"
-#+end_src
-#+begin_src latex
-If an accession contains a colon, we pick the accession to its right.
-#+end_src
-#+begin_src go <<Split accessions at colon, Pr. \ref{pr:neig}>>=
-  for i := 0; i < len(accessions); i++ {
-	  arr := strings.Split(accessions[i], ":")
-	  if len(arr) > 1 {
-		  accessions[i] = arr[1]
 	  }
   }
 #+end_src
@@ -372,7 +355,8 @@ If an accession contains a colon, we pick the accession to its right.
 #+begin_src go <<Look up neighbor genomes, Pr. \ref{pr:neig}>>=
   for _, neighbor := range neighbors {
 	  accessions := taxdb.Accessions(neighbor)
-	  //<<Check accessions, Pr. \ref{pr:neig}>>
+	  accessions = taxdb.FilterAccessions(accessions,
+		  levels)
 	  if len(accessions) > 0 {
 		  genomes[neighbor] = accessions
 	  }
@@ -380,8 +364,8 @@ If an accession contains a colon, we pick the accession to its right.
 #+end_src
 #+begin_src latex
   We print the result using a \ty{Writer}. So we construct one and flush
-  it again at the end. In between, the result consists either of a list
-  of accessions, or of the full report.
+  it at the end. In between, the result consists either of a list of
+  accessions, or of the full report.
 #+end_src
 #+begin_src go <<Print result, Pr. \ref{pr:neig}>>=
   var w io.Writer
@@ -394,10 +378,10 @@ If an accession contains a colon, we pick the accession to its right.
   //<<Flush writer, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
-  The user can choose between tab-delimited and the default
+  The user can choose between tab-delimited output and the default
   pretty-printed output. For tab-delimited output we use the standard
   output stream. For pretty-printing we use a tabwriter. Notice that we
-  only need to flush the tab writer at the end, not the stdout.
+  only need to flush the tabwriter at the end, not the stdout.
 #+end_src
 #+begin_src go <<Construct \ty{Writer}, Pr. \ref{pr:neig}>>=
   if tab {
@@ -450,7 +434,8 @@ If an accession contains a colon, we pick the accession to its right.
 #+end_src
 #+begin_src latex
   We sort the neighbors like we just sorted the targets, by placing them
-  in the string slice we already used for the targets, and sorting that.
+  in the emptied string slice we already used for the targets, and
+  sorting that.
 #+end_src
 #+begin_src go <<Sort neighbors, Pr. \ref{pr:neig}>>=
   acc = acc[:0]
@@ -510,12 +495,6 @@ If an accession contains a colon, we pick the accession to its right.
   }
 #+end_src
 #+begin_src latex
-We import \ty{strings}.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
-  "strings"
-#+end_src
-#+begin_src latex
   Neighbors are marked as type ``n''. Since the targets were already
   sorted, we sort the neighbors, too.
 #+end_src
@@ -534,8 +513,8 @@ We import \ty{strings}.
 #+end_src
 #+begin_src latex
   Inside \ty{parse}, we retrieve the taxonomy database, the list option,
-  the genomes option, and the tab option. Then we read the taxon-IDs and
-  call \ty{calcTarNei}.
+  the genomes option, the tab option, and the map of desired accession
+  levels. Then we read the taxon-IDs and call \ty{calcTarNei}.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:neig}>>=
   func parse(r io.Reader, args ...interface{}) {
@@ -543,9 +522,10 @@ We import \ty{strings}.
 	  optL := args[1].(bool)
 	  optG := args[2].(bool)
 	  optTT := args[3].(bool)
+	  levels := args[4].(map[string]bool)
 	  var taxa []int
 	  //<<Read taxon-IDs, Pr. \ref{pr:neig}>>
-	  calcTarNei(taxa, taxdb, optL, optG, optTT)
+	  calcTarNei(taxa, taxdb, optL, optG, optTT, levels)
   }
 #+end_src
 #+begin_src latex
@@ -571,12 +551,11 @@ We import \ty{strings}.
   }
 #+end_src
 #+begin_src latex
-  We import \ty{bufio}, \ty{strconv}, and \ty{log}.
+  We import \ty{bufio} and \ty{strconv}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "bufio"
   "strconv"
-  "log"
 #+end_src
 #+begin_src latex
   The last step in printing the result is to flush the tabwriter---if
@@ -610,7 +589,8 @@ We import \ty{strings}.
   }
 #+end_src
 #+begin_src latex
-  We construct a set of tests and run each one.
+  We construct a set of tests based on the hominoid tree in
+  Figure~\ref{fig:hom} and run each one.
 #+end_src
 #+begin_src go <<Testing, Pr. \ref{pr:neig}>>=
   var tests []*exec.Cmd
@@ -646,14 +626,15 @@ We import \ty{strings}.
   "strconv"
 #+end_src
 #+begin_src latex
-  We test the four options list, \ty{-l}, genomes, \ty{-g}, tab,
-  \ty{-T}, and targets, \ty{-t}.
+  We test the five options list, \ty{-l}, genomes, \ty{-g}, tab,
+  \ty{-T}, targets, \ty{-t}, and level, \ty{-L}.
 #+end_src
 #+begin_src go <<Test options, Pr. \ref{pr:neig}>>=
   //<<Test \ty{-l}, Pr. \ref{pr:neig}>>
   //<<Test \ty{-g}, Pr. \ref{pr:neig}>>
   //<<Test \ty{-T}, Pr. \ref{pr:neig}>>
   //<<Test \ty{-t}, Pr. \ref{pr:neig}>>
+  //<<Test \ty{-L}, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
 We test the list option, \ty{-l}, on \ty{tid4.txt}.
@@ -677,15 +658,26 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
-  The targets option, \ty{-t} doesn't require an input file. We run it
-  first on a single taxon ID, then on two. The taxon IDs are taken from
-  our friend \ty{tid4.txt}.
+  The targets option, \ty{-t}, doesn't require an input file. We run it
+  first on a single taxon ID, and then on two.
 #+end_src
 #+begin_src go <<Test \ty{-t}, Pr. \ref{pr:neig}>>=
-  test = exec.Command("./neighbors", "-t", "46359", db)
+  test = exec.Command("./neighbors", "-t", "9606", db)
   tests = append(tests, test)
   test = exec.Command("./neighbors", "-t",
-	  "46359,1159185", db)
+	  "9606,9605", db)
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  We test the levels option, \ty{-L}, by asking for complete genomes,
+  and for complete or chromosome-level genomes.
+#+end_src
+#+begin_src go <<Test \ty{-L}, Pr. \ref{pr:neig}>>=
+  test = exec.Command("./neighbors", "-t", "9606",
+	  "-L", "complete", db)
+  tests = append(tests, test)
+  test = exec.Command("./neighbors", "-t", "9606",
+	  "-L", "complete,chromosome", db)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

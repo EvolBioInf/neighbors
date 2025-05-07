@@ -29,7 +29,7 @@ clean:
 	make clean -C doc
 	make clean -C tutorial
 	rm -f bin/*
-test: data
+test:
 	echo test
 	for prog in $(packs) $(progs); do \
 		make test -C $$prog; \

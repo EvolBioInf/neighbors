@@ -11,6 +11,11 @@ import (
 
 var version, date string
 var name string
+var levels = []string{
+	"complete",
+	"chromosome",
+	"scaffold",
+	"contig"}
 
 func PrintInfo(program string) {
 	author := "Bernhard Haubold"
@@ -24,7 +29,8 @@ func PrintInfo(program string) {
 func Open(file string) *os.File {
 	f, err := os.Open(file)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "couldn't open %s\n", file)
+		fmt.Fprintf(os.Stderr, "couldn't open %s\n",
+			file)
 		os.Exit(1)
 	}
 	return f
@@ -42,4 +48,21 @@ func SetName(n string) {
 }
 func Version() {
 	PrintInfo(name)
+}
+func LevelMsg() string {
+	m := "assembly-level: comma-delimited combination " +
+		"of " + levels[0]
+	for i := 1; i < len(levels)-1; i++ {
+		m += ", " + levels[i]
+	}
+	m += ", or " + levels[len(levels)-1]
+	m += " (default any)"
+	return m
+}
+func AssemblyLevels() map[string]bool {
+	al := make(map[string]bool)
+	for _, level := range levels {
+		al[level] = true
+	}
+	return al
 }

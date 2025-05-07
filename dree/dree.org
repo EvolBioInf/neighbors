@@ -1,22 +1,26 @@
 #+begin_src latex
   \section{\ty{dree}} 
     The program \ty{dree} takes as input a taxon-ID and the name of the
-    taxonomy database. It returns the subtree rooted on the focal
+    Neighbors database. It returns the subtree rooted on the focal
     taxon. The subtree is written in the dot language ready for
     rendering with \ty{dot}, which is part of the graphviz package. For
     example, we can draw the tree for the \emph{Homininae}, taxon-ID
     207598, which include human, chimp, and gorilla. By default,
     \ty{dree} labels taxa with their IDs, but with \ty{-n} we get names
     instead. Taxa with sequenced genomes are colored.
-  \begin{verbatim}
-  $ ./dree -n 207598 neidb | dot -T x11
-  \end{verbatim}
+#+end_src
+#+begin_src sh <<dree.sh>>=
+  ./dree -n 207598 neidb | dot -T x11
+#+end_src
+#+begin_src latex
   The resulting tree in Figure~\ref{fig:homininaeFull} is pretty
   crowded, so we use \ty{-g} to to reduce it to the taxa with sequenced
   genomes and their ancestors.
-  \begin{verbatim}
-  $ ./dree -n -g 207598 neidb | dot -T x11
-  \end{verbatim}
+#+end_src
+#+begin_src sh <<dree.sh>>=
+  ./dree -n -g 207598 neidb | dot -T x11
+#+end_src
+#+begin_src latex
   This gives the more
   legible Figure~\ref{fig:homininaeG}.
     \begin{figure}
@@ -39,7 +43,9 @@
     \subsection*{Implementation}
     The outline of \ty{dree} has hooks for imports and the logic of the
     main function.  \bpr{dree}{pr:dr}
+
 #+end_src
+
 #+begin_src go <<dree.go>>=
   package main
 
@@ -81,9 +87,13 @@
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  Apart from the version, we declare two options, one to print the name
-  instead of the default taxon-ID, \ty{-n}, the other to print only taxa
-  with genome sequences, \ty{-g}.
+  Apart from the version, we declare four options:
+  \begin{itemize}
+  \item \ty{-n}: print \emph{names} instead of taxon-IDs
+  \item \ty{-g}: print only taxa with \emph{genomes}
+  \item \ty{-l}: \emph{list} taxa
+  \item \ty{-L}: only consider genomes with a particular assembly \emph{level}
+  \end{itemize}
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:dr}>>=
   optV := flag.Bool("v", false, "version")
@@ -92,32 +102,82 @@
   optG := flag.Bool("g", false,
 	  "only taxa with genome sequences")
   optL := flag.Bool("l", false, "list taxa")
+  optLL := flag.String("L", "", util.LevelMsg())
 #+end_src
 #+begin_src latex
-  We import \ty{flag}.
+  We import \ty{flag} and \ty{util}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "flag"
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
-  We parse the options and respond to \ty{-v}, as this stops
-  \ty{dree}. Then we get the taxon-ID and the database name. Using the
-  database name we open the database connection.
+  We parse the options and respond to the version option, \ty{-v}, and
+  the levels option, \ty{-L}. Then we get the taxon-ID and the database
+  name. Using the database name, we open the database connection.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:dr}>>=
   flag.Parse()
-  if *optV {
-	  util.PrintInfo("dree")
-  }
+  //<<Respond to \ty{-v}, Pr. \ref{pr:dr}>>
+  //<<Respond to \ty{-L}, Pr. \ref{pr:dr}>>
   //<<Get taxon-ID, Pr. \ref{pr:dr}>>
   //<<Get database name, Pr. \ref{pr:dr}>>
   //<<Open database connection, Pr. \ref{pr:dr}>>
+#+end_src
+#+begin_src latex
+  If the user requested the version, we print the program information,
+  which contains the version.
+#+end_src
+#+begin_src go <<Respond to \ty{-v}, Pr. \ref{pr:dr}>>=
+  if *optV {
+	  util.PrintInfo("dree")
+  }
 #+end_src
 #+begin_src latex
   We import \ty{util}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_src latex
+  In order to respond to the levels option, we get the map of known
+  levels, \ty{knowns}. We also declare a map of desired levels. Then we
+  obtain the requested levels from the \ty{-L} option. If the user
+  requested one or more levels, we iterate over them. Otherwise, the
+  known levels become the desired levels.
+#+end_src
+#+begin_src go <<Respond to \ty{-L}, Pr. \ref{pr:dr}>>=
+  knowns := util.AssemblyLevels()
+  levels := make(map[string]bool)
+  var requests []string
+  if *optLL != "" {
+	  requests = strings.Split(*optLL, ",")
+  }
+  if len(requests) > 0 {
+	  //<<Iterate over requested levels, Pr. \ref{pr:dr}>>
+  } else {
+	  levels = knowns
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strings}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
+  "strings"
+#+end_src
+#+begin_export latex
+When iterating over the requested levels we store those that are
+known. If we come across an unknown level, something has gone wrong
+and we bail with a message.
+#+end_export
+#+begin_src go <<Iterate over requested levels, Pr. \ref{pr:dr}>>=
+  for _, request := range requests {
+	  if knowns[request] {
+		  levels[request] = true
+	  } else {
+		  log.Fatalf("unknown level %q", request)
+	  }
+  }
 #+end_src
 #+begin_src latex
   The remaining tokens on the command line are interpreted as taxon-ID
@@ -155,7 +215,7 @@
   We open a connection to the taxonomy database.
 #+end_src
 #+begin_src go <<Open database connection, Pr. \ref{pr:dr}>>=
-  taxdb := tdb.OpenTaxonomyDB(dbname)
+  neidb := tdb.OpenTaxonomyDB(dbname)
 #+end_src
 #+begin_src latex
   We import \ty{tdb}.
@@ -167,7 +227,8 @@
   We get the subtree we're looking for.
 #+end_src
 #+begin_src go <<Get subtree, Pr. \ref{pr:dr}>>=
-  subtree := taxdb.Subtree(tid)
+  subtree := neidb.Subtree(tid)
+
 #+end_src
 #+begin_src latex
   We annotate each node, $v$, of our subtree with two kinds of
@@ -189,7 +250,9 @@ also the initial set of nodes with genomes in their subtree.
 #+end_src
 #+begin_src go <<Mark nodes with genomes, Pr. \ref{pr:dr}>>=
   for _, v := range subtree {
-	  if len(taxdb.Accessions(v)) > 0 {
+	  acc := neidb.Accessions(v)
+	  acc = neidb.FilterAccessions(acc, levels)
+	  if len(acc) > 0 {
 		  hasGenome[v] = true
 		  hasGsub[v] = true
 	  }
@@ -204,11 +267,11 @@ up the tree.
   for _, v := range subtree {
 	  if hasGsub[v] {
 		  u := v
-		  p := taxdb.Parent(u)
+		  p := neidb.Parent(u)
 		  for u != tid {
 			  hasGsub[p] = true
 			  u = p
-			  p = taxdb.Parent(u)
+			  p = neidb.Parent(u)
 		  }
 	  }
   }
@@ -233,11 +296,11 @@ We import \ty{sort}.
   "sort"
 #+end_src
 #+begin_src latex
-We list the subtree in a table consisting of three mandatory columns,
-taxon-ID, rank, and the number of genomes. In addition, the user might
-have opted for names. We construct this table with a
-\ty{tabwriter}. Then we iterate over the nodes and list each one. At
-the end we flush the tabwriter.
+  We list the subtree in a table consisting of three mandatory columns,
+  taxon-ID, rank, and the number of genomes. In addition, the user might
+  have opted for names. We construct this table with a
+  \ty{tabwriter}. Then we iterate over the nodes and list each one. At
+  the end we flush the tabwriter.
 #+end_src
 #+begin_src go <<List subtree, Pr. \ref{pr:dr}>>=
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
@@ -262,16 +325,33 @@ The user might have opted to list only taxon nodes with genomes and/or
 to add names to taxa.
 #+end_src
 #+begin_src go <<List one node, Pr. \ref{pr:dr}>>=
-  n := len(taxdb.Accessions(v))
-  if !*optG || n > 0 {
-	  r := taxdb.Rank(v)
-	  fmt.Fprintf(w, "%d\t%s\t%d", v, r, n)
-	  if *optN {
-		  a := taxdb.Name(v)
-		  fmt.Fprintf(w, "\t%s", a)
-	  }
-	  fmt.Fprintf(w, "\n")
+  numAcc := 0
+  //<<Determine the number of accessions, Pr. \ref{pr:dr}>>
+  if !*optG || numAcc > 0 {
+	  //<<Print node line, Pr. \ref{pr:dr}>>
   }
+#+end_src
+#+begin_export latex
+We get the full list of accessions and filter them by level to find
+the final number of accessions.
+#+end_export
+#+begin_src go <<Determine the number of accessions, Pr. \ref{pr:dr}>>=
+  acc := neidb.Accessions(v)
+  acc = neidb.FilterAccessions(acc, levels)
+  numAcc = len(acc)
+#+end_src
+#+begin_export latex
+We write the current node into a line consisting of the taxon-ID, the
+rank, and the number of genomes.
+#+end_export
+#+begin_src go <<Print node line, Pr. \ref{pr:dr}>>=
+  r := neidb.Rank(v)
+  fmt.Fprintf(w, "%d\t%s\t%d", v, r, numAcc)
+  if *optN {
+	  a := neidb.Name(v)
+	  fmt.Fprintf(w, "\t%s", a)
+  }
+  fmt.Fprintf(w, "\n")
 #+end_src
 #+begin_src latex
   The default node is simply its taxon ID. However, nodes can be
@@ -282,7 +362,7 @@ to add names to taxa.
   Then we draw the header and footer of the graph, and the actual
   subtree sandwiched in between. To improve legibility, that subtree is
   oriented left to right rather than the default top to bottom. For each
-  node $v$ in the subtree we print $v$ and its parent.
+  node $v$ in the subtree, we print $v$ and its parent.
 #+end_src
 #+begin_src go <<Draw subtree graph, Pr. \ref{pr:dr}>>=
   t1 := "\t%d [color=\"lightsalmon\",style=filled]\n"
@@ -294,7 +374,7 @@ to add names to taxa.
   fmt.Printf("}\n")
 #+end_src
 #+begin_src latex
-  We print a node , $v$, if one of two conditions holds. Either the user
+  We print a node, $v$, if one of two conditions holds. Either the user
   did not restrict the output to genomes-only, or the user did make this
   restriction and $v$ has a genome in its subtree. If $v$ isn't the root
   of the subtree, we look up its parent, $p$. If $p$ isn't identical to
@@ -305,7 +385,7 @@ to add names to taxa.
   if !*optG || (*optG && hasGsub[v]) {
 	  //<<Print $v$, Pr. \ref{pr:dr}>>
 	  if v != tid {
-		  p := taxdb.Parent(v)
+		  p := neidb.Parent(v)
 		  if p != v {
 			  fmt.Printf("\t%d -> %d\n", p, v)
 		  }
@@ -321,7 +401,7 @@ to add names to taxa.
 	  fmt.Printf(t1, v)
   }
   if *optN {
-	  fmt.Printf(t2, v, taxdb.Name(v))
+	  fmt.Printf(t2, v, neidb.Name(v))
   }
 #+end_src
 #+begin_src latex
@@ -361,31 +441,62 @@ to add names to taxa.
 #+end_src
 #+begin_src latex
   In our tests, we draw the \emph{Homininae} which have taxon-ID
-  207598. First with no options, then with names, then with
-  genomes, then with list.
+  207598. First with no options, then we test our four options names
+  (\ty{-n}), genomes (\ty{-g}), list \ty{-l}, and assembly level
+  (\ty{-L}).
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:dr}>>=
   n := "207598"
   d := "../data/test.db"
+  //<<Test without options, Pr. \ref{pr:dr}>>
+  //<<Test \ty{-n}, Pr. \ref{pr:dr}>>
+  //<<Test \ty{-g}, Pr. \ref{pr:dr}>>
+  //<<Test \ty{-l}, Pr. \ref{pr:dr}>>
+  //<<Test \ty{-L}, Pr. \ref{pr:dr}>>
+#+end_src
+#+begin_export latex
+We construct our first test without any options and store it.
+#+end_export
+#+begin_src go <<Test without options, Pr. \ref{pr:dr}>>=
   test := exec.Command("./dree", n, d)
   tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test the names option, \ty{-n}.
+#+end_export
+#+begin_src go <<Test \ty{-n}, Pr. \ref{pr:dr}>>=
   test = exec.Command("./dree", "-n", n, d)
   tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test the genomes option, \ty{-g}.
+#+end_export
+#+begin_src go <<Test \ty{-g}, Pr. \ref{pr:dr}>>=
   test = exec.Command("./dree", "-g", n, d)
   tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test the list option, \ty{-l}, alone and in combination with genome
+and name.
+#+end_export
+#+begin_src go <<Test \ty{-l}, Pr. \ref{pr:dr}>>=
   test = exec.Command("./dree", "-l", n, d)
   tests = append(tests, test)
-#+end_src
-#+begin_src latex
-The list option can be combined with genome, and name, yielding
-another three combinations to test.
-#+end_src
-#+begin_src go <<Construct tests, Pr. \ref{pr:dr}>>=
   test = exec.Command("./dree", "-l", "-g", n, d)
   tests = append(tests, test)
   test = exec.Command("./dree", "-l", "-n", n, d)
   tests = append(tests, test)
   test = exec.Command("./dree", "-l", "-g", "-n", n, d)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test \ty{-L}, first with level \emph{complete}, then with levels
+\emph{complete} and \emph{chromosome}.
+#+end_export
+#+begin_src go <<Test \ty{-L}, Pr. \ref{pr:dr}>>=
+  test = exec.Command("./dree", "-L", "complete", n, d)
+  tests = append(tests, test)
+  test = exec.Command("./dree", "-L", "complete,chromosome", n, d)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

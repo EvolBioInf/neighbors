@@ -17,8 +17,14 @@ import (
 )
 
 func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
-	list, onlyG, tab bool) {
+	list, onlyG, tab bool, levels map[string]bool) {
 	mrcaT := taxdb.MRCA(taxa)
+	if taxdb.Parent(mrcaT) == mrcaT {
+		m := "no neighbors as %d is the most " +
+			"recenct common ancestor of " +
+			"the targets and root"
+		log.Fatalf(m, mrcaT)
+	}
 	targets := taxdb.Subtree(mrcaT)
 	newTargets := make(map[int]bool)
 	sort.Ints(taxa)
@@ -48,48 +54,15 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 	genomes := make(map[int][]string)
 	for _, target := range targets {
 		accessions := taxdb.Accessions(target)
-		i := 0
-		for _, accession := range accessions {
-			if accession != "-" {
-				accessions[i] = accession
-				i++
-			}
-		}
-		accessions = accessions[:i]
-		for i := 0; i < len(accessions); i++ {
-			arr := strings.Split(accessions[i], "/")
-			accessions[i] = arr[0]
-		}
-		for i := 0; i < len(accessions); i++ {
-			arr := strings.Split(accessions[i], ":")
-			if len(arr) > 1 {
-				accessions[i] = arr[1]
-			}
-		}
+		accessions = taxdb.FilterAccessions(accessions, levels)
 		if len(accessions) > 0 {
 			genomes[target] = accessions
 		}
 	}
 	for _, neighbor := range neighbors {
 		accessions := taxdb.Accessions(neighbor)
-		i := 0
-		for _, accession := range accessions {
-			if accession != "-" {
-				accessions[i] = accession
-				i++
-			}
-		}
-		accessions = accessions[:i]
-		for i := 0; i < len(accessions); i++ {
-			arr := strings.Split(accessions[i], "/")
-			accessions[i] = arr[0]
-		}
-		for i := 0; i < len(accessions); i++ {
-			arr := strings.Split(accessions[i], ":")
-			if len(arr) > 1 {
-				accessions[i] = arr[1]
-			}
-		}
+		accessions = taxdb.FilterAccessions(accessions,
+			levels)
 		if len(accessions) > 0 {
 			genomes[neighbor] = accessions
 		}
@@ -173,6 +146,7 @@ func parse(r io.Reader, args ...interface{}) {
 	optL := args[1].(bool)
 	optG := args[2].(bool)
 	optTT := args[3].(bool)
+	levels := args[4].(map[string]bool)
 	var taxa []int
 	sc := bufio.NewScanner(r)
 	for sc.Scan() {
@@ -186,7 +160,7 @@ func parse(r io.Reader, args ...interface{}) {
 		}
 		taxa = append(taxa, i)
 	}
-	calcTarNei(taxa, taxdb, optL, optG, optTT)
+	calcTarNei(taxa, taxdb, optL, optG, optTT, levels)
 }
 func main() {
 	u := "neighbors [-h] [option]... <db> [targets.txt]..."
@@ -201,6 +175,7 @@ func main() {
 	optT := flag.String("t", "", "comma-delimited targets")
 	optTT := flag.Bool("T", false, "tab-delimited output "+
 		"(default pretty-printing)")
+	optLL := flag.String("L", "", util.LevelMsg())
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("neighbors")
@@ -213,26 +188,42 @@ func main() {
 			fmt.Fprintln(os.Stderr, m)
 			os.Exit(1)
 		}
-		if *optT != "" {
-			ts := strings.Split(*optT, ",")
-			for _, t := range ts {
-				target, e := strconv.Atoi(t)
-				util.Check(e)
-				targets = append(targets, target)
+		ts := strings.Split(*optT, ",")
+		for _, t := range ts {
+			target, e := strconv.Atoi(t)
+			util.Check(e)
+			targets = append(targets, target)
+		}
+	}
+	knowns := util.AssemblyLevels()
+	levels := make(map[string]bool)
+	var requests []string
+	if *optLL != "" {
+		requests = strings.Split(*optLL, ",")
+	}
+	if len(requests) > 0 {
+		for _, request := range requests {
+			if knowns[request] {
+				levels[request] = true
+			} else {
+				log.Fatalf("unknown level %q", request)
 			}
 		}
+	} else {
+		levels = knowns
 	}
 	files := flag.Args()
 	if len(files) < 1 {
-		fmt.Fprintf(os.Stderr, "please enter a datbase")
+		fmt.Fprintf(os.Stderr, "please enter a datbase\n")
 		os.Exit(1)
 	}
 	taxdb := tdb.OpenTaxonomyDB(files[0])
 	files = files[1:]
 	if len(targets) > 0 {
-		calcTarNei(targets, taxdb, *optL, *optG, *optTT)
+		calcTarNei(targets, taxdb, *optL, *optG,
+			*optTT, levels)
 	} else {
 		clio.ParseFiles(files, parse, taxdb, *optL,
-			*optG, *optTT)
+			*optG, *optTT, levels)
 	}
 }

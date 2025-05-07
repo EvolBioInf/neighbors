@@ -4,15 +4,16 @@
   neighbor genomes used to identify regions that are ubiquitous in the
   targets and absent from the neighbors. These target regions are a good
   starting point for constructing diagnostic markers. In this Tutorial I
-  demonstrate the application of the ten programs in the Neighbors
-  package listed in Table~\ref{tab:pro}. We begin by constructing a
-  local relational database from the NCBI taxonomy using the program
-  \ty{makeNeiDb}. Then we query the database with \ty{taxid} to find the
-  taxon-ID for our target organism, serotype O157:H7 of
-  \emph{Escherichia coli}. The programs \ty{ants} and \ty{dree} allow us
-  to explore the taxonomic context of our target organism. Based on the
-  target taxon-ID, we carry out the search for target and neighbor
-  genomes using \ty{neighbors}.
+  demonstrate the application of most of the ten programs in the
+  Neighbors package listed in Table~\ref{tab:pro}. We begin by
+  constructing a local relational database from the NCBI taxonomy using
+  the program \ty{makeNeiDb}. Then we query the database with \ty{taxid}
+  to find the taxon-ID for our target organism, \emph{Leginoella
+  pneumophila}, a bacterial pathogen that causes pneumonia in
+  humans. The programs \ty{ants} and \ty{dree} allow us to explore the
+  taxonomic context of our target organism. Based on the target
+  taxon-ID, we carry out the search for target and neighbor genomes
+  using \ty{neighbors}.
 
   Any genomes suggested by \ty{neighbors} are best subjected to
   phylogeny reconstruction before we extract marker candidates from
@@ -21,28 +22,29 @@
   resulting tree can be very large and its analysis is supported by four
   additional programs from the Neighbors package, \ty{land} for labeling
   the nodes in a phylogeny, \ty{pickle} for picking a particular clade
-  in a phylogeny, and \ty{fintac} for finding the target clade, and
-  \ty{climt} for climbing the phylogeny from a given node. Actual marker
-  discovery is done with
-  \ty{fur}\footnote{\ty{https://github.com/evolbioinf/fur}}.
+  in a phylogeny, \ty{fintac} for finding the target clade, and
+  \ty{climt} for climbing the phylogeny from a given node. Once we have
+  settled on the target and neighbor genomes, markers are extracted from
+  them with \ty{fur}\footnote{\ty{https://github.com/evolbioinf/fur}}.
 
   \section*{Construct Database}
   A dump of the current NCBI taxonomy database is posted as a tar ball at
   \begin{verbatim}
-  ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+  <ftp>/<path1>/taxdump.tar.gz
   \end{verbatim}
-  The corresponding assembly reports for genbank and refseq are posted
-  at
+  where ftp is \ty{ftp.ncbi.nlm.nih.gov} and \ty{path1} is
+  \ty{pub/taxonomy}.  The corresponding assembly reports for genbank and
+  refseq are posted at
   \begin{verbatim}
-  ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt
-  ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_refseq.txt
+  <ftp>/<path2>/assembly_summary_<source>.txt
   \end{verbatim}
-  The database dump and the assembly reports are updated regularly. To
-  ensure the stability of this Tutorial, we use files downloaded on
-  28th April 2025:
+  where \ty{path2} is \ty{genomes/ASSEMBLY\_REPORTS} and \ty{source} is
+  either \ty{genbank} or \ty{refseq}.  The database dump and the
+  assembly reports are updated regularly. To ensure the stability of
+  this Tutorial, we use files downloaded on 28th April 2025:
 #+end_src
 #+begin_src sh <<db.sh>>=
-  wget https://owncloud.gwdg.de/index.php/s/sNVcgHAkc1JHVPq/download \
+  wget owncloud.gwdg.de/index.php/s/sNVcgHAkc1JHVPq/download \
        -O neidb_280425.tgz
 #+end_src
 #+begin_src latex
@@ -68,182 +70,170 @@
 #+end_src
 #+begin_src latex
   \section*{Query Database}
-  The next step is to find the taxon-IDs for our target organism, the
-  bactrium \emph{E. coli} O157:H7, a cause of severe diarrhea in
-  humans. We look up its taxon-ID using \ty{taxi} in substring mode
-  (\ty{-s}). For each taxon we get the ID, the parent ID, and the name.
+  The next step is to find the taxon-IDs for our target organism,
+  \emph{L. pneumophila}, the type strain of which is \emph{Legionella
+  pneumophila subsp. pneumophila str. Philadelphia 1}. We look up its
+  taxon-ID, 272624, using \ty{taxi} in substring mode (\ty{-s}). 
 #+end_src
 #+begin_src sh <<query.sh>>=
-  taxi -s "O157:H7" neidb | head
+  taxi -s "Philadelphia 1" neidb
 #+end_src
 #+begin_src latex
   \begin{verbatim}
-  # ID       Parent  Name
-    83334    562     Escherichia coli O157:H7
-    155864   83334   Escherichia coli O157:H7 str. EDL933
-    386585   83334   Escherichia coli O157:H7 str. Sakai
-  ...
+  # ID      Parent  Name
+    272624  91891   Legionella pneumophila...
   \end{verbatim}
-  Our \ty{taxi} query returns 137 distinct taxa.
+  We can look at the ancestors of our type strain using \ty{ants}. This
+  suggests that we should be targeting the subspecies
+  \emph{pneumophila}, with taxon-ID 91891.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  taxi -s "O157:H7" neidb |
-      tail -n +2 |
-      wc -l
-#+end_src
-#+begin_src latex
-  In order to find the taxon with all O157:H7 strains, we
-  sort and count the parent taxa to find that 136 of our 137 taxa have
-  parent 83334, which in turn has parent 562. So 83334 is the desired
-  taxon ID of O157:H7.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  taxi -s O157:H7 neidb |
-      tail -n +2 |
-      awk '{print $2}' |
-      sort |
-      uniq -c
+  ants 272624 neidb
 #+end_src
 #+begin_src latex
   \begin{verbatim}
-	1 562
-      136 83334
+  # Back  ID       Name                        Rank
+    11    1        root                        no rank
+    10    131567   cellular organisms          cellular root
+    9     2        Bacteria                    domain
+    8     3379134  Pseudomonadati              kingdom
+    7     1224     Pseudomonadota              phylum
+    6     1236     Gammaproteobacteria         class
+    5     118969   Legionellales               order
+    4     444      Legionellaceae              family
+    3     445      Legionella                  genus
+    2     446      Legionella pneumophila      species
+    1     91891    Legionella pneumophila ...  subspecies
+    0     272624   Legionella pneumophila ...  strain
   \end{verbatim}
-  We can use \ty{dree} to visualize the taxonomic tree rooted on taxon
-  83334. The output of \ty{dree} is in dot notation, which we render as
-  the tree shown in Figure~\ref{fig:ec1} using the program \ty{dot} from
-  the graphviz package. Figure~\ref{fig:ec1} is too cramped for reading,
-  but we can see that the tree has only two levels and that most of its
-  nodes are colored, which means they are linked to genome sequences.
+  To get the neighbors of a given target, we visit its parent. So let's
+  draw the tree rooted on our target's parent, the tree for the species
+  \emph{L. pneumophila} with taxon-ID 446. Figure~\ref{fig:446}A shows
+  the result, where the nodes associated with one or more genome
+  sequences are colored.
   \begin{figure}
+    \newcommand{\scale}{0.2}
     \begin{center}
-      \resizebox{!}{0.9\textheight}{\includegraphics{../tutorial/ec1.ps}}
+      \begin{tabular}{ccc}
+	\textbf{A} & \textbf{B} & \textbf{C}\\
+	\scalebox{\scale}{\includegraphics{../tutorial/446}} &
+	\scalebox{\scale}{\includegraphics{../tutorial/446g}} &
+	\scalebox{\scale}{\includegraphics{../tutorial/446gc}}
+      \end{tabular}
     \end{center}
-  \caption{The taxonomic tree of \emph{E. coli} O157:H7 drawn with
-    \ty{dree}; taxa with sequenced genomes are shown in color.}\label{fig:ec1}
+    \caption{Complete taxonomy of \emph{Legionella pneumophila} with
+      taxon-ID 446 (\textbf{A}), restricted to taxa with genome
+      sequences (\textbf{B}), and restricted to taxa with genomes
+      assembled to levels complete or chromosome
+      (\textbf{C}).}\label{fig:446}
   \end{figure}
 #+end_src
 #+begin_src sh <<query.sh>>=
-  dree 83334 neidb | dot -T x11
+  dree 446 neidb
 #+end_src
 #+begin_src latex
-  We saw previously that the parent of 83334 is taxon 562. To find out
-  its identity, we use \ty{ants} to print the ancestors of 83334. It
-  turns out that taxon 562 is the species \emph{E. coli}, which makes
-  sense.
+  By default, the nodes in the taxonomy are labeled with taxon-IDs. We
+  can change this to taxon names using the \ty{-n} option.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  ants 83334 neidb
+  dree -n 446 neidb
 #+end_src
 #+begin_src latex
-  \begin{verbatim}
-  # Back  ID       Name                      Rank
-    10    1        root                      no rank
-    9     131567   cellular organisms        no rank
-    8     2        Bacteria                  superkingdom
-    7     3379134  Pseudomonadati            kingdom
-    6     1224     Pseudomonadota            phylum
-    5     1236     Gammaproteobacteria       class
-    4     91347    Enterobacterales          order
-    3     543      Enterobacteriaceae        family
-    2     561      Escherichia               genus
-    1     562      Escherichia coli          species
-    0     83334    Escherichia coli O157:H7  serotype
-  \end{verbatim}
-#+end_src
-#+begin_src latex
-In the tree returned by \ty{dree}, the number of genomes per node is
-reduced to presence/absence. To get the distribution of genomes across
-a subtree, we can list its nodes.
+  We might only be interested in taxa with genomes, so we rerun the
+  \ty{dree} with \ty{-g} to get Figure~\ref{fig:446}B, where the
+  terminal white nodes of Figure~\ref{fig:446}A have been dropped.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  dree -l 83334 neidb | head
+  dree -g 446 neidb
 #+end_src
 #+begin_src latex
-  \begin{verbatim}
-  # Taxid  Rank      Genomes
-
-  83334    serotype  989
-  155864   strain    7
-  386585   strain    1
-  ...
-  \end{verbatim}
-  We add taxon names to the list.
+  We can also restrict the output of \ty{dree} to genomes assembled to
+  one or more of four possible assembly levels, complete, chromosome,
+  scaffold, or contig, in that order of quality. Let's just show taxa
+  with genomes assembled to levels complete or chromosome. The result is
+  the much smaller tree in Figure~\ref{fig:446}C.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  dree -l -n 83334 neidb | head
+  dree -g -L complete,chromosome 446 neidb
 #+end_src
 #+begin_src latex
-  \begin{verbatim}
-  # Taxid  Rank      Genomes  Name
-  83334    serotype  989      Escherichia coli O157:H7
-  155864   strain    7        Escherichia coli O157:H7 str. EDL933
-  386585   strain    1        Escherichia coli O157:H7 str. Sakai
-  ...
-  \end{verbatim}
-#+end_src
-#+begin_src latex
-There are 1132 genomes for serotype O157:H7.
+  Instead of the mere presence of genomes marked by color in the
+  taxonomic tree, we can list its individual nodes with the counts of
+  the associated genomes. Some of these genome counts are quite large,
+  starting with the 6,768 genomes associated with the species
+  \emph{Legionella pneumophila}. The range of genome counts becomes
+  particularly clear if we sort according to genome number.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  dree -n -l 83334 neidb |
-      tail -n +2 |
-      awk '{s += $3}END{print s}'
-#+end_src
-#+begin_src latex
-We can reverse-sort the taxon list by the number of genomes to see
-that it ranges from 989 to 0.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  dree -n -l 83334 neidb |
+  dree -n -g -l 446 ../data/neidb |
       tail -n +2 |
       sort -k 3 -n -r
 #+end_src
 #+begin_src latex
   \begin{verbatim}
-  83334    serotype  989      Escherichia coli O157:H7
-  155864   strain    7        Escherichia coli O157:H7 str. EDL933
-  996639   strain    4        Escherichia coli O157:H7 str. EC10
-  1343836  strain    2        Escherichia coli O157:H7 str. F8092B
-  1286877  strain    2        Escherichia coli O157:H7 str. TW14313
+  # Taxid  Rank        Genomes  Name
+  446      species     6768     L. p.
+  66976    serogroup   777      L. p. serogroup 1
+  91891    subspecies  432      L. p. subsp. pneumophila
+  91892    subspecies  23       L. p. subsp. fraseri
+  66977    serogroup   14       L. p. serogroup 2
+  66978    serogroup   13       L. p. serogroup 3
+  66983    serogroup   9        L. p. serogroup 8
+  91890    subspecies  8        L. p. subsp. pascullei
   ...
-  1240385  strain    1        Escherichia coli O157:H7 str. ...
-  991907   strain    0        Escherichia coli O157:H7 str. 262
-  991906   strain    0        Escherichia coli O157:H7 str. 611
-  410290   strain    0        Escherichia coli O157:H7 str. ...
-  1046240  strain    0        Escherichia coli O157:H7 str. 121
   \end{verbatim}
 #+end_src
 #+begin_src latex
-Now we search for the neighbors of O157:H7 using \ty{neighbors}. We
-restrict the output from \ty{neighbors} to taxa with genome sequences.
+  We can restrict this list to genomes assembled to levels complete and
+  chromosome. Now the three subspecies of
+  \emph{L. pneumophila}~\cite{bre88:leg}, \emph{pneumophila}, our
+  target, \emph{fraseri}, and \emph{pascullei}, are among the top groups
+  sequenced.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  neighbors -t 83334 -g neidb
+  dree -n -g -l -L complete,chromosome  446 ../data/neidb  |
+      tail -n +2 |
+      sort -k 3 -n -r
 #+end_src
 #+begin_src latex
   \begin{verbatim}
-  # MRCA(targets): 83334, Escherichia coli O157:H7
-  # MRCA(targets+neighbors): 562, Escherichia coli
-  # Type  Taxon-ID  Name                         Genomes
-  t       83334     Escherichia coli O157:H7     GCF_000978815.2|...
-  tt      155864    Escherichia coli O157:H7...  GCF_000006665.1|...
-  tt      386585    Escherichia coli O157:H7...  GCF_000008865.2
-  tt      444447    Escherichia coli O157:H7...  GCA_000181735.1
-  ...
-  n       37762     Escherichia coli B           GCF_001559615.2|...
-  n       83333     Escherichia coli K-12        GCF_000800765.1|...
-  n       168807    Escherichia coli O127:H6     GCF_900149875.1|...
+  # Taxid  Rank        Genomes  Name
+  446      species     138      Legionella pneumophila
+  91891    subspecies  20       Legionella pneumophila subsp. pneumophila
+  91892    subspecies  9        Legionella pneumophila subsp. fraseri
+  91890    subspecies  6        Legionella pneumophila subsp. pascullei
   ...
   \end{verbatim}
+  We use \ty{neighbors} to find the genomes for our target and its
+  closest relatives, the \emph{neighbors}. We continue with genomes
+  (\ty{-g}) assembled to level \emph{complete} or \emph{chromosome}
+  (\ty{-L}).
+#+end_src
+#+begin_src sh <<query.sh>>=
+  neighbors -L complete,chromosome -g -t 91891 neidb | less
+#+end_src
+#+begin_src latex
+  \begin{verbatim}
+  # MRCA(targets): 91891, Legionella pneumophila subsp. pneumophila
+  # MRCA(targets+neighbors): 446, Legionella pneumophila
+  # Type  Taxon-ID  Name                                     Genomes
+  t       91891     L. p....                GCF_000306845.1...
+  tt      272624    L. p....                GCF_000008485.1
+  ...
+  n       91890     L. p. subsp. pascullei  GCF_001590615.2...
+  n       91892     L. p. subsp. fraseri    GCF_001886795.1...
+  ...
+  \end{verbatim}
+
   I've edited the output of \ty{neighbors} for clarity. It begins with
   three hashed lines. The first states the most recent common ancestor
-  of the targets, \emph{E. coli} O157:H7, with taxon-ID 83334. The
-  second line states the most recent common ancestor of the neighbors
-  \emph{and} the targets, \emph{E. coli}, taxon 562. The third line is
-  the header of the subsequent table, which consists of four columns,
-  type, taxon-ID, name, and genomes. There are three possible types,
-  ``t'' for known target, ``tt'' for new target, and ``n'' for neighbor.
+  of the targets, \emph{L. pneumophila subsp. pneumophila}, with
+  taxon-ID 91891. The second line states the most recent common ancestor
+  of the neighbors \emph{and} the targets, \emph{L. pneumophila}, taxon
+  446. The third line is the header of the subsequent table, which
+  consists of four columns, type, taxon-ID, name, and genomes. There are
+  three possible types, ``t'' for known target, ``tt'' for new target,
+  and ``n'' for neighbor.
 
   Sometimes we'd like to filter the output of \ty{neighbors}. This is
   best done using the tab-delimited format instead of the default
@@ -252,101 +242,94 @@ restrict the output from \ty{neighbors} to taxa with genome sequences.
   followed by their taxon ID.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  neighbors -t 83334 -g -T neidb |
+  neighbors -L complete,chromosome -g -t 91891 -T neidb |
       grep '^tt' |
       awk -F '\t' '{printf "%s\t%s\n", $3, $2}' |
       less
 #+end_src
 #+begin_src latex
   \begin{verbatim}
-  Escherichia coli O157:H7 str. EDL933    155864
-  Escherichia coli O157:H7 str. Sakai     386585
-  Escherichia coli O157:H7 str. EC4206    444447
+  L. p. subsp. pneumophila str. Philadelphia 1   272624
+  L. p. subsp. pneumophila str. Hextuple_2q      1081094
+  L. p. subsp. pneumophila str. Hextuple_3a      1081095
+  L. p. subsp. pneumophila str. Thunder Bay      1199191
+  L. p. subsp. pneumophila LPE509        1312904
   \end{verbatim}
-  
+
   To download the target and neighbor genomes, we need the genome
   accessions. These are a bit difficult to extract from the ``report
   view'' of the \ty{neighbors} results. So we use the ``list view''
-  instead. It consists of two columns, sample (target or neighbor) and
-  accession.
+  instead. It consists of two columns, sample---t and n for target and
+  neighbor, respectively---and accession.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  neighbors -t 83334 -l neidb | head
+  neighbors -L complete,chromosome -g -t 91891 -l neidb
 #+end_src
 #+begin_src latex
   \begin{verbatim}
   # Sample  Accession
-  t         GCA_000155005.1
-  t         GCA_000171935.1
-  t         GCA_000172015.1
+  t         GCA_000277025.1
+  t         GCA_000277065.1
+  t         GCF_000008485.1
+  ...
+  n         GCA_001590645.1
   ...
   \end{verbatim}
 #+end_src
 #+begin_src latex
-We save the accessions to the file \ty{acc.txt}.
+  We save the accessions with the desired assembly levels to the file
+  \ty{acc.txt}.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  neighbors -t 83334 -l neidb > acc.txt
+  neighbors -L complete,chromosome -g -t 91891 -l neidb > acc.txt
 #+end_src
 #+begin_src latex
-  We check that the \ty{neighbors} output contains the 1132 target
-  genomes we previously listed with \ty{dree}.
+  We count 25 taxonomic targets and 22 taxonomic neighbors in
+  \ty{acc.txt}, giving us a total of 47 genomes to analyze.
 #+end_src
 #+begin_src sh <<query.sh>>=
   grep -c '^t' acc.txt
-#+end_src
-#+begin_src latex
-Apart from the 1132 target genomes, there are a staggering 7188
-neighbor genomes.
-#+end_src
-#+begin_src sh <<query.sh>>=
   grep -c '^n' acc.txt
 #+end_src
 #+begin_src latex
-To download the sequences, we split the accessions into two files,
-\ty{tacc.txt} for the targets and \ty{nacc.txt} for the neighbors.
+  To download the genome sequences, we split the accessions into two
+  files, \ty{tacc.txt} for the targets and \ty{nacc.txt} for the
+  neighbors.
 #+end_src
 #+begin_src sh <<query.sh>>=
   grep '^t' acc.txt | awk '{print $2}' > tacc.txt
   grep '^n' acc.txt | awk '{print $2}' > nacc.txt
 #+end_src
 #+begin_src latex
-  We use the program \ty{datasets} provided by the NCBI to download
-  genomes. It is available from the \ty{datasets} web site,
-  \begin{center}
-  \ty{https://www.ncbi.nlm.nih.gov/datasets/}  
-  \end{center}
-  We restrict our analysis to genomes with assembly-level ``complete''
-  and exclude genomes flagged as ``atypical''. We download the genomes
-  in ``dehydrated'' form and begin with the target genomes, of which
-  there are 177. This means out of the 1132 target genomes across all
-  assembly levels, only 177 are not ``atypical'' and assembled to level
-  ``chromosome'' or ``complete''. We save the target genomes in
-  \ty{tdata.zip}.
+  We use the program
+  \ty{datasets}\footnote{\ty{https://www.ncbi.nlm.nih.gov/datasets/}}
+  provided by the NCBI to download the genomes. We exclude genomes
+  flagged as ``atypical'' and download the genomes in ``dehydrated''
+  form, starting with the targets, which we save in \ty{tdata.zip}. We
+  get 23 genomes, which means 2 of our 25 target accessions were flagged
+  as ``atypical''.
 #+end_src
 #+begin_src sh <<query.sh>>=
   datasets download genome accession \
 	   --inputfile tacc.txt \
-	   --assembly-level chromosome,complete \
 	   --exclude-atypical \
 	   --dehydrated \
 	   --filename tdata.zip
 #+end_src
 #+begin_src latex
-  We repeat the download for the neighbor genomes, where 366 out of the
-  total of 7,188 pass muster.
+  We repeat the download for the neighbor genomes, which we save in
+  \ty{ndata.zip}. None of our 22 neighbor accessions refer to an
+  atypical genome. So our analysis will comprise a total of 45 genomes.
 #+end_src
 #+begin_src sh <<query.sh>>=
   datasets download genome accession \
 	   --inputfile nacc.txt \
-	   --assembly-level chromosome,complete \
 	   --exclude-atypical \
 	   --dehydrated \
 	   --filename ndata.zip
 #+end_src
 #+begin_src latex
-The genomes arrive as zipped archives. We unzip the targets into the
-directory \ty{tdata}.
+  We unzip the targets into the directory \ty{tdata}.
 #+end_src
 #+begin_src sh <<query.sh>>=
   unzip tdata.zip -d tdata
@@ -358,22 +341,22 @@ We unzip the neighbors into the directory \ty{ndata}.
   unzip ndata.zip -d ndata
 #+end_src
 #+begin_src latex
-We rehydrate the 177 target genomes.
+We rehydrate the 23 target genomes.
 #+end_src
 #+begin_src sh <<query.sh>>=
   datasets rehydrate --directory tdata
 #+end_src
 #+begin_src latex
-We rehydrate the 366 neighbor genomes.
+We rehydrate the 22 neighbor genomes.
 #+end_src
 #+begin_src sh <<query.sh>>=
   datasets rehydrate --directory ndata
 #+end_src
 #+begin_src latex
-For easier handling, we move all genomes into a new directory,
-\ty{all}. We begin with the targets. To help dividing the data into
-true, i. e. phylogenetic, targets and neighbors later, we give target
-genomes the prefix \ty{t}.
+  For easier handling, we move all 45 genomes into a new directory,
+  \ty{all}. We begin with the targets. To help dividing the data into
+  true, i. e. phylogenetic, targets and neighbors later, we give target
+  genomes the prefix \ty{t}.
 #+end_src
 #+begin_src sh <<query.sh>>=
   mkdir all
@@ -396,313 +379,147 @@ with prefix \ty{n}.
 #+end_src
 #+begin_src latex
   We've now got the taxonomic targets and neighbors united in the
-  directory \ty{all}, but distinguishable by their prefix. Our next task
-  is to extract from this data set the phylogenetic---as opposed to
-  taxonomic---targets and neighbors. We do this by calculating a
-  distance-based phylogeny from all genomes. We calculate the requisite
-  distances using the program
+  directory \ty{all}, but distinguishable by their prefixes t or n. Our
+  next task is to extract from this data set the phylogenetic---as
+  opposed to taxonomic---targets and neighbors. We do this by
+  calculating a distance-based phylogeny from all genomes. We calculate
+  the requisite distances using the program
   \ty{phylonium}\footnote{\ty{https://github.com/evolbioinf/phylonium}}
-  and save them in \ty{o157.dist}. This takes about 1\,m 40\,s.
+  and save them in \ty{lpn.dist}. This takes about 4\,s.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  phylonium all/* > o157.dist
+  phylonium all/* > lpn.dist
 #+end_src
 #+begin_src latex
-  We calculate the neighbor-joining tree from the distances with \ty{nj}
-  and midpoint root it with \ty{midRoot}. Both programs are part of the
+  We convert the distances to a neighbor-joining tree with \ty{nj} and
+  midpoint root it with \ty{midRoot}. Both programs are part of the
   biobox\footnote{\ty{https://github.com/evolbioinf/biobox}}. Then we
   label the internal nodes of the phylogeny with \ty{land}, which is
-  part of Neighbors, and save the final tree in \ty{o157.nwk}.
+  part of Neighbors, and save the final tree in \ty{lpn.nwk}.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  nj o157.dist | midRoot | land > o157.nwk
+  nj lpn.dist | midRoot | land > lpn.nwk
 #+end_src
 #+begin_src latex
-The tree in \ty{o157.nwk} is in the popular Newick format, and you can
-render it with your favorite tree plotting program. One example of
-such a program is \ty{plotTree} from the biobox. Its default plot
-dimensions are too small for our tree of 543 taxa, so we set the
-dimensions to $1200\times 1200$ pixels.
+  The tree in \ty{lpn.nwk} is in the popular Newick format for
+  phylogenies\footnote{\ty{https://phylipweb.github.io/phylip/newick\_doc.html}},
+  and you can render it with your favorite tree plotting program. One
+  example of such a program is \ty{plotTree} from the biobox. Since the
+  taxon names consist of prefix t or n followed by accession numbers
+  that are difficult to read, we reduce the names to the prefix before
+  plotting the tree. Figure~\ref{fig:lpn} shows that the target clade,
+  node 16, has a number of taxonomic neighbors sprinkled in.
+  \begin{figure}
+    \begin{center}
+      \includegraphics{../tutorial/lpn}
+    \end{center}
+    \caption{The phylogeny of 45 genomes of \emph{L. pneumophila}
+      highlighting taxonomic targets (\emph{t}) and neighbors
+      (\emph{n}).}\label{fig:lpn}
+  \end{figure}
 #+end_src
 #+begin_src sh <<query.sh>>=
-  plotTree -d 1200,1200 o157.nwk
+  sed -E 's/([nt])[^f]*fna/\1/g' lpn.nwk |
+      plotTree
 #+end_src
 #+begin_src latex
-  However, even at this magnification the taxon labels are difficult to
-  read. To simplify picking the phylogenetic target clade, we use the
-  Neighbors program \ty{fintac}. It returns the clade that maximizes the
-  sum of the targets inside its subtree and the neighbors outside. This
-  is clade 359, which contains 168 of the 177 taxonomic targets and 12
-  taxonomic neighbors.
+  We can count the seven taxonomic neighbors in clade 16 using the
+  program \ty{pickle}, which is also part of the Neighbors package.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  fintac o157.nwk
+  pickle 16 lpn.nwk |
+      grep -c '^n'
+#+end_src
+#+begin_src latex
+  To count the targets outside of clade 16, we pick everything but clade
+  16 by using the complement switch of \ty{pickle}, \ty{-c}. There are
+  no taxonomic targets outside clade 16.
+#+end_src
+#+begin_src sh <<query.sh>>=
+  pickle -c 16 lpn.nwk |
+      grep -c '^t'
+#+end_src
+#+begin_export latex
+We follow the phylogeny and call everything inside clade 16 a
+target. In Figure~\ref{fig:lpn} it is easy to pick the target clade by
+eye. However, in heavily sequenced taxa the number of targets and
+neighbors can be so large as to render the resulting tree
+illegible. In such a situation we can find the target clade using the
+program \ty{fintac} (Neighbors). It picks clade 16 from our example
+tree, as expected, and reports that this clade contains all 23
+taxonomic targets and 7 taxonomic neighbors. According to
+equation~(\ref{eq:spl}), this leads to a split of
+\[
+s(v)=\frac{23+22-7}{45}\times 100\approx 84\,\%.
+\]
+Node 16 is connected to its parent, node 1, via an edge length 0.025.
+#+end_export
+#+begin_src sh <<query.sh>>=
+  fintac lpn.nwk
 #+end_src
 #+begin_src latex
   \begin{verbatim}
   #Clade  Targets  Neighbors  Split (%)  Parent  Dist(Parent)
-  359     172      13         96.7       351     0.000394
-  \end{verbatim}
-  To explore the context of clade 359, we climb up its chain of
-  ancestors using \ty{climt} to find Table~\ref{tab:cli}.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  climt 359 o157.nwk
-#+end_src
-#+begin_src latex
-  \begin{table}
-    \caption{Climbing up the genome phylogeny of \emph{E. coli} O157:H7
-      and its neighbors starting from node 359.}\label{tab:cli}
-    \begin{center}
-      \input{../tutorial/climt}
-    \end{center}
-  \end{table}
-  So the parent of 359 is 351, and the two nodes are connected by a
-  branch of length $3\times 10^{-4}$ substitutions per site, which is
-  very little (Table~\ref{tab:cli}). We find the sibling of 359, node 352,
-  by climbing \emph{down} the tree from parent 351.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  climt -d 351 o157.nwk
-#+end_src
-#+begin_src latex
-  \begin{verbatim}
-  # Parent   Children
-  351        352 359
-  \end{verbatim}
-  We check the contents of node 352 by picking it from the tree and
-  listing its leaves using \ty{pickle}. We find node 352 contains only
-  taxonomic neighbors. That's reassuring.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  pickle 352 o157.nwk
-#+end_src
-#+begin_src latex
-  \begin{verbatim}
-  # Selected clade
-  ## 352
-  nGCF_013167995.1_ASM1316799v1_genomic.fna
-  nGCF_013167935.1_ASM1316793v1_genomic.fna
-  nGCF_000025165.1_ASM2516v1_genomic.fna
-  nGCF_000245515.1_ASM24551v1_genomic.fna
-  nGCF_013167255.1_ASM1316725v1_genomic.fna
-  nGCF_013167975.1_ASM1316797v1_genomic.fna
-  nGCF_013168015.1_ASM1316801v1_genomic.fna
-  nGCF_013343615.1_ASM1334361v1_genomic.fna
+  16      23       7          84.4       1       0.0246
   \end{verbatim}
 #+end_src
 #+begin_src latex
-  We begin our search for markers by splitting our tree into targets,
-  i. e. clade 359, and neighbors, clade 352. To separate the targets, we
+  We begin our search for markers by splitting our genomes into targets,
+  i. e. clade 16, and neighbors, the rest. To separate the targets, we
   make a directory, \ty{targets}. Then we use \ty{pickle} in default
-  mode to list the taxa in the target clade. For each taxon we create a
+  mode to list the taxa in the target clade. For each genome we create a
   symbolic link to the original data.
 #+end_src
 #+begin_src sh <<query.sh>>=
   mkdir targets
-  pickle 359 o157.nwk |
+  pickle 16 lpn.nwk |
       grep -v '^#' |
       while read a; do
 	  ln -s $(pwd)/all/$a $(pwd)/targets/$a
       done
 #+end_src
 #+begin_src latex
-The program \ty{fur} works on the idea that the \emph{closest}
-neighbors are the most informative for marker discovery. So we
-construct our neighbor set from the genomes in clade 352.
+  Similarly, we pick the neighbors as the complement of the targets and
+  store them as symbolic links in directory \ty{neighbors}.
 #+end_src
 #+begin_src sh <<query.sh>>=
   mkdir neighbors
-  pickle 352 o157.nwk |
+  pickle -c 16 lpn.nwk |
       grep -v '^#' |
       while read a; do
 	  ln -s $(pwd)/all/$a $(pwd)/neighbors/$a
       done
 #+end_src
 #+begin_src latex
-In preparation for running \ty{fur}, we make its database with
-\ty{makeFurDb}. Since the database is used to compare the targets in
-node 359 with the neighbors in node 352, we call it \ty{359\_352.db}. Its
-construction takes approximately 15\,s.
+  In preparation to running \ty{fur}, we make its database with
+  \ty{makeFurDb}, which takes 17\,s.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  makeFurDb -t targets/ -n neighbors/ -d 359_352.db
+  makeFurDb -t targets/ -n neighbors/ -d lpn.db
 #+end_src
 #+begin_src latex
 Given the database, we can apply \ty{fur} to it. This takes nine
-seconds and returns 8.6 kb marker candidates, of which 2 kb are
-\ty{N}s. We save these sequences in the file \ty{359\_352.fasta}.
+seconds and returns 9.1\,kb marker candidates, of which 0.7\,kb are
+\ty{N}s. We save these sequences in the file \ty{lpn.fasta}.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  fur -d 359_352.db > 359_352.fasta
+  fur -d lpn.db > lpn.fasta
 #+end_src
 #+begin_src latex
   \begin{verbatim}
-    Step           Sequences  Length    Ns
-    -------------  ---------  ------    --
-    Subtraction_1        226  212643     0
-    Intersection          31   12994   385
-    Subtraction_2         12    8528  2201
+    Step           Sequences   Length     Ns
+    -------------  ---------   ------     --
+    Subtraction_1       4618  1222475      0
+    Intersection        2463   484251  30902
+    Subtraction_2         24     9085    704
   \end{verbatim}
 
-  To check whether these markers crosshybridize with markers in the
-  wider neighborhood, we repeat the analysis with a neighborhood
-  consisting of everything but node 359 making up the neighborhood.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  rm neighbors/*
-  pickle -c 359 o157.nwk |
-      grep -v '^#' |
-      while read a; do
-	  ln -s $(pwd)/all/$a $(pwd)/neighbors/$a
-      done
-#+end_src
-#+begin_src latex
-  The new database compares clade 359 to everything else in the tree, so
-  we call it \ty{359.db}. Its construction takes almost eight minutes.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  makeFurDb -t targets -n neighbors -d 359.db
-#+end_src
-#+begin_src latex
-Now the intersection step of \ty{fur} comes up empty.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  fur -d 359.db
-#+end_src
-#+begin_src latex
-  \begin{verbatim}
-    Step           Sequences  Length  Ns
-    -------------  ---------  ------  --
-    Subtraction_1         22   24318   0
-    Intersection           0       0   0
-  \end{verbatim}
-
-  An empty intersection after a non-empty subtraction implies the target
-  representative contains material that is absent from all neighbors,
-  but not present in all other targets. This seems odd. Now, the
-  requirement that markers be present in all targets means that a single
-  atypical target genome can veto markers found everywhere else. So our
-  next task is to look for atypical genomes among the targets.
-
-  When we downloaded the data, we already excluded genomes deemed
-  ``atypical'' by the program \ty{datasets} based on about a dozen
-  criteria\footnote{\ty{https://www.ncbi.nlm.nih.gov/datasets/docs/v2/troubleshooting/faq/}\\ \ty{\#what-are-atypical-genomes}}. We
-  concentrate on genome length. According to \ty{datasets}, a genome is
-  atypical if it is 50\% larger or smaller than the average genome
-  length. If we think of atypical genomes as outliers, this definition
-  is somewhat unorthodox. A more common definition of outliers is based
-  on the distance between the first and third quartile of a
-  distribution. This definition is implemented in the program
-  \ty{outliers}, which is also part of Neighbors. For each of our 185
-  phylogenetic target genomes, we extract its name and its length and
-  save the data in \ty{tlen.dat}.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  for a in targets/*.fna; do
-      echo -n $a ' ';cres $a |
-	  grep To |
-	  awk '{print $2}'
-  done > tlen.dat
-#+end_src
-#+begin_src latex
-When we search the genome lengths for outliers, we find four mildly
-large and one extremely short genome.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  awk '{print $2}' tlen.dat | outliers
-#+end_src
-#+begin_src latex
-\begin{verbatim}
-#Lower_outer_fence  Lower_inner_fence  Lower_quartile...
-5.247179e+06        5.400779e+06       5.554379e+06...
-Mild_outliers: 5.817871e+06 5.825793e+06 5.831209e+06 5.8662e+06
-Extreme_outlier: 4.869019e+06
-\end{verbatim}
-#+end_src
-#+begin_src latex
-Let's find the name of the extremely short genome, remove it from the
-targets, and rerun the analysis. This time the intersection is not
-empty and contains 2.9 kb, but we lose it all in the second
-subtraction step.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  awk '$2==4.869019e+06' tlen.dat
-  rm targets/tGCA_030908645.1_ASM3090864v1_genomic.fna
-  makeFurDb -t targets -n neighbors -o -d 359.db
-  fur -d 359.db
-#+end_src
-#+begin_src latex
-  \begin{verbatim}
-    Step           Sequences  Length  Ns
-    -------------  ---------  ------  --
-    Subtraction_1         28   27588   0
-    Intersection           3    2932  15
-    Subtraction_2          0       0   0
-  \end{verbatim}
-#+end_src
-#+begin_src latex
-  To summarize what we have found so far, when comparing 359 to its
-  close relative 352, we find markers that distinguish those two
-  clades. However, these markers are not universally diagnostic when we
-  compare them to the wider neighborhood.
-
-  The question is, could we find regions that distinguish 359 from the
-  wider neighborhood minus 352? In that way we might be able to
-  construct \emph{nested} markers. The first set would allow the
-  diagnosis of 359 \emph{or} 352, the second would allow the diagnosis
-  of 359 alone, given the result based on the first set.
-
-  From Table~\ref{tab:cli} we learn that node 350 is the parent of
-  351. It is connected with a branch of $5\times 10^{-3}$
-  substitutions per site, more than ten times longer than the branch
-  connecting 359 to its parent 351.
-
-  So we leave our target set as is, but construct a new neighborhood
-  consisting of everything except the clade rooted on 351. Our result is
-  again empty after the second subtraction.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  rm neighbors/*
-  pickle -c 351 o157.nwk |
-	grep -v '^#' |
-	while read a; do
-	    ln -s $(pwd)/all/$a $(pwd)/neighbors/$a
-	done
-  makeFurDb -t targets -n neighbors -d 359_351c.db -o
-  fur -d 359_351c.db > 359_351c.fasta
-#+end_src
-#+begin_src latex
-  \begin{verbatim}
-    Step           Sequences  Length   Ns
-    -------------  ---------  ------   --
-    Subtraction_1        184   53233    0
-    Intersection         128   22689  125
-    Subtraction_2          0       0    0
-  \end{verbatim}
-
-  By default, the second subtraction is carried out by \ty{blastn} in
-  blastn mode. This is a highly sensitive mode. We can also switch to
-  the less sensitive megablast mode, which is the default mode of
-  \ty{blastn}. Now we get almost 1\,kb of marker candidates with 63
-  \ty{N}s. That's a start.
-#+end_src
-#+begin_src sh <<query.sh>>=
-  fur -m -d 359_351c.db > 359_351c.fasta
-#+end_src
-#+begin_src latex
-  \begin{verbatim}
-    Step           Sequences  Length   Ns
-    -------------  ---------  ------   --
-    Subtraction_1        184   53233    0
-    Intersection         128   22689  125
-    Subtraction_2          7     952   63
-  \end{verbatim}
-
-  The next step in the design of diagnostic markers would be to
-  construct PCR primers based on \ty{359\_352.fasta} and
-  \ty{359\_351c.fasta}. We would then test \emph{in silico} the
-  specificity and sensitivity of the pair of primers in detecting
-  \emph{E. coli} O157:H7. Any primers derived from this \emph{in silico}
-  work would ultimately need to be tested \emph{in vitro}.
+  The next steps in the design of diagnostic markers would be to
+  construct PCR primers based on \ty{lpn.fasta}. We would then test
+  \emph{in silico} the specificity and sensitivity of the pair of
+  primers in detecting \emph{L. pneumophila subsp. pneumophila}. Primer
+  construction and assessment could be carried out with the programs of
+  our package Prim\footnote{github.com/evolbioinf/prim}. Any primers
+  derived from this \emph{in silico} work would ultimately need to be
+  tested \emph{in vitro}.
 #+end_src

@@ -10,17 +10,17 @@
   package util
 
   import (
-	  //<<Imports, Pa.~\ref{pa:util}>>
+	  //<<Imports, Pa. \ref{pa:util}>>
   )
-  //<<Variables, Pa.~\ref{pa:util}>>
-  //<<Functions, Pa.~\ref{pa:util}>>
+  //<<Variables, Pa. \ref{pa:util}>>
+  //<<Functions, Pa. \ref{pa:util}>>
 #+end_src
 #+begin_src latex
   \epa
   \subsection{\ty{PrintInfo}}
   !\ty{PrintInfo} prints program information and exits.
 #+end_src
-#+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func PrintInfo(program string) {
 	  author := "Bernhard Haubold"
 	  email := "haubold@evolbio.mpg.de"
@@ -35,13 +35,13 @@
   We declare the variables \ty{version} and \ty{date}, which ought to be
   injected at compile time.
 #+end_src
-#+begin_src go <<Variables, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Variables, Pa. \ref{pa:util}>>=
   var version, date string
 #+end_src
 #+begin_src latex 
   We import \ty{clio} and \ty{os}.
 #+end_src
-#+begin_src go <<Imports, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
   "github.com/evolbioinf/clio"
   "os"
 #+end_src
@@ -49,11 +49,12 @@
   \subsection{\ty{Open}}
   !\ty{Open} opens a file with error checking.
 #+end_src
-#+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func Open(file string) *os.File {
 	  f, err := os.Open(file)
 	  if err != nil {
-		  fmt.Fprintf(os.Stderr, "couldn't open %s\n", file)
+		  fmt.Fprintf(os.Stderr, "couldn't open %s\n",
+			  file)
 		  os.Exit(1)
 	  }
 	  return f
@@ -62,15 +63,15 @@
 #+begin_src latex
   We import \ty{fmt} and \ty{os}.
 #+end_src
-#+begin_src go <<Imports, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
   "fmt"
   "os"
 #+end_src
 #+begin_export latex
-\subsubsection{\ty{Check}}
+\subsection{\ty{Check}}
 !\ty{Check} checks an error and aborts if it isn't nil.
 #+end_export
-#+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func Check(err error) {
 	  if err != nil {
 		  log.Fatal(err)
@@ -80,7 +81,7 @@
 #+begin_export latex
 We import \ty{log}.
 #+end_export
-#+begin_src go <<Imports, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
   "log"
 #+end_src
 #+begin_export latex
@@ -89,7 +90,7 @@ We import \ty{log}.
 It stores the name in a global variable and prepares the \ty{log}
 package to print that name in the event of an error message.
 #+end_export
-#+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func SetName(n string) {
 	  name = n
 	  s := fmt.Sprintf("%s: ", n)
@@ -100,7 +101,7 @@ package to print that name in the event of an error message.
 #+begin_export latex
 We declare the global string variable \ty{name}.
 #+end_export
-#+begin_src go <<Variables, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Variables, Pa. \ref{pa:util}>>=
   var name string
 #+end_src
 #+begin_export latex
@@ -109,13 +110,58 @@ We declare the global string variable \ty{name}.
 !about the program and exits.
 \ty{Version} simply wraps a call to \ty{PrintInfo}.
 #+end_export
-#+begin_src go <<Functions, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func Version() {
 	  PrintInfo(name)
   }
 #+end_src
 #+begin_src latex
-  We are done with the \ty{util} package, time to test it.
+  \subsection{\ty{LevelMsg}}
+  !The function \ty{LevelMsg} prints the user message for the
+  !option directing the assembly level.
+
+  We begin by declaring a variable containing the four possible assembly
+  levels, \emph{complete}, \emph{chromosome}, \emph{scaffold}, and
+  \emph{contig}, in that order of quality.
+#+end_src
+#+begin_src go <<Variables, Pa. \ref{pa:util}>>=
+  var levels = []string{
+	  "complete",
+	  "chromosome",
+	  "scaffold",
+	  "contig"}
+#+end_src
+#+begin_src latex
+  We use the four assembly levels to construct the user message.
+#+end_src
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
+  func LevelMsg() string {
+	  m := "assembly-level: comma-delimited combination " +
+		  "of " +	levels[0]
+	  for i := 1; i < len(levels)-1; i++ {
+		  m += ", " + levels[i]
+	  }
+	  m += ", or " + levels[len(levels)-1]
+	  m += " (default any)"
+	  return m
+  }
+#+end_src
+#+begin_src latex
+  \subsection{\ty{AssemblyLevels}}
+  ! The function \ty{AssemblyLevels} returns a map of possible assembly
+  ! levels.
+#+end_src
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
+  func AssemblyLevels() map[string]bool {
+	  al := make(map[string]bool)
+	  for _, level := range levels {
+		  al[level] = true
+	  }
+	  return al
+  }
+#+end_src
+#+begin_src latex
+  We are done with writing the \ty{util} package, time to test it.
   \subsection{Testing}
   Our testing code for \ty{util} contains hooks for imports and the
   logic of the testing function.
@@ -125,18 +171,27 @@ We declare the global string variable \ty{name}.
 
   import (
 	  "testing"
-	  //<<Testing imports, Pa.~\ref{pa:util}>>
+	  //<<Testing imports, Pa. \ref{pa:util}>>
   )
 
   func TestUtil(t *testing.T) {
-	  //<<Testing, Pa.~\ref{pa:util}>>
+	  //<<Testing, Pa. \ref{pa:util}>>
   }
 #+end_src
 #+begin_src latex
-  There is only one function we can sensibly test, \ty{Open}. So we open
-  a test file and read the string ``success'' from it.
+  There are three functions we can sensibly test, \ty{Open},
+  \ty{LevelMsg}, and \ty{AssemblyLevels}.
 #+end_src
-#+begin_src go <<Testing, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Testing, Pa. \ref{pa:util}>>=
+  //<<Test \ty{Open}, Pa. \ref{pa:util}>>
+  //<<Test \ty{LevelMsg}, Pa. \ref{pa:util}>>
+  //<<Test \ty{AssemblyLevels}, Pa. \ref{pa:util}>>
+#+end_src
+#+begin_src latex
+  To test \ty{Open}, we open a test file and read the string ``success''
+  from it.
+#+end_src
+#+begin_src go <<Test \ty{Open}, Pa. \ref{pa:util}>>=
   f := Open("r.txt")
   defer f.Close()
   sc := bufio.NewScanner(f)
@@ -152,6 +207,36 @@ We declare the global string variable \ty{name}.
 #+begin_src latex
   We import \ty{bufio}.
 #+end_src
-#+begin_src go <<Testing imports, Pa.~\ref{pa:util}>>=
+#+begin_src go <<Testing imports, Pa. \ref{pa:util}>>=
   "bufio"
+#+end_src
+#+begin_src latex
+  To test \ty{LevelMsg}, we check the message returned matches all
+  predefined levels.
+#+end_src
+#+begin_src go <<Test \ty{LevelMsg}, Pa. \ref{pa:util}>>=
+  m := "user message does not match level %q"
+  msg := LevelMsg()
+  for _, level := range levels {
+	  if strings.Index(msg, level) == -1 {
+		  t.Errorf(m, level)
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{strings}.
+#+end_src
+#+begin_src go <<Testing imports, Pa. \ref{pa:util}>>=
+  "strings"
+#+end_src
+#+begin_src latex
+  To test \ty{AssemblyLevels}, we just check we got as many as there are
+  predefined levels.
+#+end_src
+#+begin_src go <<Test \ty{AssemblyLevels}, Pa. \ref{pa:util}>>=
+  w := len(levels)
+  g := len(AssemblyLevels())
+  if w != g {
+	  t.Errorf("want:\n%d levels\nget:\n%d levels", w, g)
+  }
 #+end_src

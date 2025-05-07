@@ -2,8 +2,8 @@
   \section{\ty{tdb}}
   The package \ty{tdb} provides code for constructing and navigating
   \ty{tax.db} (Figure~\ref{fig:db}). Its outline has hooks for imports,
-  types, methods, and functions.
-  \bpa{tdb}{pa:tdb}
+  types, methods, and functions. It also has a hook for a special kind
+  of package variable, the templates for SQL queries.  \bpa{tdb}{pa:tdb}
 #+end_src
 #+begin_src go <<tdb.go>>=
   // Package tdb constructs and queries the taxonomy database.
@@ -15,6 +15,7 @@
   //<<Types, Pa. \ref{pa:tdb}>>
   //<<Methods, Pa. \ref{pa:tdb}>>
   //<<Functions, Pa. \ref{pa:tdb}>>
+  //<<Query templates, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   \epa The package \ty{tdb} has two central types: \ty{TaxonDB} wraps
@@ -72,23 +73,15 @@
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
-  Before opening the database, we check whether it already exists. If we
-  cannot open the database, we abort. We also make sure the database is
+  Before opening the database, we check whether it already exists. Then
+  we open it. If that fails, we abort. We also make sure the database is
   eventually closed again.
 #+end_src
 #+begin_src go <<Open database, Pa. \ref{pa:tdb}>>=
   //<<Does database exist? Pa. \ref{pa:tdb}>>
   db, err := sql.Open("sqlite3", dbName)
-  if err != nil {
-	  log.Fatal(err)
-  }
+  util.Check(err)
   defer db.Close()
-#+end_src
-#+begin_src latex
-  We import \ty{log}.
-#+end_src
-#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
-  "log"
 #+end_src
 #+begin_src latex
   If we are asked to build a new database on top of an existing one, the
@@ -103,7 +96,7 @@
   }
 #+end_src
 #+begin_src latex
-  We import \ty{os} and \ty{fmt}.
+  We import \ty{fmt}.
 #+end_src
 #+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
   "os"
@@ -126,7 +119,7 @@
   //<<Construct table \ty{genome}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
-  Table \ty{taxon} has the attributes \ty{taxid}, \ty{parent},
+  Table \ty{taxon} has the four attributes \ty{taxid}, \ty{parent},
   \ty{name}, and \ty{rank}. Taxon-IDs are integers, names are
   text. \ty{taxid} is also the primary key. As there are currently 2.7
   million taxa, and this number is bound to grow, we ensure that queries
@@ -148,8 +141,15 @@
   }
 #+end_src
 #+begin_src latex
-  Table \ty{genome} has attributes \ty{taxid}, \ty{size},
-  \ty{accession}, and \ty{status}. The size is given in bp, but we store
+  We import \ty{log}.
+#+end_src
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
+  "log"
+#+end_src
+#+begin_src latex
+  Table \ty{genome} has the four attributes \ty{taxid}, \ty{size},
+  \ty{accession}, and an assembly \ty{level}. An accession is unique, so
+  it also serves as primary key. The size is given in bp, but we store
   it as Mb, so its type is float. To stress that every genome belongs to
   exactly one taxon, we declare \ty{taxid} as foreign key into
   \ty{taxon}. We also index the numerical attributes \ty{taxid} and
@@ -158,7 +158,8 @@
 #+begin_src go <<Construct table \ty{genome}, Pa. \ref{pa:tdb}>>=
   sqlStmt = `create table genome (
   taxid int, size real, 
-	 accession text, status text,
+	 accession text, level text,
+  primary key(accession),
   foreign key(taxid) references taxon(taxid));
   create index genome_taxid_idx on genome(taxid);
   create index genome_size_idx on genome(size);`
@@ -294,20 +295,20 @@
 #+end_src
 #+begin_src latex
   We read each genome into a struct that holds the four attributes shown
-  in Figure~\ref{fig:db}, \ty{taxid}, \ty{accession}, \ty{status}, and
+  in Figure~\ref{fig:db}, \ty{taxid}, \ty{accession}, \ty{level}, and
   \ty{size} in Mb. In addition, we declare a switch to indicate whether
   or not the genome has been written to table.
 #+end_src
 #+begin_src go <<Types, Pa. \ref{pa:tdb}>>=
   type genome struct {
 	  taxid int
-	  accession, status string
+	  accession, level string
 	  size float64
 	  written bool
   }
 #+end_src
 #+begin_src latex
-  With a handful exceptions, the refseq genomes are a subset of the
+  With a handful of exceptions, the refseq genomes are a subset of the
   genbank genomes. However, the refseq genomes are often better
   annotated. For example, the current version of the human genome has
   genbank accession \ty{GCA\_000001405.29} and refseq accession
@@ -381,24 +382,53 @@
   \end{center}
 \end{table}
 In function \ty{fields2genome} we take one row in the accession file
-and return a genome. A genome consists of a accession, a taxon ID, a
-status, and a size. As shown in Table~\ref{tab:pg}, the accession is
-the first field, the taxon ID the sixth, the status the 12th, and the
-genome size the 26. The size is given in bp, which we convert to Mb.
+and return a genome. A genome consists of an accession, a taxon ID, an
+assembly level, and a size.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
   func fields2genome(fields []string) *genome {
-	  acc := fields[0]
-	  id, err := strconv.Atoi(fields[5])
-	  util.Check(err)
-	  stat := fields[11]
-	  si, err := strconv.Atoi(fields[25])
-	  util.Check(err)
-	  sf := float64(si) / 1000000.0
-	  g := genome{accession: acc, taxid: id,
-		  status: stat, size: sf}
-	  return &g
+	  g := new(genome)
+	  //<<Set accession, Pa. \ref{pa:tdb}>>
+	  //<<Set taxon ID, Pa. \ref{pa:tdb}>>
+	  //<<Set assembly level, Pa. \ref{pa:tdb}>>
+	  //<<Set size, Pa. \ref{pa:tdb}>>
+	  return g
   }
+#+end_src
+#+begin_src latex
+  As shown in Table~\ref{tab:pg}, the accession is in the first column.
+#+end_src
+#+begin_src go <<Set accession, Pa. \ref{pa:tdb}>>=
+  g.accession = fields[0]
+#+end_src
+#+begin_src latex
+  The taxon ID is in the sixth column and we convert it from its string
+  representation to integer.
+#+end_src
+#+begin_src go <<Set taxon ID, Pa. \ref{pa:tdb}>>=
+  id, err := strconv.Atoi(fields[5])
+  util.Check(err)
+  g.taxid = id
+#+end_src
+#+begin_src latex
+  The assembly level in the 12th column and has values ``Complete
+  Genome'', ``Chromosome'', ``Scaffold'', or ``Contig''. We store these
+  values as lower case and slightly abbreviated to ``complete'',
+  ``chromosome'', ``scaffold'', or ``contig''.
+#+end_src
+#+begin_src go <<Set assembly level, Pa. \ref{pa:tdb}>>=
+  g.level = fields[11]
+  g.level = strings.Fields(g.level)[0]
+  g.level = strings.ToLower(g.level)
+#+end_src
+#+begin_src latex
+  The size is in the 26th column. It is given in bp, which we convert to
+  Mb.
+#+end_src
+#+begin_src go <<Set size, Pa. \ref{pa:tdb}>>=
+  si, err := strconv.Atoi(fields[25])
+  util.Check(err)
+  g.size = float64(si) / 1000000.0
 #+end_src
 #+begin_src latex
   To insert the genomes into the \ty{genome} table, we use a transaction
@@ -408,7 +438,7 @@ genome size the 26. The size is given in bp, which we convert to Mb.
   tx, err = db.Begin()
   util.Check(err)
   sqlStmt = "insert into genome(accession, " +
-	  "taxid, status, size) " +
+	  "taxid, level, size) " +
 	  "values(?, ?, ?, ?)"
   stmt, err = tx.Prepare(sqlStmt)
   util.Check(err)
@@ -416,9 +446,11 @@ genome size the 26. The size is given in bp, which we convert to Mb.
   defer stmt.Close()
 #+end_src
 #+begin_src latex
-    To insert the genomes, we iterate over the genbank
-    accessions. We extract the data fields, lookup or construct the
-    genome for the corresponding accession, and insert the genome.
+  To insert the genomes, we iterate over the genbank accessions. We
+  extract the data fields, lookup or construct the genome for the
+  corresponding accession, and insert the genome. Then we insert the
+  refseq genomes that haven't been inserted yet. There should only be
+  very few, if any, such left-over refseq genomes.
 #+end_src
 #+begin_src go <<Insert genomes, Pa. \ref{pa:tdb}>>=
   scanner = bufio.NewScanner(gf)
@@ -456,12 +488,12 @@ genome size the 26. The size is given in bp, which we convert to Mb.
   }
 #+end_src
 #+begin_src latex
-  We insert the genome, refseq or genbank, by executing the prepared
+  We insert the genome---refseq or genbank---by executing the prepared
   statement.
 #+end_src
 #+begin_src go <<Insert genome, Pa. \ref{pa:tdb}>>=
   _, err = stmt.Exec(g.accession, g.taxid,
-	  g.status, g.size)
+	  g.level, g.size)
   util.Check(err)
 #+end_src
 #+begin_src latex
@@ -475,7 +507,7 @@ genome size the 26. The size is given in bp, which we convert to Mb.
 		  continue
 	  }
 	  _, err = stmt.Exec(g.accession, g.taxid,
-		  g.status, g.size)
+		  g.level, g.size)
   }
 #+end_src
 #+begin_src latex
@@ -507,30 +539,35 @@ genome size the 26. The size is given in bp, which we convert to Mb.
 #+begin_src latex
   \subsection{\ty{Accessions}}
   !The method \ty{Accessions} takes as parameter a taxon-ID and returns a
-  !slice of assembly accessions.
+  !slice accessions of genome assemblies belonging to that taxon.
 
-  We query for accessions and then store them in the string slice we
-  return.
+  We query for accessions and then store them in the global string slice
+  we return.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) Accessions(tid int) []string {
-	  var accessions []string
+  func (t *TaxonomyDB) Accessions(taxon int) []string {
+	  accessions := make([]string, 0)
 	  //<<Query for accessions, Pa. \ref{pa:tdb}>>
 	  //<<Store accessions, Pa. \ref{pa:tdb}>>
 	  return accessions
   }
 #+end_src
 #+begin_src latex
-  We generate the query and execute it, which returns a set of table
-  rows. The rows are later closed again.
+  We begin querying by defining a template for querying accessions.
 #+end_src
+#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>= 
+  var accessionT = "select accession " +
+	  "from genome " +
+	  "where taxid=%d"
+#+end_src
+#+begin_export latex
+We construct the query for accessions from our template and run it. We
+make sure that the input stream returned is eventually closed again.
+#+end_export
 #+begin_src go <<Query for accessions, Pa. \ref{pa:tdb}>>=
-  tmpl := "select accession from genome where taxid=%d"
-  q := fmt.Sprintf(tmpl, tid)
+  q := fmt.Sprintf(accessionT, taxon)
   rows, err := t.db.Query(q)
-  if err != nil {
-	  log.Fatal(err)
-  }
+  util.Check(err)
   defer rows.Close()
 #+end_src
 #+begin_src latex
@@ -540,9 +577,7 @@ genome size the 26. The size is given in bp, which we convert to Mb.
   accession := ""
   for rows.Next() {
 	  err := rows.Scan(&accession)
-	  if err != nil {
-		  log.Fatal(err)
-	  }
+	  util.Check(err)
 	  accessions = append(accessions, accession)
   }
 #+end_src
@@ -563,11 +598,16 @@ genome size the 26. The size is given in bp, which we convert to Mb.
   }
 #+end_src
 #+begin_src latex
-  We construct the query from a string template.
+  To construct the name query, we define a template.
+#+end_src
+#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
+  var nameT = "select name from taxon where taxid=%d"
+#+end_src
+#+begin_src latex
+  We construct the query from our new template.
 #+end_src
 #+begin_src go <<Construct name query, Pa. \ref{pa:tdb}>>=
-  tmpl := "select name from taxon where taxid=%d"
-  q := fmt.Sprintf(tmpl, taxon)
+  q := fmt.Sprintf(nameT, taxon)
 #+end_src
 #+begin_src latex
   We execute the query, which might throw an error. We also close the
@@ -575,9 +615,7 @@ genome size the 26. The size is given in bp, which we convert to Mb.
 #+end_src
 #+begin_src go <<Execute name query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  if err != nil {
-	  log.Fatal(err)
-  }
+  util.Check(err)
   defer rows.Close()
 #+end_src
 #+begin_src latex
@@ -587,9 +625,7 @@ genome size the 26. The size is given in bp, which we convert to Mb.
 #+begin_src go <<Extract name, Pa. \ref{pa:tdb}>>=
   rows.Next()
   err = rows.Scan(&n)
-  if err != nil {
-	  log.Fatal(err)
-  }
+  util.Check(err)
 #+end_src
 #+begin_src latex
   \subsection{\ty{Rank}}
@@ -607,11 +643,16 @@ genome size the 26. The size is given in bp, which we convert to Mb.
   }
 #+end_src
 #+begin_src latex
-  We construct the rank query from a string template.
+  To construct the rank query, we first define a template.
+#+end_src
+#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
+  var rankT = "select rank from taxon where taxid=%d"
+#+end_src
+#+begin_src latex
+  We construct the rank query from its template.
 #+end_src
 #+begin_src go <<Construct rank query, Pa. \ref{pa:tdb}>>=
-  tmpl := "select rank from taxon where taxid=%d"
-  q := fmt.Sprintf(tmpl, taxon)
+  q := fmt.Sprintf(rankT, taxon)
 #+end_src
 #+begin_src latex
   We execute the rank query, which might throw an error. We also close
@@ -619,9 +660,7 @@ genome size the 26. The size is given in bp, which we convert to Mb.
 #+end_src
 #+begin_src go <<Execute rank query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  if err != nil {
-	  log.Fatal(err)
-  }
+  util.Check(err)
   defer rows.Close()
 #+end_src
 #+begin_src latex
@@ -631,9 +670,7 @@ genome size the 26. The size is given in bp, which we convert to Mb.
 #+begin_src go <<Extract rank, Pa. \ref{pa:tdb}>>=
   rows.Next()
   err = rows.Scan(&rank)
-  if err != nil {
-	  log.Fatal(err)
-  }
+  util.Check(err)
 #+end_src
 #+begin_src latex
   \subsection{\ty{Parent}}
@@ -652,11 +689,16 @@ genome size the 26. The size is given in bp, which we convert to Mb.
   }
 #+end_src
 #+begin_src latex
-  We construct the parent query from a string template.
+  We define the template for the parent query.
+#+end_src
+#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
+  var parentT = "select parent from taxon where taxid=%d"
+#+end_src
+#+begin_src latex
+  We construct the parent query from its query.
 #+end_src
 #+begin_src go <<Construct parent query, Pa. \ref{pa:tdb}>>=
-  tmpl := "select parent from taxon where taxid=%d"
-  q := fmt.Sprintf(tmpl, c)
+  q := fmt.Sprintf(parentT, c)
 #+end_src
 #+begin_src latex
   We execute the query to get the results table. Query execution might
@@ -665,9 +707,7 @@ genome size the 26. The size is given in bp, which we convert to Mb.
 #+end_src
 #+begin_src go <<Execute parent query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  if err != nil {
-	  log.Fatal(err)
-  }
+  util.Check(err)
   defer rows.Close()
 #+end_src
 #+begin_src latex
@@ -677,34 +717,36 @@ genome size the 26. The size is given in bp, which we convert to Mb.
 #+begin_src go <<Extract parent, Pa. \ref{pa:tdb}>>=
   rows.Next()
   err = rows.Scan(&p)
-  if err != nil {
-	  log.Fatal(err)
-  }
+  util.Check(err)
 #+end_src
 #+begin_src latex
   \subsection{\ty{Children}}
   The method \ty{Children} takes as argument a taxon ID and returns its
   children. We construct the children query, execute it, and extract the
-  children. The children are stored in an integer slice, which we
-  construct at the start of the method and return at the end.
+  children.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   // Children returns a taxon's children.
   func (t *TaxonomyDB) Children(p int) []int {
-	  c := make([]int, 0)
+	  children := make([]int, 0)
 	  //<<Construct children query, Pa. \ref{pa:tdb}>>
 	  //<<Execute children query, Pa. \ref{pa:tdb}>>
 	  //<<Extract children, Pa. \ref{pa:tdb}>>
-	  return c
+	  return children
   }
 #+end_src
 #+begin_src latex
-  Like the parent query, we construct the children query from a string
-  template.
+  We define a template for the children query.
+#+end_src
+#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
+  var childrenT = "select taxid from taxon where parent=%d"
+#+end_src
+#+begin_src latex
+  We construct the children query from its template and the parent
+  passed.
 #+end_src
 #+begin_src go <<Construct children query, Pa. \ref{pa:tdb}>>=
-  tmpl := "select taxid from taxon where parent=%d"
-  q := fmt.Sprintf(tmpl, p)
+  q := fmt.Sprintf(childrenT, p)
 #+end_src
 #+begin_src latex
   We execute the children query to get the results table, catch errors,
@@ -712,22 +754,18 @@ genome size the 26. The size is given in bp, which we convert to Mb.
 #+end_src
 #+begin_src go <<Execute children query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  if err != nil {
-	  log.Fatal(err)
-  }
+  util.Check(err)
   defer rows.Close()
 #+end_src
 #+begin_src latex
   We copy the children into the slice we've prepared for this purpose.
 #+end_src
 #+begin_src go <<Extract children, Pa. \ref{pa:tdb}>>=
-  x := 0
+  child := 0
   for rows.Next() {
-	  err = rows.Scan(&x)
-	  if err != nil {
-		  log.Fatal(err)
-	  }
-	  c = append(c, x)
+	  err = rows.Scan(&child)
+	  util.Check(err)
+	  children = append(children, child)
   }
 #+end_src
 #+begin_src latex
@@ -778,11 +816,16 @@ genome size the 26. The size is given in bp, which we convert to Mb.
   }
 #+end_src
 #+begin_src latex
-  We construct the query for taxon-IDs.
+  We declare a template for the taxids query.
+#+end_src
+#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
+  var taxidsT = "select taxid from taxon where name like '%s'"
+#+end_src
+#+begin_src latex
+  We construct the query for taxon-IDs from its template.
 #+end_src
 #+begin_src go <<Construct taxids query, Pa. \ref{pa:tdb}>>=
-  q := "select taxid from taxon where name like '%s'"
-  q = fmt.Sprintf(q, name)
+  q := fmt.Sprintf(taxidsT, name)
 #+end_src
 #+begin_src latex
   We execute the query for taxon-IDs and catch potential errors. We also
@@ -790,9 +833,7 @@ genome size the 26. The size is given in bp, which we convert to Mb.
 #+end_src
 #+begin_src go <<Execute taxids query, Pa. \ref{pa:tdb}>>=
   rows , err := t.db.Query(q)
-  if err != nil {
-	  log.Fatal(err)
-  }
+  util.Check(err)
   defer rows.Close()
 #+end_src
 #+begin_src latex
@@ -802,9 +843,7 @@ genome size the 26. The size is given in bp, which we convert to Mb.
   taxid := 0
   for rows.Next() {
 	  err = rows.Scan(&taxid)
-	  if err != nil {
-		  log.Fatal(err)
-	  }
+	  util.Check(err)
 	  taxids = append(taxids, taxid)
   }
 #+end_src
@@ -920,6 +959,82 @@ parent and reset the parent slice to empty.
   }
 #+end_src
 #+begin_src latex
+  \subsection{\ty{Level}}
+  ! The method \ty{Level} takes as argument a genome accession and
+  ! returns the assembly level.
+
+  We construct the level query, execute it, and extract the level before
+  we return it.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) Level(acc string) string {
+	  level := ""
+	  //<<Construct level query, Pa. \ref{pa:tdb}>>
+	  //<<Execute level query, Pa. \ref{pa:tdb}>>
+	  //<<Extract level, Pa. \ref{pa:tdb}>>
+	  return level
+  }
+#+end_src
+#+begin_src latex
+  We define a template for the level query.
+#+end_src
+#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
+  var levelT = "select level from genome where accession='%s'"
+#+end_src
+#+begin_src latex
+  We construct the level query from its template.
+#+end_src
+#+begin_src go <<Construct level query, Pa. \ref{pa:tdb}>>=
+  q := fmt.Sprintf(levelT, acc)
+#+end_src
+#+begin_src latex
+  We execute the level query, check the error, and make sure the result
+  stream we just opened is eventually closed again.
+#+end_src
+#+begin_src go <<Execute level query, Pa. \ref{pa:tdb}>>=
+  rows, err := t.db.Query(q)
+  util.Check(err)
+  defer rows.Close()
+#+end_src
+#+begin_src latex
+  We scan the first row in the table and check the error returned.
+#+end_src
+#+begin_src go <<Extract level, Pa. \ref{pa:tdb}>>=
+  rows.Next()
+  err = rows.Scan(&level)
+  util.Check(err)
+#+end_src
+#+begin_src latex
+  \subsection{\ty{FilterAccessions}}
+  ! \ty{FilterAccessions} takes as input a slice of genome accessions
+  ! and a list of desired assembly levels. It then removes any accession
+  ! that doesn't conform to one of the levels supplied and returns the
+  ! adjusted slice of genome accessions. The input accessions remain
+  ! unchanged.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (d *TaxonomyDB) FilterAccessions(acc []string,
+	  levels map[string]bool) []string {
+	  //<<Remove accessions with wrong level, Pa. \ref{pa:tdb}>>
+  }
+#+end_src
+#+begin_src latex
+  For each of the genome accessions supplied, we look up the assembly
+  level. If the level conforms to one of the desired levels, we store
+  the accession in a new slice of accessions, which we return at the
+  end.
+#+end_src
+#+begin_src go <<Remove accessions with wrong level, Pa. \ref{pa:tdb}>>=
+  newAcc := make([]string, 0)
+  for _, a := range acc {
+	  level := d.Level(a)
+	  if levels[level] {
+		  newAcc = append(newAcc, a)
+	  }
+  }
+  return newAcc
+#+end_src
+#+begin_src latex
   \subsection{Testing}
   We test on the \emph{Homininae} subfamily shown in
   Figure~\ref{fig:hom}.
@@ -927,7 +1042,7 @@ parent and reset the parent slice to empty.
     \begin{center}
       \scalebox{0.4}{\includegraphics{../tdb/hom}}
     \end{center}
-    \caption{Taxonomy of the \emph{Homininae} subfamily, colored nodes
+    \caption{Taxonomy of the \emph{Homininae} subfamily; colored nodes
       contain genomes.}\label{fig:hom}
   \end{figure}
   The outline of our code for testing \ty{tdb} has a hook for the
@@ -945,9 +1060,9 @@ parent and reset the parent slice to empty.
   }
 #+end_src
 #+begin_src latex
-  We test the function \ty{NewTaxonomyDB}, and the methods
-  \ty{Name}, \ty{Parent}, \ty{Children}, \ty{Subtree},
-  and \ty{Taxids}.
+  We test the function \ty{NewTaxonomyDB}, and the eight methods
+  \ty{Name}, \ty{Parent}, \ty{Children}, \ty{Subtree}, \ty{Taxids},
+  \ty{MRCA}, \ty{Level}, and \ty{FilterAccessions}.
 #+end_src
 #+begin_src go <<Testing, Pa. \ref{pa:tdb}>>=
   //<<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>
@@ -957,6 +1072,8 @@ parent and reset the parent slice to empty.
   //<<Test \ty{Subtree}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{MRCA}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Level}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{FilterAccessions}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   We build a small database, \ty{taxSmall.db}.
@@ -1038,7 +1155,8 @@ parent and reset the parent slice to empty.
   taxa = taxdb.Taxids("%homo sapiens%")
   g = len(taxa)
   if g != w {
-	  t.Errorf("get %d taxa for homo sapiens; want %d", g, w)
+	  t.Errorf("get %d taxa for homo sapiens; want %d",
+		  g, w)
   }
 #+end_src
 #+begin_src latex
@@ -1082,6 +1200,94 @@ parent and reset the parent slice to empty.
 	  want := res[i]
 	  if get != want {
 		  t.Errorf("get: %d\nwant: %d\n", get, want)
+	  }
+  }
+#+end_src
+#+begin_src latex
+  The level of accession \ty{GCA\_049640585.1} is \ty{contig}.
+#+end_src
+#+begin_src go <<Test \ty{Level}, Pa. \ref{pa:tdb}>>=
+  want = "contig"
+  acc := "GCA_049640585.1"
+  get = taxdb.Level(acc)
+  if want != get {
+	  t.Errorf("get: %s\nwant: %s\n", get, want)
+  }
+#+end_src
+#+begin_src latex
+  To test \ty{FilterAccessisons}, we generate a slice of three
+  accessions, GCA\_000002115.2, GCA\_000004845.2, and GCA\_000181135.1,
+  which have the levels chromosome, scaffold, and contig, respectively.
+  Then we filter with one, two, three, and four levels.
+#+end_src
+#+begin_src go <<Test \ty{FilterAccessions}, Pa. \ref{pa:tdb}>>=
+  accessions := []string{
+	  "GCA_000002115.2",
+	  "GCA_000004845.2",
+	  "GCA_000181135.1"}
+  //<<Filter with one level, Pa. \ref{pa:util}>>
+  //<<Filter with two levels, Pa. \ref{pa:util}>>
+  //<<Filter with three levels, Pa. \ref{pa:util}>>
+  //<<Filter with four levels, Pa. \ref{pa:util}>>
+#+end_src
+#+begin_src latex
+  We filter with the top level, ``complete'', and expect to get zero
+  accessions back.
+#+end_src
+#+begin_src go <<Filter with one level, Pa. \ref{pa:util}>>=
+  levels := make(map[string]bool)
+  levels["complete"] = true
+  filteredAcc := taxdb.FilterAccessions(accessions, levels)
+  if len(filteredAcc) != 0 {
+	  t.Errorf("want 0 accessions, get %d\n", len(filteredAcc))
+  }
+#+end_src
+#+begin_src latex
+  We filter with level ``complete'' and ``chromosome'', so we expect to
+  get the first accession back.
+#+end_src
+#+begin_src go <<Filter with two levels, Pa. \ref{pa:util}>>=
+  levels["chromosome"] = true
+  filteredAcc = taxdb.FilterAccessions(accessions, levels)
+  if len(filteredAcc) != 1 {
+	  t.Errorf("want 1 accession, get %d\n", len(filteredAcc))
+  }
+  if accessions[0] != filteredAcc[0] {
+	  t.Errorf("want:\n%s\nget:\n%s\n",
+		  accessions[0],
+		  filteredAcc[0])
+  }
+#+end_src
+#+begin_src latex
+  We add a third level, ``scaffold'', and expect to get the first two
+  accessions back.
+#+end_src
+#+begin_src go <<Filter with three levels, Pa. \ref{pa:util}>>=
+  levels["scaffold"] = true
+  filteredAcc = taxdb.FilterAccessions(accessions, levels)
+  if len(filteredAcc) != 2 {
+	  t.Errorf("want 2 accessions, get %d\n", len(filteredAcc))
+  }
+  for i, a := range filteredAcc {
+	  if accessions[i] != a {
+		  t.Errorf("want:\n%s\nget:\n%s\n",
+			  accessions[i],
+			  a)
+	  }
+  }
+#+end_src
+#+begin_src latex
+  We add the fourth and last level, ``contig'', and expect to get all
+  three accessions back.
+#+end_src
+#+begin_src go <<Filter with four levels, Pa. \ref{pa:util}>>=
+  levels["contig"] = true
+  filteredAcc = taxdb.FilterAccessions(accessions, levels)
+  for i, accession := range accessions {
+	  if filteredAcc[i] != accession {
+		  t.Errorf("want:\n%s\nget:\n%s\n",
+			  accession,
+			  filteredAcc[i])
 	  }
   }
 #+end_src
