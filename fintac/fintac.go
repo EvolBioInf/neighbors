@@ -108,17 +108,18 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 		} else if nregex.MatchString(v.Label) {
 			isNei = true
 		}
-		if isTar && isNei {
-			log.Fatalf("%q is a target and a neighbor",
+		if !isTar && !isNei {
+			fmt.Fprintf(os.Stderr, "WARNING[fintac]: %q "+
+				"is neither target nor neighbor\n",
 				v.Label)
 		}
-		if !isTar && !isNei {
-			log.Fatalf("%q is neither a target nor a neighbor",
+		if isTar && isNei {
+			log.Fatalf("%q is target and neighbor",
 				v.Label)
 		}
 		if isTar {
 			counts[v.Id].vt = 1
-		} else {
+		} else if isNei {
 			counts[v.Id].vn = 1
 		}
 	} else {

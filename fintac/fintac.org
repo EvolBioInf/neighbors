@@ -297,23 +297,26 @@ neighbor, and finally count the leaf type.
 #+end_src
 #+begin_src latex
   At this point our leaf might be any combination of leaf and
-  neighbor. We want to ensure it is either one, and bail with a friendly
-  message if the leaf is a target and a neighbor or neither.
+  neighbor. We want to ensure it is either one; if it is neither, we
+  warn the user, and if it is both, we bail with a friendly message.
 #+end_src
 #+begin_src go <<Ensure either target or neighbor, Pr. \ref{pr:fit}>>=
-  if isTar && isNei {
-	  log.Fatalf("%q is a target and a neighbor",
+  if !isTar && !isNei {
+	  fmt.Fprintf(os.Stderr, "WARNING[fintac]: %q " +
+		  "is neither target nor neighbor\n",
 		  v.Label)
   }
-  if !isTar && !isNei {
-	  log.Fatalf("%q is neither a target nor a neighbor",
+  if isTar && isNei {
+	  log.Fatalf("%q is target and neighbor",
 		  v.Label)
   }
 #+end_src
 #+begin_src latex
-  We import \ty{log}.
+  We import \ty{fmt}, \ty{os}, and \ty{log}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
+  "fmt"
+  "os"
   "log"
 #+end_src
 #+begin_src latex
@@ -323,7 +326,7 @@ neighbor, and finally count the leaf type.
 #+begin_src go <<Count leaf type, Pr. \ref{pr:fit}>>=
   if isTar {
 	  counts[v.Id].vt = 1
-  } else {
+  } else if isNei {
 	  counts[v.Id].vn = 1
   }
 #+end_src
@@ -436,10 +439,9 @@ also print the rest.
   w.Flush()
 #+end_src
 #+begin_src latex
-We import \ty{os} and \ty{tabwriter}.
+We import \ty{tabwriter}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
-  "os"
   "text/tabwriter"
 #+end_src
 #+begin_src latex
@@ -462,12 +464,6 @@ the root's parent label with a hyphen.
 		  cs[i].label, cs[i].vt, cs[i].vn,
 		  cs[i].sv, pl, cs[i].dp)
   }
-#+end_src
-#+begin_src latex
-We import \ty{fmt}.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
-  "fmt"
 #+end_src
 #+begin_src latex
 We print the remaining splits.
