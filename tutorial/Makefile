@@ -8,7 +8,7 @@ test: db.sh query.sh
 	bash db.sh
 	bash query.sh
 reset:
-	rm -rf acc.txt lpn.dist lpn.nwk ndata neidb targets tdata.zip all lpn.db lpn.fasta nacc.txt ndata.zip neighbors tacc.txt tdata
+	rm -rf large neidb small
 clean:
 	make reset
 	rm db.sh query.sh
