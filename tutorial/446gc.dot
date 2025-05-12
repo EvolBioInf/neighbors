@@ -1,0 +1,35 @@
+digraph g {
+	rankdir=LR
+	446 [color="lightsalmon",style=filled]
+	446 -> 66976
+	446 -> 66987
+	91890 [color="lightsalmon",style=filled,label="91890 (pa)"]
+	446 -> 91890
+	91891 [color="lightsalmon",style=filled,label="91891 (pn)"]
+	446 -> 91891
+	91892 [color="lightsalmon",style=filled,label="91892 (fr)"]
+	446 -> 91892
+	272624 [color="lightsalmon",style=filled]
+	91891 -> 272624
+	297245 [color="lightsalmon",style=filled]
+	446 -> 297245
+	297246 [color="lightsalmon",style=filled]
+	446 -> 297246
+	400673 [color="lightsalmon",style=filled]
+	446 -> 400673
+	423212 [color="lightsalmon",style=filled]
+	66976 -> 423212
+	866628 [color="lightsalmon",style=filled]
+	66976 -> 866628
+	933093 [color="lightsalmon",style=filled]
+	66987 -> 933093
+	91891 -> 1080311
+	1081094 [color="lightsalmon",style=filled]
+	1080311 -> 1081094
+	1081095 [color="lightsalmon",style=filled]
+	1080311 -> 1081095
+	1199191 [color="lightsalmon",style=filled]
+	91891 -> 1199191
+	1312904 [color="lightsalmon",style=filled]
+	91891 -> 1312904
+}
