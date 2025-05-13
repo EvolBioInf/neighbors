@@ -16,6 +16,9 @@ func TestClimt(t *testing.T) {
 	tests = append(tests, test)
 	test = exec.Command("./climt", "-d", s, f)
 	tests = append(tests, test)
+	s = "^30[34]$"
+	test = exec.Command("./climt", "-r", s, f)
+	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()
 		if err != nil {

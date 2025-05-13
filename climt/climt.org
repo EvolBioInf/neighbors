@@ -1,42 +1,45 @@
 #+begin_src latex
-\section{\ty{climt}}
-The program \ty{climt} climbs a tree. It takes as input a phylogenetic
-tree and a node label and returns the node's chain of ancestors up to
-the root. For each node it also prints the length of the branch to the
-ancestor and the cumulative branch length. So its output consists of
-four columns, \emph{Up}, \emph{Node}, \emph{Branch Length}, and
-\emph{Cumulative Branch Length}. Like the output of \ty{ants}, the
-output of \ty{climt} starts at the root and ends at the target
-node. For example, if we climb in \ty{test.nwk} from node 303, we
-reach the root in nine steps up the tree. The chain of ancestors
-consists of parent 295, grand parent 294, and so on, up to node 1, the
-root:
-\begin{verbatim}
-# Up   Node   Branch Length   Cumulative Branch Length
-9      1      0               0.0120347
-8      77     5.47e-05        0.01198
-7      85     0.00406         0.00792
-6      271    0.00128         0.00664
-5      273    0.000212        0.006428
-4      274    0.000425        0.006003
-3      293    0.000132        0.005871
-2      294    0.000526        0.005345
-1      295    0.00488         0.000465
-0      303    0.000465        0
-\end{verbatim}
-Instead of climbing up the tree toward the root, the user can also opt
-to climb down. However, while climbing up goes all the way to the
-root, climbing down all the way to the leaves could lead to large
-output that is illegible. So we just climb down by one level to the
-direct children. Here's an example showing that in \ty{test.nwk} node
-295 has two children, node 303 as expected from above, and node 296:
-\begin{verbatim}
-# Parent   Children
-295        296 303
-\end{verbatim}
-\subsection*{Implementation}
-The outline of \ty{climt} has hooks for imports, functions, and the
-logic of the main function.\bpr{climt}{pr:cli}
+  \section{\ty{climt}}
+  The program \ty{climt} climbs a tree. It takes as input a phylogenetic
+  tree and a node label and returns the node's chain of ancestors up to
+  the root. For each node it also prints the length of the branch to the
+  ancestor and the cumulative branch length. So its output consists of
+  four columns, \emph{Up}, \emph{Node}, \emph{Branch Length}, and
+  \emph{Cumulative Branch Length}. Like the output of \ty{ants}, the
+  output of \ty{climt} starts at the root and ends at the target
+  node. For example, if we climb in \ty{test.nwk} from node 303, we
+  reach the root in nine steps up the tree. The chain of ancestors
+  consists of parent 295, grand parent 294, and so on, up to node 1, the
+  root:
+  \begin{verbatim}
+  # Up   Node   Branch Length   Cumulative Branch Length
+  9      1      0               0.0120347
+  8      77     5.47e-05        0.01198
+  7      85     0.00406         0.00792
+  6      271    0.00128         0.00664
+  5      273    0.000212        0.006428
+  4      274    0.000425        0.006003
+  3      293    0.000132        0.005871
+  2      294    0.000526        0.005345
+  1      295    0.00488         0.000465
+  0      303    0.000465        0
+  \end{verbatim}
+  Instead of climbing up the tree toward the root, the user can also opt
+  to climb down. However, while climbing up goes all the way to the
+  root, climbing down all the way to the leaves could lead to large
+  output that is hard to read. So we just climb down by one level to the
+  direct children. Here's an example showing that in \ty{test.nwk} node
+  295 has two children, node 303 as expected from above, and node 296:
+  \begin{verbatim}
+  # Parent   Children
+  295        296 303
+  \end{verbatim}
+  By default, node labels are searched for by exact matching, but the
+  user can opt for matching as regular expression.
+
+  \subsection*{Implementation}
+  The outline of \ty{climt} has hooks for imports, functions, and the
+  logic of the main function.\bpr{climt}{pr:cli}
 #+end_src
 #+begin_src go <<climt.go>>=
   package main
@@ -51,14 +54,16 @@ logic of the main function.\bpr{climt}{pr:cli}
   }
 #+end_src
 #+begin_src latex
-\epr In the main function we set the name of \ty{climt} and its usage,
-declare the options, parse the options, and parse the input files.
+  \epr In the main function we set the name of \ty{climt} and its usage,
+  declare the options, parse the options, get the name of the start
+  node, and parse the input files.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:cli}>>=
   util.SetName("climt")
   //<<Set usage, Pr. \ref{pr:cli}>>
   //<<Declare options, Pr. \ref{pr:cli}>>
   //<<Parse options, Pr. \ref{pr:cli}>>
+  //<<Get name of start node, Pr. \ref{pr:cli}>>
   //<<Parse input files, Pr. \ref{pr:cli}>>
 #+end_src
 #+begin_src latex
@@ -73,8 +78,8 @@ explanation of the program's purpose, and an example command.
 #+end_src
 #+begin_src go <<Set usage, Pr. \ref{pr:cli}>>=
   u := "climt [option]... v [inputFile]..."
-  p := "Climb a phylogenetic tree starting at node v."
-  e := "climt someTaxon foo.nwk"
+  p := "Climb a phylogenetic tree starting at v."
+  e := "climt -r 303 foo.nwk"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -84,13 +89,15 @@ We import \ty{clio}.
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-We declare the obligatory version option. Apart from that, we also
-allow the user to switch from the default mode of climbing up the
-tree, that is, toward the root, to climbing down.
+  We declare the obligatory version option. Apart from that, we allow
+  the user to switch from the default mode of climbing up the tree, that
+  is, toward the root, to climbing down (\ty{-d}), and to interpret the
+  name of the staring node as a regular expression (\ty{-r}).
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:cli}>>=
   optV := flag.Bool("v", false, "version")
   optD := flag.Bool("d", false, "climb down one level")
+  optR := flag.Bool("r", false, "v is a regular expression")
 #+end_src
 #+begin_src latex
 We import \ty{flag}.
@@ -99,8 +106,7 @@ We import \ty{flag}.
   "flag"
 #+end_src
 #+begin_src latex
-We parse the options and respond to a request for the version as this
-stops \ty{climt}.
+  We parse the options and respond to \ty{-v} as this stops the program.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:cli}>>=
   flag.Parse()
@@ -108,43 +114,59 @@ stops \ty{climt}.
 	  util.PrintInfo("climt")
   }
 #+end_src
-#+begin_src latex
+#+begin_export latex
 The next token on the command line is the name of the node from where
-we start climbing. If the user hasn't provided a node name, we bail
-with a friendly message. The remaining tokens on the command line are
-the names of input files. We parse each input file with the function
-\ty{scan}, which takes as argument the name of the starting node and
-the ``down'' option.
-#+end_src
-#+begin_src go <<Parse input files, Pr. \ref{pr:cli}>>=
+we start climbing. If the user didn't provided a node name, we bail
+with a friendly message. To simplify downstream handling, we always
+interpret the node name as a regular expression, regardless of whether
+the user requested this or not. If not, the regular expression just
+becomes the node name bracketed by markers for beginning of string,
+\verb+^+, and end of string, \verb+$+. Then we compile the regex and
+check the error returned.
+#+end_export
+#+begin_src go <<Get name of start node, Pr. \ref{pr:cli}>>=
   args := flag.Args()
   if len(args) == 0 {
 	  log.Fatal("please provide a starting node")
   }
-  start := args[0]
-  files := args[1:]
-  clio.ParseFiles(files, scan, start, optD)
+  expr := args[0]
+  if !*optR {
+	  expr = "^" + expr + "$"
+  }
+  start, err := regexp.Compile(expr)
+  util.Check(err)
 #+end_src
 #+begin_src latex
-We import \ty{log}.
+  We import \ty{log} and \ty{regexp}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
   "log"
+  "regexp"
 #+end_src
 #+begin_src latex
-Inside \ty{scan} we first retrieve the name of the start node and the
-``down'' option. Then we iterate over the trees in the current
-file. For each tree we determine its start node and climb from there.
+  The remaining tokens on the command line are the names of input
+  files. We parse each input file with the function \ty{scan}, which
+  takes as argument the name of the starting node and the ``down''
+  option.
+#+end_src
+#+begin_src go <<Parse input files, Pr. \ref{pr:cli}>>=
+  files := args[1:]
+  clio.ParseFiles(files, scan, start, *optD)
+#+end_src
+#+begin_src latex
+  Inside \ty{scan} we first retrieve the name of the start node and the
+  ``down'' option. Then we iterate over the trees in the current
+  file. For each tree we find the start nodes with the function
+  \ty{findStart}.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:cli}>>=
   func scan(r io.Reader, args ...interface{}) {
-	  start := args[0].(string)
-	  optD := args[1].(*bool)
+	  start := args[0].(*regexp.Regexp)
+	  down := args[1].(bool)
 	  sc := nwk.NewScanner(r)
 	  for sc.Scan() {
 		  root := sc.Tree()
-		  //<<Find start node, Pr. \ref{pr:cli}>>
-		  //<<Climb tree, Pr. \ref{pr:cli}>>
+		  findStart(root, down, start)
 	  }
   }
 #+end_src
@@ -156,38 +178,27 @@ We import \ty{io} and \ty{nwk}.
   "github.com/evolbioinf/nwk"
 #+end_src
 #+begin_src latex
-We search for the start node, $v$, using the function
-\ty{findStart}. If we don't find the start node, we exit with return
-value 1, like \ty{grep} does.
-#+end_src
-#+begin_src go <<Find start node, Pr. \ref{pr:cli}>>=
-  var v *nwk.Node
-  findStart(root, &v, start)
-  if v == nil {
-	  os.Exit(1)
-  }
-#+end_src
-#+begin_src latex
-The function \ty{findStart} traverses the tree recursively and
-analyzes each node, $v$.
+  In function \ty{findStart}, we traverse the tree recursively. If we
+  finds a start node, we call it \ty{v} and climb the tree from there.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:cli}>>=
-  func findStart(root *nwk.Node, v **nwk.Node, start string) {
+  func findStart(root *nwk.Node, down bool, start *regexp.Regexp) {
 	  if root == nil {
 		  return
 	  }
-	  if root.Label == start {
-		  *v = root
+	  if start.MatchString(root.Label) {
+		  v := root
+		  //<<Climb tree, Pr. \ref{pr:cli}>>
 	  }
-	  findStart(root.Child, v, start)
-	  findStart(root.Sib, v, start)
+	  findStart(root.Child, down, start)
+	  findStart(root.Sib, down, start)
   }
 #+end_src
 #+begin_src latex
 We climb either down or up the tree.
 #+end_src
 #+begin_src go <<Climb tree, Pr. \ref{pr:cli}>>=
-  if *optD {
+  if down {
 	  //<<Climb down, Pr. \ref{pr:cli}>>
   } else {
 	  //<<Climb up, Pr. \ref{pr:cli}>>
@@ -255,7 +266,7 @@ The child row consists of the name of the parent, followed by the
 names of its children separated by blanks.
 #+end_src
 #+begin_src go <<Print children row, Pr. \ref{pr:cli}>>=
-  fmt.Fprintf(w, "%s\t", start)
+  fmt.Fprintf(w, "%s\t", v.Label)
   for i, child := range children {
 	  if i > 0 {
 		  fmt.Fprint(w, " ")
@@ -265,30 +276,43 @@ names of its children separated by blanks.
   fmt.Fprint(w, "\n")
 #+end_src
 #+begin_src latex
-When climbing the tree, we encounter the nodes in the order
-child/parent, but we would like to print them in the order
-parent/child, so that on the screen the root is \emph{up}. To get the
-printing order from the climbing order, we first collect all the
-ancestors in a slice. Then we calculate the cumulative length of their
-branches, before we print the ancestor table, again using a
-\ty{tabwriter}.
+  When climbing the tree, we encounter the nodes in the order
+  child/parent, but we would like to print them in the reverse order
+  parent/child, so that on the screen the root is \emph{up}. To get the
+  printing order from the climbing order, we first collect all the
+  ancestors in a slice. We also compute the cumulative branch length
+  from the start to the root. Then we construct a tab writer, print the
+  header and body of the ancestor table, and flush the tab writer.
 #+end_src
 #+begin_src go <<Climb up, Pr. \ref{pr:cli}>>=
+  ancestors := make([]*nwk.Node, 0)
   //<<Collect ancestors, Pr. \ref{pr:cli}>>
-  cumLen := v.UpDistance(root)
+  //<<Calculate cumulative branch length, Pr. \ref{pr:cli}>>
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 3, ' ', 0)
-  //<<Print ancestor header, Pr. \ref{pr:cli}>>
-  //<<Print ancestor table, Pr. \ref{pr:cli}>>
+  //<<Print header of ancestor table, Pr. \ref{pr:cli}>>
+  //<<Print body of ancestor table, Pr. \ref{pr:cli}>>
   w.Flush()
 #+end_src
 #+begin_src latex
-Like the children, we collect the ancestors in a slice of nodes.
+  We collect the ancestors until we reach the root.
 #+end_src
 #+begin_src go <<Collect ancestors, Pr. \ref{pr:cli}>>=
-  ancestors := make([]*nwk.Node, 0)
   np := v
   for np != nil {
 	  ancestors = append(ancestors, np)
+	  np = np.Parent
+  }
+#+end_src
+#+begin_src latex
+  Similarly, to calculate the cumulative branch length, we walk from the
+  start node to the root.
+
+#+end_src
+#+begin_src go <<Calculate cumulative branch length, Pr. \ref{pr:cli}>>=
+  cumLen := 0.0
+  np = v
+  for np != nil {
+	  cumLen += np.Length
 	  np = np.Parent
   }
 #+end_src
@@ -297,46 +321,47 @@ The ancestor table consists of four columns, the steps \emph{up} the
 tree, the node label, the branch length, and the cumulative branch
 length.
 #+end_src
-#+begin_src go <<Print ancestor header, Pr. \ref{pr:cli}>>=
+#+begin_src go <<Print header of ancestor table, Pr. \ref{pr:cli}>>=
   fmt.Fprint(w, "# Up\tNode\tBranch Length\t" +
 	  "Cumulative Branch Length\n")
 #+end_src
 #+begin_src latex
-When printing the table of ancestors, we inverse the climbing order,
-so the root is in the first row and the starting node in the
-last. While iterating over the ancestors in inverse order, we
-repeatedly subtract the length of the upcoming branch from the current
-value of the cumulative length. The imprecision of floating point
-representation means that we cannot be sure that addition and
-subtraction are exactly reversible. To ensure that in our table we
-revisit the exact branch lengths of the values we originally put in,
-we round the cumulative lengths before printing them.
+  When printing the table of ancestors, we inverse the climbing order,
+  so the root is in the first row and the starting node in the
+  last. While iterating over the ancestors in inverse order, we
+  repeatedly subtract the length of the upcoming branch from the current
+  value of the cumulative length. The imprecision of floating point
+  representation means that we cannot be sure that addition and
+  subtraction are exactly reversible. To ensure that in our table we
+  revisit the exact branch lengths of the values we originally put in,
+  we round the cumulative lengths before printing them as part of the
+  current table row.
 #+end_src
-#+begin_src go <<Print ancestor table, Pr. \ref{pr:cli}>>=
+#+begin_src go <<Print body of ancestor table, Pr. \ref{pr:cli}>>=
   n := len(ancestors)
   for i := n-1; i >= 0; i-- {
 	  //<<Round cumulative length, Pr. \ref{pr:cli}>>
-	  //<<Print cumulative length, Pr. \ref{pr:cli}>>
+	  //<<Print table row, Pr. \ref{pr:cli}>>
 	  if i > 0 {
 		  cumLen -= ancestors[i-1].Length
-	  }
+	  } 
   }
 #+end_src
 #+begin_src latex
-We round a float, $f$, to $s$ significant digits by multiplying by
-$10^s$, rounding, and dividing again by $10^s$,
-\begin{equation}\label{eq:round}
-f\leftarrow \frac{\mbox{round}(f\times 10^s)}{10^s}.
-\end{equation}
-The question is, which value should we use for $s$?  Since
-\ty{float64} provides approximately 15 decimal digits of
-precision~\cite[p. 56]{don16:go}, we use $s=15$.
+  We round a float, $f$, to $s$ significant digits by multiplying by
+  $10^s$, rounding, and dividing again by $10^s$,
+  \[
+  f\leftarrow\frac{\mbox{round}(f\times 10^s)}{10^s}.
+  \]
+  The question is, which value should we use for $s$? Since \ty{float64}
+  provides approximately 15 decimal digits of
+  precision~\cite[p. 56]{don16:go}, we use $s=15$.
 
-As a further complication, we might end up rounding to a negative
-zero. Since a negative zero is not less than zero, we can't test for
-negativity by testing for $<0$. Instead, we use the dedicated function
-\ty{Signbit}, which returns true for negative arguments, including
-negative zero.
+  As a further small complication, we might end up rounding to a
+  negative zero, which looks ugly when printed. Since a negative zero is
+  not less than zero, we can't test for negativity be testing for
+  $-0$. Instead, we use the dedicated function \ty{Signbit}, which
+  returns true for negative arguments, including negative zero.
 #+end_src
 #+begin_src go <<Round cumulative length, Pr. \ref{pr:cli}>>=
   f := cumLen
@@ -348,17 +373,16 @@ negative zero.
   }
 #+end_src
 #+begin_src latex
-We import \ty{math}.
+  We import \ty{math}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
   "math"
 #+end_src
 #+begin_src latex
-We print the steps back the label of the current ancestor, and its
-branch length, and the rounded cumulative branch length we just
-calculated.
+  We print the steps back, the label of the current ancestor, its branch
+  length, and the rounded cumulative branch length we just calculated.
 #+end_src
-#+begin_src go <<Print cumulative length, Pr. \ref{pr:cli}>>=
+#+begin_src go <<Print table row, Pr. \ref{pr:cli}>>=
   fmt.Fprintf(w, "%d\t%s\t%g\t%g\n",
 	  i,
 	  ancestors[i].Label,
@@ -400,9 +424,10 @@ We import \ty{exec}.
   "os/exec"
 #+end_src
 #+begin_src latex
-We run our tests on the tree in file \ty{test.nwk} with starting node
-303. Using these two inputs, we construct two tests, one with only
-default options, the other with the ``down'' option, \ty{-d}.
+  We run our tests on the tree in file \ty{test.nwk} with starting node
+  303, or 303 and 304. Using these two inputs, we construct three tests,
+  one with only default options, the other with the ``down'' option,
+  \ty{-d}, the third with the regex option, \ty{-r}.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:cli}>>=
   f := "test.nwk"
@@ -411,10 +436,13 @@ default options, the other with the ``down'' option, \ty{-d}.
   tests = append(tests, test)
   test = exec.Command("./climt", "-d", s, f)
   tests = append(tests, test)
+  s = "^30[34]$"
+  test = exec.Command("./climt", "-r", s, f)
+  tests = append(tests, test)
 #+end_src
 #+begin_src latex
-For a given test we compare the result we get with the result we want,
-which is stored in files \ty{r1.txt} and \ty{r2.txt}.
+  For a given test we compare the result we get with the result we want,
+  which is stored in files \ty{r1.txt}, \ty{r2.txt}, or \ty{r3.txt}.
 #+end_src
 #+begin_src go <<Run test, Pr. \ref{pr:cli}>>=
   get, err := test.Output()

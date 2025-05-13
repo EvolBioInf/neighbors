@@ -10,21 +10,26 @@ import (
 	"log"
 	"math"
 	"os"
+	"regexp"
 	"text/tabwriter"
 )
 
 func scan(r io.Reader, args ...interface{}) {
-	start := args[0].(string)
-	optD := args[1].(*bool)
+	start := args[0].(*regexp.Regexp)
+	down := args[1].(bool)
 	sc := nwk.NewScanner(r)
 	for sc.Scan() {
 		root := sc.Tree()
-		var v *nwk.Node
-		findStart(root, &v, start)
-		if v == nil {
-			os.Exit(1)
-		}
-		if *optD {
+		findStart(root, down, start)
+	}
+}
+func findStart(root *nwk.Node, down bool, start *regexp.Regexp) {
+	if root == nil {
+		return
+	}
+	if start.MatchString(root.Label) {
+		v := root
+		if down {
 			children := make([]*nwk.Node, 0)
 			np := v.Child
 			for np != nil {
@@ -39,7 +44,7 @@ func scan(r io.Reader, args ...interface{}) {
 					fmt.Fprint(w, "ren")
 				}
 				fmt.Fprint(w, "\n")
-				fmt.Fprintf(w, "%s\t", start)
+				fmt.Fprintf(w, "%s\t", v.Label)
 				for i, child := range children {
 					if i > 0 {
 						fmt.Fprint(w, " ")
@@ -56,7 +61,12 @@ func scan(r io.Reader, args ...interface{}) {
 				ancestors = append(ancestors, np)
 				np = np.Parent
 			}
-			cumLen := v.UpDistance(root)
+			cumLen := 0.0
+			np = v
+			for np != nil {
+				cumLen += np.Length
+				np = np.Parent
+			}
 			w := tabwriter.NewWriter(os.Stdout, 0, 1, 3, ' ', 0)
 			fmt.Fprint(w, "# Up\tNode\tBranch Length\t"+
 				"Cumulative Branch Length\n")
@@ -81,25 +91,18 @@ func scan(r io.Reader, args ...interface{}) {
 			w.Flush()
 		}
 	}
-}
-func findStart(root *nwk.Node, v **nwk.Node, start string) {
-	if root == nil {
-		return
-	}
-	if root.Label == start {
-		*v = root
-	}
-	findStart(root.Child, v, start)
-	findStart(root.Sib, v, start)
+	findStart(root.Child, down, start)
+	findStart(root.Sib, down, start)
 }
 func main() {
 	util.SetName("climt")
 	u := "climt [option]... v [inputFile]..."
-	p := "Climb a phylogenetic tree starting at node v."
-	e := "climt someTaxon foo.nwk"
+	p := "Climb a phylogenetic tree starting at v."
+	e := "climt -r 303 foo.nwk"
 	clio.Usage(u, p, e)
 	optV := flag.Bool("v", false, "version")
 	optD := flag.Bool("d", false, "climb down one level")
+	optR := flag.Bool("r", false, "v is a regular expression")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("climt")
@@ -108,7 +111,12 @@ func main() {
 	if len(args) == 0 {
 		log.Fatal("please provide a starting node")
 	}
-	start := args[0]
+	expr := args[0]
+	if !*optR {
+		expr = "^" + expr + "$"
+	}
+	start, err := regexp.Compile(expr)
+	util.Check(err)
 	files := args[1:]
-	clio.ParseFiles(files, scan, start, optD)
+	clio.ParseFiles(files, scan, start, *optD)
 }
