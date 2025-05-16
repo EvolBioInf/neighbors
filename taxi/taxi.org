@@ -72,7 +72,7 @@
   matching, the taxon name needs to be reformatted. The NCBI has a
   policy of using square brackets to indicate misclassification. For
   example, the species \emph{Haemophilus ducreyi} is currently stored as the
-  string \ty{[Haemophilus]  ducreyi. This seems to mainly affect genus names,
+  string \ty{[Haemophilus]  ducreyi}. This seems to mainly affect genus names,
   but not only, as shown by the name \ty{Pseudomonas [fluorescens] ATCC
     17400}. To account for this, we do two things in substring
   mode. First, we bracket the taxon name in wild-card characters,
