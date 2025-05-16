@@ -60,6 +60,7 @@ outliers/makeRes.sh
 outliers/outliers
 pickle/makeRes.sh
 pickle/pickle
+taxi/extraTests.sh
 taxi/taxi
 tutorial/*.db/
 tutorial/*.fasta

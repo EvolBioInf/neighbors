@@ -68,8 +68,15 @@
   We parse the options and respond to the version option (\ty{-v})
   first, as this would stop the program. Then we get the remaining
   arguments and check there are two of them, the names of the taxon and
-  the database. We store both names, and if the user opted for substring
-  matching, we bookend the taxon name with percent characters.
+  the database. We store both names. If the user opted for substring
+  matching, the taxon name needs to be reformatted. The NCBI has a
+  policy of using square brackets to indicate misclassification. For
+  example, the species \emph{Haemophilus ducreyi} is currently stored as the
+  string \ty{[Haemophilus]  ducreyi. This seems to mainly affect genus names,
+  but not only, as shown by the name \ty{Pseudomonas [fluorescens] ATCC
+    17400}. To account for this, we do two things in substring
+  mode. First, we bracket the taxon name in wild-card characters,
+  \verb+%+. Then we replace all blanks in the name by wild-cards.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:tax}>>=
   flag.Parse()
@@ -79,15 +86,16 @@
   name := args[0]
   db := args[1]
   if *optS {
-	  name = fmt.Sprintf("%%%s%%", name)
+	  name = "%" + name + "%"
+	  name = strings.ReplaceAll(name, " ", "%")
   }
 #+end_src
 #+begin_src latex
-  We import \ty{util} and \ty{fmt}.
+  We import \ty{util} and \ty{strings}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
   "github.com/evolbioinf/neighbors/util"
-  "fmt"
+  "strings"
 #+end_src
 #+begin_src latex
   If the user didn't provide a taxon and a database, we send a friendly
@@ -101,9 +109,10 @@
   }
 #+end_src
 #+begin_src latex
-  We import \ty{os}.
+  We import \ty{fmt} and \ty{os}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
+  "fmt"
   "os"
 #+end_src
 #+begin_src latex
@@ -183,8 +192,9 @@
   "os/exec"
 #+end_src
 #+begin_src latex
-  Our query is ``homo sapiens'', which we run in default mode and in
-  substring mode.
+  Our query is \emph{Homo sapiens}, which we run in default mode and in
+  substring mode. Note that string matching in SQL databases is
+  case-insensitive.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:tax}>>=
   q := "homo sapiens"

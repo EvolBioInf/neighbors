@@ -8,6 +8,7 @@ import (
 	"github.com/evolbioinf/neighbors/util"
 	"os"
 	"sort"
+	"strings"
 	"text/tabwriter"
 )
 
@@ -31,7 +32,8 @@ func main() {
 	name := args[0]
 	db := args[1]
 	if *optS {
-		name = fmt.Sprintf("%%%s%%", name)
+		name = "%" + name + "%"
+		name = strings.ReplaceAll(name, " ", "%")
 	}
 	taxdb := tdb.OpenTaxonomyDB(db)
 	taxa := taxdb.Taxids(name)
