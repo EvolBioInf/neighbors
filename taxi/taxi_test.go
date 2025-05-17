@@ -10,12 +10,16 @@ import (
 
 func TestTaxi(t *testing.T) {
 	var tests []*exec.Cmd
-	q := "homo sapiens"
-	d := "../data/test.db"
-	test := exec.Command("./taxi", q, d)
-	tests = append(tests, test)
-	test = exec.Command("./taxi", "-s", q, d)
-	tests = append(tests, test)
+	db := "../data/test.db"
+	taxa := []string{"homo sapiens",
+		"haemophilus ducreyi",
+		"pseudomonas fluorescens ATCC 17400"}
+	for _, taxon := range taxa {
+		test := exec.Command("./taxi", taxon, db)
+		tests = append(tests, test)
+		test = exec.Command("./taxi", "-s", taxon, db)
+		tests = append(tests, test)
+	}
 	for i, test := range tests {
 		get, err := test.Output()
 		if err != nil {

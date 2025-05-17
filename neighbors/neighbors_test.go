@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"os/exec"
 	"strconv"
 	"testing"
@@ -39,7 +39,7 @@ func TestNeighbors(t *testing.T) {
 			t.Errorf("couldn't run %q", test)
 		}
 		f := "r" + strconv.Itoa(i+1) + ".txt"
-		want, err := ioutil.ReadFile(f)
+		want, err := os.ReadFile(f)
 		if err != nil {
 			t.Errorf("couldn't open %q", f)
 		}

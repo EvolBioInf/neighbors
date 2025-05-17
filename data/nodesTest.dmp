@@ -1,21 +1,3 @@
-1159185	|	499232	|	subspecies	|	GB	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
-1294088	|	9598	|	subspecies	|	PT	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|		|
-1425170	|	9605	|	species	|	HH	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
-183511	|	9593	|	subspecies	|	GG	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
-207598	|	207598	|	subfamily	|		|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant	|
-2665952	|	9605	|	no rank	|		|	11	|	0	|	1	|	1	|	2	|	1	|	0	|	0	|	uncultured	|
-2665953	|	2665952	|	species	|	HS	|	11	|	1	|	1	|	1	|	2	|	1	|	0	|	0	|	uncultured	|
-2813598	|	9605	|	no rank	|		|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|		|
-2813599	|	2813598	|	species	|	HS	|	5	|	1	|	1	|	1	|	2	|	1	|	0	|	0	|		|
-37010	|	9598	|	subspecies	|	PT	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
-37011	|	9598	|	subspecies	|	PT	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
-37012	|	9598	|	subspecies	|	PT	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
-406788	|	9593	|	subspecies	|	GG	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
-46359	|	499232	|	subspecies	|	GB	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
-499232	|	9592	|	species	|	GB	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
-63221	|	9606	|	subspecies	|	HS	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
-741158	|	9606	|	subspecies	|	HS	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|		|
-756884	|	9598	|	subspecies	|	PT	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
 9592	|	207598	|	genus	|		|	5	|	1	|	1	|	1	|	2	|	1	|	0	|	0	|	code compliant	|
 9593	|	9592	|	species	|	GG	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
 9595	|	9593	|	subspecies	|	GG	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
@@ -24,3 +6,28 @@
 9598	|	9596	|	species	|	PT	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
 9605	|	207598	|	genus	|		|	5	|	1	|	1	|	1	|	2	|	1	|	0	|	0	|	code compliant	|
 9606	|	9605	|	species	|	HS	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+37010	|	9598	|	subspecies	|	PT	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+37011	|	9598	|	subspecies	|	PT	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+37012	|	9598	|	subspecies	|	PT	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+46359	|	499232	|	subspecies	|	GB	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+63221	|	9606	|	subspecies	|	HS	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+183511	|	9593	|	subspecies	|	GG	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+207598	|	207598	|	subfamily	|		|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant	|
+406788	|	9593	|	subspecies	|	GG	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+499232	|	9592	|	species	|	GB	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+741158	|	9606	|	subspecies	|	HS	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|		|
+756884	|	9598	|	subspecies	|	PT	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+1159185	|	499232	|	subspecies	|	GB	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+1294088	|	9598	|	subspecies	|	PT	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|		|
+1425170	|	9605	|	species	|	HH	|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|	code compliant; specified	|
+2665952	|	9605	|	no rank	|		|	11	|	0	|	1	|	1	|	2	|	1	|	0	|	0	|	uncultured	|
+2665953	|	2665952	|	species	|	HS	|	11	|	1	|	1	|	1	|	2	|	1	|	0	|	0	|	uncultured	|
+2813598	|	9605	|	no rank	|		|	5	|	1	|	1	|	1	|	2	|	1	|	1	|	0	|		|
+2813599	|	2813598	|	species	|	HS	|	5	|	1	|	1	|	1	|	2	|	1	|	0	|	0	|		|
+730	|	724	|	species	|	HD	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+233412	|	730	|	strain	|		|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|		|
+1005044	|	730	|	strain	|		|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|		|
+1005045	|	730	|	strain	|		|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|		|
+1005046	|	730	|	strain	|		|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|		|
+1005047	|	730	|	strain	|		|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|		|
+3344738	|	219574	|	strain	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|		|

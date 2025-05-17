@@ -1,60 +1,3 @@
-1159185	|	eastern mountain gorilla	|		|	genbank common name	|
-1159185	|	Gorilla beringei beringei Matschie, 1903	|		|	authority	|
-1159185	|	Gorilla beringei beringei	|		|	scientific name	|
-1159185	|	Gorilla gorilla beringei	|		|	synonym	|
-1294088	|	Pan troglodytes verus x Pan troglodytes troglodytes	|		|	synonym	|
-1294088	|	Pan troglodytes verus x troglodytes	|		|	scientific name	|
-1425170	|	Heidelberg man	|		|	genbank common name	|
-1425170	|	Homo heidelbergensis Schoetensack, 1908	|		|	authority	|
-1425170	|	Homo heidelbergensis	|		|	scientific name	|
-183511	|	Gorilla gorilla uellensis	|		|	scientific name	|
-207598	|	Homininae	|		|	scientific name	|
-207598	|	Homo/Pan/Gorilla group	|		|	synonym	|
-2665952	|	environmental samples	|	environmental samples <primates>	|	scientific name	|
-2665953	|	Homo sapiens environmental sample	|		|	scientific name	|
-2813598	|	unclassified Homo	|		|	scientific name	|
-2813599	|	Homo sp.	|		|	scientific name	|
-37010	|	Pan troglodytes schweinfurthii	|		|	scientific name	|
-37011	|	Pan troglodytes troglodytes	|		|	scientific name	|
-37011	|	Simia troglodytes troglodytes Linnaeus, 1758	|		|	authority	|
-37011	|	Simia troglodytes troglodytes	|		|	synonym	|
-37012	|	Pan troglodytes verus Schwarz, 1934	|		|	authority	|
-37012	|	Pan troglodytes verus	|		|	scientific name	|
-406788	|	Cross River gorilla	|		|	genbank common name	|
-406788	|	Gorilla gorilla diehli Matschie, 1903	|		|	authority	|
-406788	|	Gorilla gorilla diehli	|		|	scientific name	|
-46359	|	eastern lowland gorilla	|		|	genbank common name	|
-46359	|	Gorilla beringei graueri Matschie, 1914	|		|	authority	|
-46359	|	Gorilla beringei graueri	|		|	scientific name	|
-46359	|	Gorilla gorilla graueri	|		|	synonym	|
-499232	|	eastern gorilla	|		|	genbank common name	|
-499232	|	Gorilla beringei Matschie, 1903	|		|	authority	|
-499232	|	Gorilla beringei	|		|	scientific name	|
-499232	|	gorilla	|	gorilla <Gorilla beringei>	|	common name	|
-499232	|	highland gorilla	|		|	common name	|
-499232	|	mountain gorilla	|		|	common name	|
-63221	|	Feldhofer 1	|	Feldhofer 1 <holotype>	|	type material	|
-63221	|	Homo neanderthalensis	|		|	synonym	|
-63221	|	Homo sapiens neanderthalensis King, 1864	|		|	authority	|
-63221	|	Homo sapiens neanderthalensis	|		|	scientific name	|
-63221	|	Neandertal	|		|	genbank common name	|
-63221	|	Neandertal man	|		|	common name	|
-63221	|	Neanderthal 1	|	Neanderthal 1 <holotype>	|	type material	|
-63221	|	Neanderthal	|		|	common name	|
-63221	|	Neanderthal man	|		|	common name	|
-741158	|	Denisova hominin	|		|	genbank common name	|
-741158	|	Denisovan	|		|	common name	|
-741158	|	Denisovans	|		|	common name	|
-741158	|	Homo sapiens ssp. 'Denisova'	|		|	equivalent name	|
-741158	|	Homo sapiens ssp. Denisova	|		|	equivalent name	|
-741158	|	Homo sapiens subsp. 'Denisova'	|		|	scientific name	|
-741158	|	Homo sp. Altai	|		|	synonym	|
-756884	|	Anthropopithecus ellioti Matschie, 1914	|		|	authority	|
-756884	|	Anthropopithecus ellioti	|		|	synonym	|
-756884	|	Pan troglodytes elliotii	|		|	synonym	|
-756884	|	Pan troglodytes ellioti (Matschie, 1914)	|		|	authority	|
-756884	|	Pan troglodytes ellioti	|		|	scientific name	|
-756884	|	Pan troglodytes vellerosus	|		|	synonym	|
 9592	|	Gorilla I. Geoffroy, 1852	|		|	authority	|
 9592	|	Gorilla	|		|	scientific name	|
 9593	|	gorilla	|	gorilla <Gorilla gorilla>	|	common name	|
@@ -84,3 +27,90 @@
 9606	|	Homo sapiens Linnaeus, 1758	|		|	authority	|
 9606	|	Homo sapiens	|		|	scientific name	|
 9606	|	human	|		|	genbank common name	|
+37010	|	Pan troglodytes schweinfurthii	|		|	scientific name	|
+37011	|	Pan troglodytes troglodytes	|		|	scientific name	|
+37011	|	Simia troglodytes troglodytes Linnaeus, 1758	|		|	authority	|
+37011	|	Simia troglodytes troglodytes	|		|	synonym	|
+37012	|	Pan troglodytes verus Schwarz, 1934	|		|	authority	|
+37012	|	Pan troglodytes verus	|		|	scientific name	|
+46359	|	eastern lowland gorilla	|		|	genbank common name	|
+46359	|	Gorilla beringei graueri Matschie, 1914	|		|	authority	|
+46359	|	Gorilla beringei graueri	|		|	scientific name	|
+46359	|	Gorilla gorilla graueri	|		|	synonym	|
+63221	|	Feldhofer 1	|	Feldhofer 1 <holotype>	|	type material	|
+63221	|	Homo neanderthalensis	|		|	synonym	|
+63221	|	Homo sapiens neanderthalensis King, 1864	|		|	authority	|
+63221	|	Homo sapiens neanderthalensis	|		|	scientific name	|
+63221	|	Neandertal	|		|	genbank common name	|
+63221	|	Neandertal man	|		|	common name	|
+63221	|	Neanderthal 1	|	Neanderthal 1 <holotype>	|	type material	|
+63221	|	Neanderthal	|		|	common name	|
+63221	|	Neanderthal man	|		|	common name	|
+183511	|	Gorilla gorilla uellensis	|		|	scientific name	|
+207598	|	Homininae	|		|	scientific name	|
+207598	|	Homo/Pan/Gorilla group	|		|	synonym	|
+406788	|	Cross River gorilla	|		|	genbank common name	|
+406788	|	Gorilla gorilla diehli Matschie, 1903	|		|	authority	|
+406788	|	Gorilla gorilla diehli	|		|	scientific name	|
+499232	|	eastern gorilla	|		|	genbank common name	|
+499232	|	Gorilla beringei Matschie, 1903	|		|	authority	|
+499232	|	Gorilla beringei	|		|	scientific name	|
+499232	|	gorilla	|	gorilla <Gorilla beringei>	|	common name	|
+499232	|	highland gorilla	|		|	common name	|
+499232	|	mountain gorilla	|		|	common name	|
+741158	|	Denisova hominin	|		|	genbank common name	|
+741158	|	Denisovan	|		|	common name	|
+741158	|	Denisovans	|		|	common name	|
+741158	|	Homo sapiens ssp. 'Denisova'	|		|	equivalent name	|
+741158	|	Homo sapiens ssp. Denisova	|		|	equivalent name	|
+741158	|	Homo sapiens subsp. 'Denisova'	|		|	scientific name	|
+741158	|	Homo sp. Altai	|		|	synonym	|
+756884	|	Pan troglodytes elliotii	|		|	synonym	|
+756884	|	Pan troglodytes ellioti (Matschie, 1914)	|		|	authority	|
+756884	|	Pan troglodytes ellioti	|		|	scientific name	|
+756884	|	Pan troglodytes vellerosus	|		|	synonym	|
+1159185	|	eastern mountain gorilla	|		|	genbank common name	|
+1159185	|	Gorilla beringei beringei Matschie, 1903	|		|	authority	|
+1159185	|	Gorilla beringei beringei	|		|	scientific name	|
+1159185	|	Gorilla gorilla beringei	|		|	synonym	|
+1294088	|	Pan troglodytes verus x Pan troglodytes troglodytes	|		|	synonym	|
+1294088	|	Pan troglodytes verus x troglodytes	|		|	scientific name	|
+1425170	|	Heidelberg man	|		|	genbank common name	|
+1425170	|	Homo heidelbergensis Schoetensack, 1908	|		|	authority	|
+1425170	|	Homo heidelbergensis	|		|	scientific name	|
+2665952	|	environmental samples	|	environmental samples <primates>	|	scientific name	|
+2665953	|	Homo sapiens environmental sample	|		|	scientific name	|
+2813598	|	unclassified Homo	|		|	scientific name	|
+2813599	|	Homo sp.	|		|	scientific name	|
+730	|	ATCC 33940	|	ATCC 33940 <type strain>	|	type material	|
+730	|	"Bacillus ulceris cancrosi" Kruse 1896	|		|	authority	|
+730	|	Bacillus ulceris cancrosi	|		|	synonym	|
+730	|	CCUG 4438	|	CCUG 4438 <type strain>	|	type material	|
+730	|	CIP 54.2	|	CIP 54.2 <type strain>	|	type material	|
+730	|	"Coccobacillus ducreyi" Neveu-Lemaire 1921	|		|	authority	|
+730	|	Coccobacillus ducreyi	|		|	synonym	|
+730	|	DSM 8925	|	DSM 8925 <type strain>	|	type material	|
+730	|	Haemophilus ducreyi (Neveu-Lemaire 1921) Bergey et al. 1923	|		|	authority	|
+730	|	[Haemophilus] ducreyi	|		|	scientific name	|
+730	|	Haemophilus ducreyi	|		|	synonym	|
+730	|	NCTC 10945	|	NCTC 10945 <type strain>	|	type material	|
+233412	|	[Haemophilus] ducreyi 35000HP	|		|	scientific name	|
+233412	|	Haemophilus ducreyi 35000HP	|		|	synonym	|
+233412	|	Haemophilus ducreyi str. 35000HP	|		|	synonym	|
+1005044	|	[Haemophilus] ducreyi 025	|		|	scientific name	|
+1005044	|	Haemophilus ducreyi 025	|		|	synonym	|
+1005044	|	Haemophilus ducreyi str. 025	|		|	equivalent name	|
+1005044	|	Haemophilus ducreyi strain 025	|		|	equivalent name	|
+1005045	|	[Haemophilus] ducreyi 511	|		|	scientific name	|
+1005045	|	Haemophilus ducreyi 511	|		|	synonym	|
+1005045	|	Haemophilus ducreyi str. 511	|		|	equivalent name	|
+1005045	|	Haemophilus ducreyi strain 511	|		|	equivalent name	|
+1005046	|	[Haemophilus] ducreyi ATCC 33921	|		|	scientific name	|
+1005046	|	Haemophilus ducreyi ATCC 33921	|		|	synonym	|
+1005046	|	Haemophilus ducreyi strain ATCC 33921	|		|	equivalent name	|
+1005046	|	Haemophilus ducreyi str. ATCC 33921	|		|	equivalent name	|
+1005047	|	[Haemophilus] ducreyi HMC112	|		|	scientific name	|
+1005047	|	Haemophilus ducreyi HMC112	|		|	synonym	|
+1005047	|	Haemophilus ducreyi strain HMC112	|		|	equivalent name	|
+1005047	|	Haemophilus ducreyi str. HMC112	|		|	equivalent name	|
+3344738	|	Pseudomonas [fluorescens] ATCC 17400	|		|	scientific name	|

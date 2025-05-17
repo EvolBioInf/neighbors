@@ -690,7 +690,7 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
 	  t.Errorf("couldn't run %q", test)
   }
   f := "r" + strconv.Itoa(i+1) + ".txt"
-  want, err := ioutil.ReadFile(f)
+  want, err := os.ReadFile(f)
   if err != nil {
 	  t.Errorf("couldn't open %q", f)
   }
@@ -699,9 +699,9 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   }
 #+end_src
 #+begin_src latex
-  We import \ty{ioutil} and \ty{bytes}.
+  We import \ty{os} and \ty{bytes}.
 #+end_src
 #+begin_src go <<Testing imports, Pr. \ref{pr:neig}>>=
-  "io/ioutil"
+  "os"
   "bytes"
 #+end_src

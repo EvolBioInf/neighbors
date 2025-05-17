@@ -6,7 +6,7 @@
 9597     species     7        Pan paniscus
 9598     species     12       Pan troglodytes
 9605     genus       0        Homo
-9606     species     1846     Homo sapiens
+9606     species     1851     Homo sapiens
 37010    subspecies  0        Pan troglodytes schweinfurthii
 37011    subspecies  0        Pan troglodytes troglodytes
 37012    subspecies  1        Pan troglodytes verus
