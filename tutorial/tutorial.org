@@ -27,9 +27,9 @@
   genomes, markers are extracted from them with
   \ty{fur}\footnote{\ty{https://github.com/evolbioinf/fur}}.
 
-  I occasionally cite run times to give users an idea of how long a step
-  may take. I made these measurements on my run-of-the-mill laptop with
-  16 12th Gen Intel i7 CPUs and 32\,MB memory running WSL under
+  I occasionally cite run times to give readers an idea of how long a
+  step may take. I made these measurements on my run-of-the-mill laptop
+  with 16 12th Gen Intel i7 CPUs and 32\,MB memory running WSL under
   Windows11.
 
   \section*{Construct Database}
@@ -46,7 +46,7 @@
   where \ty{path2} is \ty{genomes/ASSEMBLY\_REPORTS} and \ty{source} is
   either \ty{genbank} or \ty{refseq}.  The database dump and the
   assembly reports are updated regularly. To ensure the stability of
-  this Tutorial, we use files downloaded on 28th April 2025:
+  this tutorial, we use files downloaded on 28th April 2025:
 #+end_src
 #+begin_src sh <<db.sh>>=
   wget owncloud.gwdg.de/index.php/s/sNVcgHAkc1JHVPq/download \
@@ -61,9 +61,9 @@
   cd neidb_280425
 #+end_src
 #+begin_src latex
-  We now use \ty{makeNeiDb} to construct the taxonomy database,
-  \ty{neidb}. This takes less than a minute. Then we move the database
-  to the parent directory and return there.
+  We now construct the taxonomy database, \ty{neidb}, with
+  \ty{makeNeiDb}. This takes less than a minute. Then we move the
+  database to the parent directory and return there.
 #+end_src
 #+begin_src sh <<db.sh>>=
   makeNeiDb
@@ -83,7 +83,11 @@
   \emph{Legionella pneumophila}, the type strain of which is \emph{L.
   pneumophila subsp. pneumophila str. Philadelphia 1}. We look up its
   taxon-ID, 272624, using \ty{taxi} in substring mode (\ty{-s}). All
-  matching in the database is case insensitive.
+  matching in the database is case insensitive. In substring mode,
+  \ty{taxi} searches for a string ``\verb+a b+'' as ``\verb+%a%b%+,
+  where \verb+%+ matches any string. Hence the extra match to the
+  Influenza A virus whose name contains ``Philadelphia'' followed by
+  ``1''.
 #+end_src
 #+begin_src sh <<query.sh>>=
   taxi -s "philadelphia 1" neidb
@@ -91,31 +95,24 @@
 #+begin_src latex
   \begin{verbatim}
   # ID      Parent  Name
-    272624  91891   Legionella pneumophila...
+    272624  91891   Legionella pneumophila...Philadelphia 1
+    884952  119211  Influenza A...Philadelphia/6371...
   \end{verbatim}
-  We can look at the ancestors of our type strain using \ty{ants}. This
-  suggests that we should be targeting the subspecies
-  \emph{pneumophila}, with taxon-ID 91891.
+  We can look at the ancestors of our type strain using \ty{ants}. The
+  result in Table~\ref{tab:pic} suggests that we should be targeting the
+  subspecies \emph{pneumophila}, with taxon-ID 91891.
+  \begin{table}
+    \caption{The taxonomic ancestors of \emph{Legionella pneumohila
+      subsp. pneumophila str. Philadelphia 1.}}\label{tab:pic}
+      \begin{center}
+	\input{../tutorial/pic}
+    \end{center}
+  \end{table}
 #+end_src
 #+begin_src sh <<query.sh>>=
   ants 272624 neidb
 #+end_src
 #+begin_src latex
-  \begin{verbatim}
-  # Back  ID       Name                        Rank
-    11    1        root                        no rank
-    10    131567   cellular organisms          cellular root
-    9     2        Bacteria                    domain
-    8     3379134  Pseudomonadati              kingdom
-    7     1224     Pseudomonadota              phylum
-    6     1236     Gammaproteobacteria         class
-    5     118969   Legionellales               order
-    4     444      Legionellaceae              family
-    3     445      Legionella                  genus
-    2     446      Legionella pneumophila      species
-    1     91891    Legionella pneumophila ...  subspecies
-    0     272624   Legionella pneumophila ...  strain
-  \end{verbatim}
   To get the neighbors of a given target, we visit its parent. So let's
   use the program \ty{dree} to draw the tree rooted on our target's
   parent, the tree for the species \emph{L. pneumophila} with taxon-ID
@@ -192,9 +189,9 @@
   presence or absence of color, we can list the individual nodes of the
   taxonomy with the counts of the associated genomes. Some of these
   genome counts are quite large, starting with the 6,768 genomes
-  associated with the species \emph{Legionella pneumophila}. The range
-  of genome counts becomes particularly clear if we sort according to
-  it.
+  associated with the species \emph{Legionella pneumophila}. The
+  distribution of genome counts becomes clearer when we sort according
+  to it.
 #+end_src
 #+begin_src sh <<query.sh>>=
   dree -n -g -l 446 neidb |
@@ -310,16 +307,16 @@
   ...
   \end{verbatim}
 
-  I've edited the output of \ty{neighbors} above and of other programs
-  in subsequent sections to fit the printed page. The output begins with
-  three hashed lines. The first states the most recent common ancestor
-  of the targets, \emph{L. pneumophila subsp. pneumophila}, with
-  taxon-ID 91891. The second line states the most recent common ancestor
-  of the neighbors \emph{and} the targets, \emph{L. pneumophila} with
-  taxon-ID 446. The third line is the header of the subsequent table,
-  which consists of four columns, type, taxon-ID, name, and
-  genomes. There are three possible types, ``t'' for known target,
-  ``tt'' for new target, and ``n'' for neighbor.
+  I've edited the output of \ty{neighbors} above and also of other
+  programs throughout this tutorial for clarity and to fit the printed
+  page. The output begins with three hashed lines. The first states the
+  most recent common ancestor of the targets, \emph{L. pneumophila
+  subsp. pneumophila}, with taxon-ID 91891. The second line states the
+  most recent common ancestor of the neighbors \emph{and} the targets,
+  \emph{L. pneumophila} with taxon-ID 446. The third line is the header
+  of the subsequent table, which consists of four columns, type,
+  taxon-ID, name, and genomes. There are three possible types, ``t'' for
+  known target, ``tt'' for new target, and ``n'' for neighbor.
 
   To download the target and neighbor genomes, we need the genome
   accessions. These are a bit tricky to extract from the current
@@ -420,7 +417,8 @@ We rehydrate the 22 neighbor genomes.
   datasets rehydrate --directory ndata
 #+end_src
 #+begin_src latex
-  For easier handling, we move all 45 genomes into a new directory,
+  To remind us that the final division into targets and neighbors is
+  still pending, we move all 45 genomes into a common directory,
   \ty{all}. We begin with the targets. To help us later divide the data
   into true, i. e. phylogenetic, targets and neighbors, we prefix the
   names of the target genomes with \ty{t}.
@@ -499,16 +497,17 @@ with prefix \ty{n}.
 #+end_src
 #+begin_src latex
   In Figure~\ref{fig:lpn} the subspecies are given, but not on the raw
-  tree we just plotted with \ty{plotTree}. First of all, node 16
-  contains all targets, so it is presumably
-  \emph{subsp. pneumophila}. To annotate the two remaining clades rooted
-  on node 2, we look for a leaf from one of the two remaining
-  subspecies, say \emph{fraseri}. However, leaves are labeled by their
-  file name without any taxon information, which is included in the
+  tree we just plotted with \ty{plotTree}. To find the subspecies, we
+  first of all observe that node 16 contains all targets, so it is
+  presumably \emph{subsp. pneumophila}. To annotate the two remaining
+  clades rooted on node 2, we look for a leaf from one of the two
+  remaining subspecies, say \emph{fraseri}. However, leaves are labeled
+  by file name without any taxon information, which is included in the
   header lines inside the sequence files. We list both the file name and
-  the header line by calling on all input files. Then we filter for
-  \emph{fraseri}, which we output together with the corresponding file
-  name in the preceding line. We restrict our output to the first hit.
+  the header line by calling \ty{head} on all input files. Then we
+  filter for \emph{fraseri}, which we output together with the
+  corresponding file name in the preceding line. We restrict our output
+  to the first two lines containing the first hit.
 #+end_src
 #+begin_src sh <<small.sh>>=
   head -n 1 all/*.fna |
@@ -520,12 +519,16 @@ with prefix \ty{n}.
   ==> all/nGCA_003003865.1_ASM300386v1_genomic.fna <==
   >CP021257.1 Legionella pneumophila subsp. fraseri...
   \end{verbatim}
-  Now we climb from the \emph{fraseri} accession we just found,
+  We climb from the \emph{fraseri} accession we just found,
   \ty{GCA\_003003865}, toward the root using \ty{climt} in regex
-  mode. This shows that node 8 is on this path, so we hypothesize that
-  clade 8 is \emph{subsp. fraseri}.
+  mode. Since node 8 is on this path, so hypothesize that clade 8 is
+  \emph{subsp. fraseri}.
 #+end_src
 #+begin_src sh <<small.sh>>=
+  climt -r 003003865 lpn.nwk
+#+end_src
+#+begin_src latex
+  \begin{verbatim}
   # Up   Node               Branch Length   Cumul...
   5      1                  0               0.032798
   4      2                  0.0095          0.023298
@@ -533,15 +536,14 @@ with prefix \ty{n}.
   2      9                  0.000348        0.00645
   1      10                 0.00354         0.00291
   0      nGCA_003003865...  0.00291         0
-#+end_src
-#+begin_src latex
-  To test this hypothesis, we check the headers of the accessions in
-  clade 8 and find that they all belong to \emph{fraseri}.
+  \end{verbatim}
+  To further explore this hypothesis, we check the headers of the
+  accessions in clade 8 and find that they all belong to \emph{fraseri}.
 #+end_src
 #+begin_src sh <<small.sh>>=
   pickle 8 lpn.nwk |
       grep -v '^#' |
-      while read a b; do
+      while read a; do
 	  head -n 1 all/$a
       done
 #+end_src
@@ -554,13 +556,13 @@ with prefix \ty{n}.
   \end{verbatim}
 
   This implies that clade 3 is \emph{pascullei}, and if we check the
-  headers of the genomes in this clade, they indeed are all classified
-  as \emph{pascullei}.
+  headers of the genomes in this clade, they indeed all belong to
+  \emph{pascullei}.
 #+end_src
 #+begin_src sh <<small.sh>>=
   pickle 3 lpn.nwk |
       grep -v '^#' |
-      while read a b; do
+      while read a; do
 	  head -n 1 all/$a
       done
 #+end_src
@@ -574,13 +576,23 @@ with prefix \ty{n}.
       grep -c '^n'
 #+end_src
 #+begin_export latex
+Since all annotated subspecies are in the right place on the
+phylogeny, these seven taxonomic neighbors in the target clade must
+belong to the taxa outside the subspecies in
+Figure~\ref{fig:446s}. There are six such taxa, 297245, 297246,
+400673, 423212, 866628, and 933093. Table~\ref{tab:gen} shows that
+with the exception of taxon 866628 they contain one genome each, taxon
+866628 contains two genomes. In other words, all seven stray genomes
+outside the three canonical subspecies in Figure~\ref{fig:446s} belong
+to subspecies \emph{pneumophila}.
+
 We follow the phylogeny and call everything inside clade 16 a
 target. In Figure~\ref{fig:lpn} it is easy to pick the target clade by
 eye. However, in densely sequenced taxa the number of targets and
 neighbors is often so large as to render the resulting tree
-illegible. In such a situation we can find the target clade using the
-program \ty{fintac} (Neighbors). As expected, it picks clade 16 from
-our example tree, and reports that this clade contains all 23
+illegible. In such a situation we can still find the target clade
+using the program \ty{fintac} (Neighbors). As expected, it picks clade
+16 from our example tree, and reports that this clade contains all 23
 taxonomic targets and the 7 taxonomic neighbors we just counted
 directly. According to equation~(\ref{eq:spl}), this ratio of targets
 and neighbors leads to a split of
@@ -612,7 +624,7 @@ Figure~\ref{fig:lpn}.
   pickle 16 lpn.nwk |
       grep -v '^#' |
       while read a; do
-	  ln -s $(pwd)/all/$a $(pwd)/targets/$a
+	  ln -s $(pwd)/all/$a targets/$a
       done
 #+end_src
 #+begin_src latex
@@ -624,7 +636,7 @@ Figure~\ref{fig:lpn}.
   pickle -c 16 lpn.nwk |
       grep -v '^#' |
       while read a; do
-	  ln -s $(pwd)/all/$a $(pwd)/neighbors/$a
+	  ln -s $(pwd)/all/$a neighbors/$a
       done
 #+end_src
 #+begin_src latex
@@ -635,9 +647,9 @@ Figure~\ref{fig:lpn}.
   makeFurDb -t targets/ -n neighbors/ -d lpn.db
 #+end_src
 #+begin_src latex
-  We apply \ty{fur} to the database, which takes nine seconds and
-  returns 24 fragments totalling 9.1\,kb marker candidates with 0.7\,kb
-  \ty{N}s. We save the potential markers in the file \ty{lpn.fasta}.
+  We apply \ty{fur} to the database, which takes 9\,s and returns 24
+  fragments totalling 9.1\,kb marker candidates with 0.7\,kb \ty{N}s. We
+  save the potential markers in the file \ty{lpn.fasta}.
 #+end_src
 #+begin_src sh <<small.sh>>=
   fur -d lpn.db > lpn.fasta
@@ -651,7 +663,7 @@ Figure~\ref{fig:lpn}.
     Subtraction_2         24     9085    704
   \end{verbatim}
 #+end_src
-#+begin_src sh <<small.sh>>=
+#+begin_src latex
   We are done with our small analysis and return to the parent directory.
 #+end_src
 #+begin_src sh <<small.sh>>=
@@ -659,7 +671,7 @@ Figure~\ref{fig:lpn}.
 #+end_src
 #+begin_src latex
   \section*{Large Analysis---All \emph{L. pneumophila} Genomes}
-  As we already noticed at the beginning of this tutorial,
+  As we already saw at the beginning of this tutorial,
   Table~\ref{tab:gen} contains 138 genomes only associated with the
   species \emph{L. pneumophila}. In other words, there are three times
   more genomes than the 45 we analyzed so far still awaiting
@@ -667,7 +679,7 @@ Figure~\ref{fig:lpn}.
   subspecies, perhaps we can still make use of them. So our plan is to
   add these 138 genomes as ``unknown'' to the analysis in the hope that
   the distribution of known taxonomic targets and neighbors will allow
-  us to also divide the unknowns into targets of neighbors, thus making
+  us to also divide the unknowns into targets and neighbors, thus making
   use of all data available.
 
   We make the directory \ty{large} and change into it.
@@ -678,8 +690,8 @@ Figure~\ref{fig:lpn}.
 #+end_src
 #+begin_src latex
   We run \ty{neighbors} using as target the species
-  \emph{L. pneumophila}, taxon-ID 446. We save the unknown accessions in
-  \ty{uacc.txt}.
+  \emph{L. pneumophila}, taxon-ID 446 (Table~\ref{tab:pic}. We save the
+  unknown accessions in \ty{uacc.txt}.
 #+end_src
 #+begin_src sh <<large.sh>>=
   neighbors -t 446 -l -L complete,chromosome ../neidb |
@@ -697,8 +709,10 @@ Figure~\ref{fig:lpn}.
   wc -l uacc.txt
 #+end_src
 #+begin_src latex
-  We subtract the 25 taxonomic target accessions in \ty{tacc.txt} from
-  \ty{uacc.txt} and make sure we retain $185-25=160$ accessions.
+  Since we already dealt with 47 of the 185 accessions in the small
+  analysis, we subtract the target and neighbor accessions from that
+  analysis from \ty{uacc.txt}. We begin with the 25 taxonomic target
+  accessions and make sure we retain $185-25=160$ accessions.
 #+end_src
 #+begin_src sh <<large.sh>>=
   grep -v -f ../small/tacc.txt uacc.txt > tmp.txt
@@ -706,9 +720,10 @@ Figure~\ref{fig:lpn}.
   mv tmp.txt uacc.txt
 #+end_src
 #+begin_src latex
-  We subtract the 22 taxonomic neighbor accessions in \ty{nacc.txt} from
-  \ty{uacc.txt} and make sure we retain $160-22=138$ accessions, the 138
-  accessions listed for taxon 446 in Table~\ref{tab:gen}.
+  Similarly, we subtract the 22 taxonomic neighbor accessions in
+  \ty{nacc.txt} from \ty{uacc.txt} and make sure we retain $160-22=138$
+  accessions, the 138 accessions listed for taxon 446 in
+  Table~\ref{tab:gen}.
 #+end_src
 #+begin_src sh <<large.sh>>=
   grep -v -f ../small/nacc.txt uacc.txt > tmp.txt
@@ -770,9 +785,7 @@ Figure~\ref{fig:lpn}.
   it, and label its nodes. Then we saved the tree in file \ty{lpn.nwk}.
 #+end_src
 #+begin_src sh <<large.sh>>=
-  nj lpn.dist |
-      midRoot |
-      land > lpn.nwk
+  nj lpn.dist | midRoot | land > lpn.nwk
 #+end_src
 #+begin_src latex
   In our tree the targets should be rooted on the node that maximizes
@@ -817,7 +830,7 @@ genomes in clade 25.
   pickle 25 lpn.nwk |
       grep -v '^#' |
       while read a; do
-	  ln -s $(pwd)/all/$a $(pwd)/targets/$a
+	  ln -s $(pwd)/all/$a targets/$a
       done
 #+end_src
 #+begin_src latex
@@ -829,7 +842,7 @@ genomes in clade 25.
   pickle -c 25 lpn.nwk |
       grep -v '^#' |
       while read a; do
-	  ln -s $(pwd)/all/$a $(pwd)/neighbors/$a
+	  ln -s $(pwd)/all/$a neighbors/$a
       done
 #+end_src
 #+begin_src latex

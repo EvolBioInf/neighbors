@@ -40,21 +40,15 @@ sed -E 's/([nt])[^f]*fna/\1/g' lpn.nwk |
 head -n 1 all/*.fna |
     grep -B 1 fraseri |
     head -n 2
-# Up   Node               Branch Length   Cumul...
-5      1                  0               0.032798
-4      2                  0.0095          0.023298
-3      8                  0.0165          0.006798
-2      9                  0.000348        0.00645
-1      10                 0.00354         0.00291
-0      nGCA_003003865...  0.00291         0
+climt -r 003003865 lpn.nwk
 pickle 8 lpn.nwk |
     grep -v '^#' |
-    while read a b; do
+    while read a; do
           head -n 1 all/$a
     done
 pickle 3 lpn.nwk |
     grep -v '^#' |
-    while read a b; do
+    while read a; do
           head -n 1 all/$a
     done
 pickle 16 lpn.nwk |
@@ -64,15 +58,14 @@ mkdir targets
 pickle 16 lpn.nwk |
     grep -v '^#' |
     while read a; do
-          ln -s $(pwd)/all/$a $(pwd)/targets/$a
+          ln -s $(pwd)/all/$a targets/$a
     done
 mkdir neighbors
 pickle -c 16 lpn.nwk |
     grep -v '^#' |
     while read a; do
-          ln -s $(pwd)/all/$a $(pwd)/neighbors/$a
+          ln -s $(pwd)/all/$a neighbors/$a
     done
 makeFurDb -t targets/ -n neighbors/ -d lpn.db
 fur -d lpn.db > lpn.fasta
-We are done with our small analysis and return to the parent directory.
 cd ../
