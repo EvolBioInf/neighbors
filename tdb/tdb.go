@@ -193,6 +193,32 @@ func (d *TaxonomyDB) FilterAccessions(acc []string,
 	return newAcc
 }
 
+// The method NumTaxa returns the number of taxa in the database.
+func (d *TaxonomyDB) NumTaxa() int {
+	n := 0
+	q := "select count(*) from taxon"
+	row, err := d.db.Query(q)
+	util.Check(err)
+	defer row.Close()
+	row.Next()
+	err = row.Scan(&n)
+	util.Check(err)
+	return n
+}
+
+// The method NumGenomes returns the number of genomes in the  database.
+func (d *TaxonomyDB) NumGenomes() int {
+	n := 0
+	q := "select count(*) from genome"
+	row, err := d.db.Query(q)
+	util.Check(err)
+	defer row.Close()
+	row.Next()
+	err = row.Scan(&n)
+	util.Check(err)
+	return n
+}
+
 // NewTaxonomyDB takes as parameters the names
 // of the four data files and the database name,
 // and constructs the database from them.

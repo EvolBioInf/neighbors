@@ -1034,6 +1034,86 @@ parent and reset the parent slice to empty.
   }
   return newAcc
 #+end_src
+#+begin_export latex
+\subsection{\ty{NumTaxa}}
+! The method \ty{NumTaxa} returns the number of taxa in the database.
+
+We construct the query for the number of taxa, execute it, and extract
+the result.
+#+end_export
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (d *TaxonomyDB) NumTaxa() int {
+	  n := 0
+	  //<<Construct numtax query, Pa. \ref{pa:tdb}>>
+	  //<<Execute numtax query, Pa. \ref{pa:tdb}>>
+	  //<<Extract numtax, Pa. \ref{pa:tdb}>>
+	  return n
+  }
+#+end_src
+#+begin_export latex
+The query for the number of taxa is a single line of SQL.
+#+end_export
+#+begin_src go <<Construct numtax query, Pa. \ref{pa:tdb}>>=
+  q := "select count(*) from taxon"
+#+end_src
+#+begin_export latex
+We execute our query, store the table row returned, and check the
+error.
+#+end_export
+#+begin_src go <<Execute numtax query, Pa. \ref{pa:tdb}>>=
+  row, err := d.db.Query(q)
+  util.Check(err)
+  defer row.Close()
+#+end_src
+#+begin_export latex
+We extract the number of taxa from the table row and check the error.
+#+end_export
+#+begin_src go <<Extract numtax, Pa. \ref{pa:tdb}>>=
+  row.Next()
+  err = row.Scan(&n)
+  util.Check(err)
+#+end_src
+#+begin_export latex
+\subsection{\ty{NumGenomes}}
+! The method \ty{NumGenomes} returns the number of genomes in the
+! database.
+
+We construc the query for the number of genomes, execute it, and
+extract the result.
+#+end_export
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (d *TaxonomyDB) NumGenomes() int {
+	  n := 0
+	  //<<Construct numgen query, Pa. \ref{pa:tdb}>>
+	  //<<Execute numgen query, Pa. \ref{pa:tdb}>>
+	  //<<Extract numgen, Pa. \ref{pa:tdb}>>
+	  return n
+  }
+#+end_src
+#+begin_export latex
+The query for the number of genomes is a simple \ty{count} statement.
+#+end_export
+#+begin_src go <<Construct numgen query, Pa. \ref{pa:tdb}>>=
+  q := "select count(*) from genome"
+#+end_src
+#+begin_export latex
+We execute the query, store the table row returned, and check the
+error.
+#+end_export
+#+begin_src go <<Execute numgen query, Pa. \ref{pa:tdb}>>=
+  row, err := d.db.Query(q)
+  util.Check(err)
+  defer row.Close()
+#+end_src
+#+begin_export latex
+We extract the number of genomes from the table row and check the
+error.
+#+end_export
+#+begin_src go <<Extract numgen, Pa. \ref{pa:tdb}>>=
+  row.Next()
+  err = row.Scan(&n)
+  util.Check(err)
+#+end_src
 #+begin_src latex
   \subsection{Testing}
   We test on the \emph{Homininae} subfamily shown in
@@ -1074,6 +1154,8 @@ parent and reset the parent slice to empty.
   //<<Test \ty{MRCA}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Level}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{FilterAccessions}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{NumGenomes}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   We build a small database, \ty{taxSmall.db}.
@@ -1291,3 +1373,26 @@ parent and reset the parent slice to empty.
 	  }
   }
 #+end_src
+#+begin_export latex
+Our test database contains 33 taxa, we test whether \ty{NumTaxa}
+returns that number.
+#+end_export
+#+begin_src go <<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>=
+  w = 33
+  g = taxdb.NumTaxa()
+  if g != w {
+	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
+  }
+#+end_src
+#+begin_export latex
+The test database contains 1919 genomes and we test whether
+\ty{NumGenomes} returns that.
+#+end_export
+#+begin_src go <<Test \ty{NumGenomes}, Pa. \ref{pa:tdb}>>=
+  w = 1919
+  g = taxdb.NumGenomes()
+  if g != w {
+	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
+  }
+#+end_src
+

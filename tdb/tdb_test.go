@@ -116,4 +116,15 @@ func TestTdb(t *testing.T) {
 				filteredAcc[i])
 		}
 	}
+	w = 33
+	g = taxdb.NumTaxa()
+	if g != w {
+		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
+	}
+	w = 1919
+	g = taxdb.NumGenomes()
+	if g != w {
+		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
+	}
+
 }
