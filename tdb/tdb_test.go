@@ -1,6 +1,7 @@
 package tdb
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -20,32 +21,42 @@ func TestTdb(t *testing.T) {
 			println(s)
 		}
 	}
-	tid := 9606
-	want := "Homo sapiens"
-	get := taxdb.Name(tid)
+	tids := []int{9606, 9605}
+	gs := taxdb.Names(tids)
+	ws := []string{"Homo sapiens", "Homo"}
+	get := strings.Join(gs, ", ")
+	want := strings.Join(ws, ", ")
 	if get != want {
 		t.Errorf("get: %q; want: %q", get, want)
 	}
-	w := 9605
+	gs = taxdb.Ranks(tids)
+	ws = []string{"species", "genus"}
+	get = strings.Join(gs, ", ")
+	want = strings.Join(ws, ", ")
+	if get != want {
+		t.Errorf("get: %q; want: %q", get, want)
+	}
+	tid := 9606
 	g := taxdb.Parent(tid)
+	w := 9605
 	if g != w {
 		t.Errorf("get parent: %d; want: %d", g, w)
 	}
-	w = 2
 	g = len(taxdb.Children(tid))
+	w = 2
 	if g != w {
 		t.Errorf("get %d children; want %d", g, w)
 	}
 	tid = 207598
-	w = 26
 	taxa := taxdb.Subtree(tid)
 	g = len(taxa)
+	w = 26
 	if g != w {
 		t.Errorf("get %d nodes in subtree; want %d", g, w)
 	}
-	w = 4
 	taxa = taxdb.Taxids("%homo sapiens%")
 	g = len(taxa)
+	w = 4
 	if g != w {
 		t.Errorf("get %d taxa for homo sapiens; want %d",
 			g, w)
@@ -69,10 +80,12 @@ func TestTdb(t *testing.T) {
 			t.Errorf("get: %d\nwant: %d\n", get, want)
 		}
 	}
-	want = "contig"
-	acc := "GCA_049640585.1"
-	get = taxdb.Level(acc)
-	if want != get {
+	accs := []string{"GCA_963575185.1", "GCA_049640585.1"}
+	gs = taxdb.Levels(accs)
+	ws = []string{"scaffold", "contig"}
+	get = strings.Join(gs, ", ")
+	want = strings.Join(ws, ", ")
+	if get != want {
 		t.Errorf("get: %s\nwant: %s\n", get, want)
 	}
 	accessions := []string{
@@ -116,15 +129,14 @@ func TestTdb(t *testing.T) {
 				filteredAcc[i])
 		}
 	}
-	w = 33
 	g = taxdb.NumTaxa()
+	w = 33
 	if g != w {
 		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
 	}
-	w = 1919
 	g = taxdb.NumGenomes()
+	w = 1919
 	if g != w {
 		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
 	}
-
 }

@@ -61,7 +61,17 @@ func (t *TaxonomyDB) Name(taxon int) string {
 	return n
 }
 
-// The method Rank takes as argument a taxon ID and returns the taxon's name. We construct the query, execute it, and extract the name.
+// The method Names takes as argument a slice of taxon IDs and  returns the names of the taxa.
+func (t *TaxonomyDB) Names(taxa []int) []string {
+	names := []string{}
+	for _, taxon := range taxa {
+		name := t.Name(taxon)
+		names = append(names, name)
+	}
+	return names
+}
+
+// The method Rank takes as argument a taxon ID and returns the taxon's rank. We construct the query, execute it, and extract the name.
 func (t *TaxonomyDB) Rank(taxon int) string {
 	rank := ""
 	q := fmt.Sprintf(rankT, taxon)
@@ -72,6 +82,16 @@ func (t *TaxonomyDB) Rank(taxon int) string {
 	err = rows.Scan(&rank)
 	util.Check(err)
 	return rank
+}
+
+// The method Ranks takes as argument a slice of taxon IDs and returns the names of the taxa.
+func (t *TaxonomyDB) Ranks(taxa []int) []string {
+	ranks := []string{}
+	for _, taxon := range taxa {
+		rank := t.Rank(taxon)
+		ranks = append(ranks, rank)
+	}
+	return ranks
 }
 
 // Parent returns a taxon's parent.
@@ -178,6 +198,16 @@ func (t *TaxonomyDB) Level(acc string) string {
 	err = rows.Scan(&level)
 	util.Check(err)
 	return level
+}
+
+// The method Levels takes as argument a slice of genome  accessions and returns the assembly levels.
+func (t *TaxonomyDB) Levels(accs []string) []string {
+	levels := []string{}
+	for _, acc := range accs {
+		level := t.Level(acc)
+		levels = append(levels, level)
+	}
+	return levels
 }
 
 // FilterAccessions takes as input a slice of genome accessions  and a list of desired assembly levels. It then removes any accession  that doesn't conform to one of the levels supplied and returns the  adjusted slice of genome accessions. The input accessions remain  unchanged.

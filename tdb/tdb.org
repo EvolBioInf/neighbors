@@ -628,9 +628,24 @@ make sure that the input stream returned is eventually closed again.
   util.Check(err)
 #+end_src
 #+begin_src latex
+  \subsection{\ty{Names}}
+  ! The method \ty{Names} takes as argument a slice of taxon IDs and
+  ! returns the names of the taxa.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) Names(taxa []int) []string {
+	  names := []string{}
+	  for _, taxon := range taxa {
+		  name := t.Name(taxon)
+		  names = append(names, name)
+	  }
+	  return names
+  }
+#+end_src
+#+begin_src latex
   \subsection{\ty{Rank}}
   !The method \ty{Rank} takes as argument a taxon ID and returns the
-  !taxon's name. We construct the query, execute it, and extract the
+  !taxon's rank. We construct the query, execute it, and extract the
   !name.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
@@ -671,6 +686,21 @@ make sure that the input stream returned is eventually closed again.
   rows.Next()
   err = rows.Scan(&rank)
   util.Check(err)
+#+end_src
+#+begin_src latex
+  \subsection{\ty{Ranks}}
+  !The method \ty{Ranks} takes as argument a slice of taxon IDs and
+  !returns the names of the taxa.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) Ranks(taxa []int) []string {
+	  ranks := []string{}
+	  for _, taxon := range taxa {
+		  rank := t.Rank(taxon)
+		  ranks = append(ranks, rank)
+	  }
+	  return ranks
+  }
 #+end_src
 #+begin_src latex
   \subsection{\ty{Parent}}
@@ -1005,6 +1035,21 @@ parent and reset the parent slice to empty.
   util.Check(err)
 #+end_src
 #+begin_src latex
+  \subsection{\ty{Levels}}
+  ! The method \ty{Levels} takes as argument a slice of genome
+  ! accessions and returns the assembly levels.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) Levels(accs []string) []string {
+	  levels := []string{}
+	  for _, acc := range accs {
+		  level := t.Level(acc)
+		  levels = append(levels, level)
+	  }
+	  return levels
+  }
+#+end_src
+#+begin_src latex
   \subsection{\ty{FilterAccessions}}
   ! \ty{FilterAccessions} takes as input a slice of genome accessions
   ! and a list of desired assembly levels. It then removes any accession
@@ -1125,14 +1170,15 @@ error.
     \caption{Taxonomy of the \emph{Homininae} subfamily; colored nodes
       contain genomes.}\label{fig:hom}
   \end{figure}
-  The outline of our code for testing \ty{tdb} has a hook for the
-  testing logic.
+  The outline of our code for testing \ty{tdb} has hooks for imports and
+  the testing logic.
 #+end_src
 #+begin_src go <<tdb_test.go>>=
   package tdb
 
   import (
 	  "testing"
+	  //<<Testing imports, Pa. \ref{pa:tdb}>>
   )
 
   func TestTdb(t *testing.T) {
@@ -1140,19 +1186,22 @@ error.
   }
 #+end_src
 #+begin_src latex
-  We test the function \ty{NewTaxonomyDB}, and the eight methods
-  \ty{Name}, \ty{Parent}, \ty{Children}, \ty{Subtree}, \ty{Taxids},
-  \ty{MRCA}, \ty{Level}, and \ty{FilterAccessions}.
+  We test the function \ty{NewTaxonomyDB}, and the nine methods
+  \ty{Names}, \ty{Ranks}, \ty{Parent}, \ty{Children}, \ty{Subtree},
+  \ty{Taxids}, \ty{MRCA}, \ty{Levels}, and \ty{FilterAccessions}. The
+  three untested methods \ty{Name}, \ty{Rank}, and \ty{Level} are tested
+  via their plural forms.
 #+end_src
 #+begin_src go <<Testing, Pa. \ref{pa:tdb}>>=
   //<<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{Name}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Names}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Ranks}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Parent}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Children}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Subtree}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{MRCA}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{Level}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Levels}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{FilterAccessions}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{NumGenomes}, Pa. \ref{pa:tdb}>>
@@ -1184,12 +1233,33 @@ error.
   }
 #+end_src
 #+begin_src latex
-  We look up the name of taxon, 9606, \emph{Homo sapiens}.
+  We look up the names of taxa 9606 and 9605, \emph{Homo sapiens} and
+  \emph{Homo}.
 #+end_src
-#+begin_src go <<Test \ty{Name}, Pa. \ref{pa:tdb}>>=
-  tid := 9606
-  want := "Homo sapiens"
-  get := taxdb.Name(tid)
+#+begin_src go <<Test \ty{Names}, Pa. \ref{pa:tdb}>>=
+  tids := []int{9606, 9605}
+  gs := taxdb.Names(tids)
+  ws := []string{"Homo sapiens", "Homo"}
+  get := strings.Join(gs, ", ")
+  want := strings.Join(ws, ", ")
+  if get != want {
+	  t.Errorf("get: %q; want: %q", get, want)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strings}.
+#+end_export
+#+begin_src go <<Testing imports, Pa. \ref{pa:tdb}>>=
+  "strings"
+#+end_src
+#+begin_export latex
+We look upt the ranks of taxa 9606 and 9605, species and genus.
+#+end_export
+#+begin_src go <<Test \ty{Ranks}, Pa. \ref{pa:tdb}>>=
+  gs = taxdb.Ranks(tids)
+  ws = []string{"species", "genus"}
+  get = strings.Join(gs, ", ")
+  want = strings.Join(ws, ", ")
   if get != want {
 	  t.Errorf("get: %q; want: %q", get, want)
   }
@@ -1199,8 +1269,9 @@ error.
   9605.
 #+end_src
 #+begin_src go <<Test \ty{Parent}, Pa. \ref{pa:tdb}>>=
-  w := 9605
+  tid := 9606
   g := taxdb.Parent(tid)
+  w := 9605
   if g != w {
 	  t.Errorf("get parent: %d; want: %d", g, w)
   }
@@ -1209,8 +1280,8 @@ error.
   \emph{Homo sapiens} (9606) has two children.
 #+end_src
 #+begin_src go <<Test \ty{Children}, Pa. \ref{pa:tdb}>>=
-  w = 2
   g = len(taxdb.Children(tid))
+  w = 2
   if g != w {
 	  t.Errorf("get %d children; want %d", g, w)
   }
@@ -1220,9 +1291,9 @@ error.
 #+end_src
 #+begin_src go <<Test \ty{Subtree}, Pa. \ref{pa:tdb}>>=
   tid = 207598
-  w = 26
   taxa := taxdb.Subtree(tid)
   g = len(taxa)
+  w = 26
   if g != w {
 	  t.Errorf("get %d nodes in subtree; want %d", g, w)
   }
@@ -1233,9 +1304,9 @@ error.
   SQL matches to the upper-case ``H'' in the actual names.
 #+end_src
 #+begin_src go <<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>=
-  w = 4
   taxa = taxdb.Taxids("%homo sapiens%")
   g = len(taxa)
+  w = 4
   if g != w {
 	  t.Errorf("get %d taxa for homo sapiens; want %d",
 		  g, w)
@@ -1286,13 +1357,16 @@ error.
   }
 #+end_src
 #+begin_src latex
-  The level of accession \ty{GCA\_049640585.1} is \ty{contig}.
+  The levels of accession GCA\_963575185.1 and
+  GCA\_049640585.1 are scaffold and contig.
 #+end_src
-#+begin_src go <<Test \ty{Level}, Pa. \ref{pa:tdb}>>=
-  want = "contig"
-  acc := "GCA_049640585.1"
-  get = taxdb.Level(acc)
-  if want != get {
+#+begin_src go <<Test \ty{Levels}, Pa. \ref{pa:tdb}>>=
+  accs := []string{"GCA_963575185.1", "GCA_049640585.1"}
+  gs = taxdb.Levels(accs)
+  ws = []string{"scaffold", "contig"}
+  get = strings.Join(gs, ", ")
+  want = strings.Join(ws, ", ")
+  if get != want {
 	  t.Errorf("get: %s\nwant: %s\n", get, want)
   }
 #+end_src
@@ -1378,8 +1452,8 @@ Our test database contains 33 taxa, we test whether \ty{NumTaxa}
 returns that number.
 #+end_export
 #+begin_src go <<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>=
-  w = 33
   g = taxdb.NumTaxa()
+  w = 33
   if g != w {
 	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
   }
@@ -1389,10 +1463,9 @@ The test database contains 1919 genomes and we test whether
 \ty{NumGenomes} returns that.
 #+end_export
 #+begin_src go <<Test \ty{NumGenomes}, Pa. \ref{pa:tdb}>>=
-  w = 1919
   g = taxdb.NumGenomes()
+  w = 1919
   if g != w {
 	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
   }
 #+end_src
-
