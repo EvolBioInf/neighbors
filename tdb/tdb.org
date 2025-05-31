@@ -1,12 +1,14 @@
 #+begin_src latex
   \section{\ty{tdb}}
-  The package \ty{tdb} provides code for constructing and navigating
-  \ty{tax.db} (Figure~\ref{fig:db}). Its outline has hooks for imports,
-  types, methods, and functions. It also has a hook for a special kind
-  of package variable, the templates for SQL queries.  \bpa{tdb}{pa:tdb}
+  ! Package tdb constructs and queries the taxonomy database.
+
+  Figure~\ref{fig:db} shows the ER diagram of the taxonomy database,
+  which consists of two tables, taxon and genome. The outline of
+  \ty{tdb} has hooks for imports, types, methods, and functions. It also
+  has a hook for a special kind of package variable, the templates for
+  SQL queries.  \bpa{tdb}{pa:tdb}
 #+end_src
 #+begin_src go <<tdb.go>>=
-  // Package tdb constructs and queries the taxonomy database.
   package tdb
 
   import (
@@ -37,15 +39,12 @@
 #+end_src
 #+begin_src latex
   \subsection{\ty{NewTaxonomyDB}}
-  The function \ty{NewTaxonomyDB} takes as parameters the names of the
-  four input files from which we construct the database, and the name of
-  the database. It opens these files, opens a new database, and
-  constructs the database.
+  ! The function \ty{NewTaxonomyDB} takes as parameters the names of the
+  ! four input files from which we construct the database, and the name of
+  ! the database. It opens these files, opens a new database, and
+  ! constructs the database.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
-  // NewTaxonomyDB takes as parameters the names
-  // of the four data files and the database name,
-  // and constructs the database from them.
   func NewTaxonomyDB(nodes, names, genbank,
 	  refseq, dbName string) {
 	  //<<Open files, Pa. \ref{pa:tdb}>>
@@ -512,12 +511,10 @@ assembly level, and a size.
 #+end_src
 #+begin_src latex
   \subsection{\ty{OpenTaxonomyDB}}
-  The function \ty{OpenTaxonomyDB} opens an existing taxonomy database
-  and returns a pointer to it.
+  ! The function \ty{OpenTaxonomyDB} opens an existing taxonomy database
+  ! and returns a pointer to it.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
-  // OpenTaxonomyDB opens an existing taxonomy database and returns a
-  // pointer to it.
   func OpenTaxonomyDB(name string) *TaxonomyDB {
 	  db := new(TaxonomyDB)
 	  var err error
@@ -528,28 +525,29 @@ assembly level, and a size.
 #+end_src
 #+begin_src latex
   \subsection{\ty{Close}}
-  The method \ty{Close} closes a taxonomy database.
+  ! The method \ty{Close} closes a taxonomy database.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  // Close closes the taxonomy database.
   func (t *TaxonomyDB) Close() {
 	  t.db.Close()
   }
 #+end_src
 #+begin_src latex
   \subsection{\ty{Accessions}}
-  !The method \ty{Accessions} takes as parameter a taxon-ID and returns a
-  !slice accessions of genome assemblies belonging to that taxon.
+  !The method \ty{Accessions} takes as parameter a taxon-ID and returns
+  !a slice accessions of genome assemblies belonging to that taxon and
+  !an error.
 
   We query for accessions and then store them in the global string slice
   we return.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) Accessions(taxon int) []string {
+  func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
+	  var err error
 	  accessions := make([]string, 0)
 	  //<<Query for accessions, Pa. \ref{pa:tdb}>>
 	  //<<Store accessions, Pa. \ref{pa:tdb}>>
-	  return accessions
+	  return accessions, err
   }
 #+end_src
 #+begin_src latex
@@ -562,13 +560,16 @@ assembly level, and a size.
 #+end_src
 #+begin_export latex
 We construct the query for accessions from our template and run it. We
-make sure that the input stream returned is eventually closed again.
+make sure that the input stream returned is eventually closed again
+and check the error returned by the database.
 #+end_export
 #+begin_src go <<Query for accessions, Pa. \ref{pa:tdb}>>=
   q := fmt.Sprintf(accessionT, taxon)
   rows, err := t.db.Query(q)
-  util.Check(err)
   defer rows.Close()
+  if err != nil {
+	  return nil, err
+  }
 #+end_src
 #+begin_src latex
   We append each accession to our slice of accessions.
@@ -577,24 +578,27 @@ make sure that the input stream returned is eventually closed again.
   accession := ""
   for rows.Next() {
 	  err := rows.Scan(&accession)
-	  util.Check(err)
+	  if err != nil {
+		  return nil, err
+	  }
 	  accessions = append(accessions, accession)
   }
 #+end_src
 #+begin_src latex
   \subsection{\ty{Name}}
-  The method \ty{Name} takes as argument a taxon ID and returns the
-  taxon's name. We construct the query, execute it, and extract the
-  name.
+  ! The method \ty{Name} takes as argument a taxon ID and returns the
+  ! taxon's name and an error.
+
+  We construct the query, execute it, and extract the name.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  // Name returns a taxon's name.
-  func (t *TaxonomyDB) Name(taxon int) string {
-	  n := ""
+  func (t *TaxonomyDB) Name(taxon int) (string, error) {
+	  var err error
+	  name := ""
 	  //<<Construct name query, Pa. \ref{pa:tdb}>>
 	  //<<Execute name query, Pa. \ref{pa:tdb}>>
 	  //<<Extract name, Pa. \ref{pa:tdb}>>
-	  return n
+	  return name, err
   }
 #+end_src
 #+begin_src latex
@@ -615,8 +619,10 @@ make sure that the input stream returned is eventually closed again.
 #+end_src
 #+begin_src go <<Execute name query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  util.Check(err)
   defer rows.Close()
+  if err != nil {
+	  return "", err
+  }
 #+end_src
 #+begin_src latex
   Our results table contains only the requested single name. We scan
@@ -624,22 +630,26 @@ make sure that the input stream returned is eventually closed again.
 #+end_src
 #+begin_src go <<Extract name, Pa. \ref{pa:tdb}>>=
   rows.Next()
-  err = rows.Scan(&n)
-  util.Check(err)
+  err = rows.Scan(&name)
+  if err != nil {
+	  return "", err
+  }
 #+end_src
 #+begin_src latex
   \subsection{\ty{Rank}}
   !The method \ty{Rank} takes as argument a taxon ID and returns the
-  !taxon's rank. We construct the query, execute it, and extract the
-  !name.
+  !taxon's rank and an error.
+
+  We construct the query, execute it, and extract the rank.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) Rank(taxon int) string {
+  func (t *TaxonomyDB) Rank(taxon int) (string, error) {
+	  var err error
 	  rank := ""
 	  //<<Construct rank query, Pa. \ref{pa:tdb}>>
 	  //<<Execute rank query, Pa. \ref{pa:tdb}>>
 	  //<<Extract rank, Pa. \ref{pa:tdb}>>
-	  return rank
+	  return rank, err
   }
 #+end_src
 #+begin_src latex
@@ -660,8 +670,10 @@ make sure that the input stream returned is eventually closed again.
 #+end_src
 #+begin_src go <<Execute rank query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  util.Check(err)
   defer rows.Close()
+  if err != nil {
+	  return "", err
+  }
 #+end_src
 #+begin_src latex
   Our results table contains only the requested single rank. We scan
@@ -670,22 +682,25 @@ make sure that the input stream returned is eventually closed again.
 #+begin_src go <<Extract rank, Pa. \ref{pa:tdb}>>=
   rows.Next()
   err = rows.Scan(&rank)
-  util.Check(err)
+  if err != nil {
+	  return "", err
+  }
 #+end_src
 #+begin_src latex
   \subsection{\ty{Parent}}
-  The method \ty{Parent} takes as argument a taxon ID and returns the
-  taxon ID of its parent. We construct the query, execute it, and
-  extract the parent.
+  ! The method \ty{Parent} takes as argument a taxon ID and returns the
+  ! taxon ID of its parent and an error.
+
+  We construct the query, execute it, and extract the parent.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  // Parent returns a taxon's parent.
-  func (t *TaxonomyDB) Parent(c int) int {
-	  p := 0
+  func (t *TaxonomyDB) Parent(c int) (int, error) {
+	  var err error
+	  parent := 0
 	  //<<Construct parent query, Pa. \ref{pa:tdb}>>
 	  //<<Execute parent query, Pa. \ref{pa:tdb}>>
 	  //<<Extract parent, Pa. \ref{pa:tdb}>>
-	  return p
+	  return parent, err
   }
 #+end_src
 #+begin_src latex
@@ -707,8 +722,10 @@ make sure that the input stream returned is eventually closed again.
 #+end_src
 #+begin_src go <<Execute parent query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  util.Check(err)
   defer rows.Close()
+  if err != nil {
+	  return 0, err
+  }
 #+end_src
 #+begin_src latex
   Our results table contains at most one row with one entry, the
@@ -716,23 +733,26 @@ make sure that the input stream returned is eventually closed again.
 #+end_src
 #+begin_src go <<Extract parent, Pa. \ref{pa:tdb}>>=
   rows.Next()
-  err = rows.Scan(&p)
-  util.Check(err)
+  err = rows.Scan(&parent)
+  if err != nil {
+	  return 0, err
+  }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Children}}
-  The method \ty{Children} takes as argument a taxon ID and returns its
-  children. We construct the children query, execute it, and extract the
-  children.
+  \subsection{\ty{Children}}CONT
+  ! The method \ty{Children} takes as argument a taxon ID and returns its
+  ! children and an error.
+
+  We construct the children query, execute it, and extract the children.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  // Children returns a taxon's children.
-  func (t *TaxonomyDB) Children(p int) []int {
+  func (t *TaxonomyDB) Children(p int) ([]int, error) {
+	  var err error
 	  children := make([]int, 0)
 	  //<<Construct children query, Pa. \ref{pa:tdb}>>
 	  //<<Execute children query, Pa. \ref{pa:tdb}>>
 	  //<<Extract children, Pa. \ref{pa:tdb}>>
-	  return children
+	  return children, err
   }
 #+end_src
 #+begin_src latex
@@ -754,8 +774,10 @@ make sure that the input stream returned is eventually closed again.
 #+end_src
 #+begin_src go <<Execute children query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  util.Check(err)
   defer rows.Close()
+  if err != nil {
+	  return nil, err
+  }
 #+end_src
 #+begin_src latex
   We copy the children into the slice we've prepared for this purpose.
@@ -764,55 +786,77 @@ make sure that the input stream returned is eventually closed again.
   child := 0
   for rows.Next() {
 	  err = rows.Scan(&child)
-	  util.Check(err)
+	  if err != nil {
+		  return nil, err
+	  }
 	  children = append(children, child)
   }
 #+end_src
 #+begin_src latex
   \subsection{\ty{Subtree}}
-  The method \ty{Subtree} returns all taxa in a subtree, including its
-  root. It does this by calling the private function \ty{traverseSubtree}.
+  ! The method \ty{Subtree} returns all taxa in a subtree, including its
+  ! root, and an error.
+
+  It looks up the taxa in the subtree by calling the private function
+  \ty{traverseSubtree}.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  // Subtree returns the taxa in the subtree rooted on the given taxon.
-  func (t *TaxonomyDB) Subtree(r int) []int {
+  func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
+	  var err error
 	  taxa := make([]int, 0)
-	  taxa = traverseSubtree(t, r, taxa)
-	  return taxa
+	  taxa, err = traverseSubtree(t, r, taxa)
+	  if err != nil {
+		  return nil, err
+	  }
+	  return taxa, err
   }
 #+end_src
 #+begin_src latex
-  \ty{traverseSubtree} is a recursive function, where we take care to
-  avoid the infinite loop we would get if we included the root in the
-  recursion.
+  In \ty{traverseSubtree} we append the incoming node to the slice
+  of taxa and iterate over the node's children.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
-  func traverseSubtree(t *TaxonomyDB, r int, taxa []int) []int {
-	  taxa = append(taxa, r)
-	  ch := t.Children(r)
-	  for _, c := range ch {
-		  if c != r {
-			  taxa = traverseSubtree(t, c, taxa)
+  func traverseSubtree(t *TaxonomyDB, v int, taxa []int) ([]int, error) {
+	  taxa = append(taxa, v)
+	  children, err := t.Children(v)
+	  if err != nil {
+		  return nil, err
+	  }
+	  //<<Iterate over children, Pa. \ref{pa:tdb}>>
+	  return taxa, err
+  }
+#+end_src
+#+begin_export latex
+We iterate over the children and call \ty{traverseSubtree} on each of
+them, unless it is identical to the parent, which would give us an
+infinite loop.
+#+end_export
+#+begin_src go <<Iterate over children, Pa. \ref{pa:tdb}>>=
+  for _, child := range children {
+	  if child != v {
+		  taxa, err = traverseSubtree(t, child, taxa)
+		  if err != nil {
+			  return nil, err
 		  }
 	  }
-	  return taxa
   }
 #+end_src
 #+begin_src latex
   \subsection{\ty{Taxids}}
-  Given a taxon name, \ty{Taxids} returns the corresponding
-  taxon-IDs. We construct and execute the query for taxon-IDs, extract
-  the IDs, and return them.
+  ! \ty{Taxids} matches the name of a taxon and returns the
+  ! corresponding taxon-IDs and an error.
+
+  We construct and execute the query for taxon-IDs, extract the IDs, and
+  return them.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  // Taxids matches the name of a taxon and returns the corresponding
-  // taxon-IDs.
-  func (t *TaxonomyDB) Taxids(name string) []int {
+  func (t *TaxonomyDB) Taxids(name string) ([]int, error) {
+	  var err error
 	  taxids := make([]int, 0)
 	  //<<Construct taxids query, Pa. \ref{pa:tdb}>>
 	  //<<Execute taxids query, Pa. \ref{pa:tdb}>>
 	  //<<Extract taxids, Pa. \ref{pa:tdb}>>
-	  return taxids
+	  return taxids, err
   }
 #+end_src
 #+begin_src latex
@@ -832,9 +876,11 @@ make sure that the input stream returned is eventually closed again.
   make sure the result table is eventually closed again.
 #+end_src
 #+begin_src go <<Execute taxids query, Pa. \ref{pa:tdb}>>=
-  rows , err := t.db.Query(q)
-  util.Check(err)
+  rows, err := t.db.Query(q)
   defer rows.Close()
+  if err != nil {
+	  return nil, err
+  }
 #+end_src
 #+begin_src latex
   We extract and store the taxon-IDs.
@@ -843,25 +889,28 @@ make sure that the input stream returned is eventually closed again.
   taxid := 0
   for rows.Next() {
 	  err = rows.Scan(&taxid)
-	  util.Check(err)
+	  if err != nil {
+		  return nil, err
+	  }
 	  taxids = append(taxids, taxid)
   }
 #+end_src
 #+begin_src latex
   \subsection{\ty{MRCA}}
   !The method \ty{MRCA} takes as input a slice of taxon IDs and returns
-  !their most recent common ancestor.
-  For example, in Figure~\ref{fig:tax}, the most recent
-  common ancestor of taxa 4 and 7 is 3. We begin by checking the IDs
-  supplied and then search for the MRCA. If we haven't found one, we
-  return -1.
+  !their most recent common ancestor and an error.
+
+  For example, in Figure~\ref{fig:tax}, the most recent common ancestor
+  of taxa 4 and 7 is 3. We begin by checking the IDs supplied and then
+  search for the MRCA. If we haven't found one, we return -1.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) MRCA(ids []int) int {
+  func (t *TaxonomyDB) MRCA(ids []int) (int, error) {
+	  var err error
 	  mrca := -1
 	  //<<Check IDs, Pa. \ref{pa:tdb}>>
 	  //<<Search for MRCA, Pa. \ref{pa:tdb}>>
-	  return mrca
+	  return mrca, err
   }
 #+end_src
 #+begin_src latex
@@ -870,10 +919,17 @@ error. If the ID list contains a single entry, that is the MRCA.
 #+end_src
 #+begin_src go <<Check IDs, Pa. \ref{pa:tdb}>>=
   if len(ids) == 0 {
-	  log.Fatal("Empty ID list in tdb.MRCA")
+	  m := "Empty ID list in tdb.MRCA"
+	  return 0, errors.New(m)
   } else if len(ids) == 1 {
-	  return ids[0]
+	  return ids[0], nil
   }
+#+end_src
+#+begin_export latex
+We import \ty{errors}.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
+  "errors"
 #+end_src
 #+begin_src latex
 There is a rich history of MRCA queries in computer
@@ -934,7 +990,10 @@ slice is initialized to the taxon IDs supplied.
 #+end_src
 #+begin_src go <<Climb to parents, Pa. \ref{pa:tdb}>>=
   for _, child := range children {
-	  parent := t.Parent(child)
+	  parent, err := t.Parent(child)
+	  if err != nil {
+		  return 0, err
+	  }
 	  desc[parent] += desc[child]
 	  if desc[parent] >= len(ids) {
 		  mrca = parent
@@ -961,18 +1020,19 @@ parent and reset the parent slice to empty.
 #+begin_src latex
   \subsection{\ty{Level}}
   ! The method \ty{Level} takes as argument a genome accession and
-  ! returns the assembly level.
+  ! returns the assembly level and an eror.
 
   We construct the level query, execute it, and extract the level before
   we return it.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) Level(acc string) string {
+  func (t *TaxonomyDB) Level(acc string) (string, error) {
+	  var err error
 	  level := ""
 	  //<<Construct level query, Pa. \ref{pa:tdb}>>
 	  //<<Execute level query, Pa. \ref{pa:tdb}>>
 	  //<<Extract level, Pa. \ref{pa:tdb}>>
-	  return level
+	  return level, err
   }
 #+end_src
 #+begin_src latex
@@ -993,8 +1053,10 @@ parent and reset the parent slice to empty.
 #+end_src
 #+begin_src go <<Execute level query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  util.Check(err)
   defer rows.Close()
+  if err != nil {
+	  return "", err
+  }
 #+end_src
 #+begin_src latex
   We scan the first row in the table and check the error returned.
@@ -1002,20 +1064,25 @@ parent and reset the parent slice to empty.
 #+begin_src go <<Extract level, Pa. \ref{pa:tdb}>>=
   rows.Next()
   err = rows.Scan(&level)
-  util.Check(err)
+  if err != nil {
+	  return "", err
+  }
 #+end_src
 #+begin_src latex
   \subsection{\ty{FilterAccessions}}
   ! \ty{FilterAccessions} takes as input a slice of genome accessions
   ! and a list of desired assembly levels. It then removes any accession
   ! that doesn't conform to one of the levels supplied and returns the
-  ! adjusted slice of genome accessions. The input accessions remain
-  ! unchanged.
+  ! adjusted slice of genome accessions and an error. The input
+  ! accessions remain unchanged.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (d *TaxonomyDB) FilterAccessions(acc []string,
-	  levels map[string]bool) []string {
+	  levels map[string]bool) ([]string, error) {
+	  newAcc := []string{}
+	  var err error
 	  //<<Remove accessions with wrong level, Pa. \ref{pa:tdb}>>
+	  return newAcc, err
   }
 #+end_src
 #+begin_src latex
@@ -1025,29 +1092,32 @@ parent and reset the parent slice to empty.
   end.
 #+end_src
 #+begin_src go <<Remove accessions with wrong level, Pa. \ref{pa:tdb}>>=
-  newAcc := make([]string, 0)
   for _, a := range acc {
-	  level := d.Level(a)
+	  level, err := d.Level(a)
+	  if err != nil {
+		  return nil, err
+	  }
 	  if levels[level] {
 		  newAcc = append(newAcc, a)
 	  }
   }
-  return newAcc
 #+end_src
 #+begin_export latex
 \subsection{\ty{NumTaxa}}
-! The method \ty{NumTaxa} returns the number of taxa in the database.
+! The method \ty{NumTaxa} returns the number of taxa in the database
+! and an error.
 
 We construct the query for the number of taxa, execute it, and extract
 the result.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (d *TaxonomyDB) NumTaxa() int {
+  func (d *TaxonomyDB) NumTaxa() (int, error) {
 	  n := 0
+	  var err error
 	  //<<Construct numtax query, Pa. \ref{pa:tdb}>>
 	  //<<Execute numtax query, Pa. \ref{pa:tdb}>>
 	  //<<Extract numtax, Pa. \ref{pa:tdb}>>
-	  return n
+	  return n, err
   }
 #+end_src
 #+begin_export latex
@@ -1062,8 +1132,10 @@ error.
 #+end_export
 #+begin_src go <<Execute numtax query, Pa. \ref{pa:tdb}>>=
   row, err := d.db.Query(q)
-  util.Check(err)
   defer row.Close()
+  if err != nil {
+	  return 0, err
+  }
 #+end_src
 #+begin_export latex
 We extract the number of taxa from the table row and check the error.
@@ -1071,23 +1143,26 @@ We extract the number of taxa from the table row and check the error.
 #+begin_src go <<Extract numtax, Pa. \ref{pa:tdb}>>=
   row.Next()
   err = row.Scan(&n)
-  util.Check(err)
+  if err != nil {
+	  return 0, err
+  }
 #+end_src
 #+begin_export latex
 \subsection{\ty{NumGenomes}}
 ! The method \ty{NumGenomes} returns the number of genomes in the
-! database.
+! database and an error.
 
 We construc the query for the number of genomes, execute it, and
 extract the result.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (d *TaxonomyDB) NumGenomes() int {
+  func (d *TaxonomyDB) NumGenomes() (int, error) {
 	  n := 0
+	  var err error
 	  //<<Construct numgen query, Pa. \ref{pa:tdb}>>
 	  //<<Execute numgen query, Pa. \ref{pa:tdb}>>
 	  //<<Extract numgen, Pa. \ref{pa:tdb}>>
-	  return n
+	  return n, err
   }
 #+end_src
 #+begin_export latex
@@ -1102,8 +1177,10 @@ error.
 #+end_export
 #+begin_src go <<Execute numgen query, Pa. \ref{pa:tdb}>>=
   row, err := d.db.Query(q)
-  util.Check(err)
   defer row.Close()
+  if err != nil {
+	  return 0, err
+  }
 #+end_src
 #+begin_export latex
 We extract the number of genomes from the table row and check the
@@ -1112,7 +1189,9 @@ error.
 #+begin_src go <<Extract numgen, Pa. \ref{pa:tdb}>>=
   row.Next()
   err = row.Scan(&n)
-  util.Check(err)
+  if err != nil {
+	  return 0, err
+  }
 #+end_src
 #+begin_src latex
   \subsection{Testing}
@@ -1176,7 +1255,7 @@ error.
 #+end_src
 #+begin_src go <<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>=
   taxdb := OpenTaxonomyDB(db)
-  subtree := taxdb.Subtree(207598)
+  subtree, _ := taxdb.Subtree(207598)
   if len(subtree) != 26 {
 	  t.Errorf("get %d rows, want 26", len(subtree))
 	  for _, s := range subtree {
@@ -1189,7 +1268,7 @@ error.
 #+end_src
 #+begin_src go <<Test \ty{Name}, Pa. \ref{pa:tdb}>>=
   tid := 9606
-  get := taxdb.Name(tid)
+  get, _ := taxdb.Name(tid)
   want := "Homo sapiens"
   if get != want {
 	  t.Errorf("get: %q; want: %q", get, want)
@@ -1199,7 +1278,7 @@ error.
 The rank of \emph{Homo sapiens} is ``species''.
 #+end_export
 #+begin_src go <<Test \ty{Rank}, Pa. \ref{pa:tdb}>>=
-  get = taxdb.Rank(tid)
+  get, _ = taxdb.Rank(tid)
   want = "species"
   if get != want {
 	  t.Errorf("get rank: %s; want: %s\n", get, want)
@@ -1210,7 +1289,7 @@ The rank of \emph{Homo sapiens} is ``species''.
   9605.
 #+end_src
 #+begin_src go <<Test \ty{Parent}, Pa. \ref{pa:tdb}>>=
-  g := taxdb.Parent(tid)
+  g, _ := taxdb.Parent(tid)
   w := 9605
   if g != w {
 	  t.Errorf("get parent: %d; want: %d", g, w)
@@ -1220,7 +1299,8 @@ The rank of \emph{Homo sapiens} is ``species''.
   \emph{Homo sapiens} (9606) has two children.
 #+end_src
 #+begin_src go <<Test \ty{Children}, Pa. \ref{pa:tdb}>>=
-  g = len(taxdb.Children(tid))
+  children, _ := taxdb.Children(tid)
+  g = len(children)
   w = 2
   if g != w {
 	  t.Errorf("get %d children; want %d", g, w)
@@ -1231,7 +1311,7 @@ The rank of \emph{Homo sapiens} is ``species''.
 #+end_src
 #+begin_src go <<Test \ty{Subtree}, Pa. \ref{pa:tdb}>>=
   tid = 207598
-  taxa := taxdb.Subtree(tid)
+  taxa, _ := taxdb.Subtree(tid)
   g = len(taxa)
   w = 26
   if g != w {
@@ -1244,7 +1324,7 @@ The rank of \emph{Homo sapiens} is ``species''.
   SQL matches to the upper-case ``H'' in the actual names.
 #+end_src
 #+begin_src go <<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>=
-  taxa = taxdb.Taxids("%homo sapiens%")
+  taxa, _ = taxdb.Taxids("%homo sapiens%")
   g = len(taxa)
   w = 4
   if g != w {
@@ -1289,7 +1369,7 @@ The rank of \emph{Homo sapiens} is ``species''.
 #+end_src
 #+begin_src go <<Run tests of \ty{MRCA}, Pa. \ref{pa:tdb}>>=
   for i, target := range targets {
-	  get := taxdb.MRCA(target)	  
+	  get,_ := taxdb.MRCA(target)	  
 	  want := res[i]
 	  if get != want {
 		  t.Errorf("get: %d\nwant: %d\n", get, want)
@@ -1301,7 +1381,7 @@ The rank of \emph{Homo sapiens} is ``species''.
 #+end_src
 #+begin_src go <<Test \ty{Level}, Pa. \ref{pa:tdb}>>=
   acc := "GCA_049640585.1"
-  get = taxdb.Level(acc)
+  get, _ = taxdb.Level(acc)
   want = "contig"
   if want != get {
 	  t.Errorf("get: %s\nwant: %s\n", get, want)
@@ -1330,7 +1410,7 @@ The rank of \emph{Homo sapiens} is ``species''.
 #+begin_src go <<Filter with one level, Pa. \ref{pa:util}>>=
   levels := make(map[string]bool)
   levels["complete"] = true
-  filteredAcc := taxdb.FilterAccessions(accessions, levels)
+  filteredAcc, _ := taxdb.FilterAccessions(accessions, levels)
   if len(filteredAcc) != 0 {
 	  t.Errorf("want 0 accessions, get %d\n", len(filteredAcc))
   }
@@ -1341,7 +1421,7 @@ The rank of \emph{Homo sapiens} is ``species''.
 #+end_src
 #+begin_src go <<Filter with two levels, Pa. \ref{pa:util}>>=
   levels["chromosome"] = true
-  filteredAcc = taxdb.FilterAccessions(accessions, levels)
+  filteredAcc, _ = taxdb.FilterAccessions(accessions, levels)
   if len(filteredAcc) != 1 {
 	  t.Errorf("want 1 accession, get %d\n", len(filteredAcc))
   }
@@ -1357,7 +1437,7 @@ The rank of \emph{Homo sapiens} is ``species''.
 #+end_src
 #+begin_src go <<Filter with three levels, Pa. \ref{pa:util}>>=
   levels["scaffold"] = true
-  filteredAcc = taxdb.FilterAccessions(accessions, levels)
+  filteredAcc, _ = taxdb.FilterAccessions(accessions, levels)
   if len(filteredAcc) != 2 {
 	  t.Errorf("want 2 accessions, get %d\n", len(filteredAcc))
   }
@@ -1375,7 +1455,7 @@ The rank of \emph{Homo sapiens} is ``species''.
 #+end_src
 #+begin_src go <<Filter with four levels, Pa. \ref{pa:util}>>=
   levels["contig"] = true
-  filteredAcc = taxdb.FilterAccessions(accessions, levels)
+  filteredAcc, _ = taxdb.FilterAccessions(accessions, levels)
   for i, accession := range accessions {
 	  if filteredAcc[i] != accession {
 		  t.Errorf("want:\n%s\nget:\n%s\n",
@@ -1389,7 +1469,7 @@ Our test database contains 33 taxa, we test whether \ty{NumTaxa}
 returns that number.
 #+end_export
 #+begin_src go <<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>=
-  g = taxdb.NumTaxa()
+  g, _ = taxdb.NumTaxa()
   w = 33
   if g != w {
 	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
@@ -1400,7 +1480,7 @@ The test database contains 1919 genomes and we test whether
 \ty{NumGenomes} returns that.
 #+end_export
 #+begin_src go <<Test \ty{NumGenomes}, Pa. \ref{pa:tdb}>>=
-  g = taxdb.NumGenomes()
+  g, _ = taxdb.NumGenomes()
   w = 1919
   if g != w {
 	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)

@@ -13,7 +13,7 @@ func TestTdb(t *testing.T) {
 	db := p + "taxSmall.db"
 	NewTaxonomyDB(no, na, gb, rs, db)
 	taxdb := OpenTaxonomyDB(db)
-	subtree := taxdb.Subtree(207598)
+	subtree, _ := taxdb.Subtree(207598)
 	if len(subtree) != 26 {
 		t.Errorf("get %d rows, want 26", len(subtree))
 		for _, s := range subtree {
@@ -21,34 +21,35 @@ func TestTdb(t *testing.T) {
 		}
 	}
 	tid := 9606
-	get := taxdb.Name(tid)
+	get, _ := taxdb.Name(tid)
 	want := "Homo sapiens"
 	if get != want {
 		t.Errorf("get: %q; want: %q", get, want)
 	}
-	get = taxdb.Rank(tid)
+	get, _ = taxdb.Rank(tid)
 	want = "species"
 	if get != want {
 		t.Errorf("get rank: %s; want: %s\n", get, want)
 	}
-	g := taxdb.Parent(tid)
+	g, _ := taxdb.Parent(tid)
 	w := 9605
 	if g != w {
 		t.Errorf("get parent: %d; want: %d", g, w)
 	}
-	g = len(taxdb.Children(tid))
+	children, _ := taxdb.Children(tid)
+	g = len(children)
 	w = 2
 	if g != w {
 		t.Errorf("get %d children; want %d", g, w)
 	}
 	tid = 207598
-	taxa := taxdb.Subtree(tid)
+	taxa, _ := taxdb.Subtree(tid)
 	g = len(taxa)
 	w = 26
 	if g != w {
 		t.Errorf("get %d nodes in subtree; want %d", g, w)
 	}
-	taxa = taxdb.Taxids("%homo sapiens%")
+	taxa, _ = taxdb.Taxids("%homo sapiens%")
 	g = len(taxa)
 	w = 4
 	if g != w {
@@ -68,14 +69,14 @@ func TestTdb(t *testing.T) {
 	targets = append(targets, []int{37011, 9597, 46359})
 	res = append(res, 207598)
 	for i, target := range targets {
-		get := taxdb.MRCA(target)
+		get, _ := taxdb.MRCA(target)
 		want := res[i]
 		if get != want {
 			t.Errorf("get: %d\nwant: %d\n", get, want)
 		}
 	}
 	acc := "GCA_049640585.1"
-	get = taxdb.Level(acc)
+	get, _ = taxdb.Level(acc)
 	want = "contig"
 	if want != get {
 		t.Errorf("get: %s\nwant: %s\n", get, want)
@@ -86,12 +87,12 @@ func TestTdb(t *testing.T) {
 		"GCA_000181135.1"}
 	levels := make(map[string]bool)
 	levels["complete"] = true
-	filteredAcc := taxdb.FilterAccessions(accessions, levels)
+	filteredAcc, _ := taxdb.FilterAccessions(accessions, levels)
 	if len(filteredAcc) != 0 {
 		t.Errorf("want 0 accessions, get %d\n", len(filteredAcc))
 	}
 	levels["chromosome"] = true
-	filteredAcc = taxdb.FilterAccessions(accessions, levels)
+	filteredAcc, _ = taxdb.FilterAccessions(accessions, levels)
 	if len(filteredAcc) != 1 {
 		t.Errorf("want 1 accession, get %d\n", len(filteredAcc))
 	}
@@ -101,7 +102,7 @@ func TestTdb(t *testing.T) {
 			filteredAcc[0])
 	}
 	levels["scaffold"] = true
-	filteredAcc = taxdb.FilterAccessions(accessions, levels)
+	filteredAcc, _ = taxdb.FilterAccessions(accessions, levels)
 	if len(filteredAcc) != 2 {
 		t.Errorf("want 2 accessions, get %d\n", len(filteredAcc))
 	}
@@ -113,7 +114,7 @@ func TestTdb(t *testing.T) {
 		}
 	}
 	levels["contig"] = true
-	filteredAcc = taxdb.FilterAccessions(accessions, levels)
+	filteredAcc, _ = taxdb.FilterAccessions(accessions, levels)
 	for i, accession := range accessions {
 		if filteredAcc[i] != accession {
 			t.Errorf("want:\n%s\nget:\n%s\n",
@@ -121,12 +122,12 @@ func TestTdb(t *testing.T) {
 				filteredAcc[i])
 		}
 	}
-	g = taxdb.NumTaxa()
+	g, _ = taxdb.NumTaxa()
 	w = 33
 	if g != w {
 		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
 	}
-	g = taxdb.NumGenomes()
+	g, _ = taxdb.NumGenomes()
 	w = 1919
 	if g != w {
 		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)

@@ -4,6 +4,7 @@ package tdb
 import (
 	"bufio"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/evolbioinf/neighbors/util"
 	_ "github.com/mattn/go-sqlite3"
@@ -27,113 +28,148 @@ type genome struct {
 	written          bool
 }
 
-// Close closes the taxonomy database.
+// The method Close closes a taxonomy database.
 func (t *TaxonomyDB) Close() {
 	t.db.Close()
 }
 
-// The method Accessions takes as parameter a taxon-ID and returns a slice accessions of genome assemblies belonging to that taxon.
-func (t *TaxonomyDB) Accessions(taxon int) []string {
+// The method Accessions takes as parameter a taxon-ID and returns a slice accessions of genome assemblies belonging to that taxon and an error.
+func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
+	var err error
 	accessions := make([]string, 0)
 	q := fmt.Sprintf(accessionT, taxon)
 	rows, err := t.db.Query(q)
-	util.Check(err)
 	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
 	accession := ""
 	for rows.Next() {
 		err := rows.Scan(&accession)
-		util.Check(err)
+		if err != nil {
+			return nil, err
+		}
 		accessions = append(accessions, accession)
 	}
-	return accessions
+	return accessions, err
 }
 
-// Name returns a taxon's name.
-func (t *TaxonomyDB) Name(taxon int) string {
-	n := ""
+// The method Name takes as argument a taxon ID and returns the  taxon's name and an error.
+func (t *TaxonomyDB) Name(taxon int) (string, error) {
+	var err error
+	name := ""
 	q := fmt.Sprintf(nameT, taxon)
 	rows, err := t.db.Query(q)
-	util.Check(err)
 	defer rows.Close()
+	if err != nil {
+		return "", err
+	}
 	rows.Next()
-	err = rows.Scan(&n)
-	util.Check(err)
-	return n
+	err = rows.Scan(&name)
+	if err != nil {
+		return "", err
+	}
+	return name, err
 }
 
-// The method Rank takes as argument a taxon ID and returns the taxon's name. We construct the query, execute it, and extract the name.
-func (t *TaxonomyDB) Rank(taxon int) string {
+// The method Rank takes as argument a taxon ID and returns the taxon's rank and an error.
+func (t *TaxonomyDB) Rank(taxon int) (string, error) {
+	var err error
 	rank := ""
 	q := fmt.Sprintf(rankT, taxon)
 	rows, err := t.db.Query(q)
-	util.Check(err)
 	defer rows.Close()
+	if err != nil {
+		return "", err
+	}
 	rows.Next()
 	err = rows.Scan(&rank)
-	util.Check(err)
-	return rank
+	if err != nil {
+		return "", err
+	}
+	return rank, err
 }
 
-// Parent returns a taxon's parent.
-func (t *TaxonomyDB) Parent(c int) int {
-	p := 0
+// The method Parent takes as argument a taxon ID and returns the  taxon ID of its parent and an error.
+func (t *TaxonomyDB) Parent(c int) (int, error) {
+	var err error
+	parent := 0
 	q := fmt.Sprintf(parentT, c)
 	rows, err := t.db.Query(q)
-	util.Check(err)
 	defer rows.Close()
+	if err != nil {
+		return 0, err
+	}
 	rows.Next()
-	err = rows.Scan(&p)
-	util.Check(err)
-	return p
+	err = rows.Scan(&parent)
+	if err != nil {
+		return 0, err
+	}
+	return parent, err
 }
 
-// Children returns a taxon's children.
-func (t *TaxonomyDB) Children(p int) []int {
+// The method Children takes as argument a taxon ID and returns its  children and an error.
+func (t *TaxonomyDB) Children(p int) ([]int, error) {
+	var err error
 	children := make([]int, 0)
 	q := fmt.Sprintf(childrenT, p)
 	rows, err := t.db.Query(q)
-	util.Check(err)
 	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
 	child := 0
 	for rows.Next() {
 		err = rows.Scan(&child)
-		util.Check(err)
+		if err != nil {
+			return nil, err
+		}
 		children = append(children, child)
 	}
-	return children
+	return children, err
 }
 
-// Subtree returns the taxa in the subtree rooted on the given taxon.
-func (t *TaxonomyDB) Subtree(r int) []int {
+// The method Subtree returns all taxa in a subtree, including its  root, and an error.
+func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
+	var err error
 	taxa := make([]int, 0)
-	taxa = traverseSubtree(t, r, taxa)
-	return taxa
+	taxa, err = traverseSubtree(t, r, taxa)
+	if err != nil {
+		return nil, err
+	}
+	return taxa, err
 }
 
-// Taxids matches the name of a taxon and returns the corresponding
-// taxon-IDs.
-func (t *TaxonomyDB) Taxids(name string) []int {
+// Taxids matches the name of a taxon and returns the  corresponding taxon-IDs and an error.
+func (t *TaxonomyDB) Taxids(name string) ([]int, error) {
+	var err error
 	taxids := make([]int, 0)
 	q := fmt.Sprintf(taxidsT, name)
 	rows, err := t.db.Query(q)
-	util.Check(err)
 	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
 	taxid := 0
 	for rows.Next() {
 		err = rows.Scan(&taxid)
-		util.Check(err)
+		if err != nil {
+			return nil, err
+		}
 		taxids = append(taxids, taxid)
 	}
-	return taxids
+	return taxids, err
 }
 
-// The method MRCA takes as input a slice of taxon IDs and returns their most recent common ancestor.
-func (t *TaxonomyDB) MRCA(ids []int) int {
+// The method MRCA takes as input a slice of taxon IDs and returns their most recent common ancestor and an error.
+func (t *TaxonomyDB) MRCA(ids []int) (int, error) {
+	var err error
 	mrca := -1
 	if len(ids) == 0 {
-		log.Fatal("Empty ID list in tdb.MRCA")
+		m := "Empty ID list in tdb.MRCA"
+		return 0, errors.New(m)
 	} else if len(ids) == 1 {
-		return ids[0]
+		return ids[0], nil
 	}
 	desc := make(map[int]int)
 	for _, id := range ids {
@@ -146,7 +182,10 @@ func (t *TaxonomyDB) MRCA(ids []int) int {
 	}
 	for len(children) > 1 {
 		for _, child := range children {
-			parent := t.Parent(child)
+			parent, err := t.Parent(child)
+			if err != nil {
+				return 0, err
+			}
 			desc[parent] += desc[child]
 			if desc[parent] >= len(ids) {
 				mrca = parent
@@ -164,64 +203,81 @@ func (t *TaxonomyDB) MRCA(ids []int) int {
 			break
 		}
 	}
-	return mrca
+	return mrca, err
 }
 
-// The method Level takes as argument a genome accession and  returns the assembly level.
-func (t *TaxonomyDB) Level(acc string) string {
+// The method Level takes as argument a genome accession and  returns the assembly level and an eror.
+func (t *TaxonomyDB) Level(acc string) (string, error) {
+	var err error
 	level := ""
 	q := fmt.Sprintf(levelT, acc)
 	rows, err := t.db.Query(q)
-	util.Check(err)
 	defer rows.Close()
+	if err != nil {
+		return "", err
+	}
 	rows.Next()
 	err = rows.Scan(&level)
-	util.Check(err)
-	return level
+	if err != nil {
+		return "", err
+	}
+	return level, err
 }
 
-// FilterAccessions takes as input a slice of genome accessions  and a list of desired assembly levels. It then removes any accession  that doesn't conform to one of the levels supplied and returns the  adjusted slice of genome accessions. The input accessions remain  unchanged.
+// FilterAccessions takes as input a slice of genome accessions  and a list of desired assembly levels. It then removes any accession  that doesn't conform to one of the levels supplied and returns the  adjusted slice of genome accessions and an error. The input  accessions remain unchanged.
 func (d *TaxonomyDB) FilterAccessions(acc []string,
-	levels map[string]bool) []string {
-	newAcc := make([]string, 0)
+	levels map[string]bool) ([]string, error) {
+	newAcc := []string{}
+	var err error
 	for _, a := range acc {
-		level := d.Level(a)
+		level, err := d.Level(a)
+		if err != nil {
+			return nil, err
+		}
 		if levels[level] {
 			newAcc = append(newAcc, a)
 		}
 	}
-	return newAcc
+	return newAcc, err
 }
 
-// The method NumTaxa returns the number of taxa in the database.
-func (d *TaxonomyDB) NumTaxa() int {
+// The method NumTaxa returns the number of taxa in the database  and an error.
+func (d *TaxonomyDB) NumTaxa() (int, error) {
 	n := 0
+	var err error
 	q := "select count(*) from taxon"
 	row, err := d.db.Query(q)
-	util.Check(err)
 	defer row.Close()
+	if err != nil {
+		return 0, err
+	}
 	row.Next()
 	err = row.Scan(&n)
-	util.Check(err)
-	return n
+	if err != nil {
+		return 0, err
+	}
+	return n, err
 }
 
-// The method NumGenomes returns the number of genomes in the  database.
-func (d *TaxonomyDB) NumGenomes() int {
+// The method NumGenomes returns the number of genomes in the  database and an error.
+func (d *TaxonomyDB) NumGenomes() (int, error) {
 	n := 0
+	var err error
 	q := "select count(*) from genome"
 	row, err := d.db.Query(q)
-	util.Check(err)
 	defer row.Close()
+	if err != nil {
+		return 0, err
+	}
 	row.Next()
 	err = row.Scan(&n)
-	util.Check(err)
-	return n
+	if err != nil {
+		return 0, err
+	}
+	return n, err
 }
 
-// NewTaxonomyDB takes as parameters the names
-// of the four data files and the database name,
-// and constructs the database from them.
+// The function NewTaxonomyDB takes as parameters the names of the  four input files from which we construct the database, and the name of  the database. It opens these files, opens a new database, and  constructs the database.
 func NewTaxonomyDB(nodes, names, genbank,
 	refseq, dbName string) {
 	of := util.Open(nodes)
@@ -400,8 +456,7 @@ func fields2genome(fields []string) *genome {
 	return g
 }
 
-// OpenTaxonomyDB opens an existing taxonomy database and returns a
-// pointer to it.
+// The function OpenTaxonomyDB opens an existing taxonomy database  and returns a pointer to it.
 func OpenTaxonomyDB(name string) *TaxonomyDB {
 	db := new(TaxonomyDB)
 	var err error
@@ -411,15 +466,21 @@ func OpenTaxonomyDB(name string) *TaxonomyDB {
 	}
 	return db
 }
-func traverseSubtree(t *TaxonomyDB, r int, taxa []int) []int {
-	taxa = append(taxa, r)
-	ch := t.Children(r)
-	for _, c := range ch {
-		if c != r {
-			taxa = traverseSubtree(t, c, taxa)
+func traverseSubtree(t *TaxonomyDB, v int, taxa []int) ([]int, error) {
+	taxa = append(taxa, v)
+	children, err := t.Children(v)
+	if err != nil {
+		return nil, err
+	}
+	for _, child := range children {
+		if child != v {
+			taxa, err = traverseSubtree(t, child, taxa)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
-	return taxa
+	return taxa, err
 }
 
 var accessionT = "select accession " +
