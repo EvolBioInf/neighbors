@@ -18,14 +18,18 @@ import (
 
 func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 	list, onlyG, tab bool, levels map[string]bool) {
-	mrcaT := taxdb.MRCA(taxa)
-	if taxdb.Parent(mrcaT) == mrcaT {
+	mrcaT, err := taxdb.MRCA(taxa)
+	util.Check(err)
+	parent, err := taxdb.Parent(mrcaT)
+	util.Check(err)
+	if parent == mrcaT {
 		m := "no neighbors as %d is the most " +
 			"recenct common ancestor of " +
 			"the targets and root"
 		log.Fatalf(m, mrcaT)
 	}
-	targets := taxdb.Subtree(mrcaT)
+	targets, err := taxdb.Subtree(mrcaT)
+	util.Check(err)
 	newTargets := make(map[int]bool)
 	sort.Ints(taxa)
 	l := len(taxa)
@@ -38,8 +42,10 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 	var neighbors []int
 	mrcaA := mrcaT
 	for len(neighbors) == 0 {
-		mrcaA = taxdb.Parent(mrcaA)
-		nodes := taxdb.Subtree(mrcaA)
+		mrcaA, err = taxdb.Parent(mrcaA)
+		util.Check(err)
+		nodes, err := taxdb.Subtree(mrcaA)
+		util.Check(err)
 		sort.Ints(targets)
 		l = len(targets)
 		for _, node := range nodes {
@@ -53,16 +59,20 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 	}
 	genomes := make(map[int][]string)
 	for _, target := range targets {
-		accessions := taxdb.Accessions(target)
-		accessions = taxdb.FilterAccessions(accessions, levels)
+		accessions, err := taxdb.Accessions(target)
+		util.Check(err)
+		accessions, err = taxdb.FilterAccessions(accessions, levels)
+		util.Check(err)
 		if len(accessions) > 0 {
 			genomes[target] = accessions
 		}
 	}
 	for _, neighbor := range neighbors {
-		accessions := taxdb.Accessions(neighbor)
-		accessions = taxdb.FilterAccessions(accessions,
+		accessions, err := taxdb.Accessions(neighbor)
+		util.Check(err)
+		accessions, err = taxdb.FilterAccessions(accessions,
 			levels)
+		util.Check(err)
 		if len(accessions) > 0 {
 			genomes[neighbor] = accessions
 		}
@@ -100,8 +110,10 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 			fmt.Fprintf(w, "%s\t%s\n", sample, a)
 		}
 	} else {
-		mrcaTname := taxdb.Name(mrcaT)
-		mrcaAname := taxdb.Name(mrcaA)
+		mrcaTname, err := taxdb.Name(mrcaT)
+		util.Check(err)
+		mrcaAname, err := taxdb.Name(mrcaA)
+		util.Check(err)
 		fmt.Printf("# MRCA(targets): %d, %s\n", mrcaT, mrcaTname)
 		fmt.Printf("# MRCA(targets+neighbors): %d, %s\n", mrcaA,
 			mrcaAname)
@@ -118,9 +130,10 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 			if onlyG && g == "-" {
 				continue
 			}
-			fmt.Fprintf(w, "%s\t%d\t%s\t%s\n", t, target,
-				taxdb.Name(target),
-				strings.TrimPrefix(g, " "))
+			name, err := taxdb.Name(target)
+			util.Check(err)
+			g = strings.TrimPrefix(g, " ")
+			fmt.Fprintf(w, "%s\t%d\t%s\t%s\n", t, target, name, g)
 		}
 		sort.Ints(neighbors)
 		for _, neighbor := range neighbors {
@@ -131,7 +144,8 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 			if onlyG && g == "-" {
 				continue
 			}
-			n := taxdb.Name(neighbor)
+			n, err := taxdb.Name(neighbor)
+			util.Check(err)
 			fmt.Fprintf(w, "n\t%d\t%s\t%s\n", neighbor, n,
 				strings.TrimPrefix(g, " "))
 		}

@@ -255,23 +255,34 @@
   The targets are nodes of the subtree of the most recent common
   ancestor of the taxon-IDs we just read. We call this MRCA the
   target-MRCA, \ty{mrcaT}, and calculate it from the partial taxonomy of
-  the targets. It is possible that \ty{mrcaT} is also the root, in which
-  case it is impossible to find any neighbors and we bail.
+  the targets. We check that our \ty{mrcaT} isn't also the root.
 
   The subtree rooted on the \ty{mrcaT} contains the complete set of
   targets. This complete set of targets might contain new targets not
   contained in the taxa submitted. We mark these new targets.
 #+end_src
 #+begin_src go <<Compute targets, Pr. \ref{pr:neig}>>=
-  mrcaT := taxdb.MRCA(taxa)
-  if taxdb.Parent(mrcaT) == mrcaT {
+  mrcaT, err := taxdb.MRCA(taxa)
+  util.Check(err)
+  //<<Check target MRCA isn't root, Pr. \ref{pr:neig}>>
+  targets, err := taxdb.Subtree(mrcaT)
+  util.Check(err)
+  //<<Mark new targets, Pr. \ref{pr:neig}>>
+#+end_src
+#+begin_export latex
+If the parent of \ty{mrcaT} is identical to \ty{mrcaT}, the most
+recent common ancestor of the targets is the root. In that case it is
+impossible to find any neighbors and we bail.
+#+end_export
+#+begin_src go <<Check target MRCA isn't root, Pr. \ref{pr:neig}>>=
+  parent, err := taxdb.Parent(mrcaT)
+  util.Check(err)
+  if parent == mrcaT {
 	  m := "no neighbors as %d is the most " +
 		  "recenct common ancestor of " +
 		  "the targets and root"
 	  log.Fatalf(m, mrcaT)
   }
-  targets := taxdb.Subtree(mrcaT)
-  //<<Mark new targets, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
   The new targets are put in a map.
@@ -304,8 +315,10 @@
   var neighbors []int
   mrcaA := mrcaT
   for len(neighbors) == 0 {
-	  mrcaA = taxdb.Parent(mrcaA)
-	  nodes := taxdb.Subtree(mrcaA)
+	  mrcaA, err = taxdb.Parent(mrcaA)
+	  util.Check(err)
+	  nodes, err := taxdb.Subtree(mrcaA)
+	  util.Check(err)
 	  //<<Subtract targets from the nodes, Pr. \ref{pr:neig}>>
   }
 #+end_src
@@ -341,8 +354,10 @@
 #+end_src
 #+begin_src go <<Look up target genomes, Pr. \ref{pr:neig}>>=
   for _, target := range targets {
-	  accessions := taxdb.Accessions(target)
-	  accessions = taxdb.FilterAccessions(accessions, levels)
+	  accessions, err := taxdb.Accessions(target)
+	  util.Check(err)
+	  accessions, err = taxdb.FilterAccessions(accessions, levels)
+	  util.Check(err)
 	  if len(accessions) > 0 {
 		  genomes[target] = accessions
 	  }
@@ -354,9 +369,11 @@
 #+end_src
 #+begin_src go <<Look up neighbor genomes, Pr. \ref{pr:neig}>>=
   for _, neighbor := range neighbors {
-	  accessions := taxdb.Accessions(neighbor)
-	  accessions = taxdb.FilterAccessions(accessions,
+	  accessions, err := taxdb.Accessions(neighbor)
+	  util.Check(err)
+	  accessions, err = taxdb.FilterAccessions(accessions,
 		  levels)
+	  util.Check(err)
 	  if len(accessions) > 0 {
 		  genomes[neighbor] = accessions
 	  }
@@ -465,8 +482,10 @@
   accessions.
 #+end_src
 #+begin_src go <<Print report, Pr. \ref{pr:neig}>>=
-  mrcaTname := taxdb.Name(mrcaT)
-  mrcaAname := taxdb.Name(mrcaA)
+  mrcaTname, err := taxdb.Name(mrcaT)
+  util.Check(err)
+  mrcaAname, err := taxdb.Name(mrcaA)
+  util.Check(err)
   fmt.Printf("# MRCA(targets): %d, %s\n", mrcaT, mrcaTname)
   fmt.Printf("# MRCA(targets+neighbors): %d, %s\n", mrcaA,
 	  mrcaAname)
@@ -478,7 +497,7 @@
   Targets that were already in the input are marked as type ``t'', new
   targets as ``tt''. We print the genome accessions in a single string
   punctuated by pipe symbols. If the user requested only taxa with
-  genomes, we restrict our output to them.
+  genomes and we found none, we skip printing the current target.
 #+end_src
 #+begin_src go <<Print targets, Pr. \ref{pr:neig}>>=
   for _, target := range targets {
@@ -489,10 +508,19 @@
 		  g = strings.Join(genomes[target], "|")
 	  }
 	  if onlyG && g == "-" { continue }
-	  fmt.Fprintf(w, "%s\t%d\t%s\t%s\n", t, target,
-		  taxdb.Name(target),
-		  strings.TrimPrefix(g, " "))
+	  //<<Print target, Pr. \ref{pr:neig}>>
   }
+#+end_src
+#+begin_export latex
+We look up the target's name and remove the leading blank from the
+genomes string. Then print the four columns in our table, type, taxon
+ID, name, and genomes.
+#+end_export
+#+begin_src go <<Print target, Pr. \ref{pr:neig}>>=
+  name, err := taxdb.Name(target)
+  util.Check(err)
+  g = strings.TrimPrefix(g, " ")
+  fmt.Fprintf(w, "%s\t%d\t%s\t%s\n", t, target, name, g)
 #+end_src
 #+begin_src latex
   Neighbors are marked as type ``n''. Since the targets were already
@@ -506,7 +534,8 @@
 		  g = strings.Join(genomes[neighbor], "|")
 	  }
 	  if onlyG && g == "-" { continue }
-	  n := taxdb.Name(neighbor)
+	  n, err := taxdb.Name(neighbor)
+	  util.Check(err)
 	  fmt.Fprintf(w, "n\t%d\t%s\t%s\n", neighbor, n,
 		  strings.TrimPrefix(g, " "))
   }

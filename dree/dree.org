@@ -227,8 +227,8 @@ and we bail with a message.
   We get the subtree we're looking for.
 #+end_src
 #+begin_src go <<Get subtree, Pr. \ref{pr:dr}>>=
-  subtree := neidb.Subtree(tid)
-
+  subtree, err := neidb.Subtree(tid)
+  util.Check(err)
 #+end_src
 #+begin_src latex
   We annotate each node, $v$, of our subtree with two kinds of
@@ -250,8 +250,10 @@ also the initial set of nodes with genomes in their subtree.
 #+end_src
 #+begin_src go <<Mark nodes with genomes, Pr. \ref{pr:dr}>>=
   for _, v := range subtree {
-	  acc := neidb.Accessions(v)
-	  acc = neidb.FilterAccessions(acc, levels)
+	  acc, err := neidb.Accessions(v)
+	  util.Check(err)
+	  acc, err = neidb.FilterAccessions(acc, levels)
+	  util.Check(err)
 	  if len(acc) > 0 {
 		  hasGenome[v] = true
 		  hasGsub[v] = true
@@ -259,21 +261,31 @@ also the initial set of nodes with genomes in their subtree.
   }
 #+end_src
 #+begin_src latex
-To find the nodes with genomes in their subtrees, we iterate over the
-nodes and for each node with a genome in it subtree, we propagate this
-up the tree.
+  To find the nodes with genomes in their subtrees, we iterate over the
+  nodes and for each node with a genome in it subtree, and propagate
+  this fact up the tree.
 #+end_src
 #+begin_src go <<Mark nodes with genomes in subtree, Pr. \ref{pr:dr}>>=
   for _, v := range subtree {
 	  if hasGsub[v] {
-		  u := v
-		  p := neidb.Parent(u)
-		  for u != tid {
-			  hasGsub[p] = true
-			  u = p
-			  p = neidb.Parent(u)
-		  }
+		  //<<Propagate "has genome" up tree, Pr. \ref{pr:dr}>>
 	  }
+  }
+#+end_src
+#+begin_export latex
+We climb up from the present node until we reach the root of the
+subtre and mark the fact that the node has at least one genome in its
+subtree.
+#+end_export
+#+begin_src go <<Propagate "has genome" up tree, Pr. \ref{pr:dr}>>=
+  u := v
+  p, err := neidb.Parent(u)
+  util.Check(err)
+  for u != tid {
+	  hasGsub[p] = true
+	  u = p
+	  p, err = neidb.Parent(u)
+	  util.Check(err)
   }
 #+end_src
 #+begin_src latex
@@ -336,8 +348,10 @@ We get the full list of accessions and filter them by level to find
 the final number of accessions.
 #+end_export
 #+begin_src go <<Determine the number of accessions, Pr. \ref{pr:dr}>>=
-  acc := neidb.Accessions(v)
-  acc = neidb.FilterAccessions(acc, levels)
+  acc, err := neidb.Accessions(v)
+  util.Check(err)
+  acc, err = neidb.FilterAccessions(acc, levels)
+  util.Check(err)
   numAcc = len(acc)
 #+end_src
 #+begin_export latex
@@ -345,10 +359,12 @@ We write the current node into a line consisting of the taxon-ID, the
 rank, and the number of genomes.
 #+end_export
 #+begin_src go <<Print node line, Pr. \ref{pr:dr}>>=
-  r := neidb.Rank(v)
+  r, err := neidb.Rank(v)
+  util.Check(err)
   fmt.Fprintf(w, "%d\t%s\t%d", v, r, numAcc)
   if *optN {
-	  a := neidb.Name(v)
+	  a, err := neidb.Name(v)
+	  util.Check(err)
 	  fmt.Fprintf(w, "\t%s", a)
   }
   fmt.Fprintf(w, "\n")
@@ -385,7 +401,8 @@ rank, and the number of genomes.
   if !*optG || (*optG && hasGsub[v]) {
 	  //<<Print $v$, Pr. \ref{pr:dr}>>
 	  if v != tid {
-		  p := neidb.Parent(v)
+		  p, err := neidb.Parent(v)
+		  util.Check(err)
 		  if p != v {
 			  fmt.Printf("\t%d -> %d\n", p, v)
 		  }
@@ -401,7 +418,9 @@ rank, and the number of genomes.
 	  fmt.Printf(t1, v)
   }
   if *optN {
-	  fmt.Printf(t2, v, neidb.Name(v))
+	  name, err := neidb.Name(v)
+	  util.Check(err)
+	  fmt.Printf(t2, v, name)
   }
 #+end_src
 #+begin_src latex

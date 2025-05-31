@@ -36,19 +36,23 @@ func main() {
 	taxdb := tdb.OpenTaxonomyDB(db)
 	var ants []int
 	ants = append(ants, tid)
-	a := taxdb.Parent(tid)
+	a, err := taxdb.Parent(tid)
+	util.Check(err)
 	for tid != a {
 		ants = append(ants, a)
 		tid = a
-		a = taxdb.Parent(tid)
+		a, err = taxdb.Parent(tid)
+		util.Check(err)
 	}
 	w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
 	defer w.Flush()
 	fmt.Fprintf(w, "# Back\tID\tName\tRank\n")
 	for i := len(ants) - 1; i >= 0; i-- {
 		a := ants[i]
-		n := taxdb.Name(a)
-		r := taxdb.Rank(a)
+		n, err := taxdb.Name(a)
+		util.Check(err)
+		r, err := taxdb.Rank(a)
+		util.Check(err)
 		fmt.Fprintf(w, "  %d\t%d\t%s\t%s\n", i, a, n, r)
 	}
 }

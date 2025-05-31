@@ -59,13 +59,15 @@ func main() {
 	}
 	dbname := tokens[1]
 	neidb := tdb.OpenTaxonomyDB(dbname)
-	subtree := neidb.Subtree(tid)
-
+	subtree, err := neidb.Subtree(tid)
+	util.Check(err)
 	hasGenome := make(map[int]bool)
 	hasGsub := make(map[int]bool)
 	for _, v := range subtree {
-		acc := neidb.Accessions(v)
-		acc = neidb.FilterAccessions(acc, levels)
+		acc, err := neidb.Accessions(v)
+		util.Check(err)
+		acc, err = neidb.FilterAccessions(acc, levels)
+		util.Check(err)
 		if len(acc) > 0 {
 			hasGenome[v] = true
 			hasGsub[v] = true
@@ -74,11 +76,13 @@ func main() {
 	for _, v := range subtree {
 		if hasGsub[v] {
 			u := v
-			p := neidb.Parent(u)
+			p, err := neidb.Parent(u)
+			util.Check(err)
 			for u != tid {
 				hasGsub[p] = true
 				u = p
-				p = neidb.Parent(u)
+				p, err = neidb.Parent(u)
+				util.Check(err)
 			}
 		}
 	}
@@ -92,14 +96,18 @@ func main() {
 		fmt.Fprint(w, "\n")
 		for _, v := range subtree {
 			numAcc := 0
-			acc := neidb.Accessions(v)
-			acc = neidb.FilterAccessions(acc, levels)
+			acc, err := neidb.Accessions(v)
+			util.Check(err)
+			acc, err = neidb.FilterAccessions(acc, levels)
+			util.Check(err)
 			numAcc = len(acc)
 			if !*optG || numAcc > 0 {
-				r := neidb.Rank(v)
+				r, err := neidb.Rank(v)
+				util.Check(err)
 				fmt.Fprintf(w, "%d\t%s\t%d", v, r, numAcc)
 				if *optN {
-					a := neidb.Name(v)
+					a, err := neidb.Name(v)
+					util.Check(err)
 					fmt.Fprintf(w, "\t%s", a)
 				}
 				fmt.Fprintf(w, "\n")
@@ -116,10 +124,13 @@ func main() {
 					fmt.Printf(t1, v)
 				}
 				if *optN {
-					fmt.Printf(t2, v, neidb.Name(v))
+					name, err := neidb.Name(v)
+					util.Check(err)
+					fmt.Printf(t2, v, name)
 				}
 				if v != tid {
-					p := neidb.Parent(v)
+					p, err := neidb.Parent(v)
+					util.Check(err)
 					if p != v {
 						fmt.Printf("\t%d -> %d\n", p, v)
 					}

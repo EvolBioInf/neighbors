@@ -36,7 +36,8 @@ func main() {
 		name = strings.ReplaceAll(name, " ", "%")
 	}
 	taxdb := tdb.OpenTaxonomyDB(db)
-	taxa := taxdb.Taxids(name)
+	taxa, err := taxdb.Taxids(name)
+	util.Check(err)
 	if len(taxa) == 0 {
 		return
 	}
@@ -45,8 +46,10 @@ func main() {
 	defer w.Flush()
 	fmt.Fprintf(w, "# ID\tParent\tName\n")
 	for _, taxon := range taxa {
-		name := taxdb.Name(taxon)
-		p := taxdb.Parent(taxon)
+		name, err := taxdb.Name(taxon)
+		util.Check(err)
+		p, err := taxdb.Parent(taxon)
+		util.Check(err)
 		fmt.Fprintf(w, "  %d\t%d\t%s\n", taxon, p, name)
 	}
 }

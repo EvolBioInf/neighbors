@@ -111,11 +111,13 @@
   taxdb := tdb.OpenTaxonomyDB(db)
   var ants []int
   ants = append(ants, tid)
-  a := taxdb.Parent(tid)
+  a, err := taxdb.Parent(tid)
+  util.Check(err)
   for tid != a {
 	  ants = append(ants, a)
 	  tid = a
-	  a = taxdb.Parent(tid)
+	  a, err = taxdb.Parent(tid)
+	  util.Check(err)
   }
 #+end_src
 #+begin_src latex
@@ -123,6 +125,7 @@
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:ant}>>=
   "github.com/evolbioinf/neighbors/tdb"
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   We print the ancestors and their ranks starting with the most
@@ -135,8 +138,10 @@
   fmt.Fprintf(w, "# Back\tID\tName\tRank\n")
   for i := len(ants) - 1; i >= 0; i-- {
 	  a := ants[i]
-	  n := taxdb.Name(a)
-	  r := taxdb.Rank(a)
+	  n, err := taxdb.Name(a)
+	  util.Check(err)
+	  r, err := taxdb.Rank(a)
+	  util.Check(err)
 	  fmt.Fprintf(w, "  %d\t%d\t%s\t%s\n", i, a, n, r)
   }
 #+end_src
