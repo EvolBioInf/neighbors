@@ -739,7 +739,7 @@ and check the error returned by the database.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Children}}CONT
+  \subsection{\ty{Children}}
   ! The method \ty{Children} takes as argument a taxon ID and returns its
   ! children and an error.
 
