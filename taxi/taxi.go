@@ -18,7 +18,9 @@ func main() {
 	e := "taxi \"homo sapiens\" neidb"
 	clio.Usage(u, p, e)
 	var optV = flag.Bool("v", false, "version")
-	var optS = flag.Bool("s", false, "substring match")
+	var optE = flag.Bool("e", false, "exact match")
+	var optL = flag.Int("l", -1, "limit output to <= l taxids")
+	var optO = flag.Int("o", 0, "offset into taxid list")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("taxi")
@@ -31,12 +33,12 @@ func main() {
 	}
 	name := args[0]
 	db := args[1]
-	if *optS {
+	if !*optE {
+		name = strings.ReplaceAll(name, " ", "% %")
 		name = "%" + name + "%"
-		name = strings.ReplaceAll(name, " ", "%")
 	}
 	taxdb := tdb.OpenTaxonomyDB(db)
-	taxa, err := taxdb.Taxids(name)
+	taxa, err := taxdb.Taxids(name, *optL, *optO)
 	util.Check(err)
 	if len(taxa) == 0 {
 		return

@@ -17,7 +17,7 @@ func TestTaxi(t *testing.T) {
 	for _, taxon := range taxa {
 		test := exec.Command("./taxi", taxon, db)
 		tests = append(tests, test)
-		test = exec.Command("./taxi", "-s", taxon, db)
+		test = exec.Command("./taxi", "-e", taxon, db)
 		tests = append(tests, test)
 	}
 	for i, test := range tests {

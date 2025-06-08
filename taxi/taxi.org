@@ -3,10 +3,32 @@
   The \ty{neighbors} module is based on taxon-IDs. These are difficult
   to remember, so the program \ty{taxi} takes the user from the name of
   an organism to its taxon-ID. The input to \ty{taxi} is a scientific
-  name and the taxonomy database. By default, \ty{taxi} carries out a
-  case-insensitive exact match across the full name, but the user can
-  opt for a substring match instead. Regardless of the query type, there
-  may be more than one match, and \ty{taxi} returns them all.
+  name and the taxonomy database. The search is always case-insensitive
+  and by default a query is bracketed by wildcards together with its
+  internal blanks. For example,
+  \begin{verbatim}
+  a b
+  \end{verbatim}
+  becomes
+  \begin{verbatim}
+  %a% %b%
+  \end{verbatim}
+  The outer wild cards allow substring matching to find a string like
+  \verb+xa by+. Bracketing blanks by wild cards allows matches to
+  strings in square brackets, like \verb+xa [y]+. This accounts for the
+  policy of the NCBI to use square brackets to indicate
+  misclassification. For example, the species \emph{Haemophilus
+  ducreyi} is currently stored as the string \ty{[Haemophilus]
+    ducreyi}. This seems to mainly affect genus names, but not only, as
+  shown by the name \ty{Pseudomonas [fluorescens] ATCC 17400}.
+
+  Instead of this default substring matching, the user can opt for an
+  exact matching, in which case no wild cards are inserted. Regardless
+  of the query type, there may be more than one, and potentially very
+  many, matches. In such cases, paged data retrieval may be more
+  convenient than wholesale output of all matches at once. To allow
+  paged data retrieval, the user can set a limit on the number of names
+  returned and an offset into the results list.
 
   \subsection*{Implementation}
   The program \ty{taxi} has hooks for imports and the logic of the main
@@ -52,11 +74,15 @@
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  Apart from the version, we declare the substring option.
+  Apart from the version, we declare options for exact matching, limit,
+  and offset. The defaults are substring matching, no limit, and no
+  offset.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:tax}>>=
   var optV = flag.Bool("v", false, "version")
-  var optS = flag.Bool("s", false, "substring match")
+  var optE = flag.Bool("e", false, "exact match")
+  var optL = flag.Int("l", -1, "limit output to <= l taxids")
+  var optO = flag.Int("o", 0, "offset into taxid list")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -67,16 +93,10 @@
 #+begin_src latex
   We parse the options and respond to the version option (\ty{-v})
   first, as this would stop the program. Then we get the remaining
-  arguments and check there are two of them, the names of the taxon and
-  the database. We store both names. If the user opted for substring
-  matching, the taxon name needs to be reformatted. The NCBI has a
-  policy of using square brackets to indicate misclassification. For
-  example, the species \emph{Haemophilus ducreyi} is currently stored as the
-  string \ty{[Haemophilus]  ducreyi}. This seems to mainly affect genus names,
-  but not only, as shown by the name \ty{Pseudomonas [fluorescens] ATCC
-    17400}. To account for this, we do two things in substring
-  mode. First, we bracket the taxon name in wild-card characters,
-  \verb+%+. Then we replace all blanks in the name by wild-cards.
+  arguments and check there are two of them, the name of the taxon and
+  the database. We store both names. Unless the user opted for exact
+  matching, we bracket the taxon name and any blanks it might contain
+  with wild cards.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:tax}>>=
   flag.Parse()
@@ -85,9 +105,9 @@
   //<<Check arguments, Pr. \ref{pr:tax}>>
   name := args[0]
   db := args[1]
-  if *optS {
+  if !*optE {
+	  name = strings.ReplaceAll(name, " ", "% %")
 	  name = "%" + name + "%"
-	  name = strings.ReplaceAll(name, " ", "%")
   }
 #+end_src
 #+begin_src latex
@@ -121,7 +141,7 @@
 #+end_src
 #+begin_src go <<Get taxon-IDs, Pr. \ref{pr:tax}>>=
   taxdb := tdb.OpenTaxonomyDB(db)
-  taxa, err := taxdb.Taxids(name)
+  taxa, err := taxdb.Taxids(name, *optL, *optO)
   util.Check(err)
   if len(taxa) == 0 {
 	  return
@@ -196,7 +216,7 @@
 #+end_src
 #+begin_src latex
   Our query is \emph{Homo sapiens}, which we run in default mode and in
-  substring mode. Note that string matching in SQL databases is
+  exact mode. Remember that string matching in SQL databases is
   case-insensitive.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:tax}>>=
@@ -207,14 +227,14 @@
   for _, taxon := range taxa {
 	  test := exec.Command("./taxi", taxon, db)
 	  tests = append(tests, test)
-	  test = exec.Command("./taxi", "-s", taxon, db)
+	  test = exec.Command("./taxi", "-e", taxon, db)
 	  tests = append(tests, test)
   }
 #+end_src
 #+begin_src latex
   We execute the test and compare the result we get to the result we
-  want. The results we want are contained in the files \ty{r1.txt} and
-  \ty{r2.txt}.
+  want. The results we want are contained in the files \ty{r1.txt}, 
+  \ty{r2.txt} and so on.
 #+end_src
 #+begin_src go <<Run test, Pr. \ref{pr:tax}>>=
   get, err := test.Output()
