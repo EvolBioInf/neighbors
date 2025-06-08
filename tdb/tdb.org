@@ -843,14 +843,17 @@ infinite loop.
 #+end_src
 #+begin_src latex
   \subsection{\ty{Taxids}}
-  ! \ty{Taxids} matches the name of a taxon and returns the
-  ! corresponding taxon-IDs and an error.
+  ! \ty{Taxids} takes as arguments a taxon name, a limit on the number
+  ! of names returned, and an offset into the list of matching names. It
+  ! matches the taxon name, imposes the limit and offset, and returns
+  ! the corresponding taxon-IDs and an error.
 
   We construct and execute the query for taxon-IDs, extract the IDs, and
   return them.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) Taxids(name string) ([]int, error) {
+  func (t *TaxonomyDB) Taxids(name string,
+	  limit, offset int) ([]int, error) {
 	  var err error
 	  taxids := make([]int, 0)
 	  //<<Construct taxids query, Pa. \ref{pa:tdb}>>
@@ -860,16 +863,21 @@ infinite loop.
   }
 #+end_src
 #+begin_src latex
-  We declare a template for the taxids query.
+  We declare a template for the taxids query. We ignore the
+  recommendation from the Sqlite documentation that the \ty{limit}
+  clause should be applied in conjunction with \ty{order by} as this can
+  slow down searches considerably and paging should still work.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
-  var taxidsT = "select taxid from taxon where name like '%s'"
+  var taxidsT = "select taxid from taxon where name like '%s' " +
+	  "limit %d " +
+	  "offset %d"
 #+end_src
 #+begin_src latex
   We construct the query for taxon-IDs from its template.
 #+end_src
 #+begin_src go <<Construct taxids query, Pa. \ref{pa:tdb}>>=
-  q := fmt.Sprintf(taxidsT, name)
+  q := fmt.Sprintf(taxidsT, name, limit, offset)
 #+end_src
 #+begin_src latex
   We execute the query for taxon-IDs and catch potential errors. We also
@@ -1219,9 +1227,10 @@ error.
   }
 #+end_src
 #+begin_src latex
-  We test the function \ty{NewTaxonomyDB}, and the eight methods
+  We test the function \ty{NewTaxonomyDB}, and the eleven methods
   \ty{Name}, \ty{Rank}, \ty{Parent}, \ty{Children}, \ty{Subtree},
-  \ty{Taxids}, \ty{MRCA}, \ty{Level}, and \ty{FilterAccessions}.
+  \ty{Taxids}, \ty{MRCA}, \ty{Level}, \ty{FilterAccessions},
+  \ty{NumTaxa}, and \ty{NumGenomes}.
 #+end_src
 #+begin_src go <<Testing, Pa. \ref{pa:tdb}>>=
   //<<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>
@@ -1320,13 +1329,14 @@ The rank of \emph{Homo sapiens} is ``species''.
 #+end_src
 #+begin_src latex
   To test \ty{Taxids}, we get the four taxa whose names contain
-  \emph{homo sapiens}. Notice the lower-case ``h'' in \emph{homo}, which
-  SQL matches to the upper-case ``H'' in the actual names.
+  \emph{homo sapiens}, but limit the output to the last two. Notice the
+  lower-case ``h'' in \emph{homo}, which SQL matches to the upper-case
+  ``H'' in the actual names.
 #+end_src
 #+begin_src go <<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>=
-  taxa, _ = taxdb.Taxids("%homo sapiens%")
+  taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 2)
   g = len(taxa)
-  w = 4
+  w = 2
   if g != w {
 	  t.Errorf("get %d taxa for homo sapiens; want %d",
 		  g, w)

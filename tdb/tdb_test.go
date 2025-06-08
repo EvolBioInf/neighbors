@@ -49,9 +49,9 @@ func TestTdb(t *testing.T) {
 	if g != w {
 		t.Errorf("get %d nodes in subtree; want %d", g, w)
 	}
-	taxa, _ = taxdb.Taxids("%homo sapiens%")
+	taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 2)
 	g = len(taxa)
-	w = 4
+	w = 2
 	if g != w {
 		t.Errorf("get %d taxa for homo sapiens; want %d",
 			g, w)

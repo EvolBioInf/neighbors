@@ -140,11 +140,12 @@ func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
 	return taxa, err
 }
 
-// Taxids matches the name of a taxon and returns the  corresponding taxon-IDs and an error.
-func (t *TaxonomyDB) Taxids(name string) ([]int, error) {
+// Taxids takes as arguments a taxon name, a limit on the number  of names returned, and an offset into the list of matching names. It  matches the taxon name, imposes the limit and offset, and returns  the corresponding taxon-IDs and an error.
+func (t *TaxonomyDB) Taxids(name string,
+	limit, offset int) ([]int, error) {
 	var err error
 	taxids := make([]int, 0)
-	q := fmt.Sprintf(taxidsT, name)
+	q := fmt.Sprintf(taxidsT, name, limit, offset)
 	rows, err := t.db.Query(q)
 	defer rows.Close()
 	if err != nil {
@@ -490,5 +491,7 @@ var nameT = "select name from taxon where taxid=%d"
 var rankT = "select rank from taxon where taxid=%d"
 var parentT = "select parent from taxon where taxid=%d"
 var childrenT = "select taxid from taxon where parent=%d"
-var taxidsT = "select taxid from taxon where name like '%s'"
+var taxidsT = "select taxid from taxon where name like '%s' " +
+	"limit %d " +
+	"offset %d"
 var levelT = "select level from genome where accession='%s'"
