@@ -81,22 +81,20 @@
   \section*{Query Database}
   The next step is to find the taxon-IDs for our target organism,
   \emph{Legionella pneumophila}, the type strain of which is \emph{L.
-  pneumophila subsp. pneumophila str. Philadelphia 1}. We look up its
-  taxon-ID, 272624, using \ty{taxi} in substring mode (\ty{-s}). All
-  matching in the database is case insensitive. In substring mode,
-  \ty{taxi} searches for a string ``\verb+a b+'' as ``\verb+%a%b%+,
-  where \verb+%+ matches any string. Hence the extra match to the
-  Influenza A virus whose name contains ``Philadelphia'' followed by
-  ``1''.
+  pneumophila subsp. pneumophila str. Philadelphia 1}. For this we use
+  \ty{taxi}, which takes as input the name of an organism and returns
+  its taxon-ID. The full strain name is a bit inconvenient to type, so
+  we look for a distinctive substring. Since all \ty{taxi} queries are
+  case insensitive, we try ``philadelphia 1'', which gives us a single
+  hit with the type strain's taxon-ID, 272624.
 #+end_src
 #+begin_src sh <<query.sh>>=
-  taxi -s "philadelphia 1" neidb
+  taxi "philadelphia 1" neidb
 #+end_src
 #+begin_src latex
   \begin{verbatim}
   # ID      Parent  Name
     272624  91891   Legionella pneumophila...Philadelphia 1
-    884952  119211  Influenza A...Philadelphia/6371...
   \end{verbatim}
   We can look at the ancestors of our type strain using \ty{ants}. The
   result in Table~\ref{tab:pic} suggests that we should be targeting the
