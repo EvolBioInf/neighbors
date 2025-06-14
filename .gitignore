@@ -1,3 +1,9 @@
+
+# Programs and databases
+*/*~
+ants/ants
+bin
+climt/climt
 data/*.db
 data/acc.txt
 data/assembly_summary_genbank.txt
@@ -17,25 +23,23 @@ data/prokaryotes.txt
 data/readme.txt
 data/taxdump.tar.gz
 data/viruses.txt
-test
-bin
-*/*~
 doc/*.aux
 doc/*.bbl
 doc/*.blg
 doc/*.dvi
 doc/*.log
-doc/neighborsDoc.pdf
-doc/neighborsDoc.ps
 doc/*.toc
 doc/ants.tex
 doc/climt.tex
 doc/date.txt
+doc/db.ps
 doc/dree.tex
 doc/fintac.tex
+doc/land.tex
 doc/makeNeiDb.tex
 doc/neighbors.tex
-doc/land.tex
+doc/neighborsDoc.pdf
+doc/neighborsDoc.ps
 doc/outliers.tex
 doc/pickle.tex
 doc/tax.tex
@@ -44,10 +48,6 @@ doc/tdb.tex
 doc/tutorial.tex
 doc/util.tex
 doc/version.txt
-
-# Programs and databases
-ants/ants
-climt/climt
 dree/dree
 dree/dree.sh
 fintac/fintac
@@ -63,6 +63,8 @@ pickle/pickle
 taxi/extraTests.sh
 taxi/makeRes.sh
 taxi/taxi
+tdb/fk
+test
 tutorial/*.db/
 tutorial/*.fasta
 tutorial/acc.txt

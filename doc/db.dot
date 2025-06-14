@@ -1,0 +1,30 @@
+graph ER {
+layout=neato
+overlap=scale
+// entities
+node [shape=box]; taxon; genome; genome_count;
+// attributes
+node [shape=ellipse] accession; size; parent; name; rank; raw; recursive; leve1; leve2; taxi1; taxi2; taxi3;
+// relations
+node [shape=diamond] ha1; ha2;
+
+genome -- leve1
+genome -- accession
+genome -- size
+genome -- taxi1
+genome -- ha1 [label="n"]
+
+taxon -- taxi2 
+taxon -- parent
+taxon -- name
+taxon -- rank
+taxon -- ha1 [label="1"]
+taxon -- ha2 [label="1"]
+
+genome_count -- taxi3
+genome_count -- raw
+genome_count -- recursive
+genome_count -- leve2
+genome_count -- ha2 [label="n"]
+
+}

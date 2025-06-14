@@ -72,11 +72,14 @@ tables, \ty{genome} and \ty{taxon}. Each genome has a unique
 accession, which also serves as primary key, comes from an organism
 identified by its taxon-ID, has a size, and an assembly level. Each
 genome belongs to a taxon. A taxon has a unique taxon-ID, which serves
-as primary key. A taxon also has a parent, a rank, and a name.
+as primary key. A taxon also has a parent, a rank, a name, and a
+recursive genome count.
 
-\begin{figure}
+\begin{figure}[ht]
   \begin{center}
-    \input{db}
+  \LARGE
+  \input{labels}
+    \scalebox{0.5}{\includegraphics{db}}
   \end{center}
   \caption{Diagram of \ty{neidb}.}\label{fig:db}
 \end{figure}

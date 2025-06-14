@@ -1,11 +1,11 @@
 SRC1 =   makeNeiDb.tex taxi.tex ants.tex climt.tex neighbors.tex dree.tex fintac.tex land.tex outliers.tex pickle.tex tdb.tex tutorial.tex util.tex
-SRC2 =   header.tex db.tex introduction.tex neighborsDoc.tex
+SRC2 =   header.tex introduction.tex neighborsDoc.tex labels.tex
 
 date = $(shell git log | grep -m 1 Date | sed -r 's/Date: +[A-Z][a-z]+ ([A-Z][a-z]+) ([0-9]+) [^ ]+ ([0-9]+) .+/\2_\1_\3/')
 version = $(shell git describe)
 
 all: neighborsDoc.pdf
-neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2)
+neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2) db.ps
 	echo $(date) | tr '_' ' ' > date.txt
 	echo $(version) | tr '-' ' ' | awk '{printf "%s", $$1; if ($$2) printf "-%s", $$2; printf "\n"}' > version.txt
 	latex neighborsDoc.tex
@@ -19,6 +19,8 @@ publish: neighborsDoc.pdf
 		cp neighborsDoc.pdf /mnt/c/Users/haubold/ownCloud\ -\ haubold@evolbio.mpg.de@owncloud.gwdg.de/docs/; \
 	fi
 
+db.ps: db.dot
+	neato -T eps db.dot > db.ps
 makeNeiDb.tex: ../makeNeiDb/makeNeiDb.org 
 	awk -f ../scripts/preWeave.awk ../makeNeiDb/makeNeiDb.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > makeNeiDb.tex
 taxi.tex: ../taxi/taxi.org 
@@ -47,4 +49,4 @@ util.tex: ../util/util.org
 	awk -f ../scripts/preWeave.awk ../util/util.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > util.tex
 
 clean:
-	rm -f neighborsDoc.pdf neighborsDoc.ps neighborsDoc.dvi neighborsDoc.aux $(SRC1) 
+	rm -f neighborsDoc.pdf neighborsDoc.ps neighborsDoc.dvi neighborsDoc.aux $(SRC1) db.ps

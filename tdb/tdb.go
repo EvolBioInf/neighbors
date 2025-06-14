@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/evolbioinf/neighbors/util"
 	_ "github.com/mattn/go-sqlite3"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -20,6 +19,9 @@ type TaxonomyDB struct {
 type taxon struct {
 	taxid, parent int
 	name, rank    string
+	numChildren   int
+	raw           map[string]int
+	rec           map[string]int
 }
 type genome struct {
 	taxid            int
@@ -260,11 +262,35 @@ func (d *TaxonomyDB) NumTaxa() (int, error) {
 	return n, err
 }
 
-// The method NumGenomes returns the number of genomes in the  database and an error.
-func (d *TaxonomyDB) NumGenomes() (int, error) {
+// The method NumGenomes takes as argument a taxon-ID and an assembly level and returns the raw number of genomes associated with this taxon assembled to that level and an error.  NB: This is not the number of genomes in the subtree rooted on that taxon, please use the method NumGenomesRecursive for that.
+func (d *TaxonomyDB) NumGenomes(taxid int, level string) (int, error) {
 	n := 0
 	var err error
-	q := "select count(*) from genome"
+	q := "select raw from genome_count " +
+		"where taxid=%d and " +
+		"level like '%s'"
+	q = fmt.Sprintf(q, taxid, level)
+	row, err := d.db.Query(q)
+	defer row.Close()
+	if err != nil {
+		return 0, err
+	}
+	row.Next()
+	err = row.Scan(&n)
+	if err != nil {
+		return 0, err
+	}
+	return n, err
+}
+
+// The method NumGenomesRec takes as argument a taxon-ID and an assembly level. It returns the number of genomes assembled to that level contained in the subtree rooted on the taxon-ID and an error.
+func (d *TaxonomyDB) NumGenomesRec(taxid int, level string) (int, error) {
+	n := 0
+	var err error
+	q := "select recursive from genome_count " +
+		"where taxid=%d and " +
+		"level like '%s'"
+	q = fmt.Sprintf(q, taxid, level)
 	row, err := d.db.Query(q)
 	defer row.Close()
 	if err != nil {
@@ -299,36 +325,41 @@ func NewTaxonomyDB(nodes, names, genbank,
 	util.Check(err)
 	defer db.Close()
 	sqlStmt := `create table taxon (
-          taxid int, parent int, name text, rank text,
-          primary key(taxid));
+            taxid int primary key,
+            parent int,
+            name text,
+            rank text);
           create index taxon_parent_idx on taxon(parent);`
-	if _, err := db.Exec(sqlStmt); err != nil {
-		log.Fatal(err)
-	}
+	_, err = db.Exec(sqlStmt)
+	util.Check(err)
 	sqlStmt = `create table genome (
-          taxid int, size real, 
-                   accession text, level text,
-          primary key(accession),
-          foreign key(taxid) references taxon(taxid));
+            taxid int,
+            size real, 
+            accession text primary key,
+            level text,
+            foreign key(taxid) references taxon(taxid));
           create index genome_taxid_idx on genome(taxid);
           create index genome_size_idx on genome(size);`
-	if _, err := db.Exec(sqlStmt); err != nil {
-		log.Fatal(err)
-	}
+	_, err = db.Exec(sqlStmt)
+	util.Check(err)
+	sqlStmt = `create table genome_count (
+          taxid int, level text, raw int, recursive int,
+          primary key(taxid, level),
+          foreign key(taxid) references taxon(taxid));`
+	_, err = db.Exec(sqlStmt)
+	util.Check(err)
 	taxa := make(map[int]*taxon)
 	scanner := bufio.NewScanner(of)
 	for scanner.Scan() {
 		row := scanner.Text()
-		fields := strings.SplitN(row, "\t|\t", 4)
 		t := new(taxon)
+		t.raw = make(map[string]int)
+		t.rec = make(map[string]int)
+		fields := strings.SplitN(row, "\t|\t", 4)
 		t.taxid, err = strconv.Atoi(fields[0])
-		if err != nil {
-			log.Fatal(err)
-		}
+		util.Check(err)
 		t.parent, err = strconv.Atoi(fields[1])
-		if err != nil {
-			log.Fatal(err)
-		}
+		util.Check(err)
 		t.rank = fields[2]
 		taxa[t.taxid] = t
 	}
@@ -337,32 +368,24 @@ func NewTaxonomyDB(nodes, names, genbank,
 		row := scanner.Text()
 		fields := strings.Split(row, "\t|\t")
 		id, err := strconv.Atoi(fields[0])
-		if err != nil {
-			log.Fatal(err)
-		}
+		util.Check(err)
 		if fields[3][:3] == "sci" {
 			taxa[id].name = fields[1]
 		}
 	}
 	tx, err := db.Begin()
-	if err != nil {
-		log.Fatal(err)
-	}
+	util.Check(err)
 	sqlStmt = "insert into taxon(taxid, parent, name, rank) " +
 		"values(?, ?, ?, ?)"
 	stmt, err := tx.Prepare(sqlStmt)
-	if err != nil {
-		log.Fatal(err)
-	}
+	util.Check(err)
 	for _, v := range taxa {
 		_, err = stmt.Exec(v.taxid, v.parent, v.name, v.rank)
-		if err != nil {
-			log.Fatal(err)
-		}
+		util.Check(err)
 	}
 	tx.Commit()
 	stmt.Close()
-	rsGenomes := make(map[string]*genome)
+	genomes := make(map[string]*genome)
 	scanner = bufio.NewScanner(rf)
 	for scanner.Scan() {
 		row := scanner.Text()
@@ -372,69 +395,105 @@ func NewTaxonomyDB(nodes, names, genbank,
 		fields := strings.Split(row, "\t")
 		k := coreAcc(fields[0])
 		g := fields2genome(fields)
-		rsGenomes[k] = g
+		genomes[k] = g
+	}
+	scanner = bufio.NewScanner(gf)
+	for scanner.Scan() {
+		row := scanner.Text()
+		if row[0] == '#' {
+			continue
+		}
+		fields := strings.Split(row, "\t")
+		k := coreAcc(fields[0])
+		if genomes[k] == nil {
+			g := fields2genome(fields)
+			genomes[k] = g
+		}
 	}
 	tx, err = db.Begin()
+	util.Check(err)
+	sqlStmt = "pragma foreign_keys=on"
+	_, err = tx.Exec(sqlStmt)
 	util.Check(err)
 	sqlStmt = "insert into genome(accession, " +
 		"taxid, level, size) " +
 		"values(?, ?, ?, ?)"
 	stmt, err = tx.Prepare(sqlStmt)
 	util.Check(err)
-	defer tx.Commit()
-	defer stmt.Close()
-	scanner = bufio.NewScanner(gf)
-	for scanner.Scan() {
-		row := scanner.Text()
-		if row[0] == '#' {
-			continue
-		}
-		fields := strings.Split(row, "\t")
-		ca := coreAcc(fields[0])
-		var g *genome
-		if _, ok := rsGenomes[ca]; ok {
-			g = rsGenomes[ca]
-			rsGenomes[ca].written = true
-		} else {
-			g = fields2genome(fields)
-		}
-		_, err = stmt.Exec(g.accession, g.taxid,
-			g.level, g.size)
+	for _, genome := range genomes {
+		_, err = stmt.Exec(genome.accession, genome.taxid,
+			genome.level, genome.size)
 		util.Check(err)
 	}
-	for _, g := range rsGenomes {
-		if g.written {
-			continue
-		}
-		_, err = stmt.Exec(g.accession, g.taxid,
-			g.level, g.size)
-	}
-	scanner = bufio.NewScanner(gf)
-	for scanner.Scan() {
-		row := scanner.Text()
-		if row[0] == '#' {
-			continue
-		}
-		fields := strings.Split(row, "\t")
-		ca := coreAcc(fields[0])
-		var g *genome
-		if _, ok := rsGenomes[ca]; ok {
-			g = rsGenomes[ca]
-			rsGenomes[ca].written = true
+	tx.Commit()
+	stmt.Close()
+	for _, genome := range genomes {
+		t := taxa[genome.taxid]
+		if t != nil {
+			t.raw[genome.level]++
 		} else {
-			g = fields2genome(fields)
+			m := "WARNING[tdb]: no entry in taxonomy for %d; " +
+				"referred to by assembly %s; " +
+				"could this be an unmerged taxon?\n"
+			fmt.Fprintf(os.Stderr, m, genome.taxid,
+				genome.accession)
 		}
-		_, err = stmt.Exec(g.accession, g.taxid,
-			g.level, g.size)
-		util.Check(err)
 	}
-	for _, g := range rsGenomes {
-		if g.written {
-			continue
+	for _, taxon := range taxa {
+		for level, count := range taxon.raw {
+			taxon.rec[level] = count
 		}
-		_, err = stmt.Exec(g.accession, g.taxid,
-			g.level, g.size)
 	}
+	leaves := []*taxon{}
+	for _, taxon := range taxa {
+		parent := taxa[taxon.parent]
+		if parent != nil && parent.taxid != taxon.taxid {
+			parent.numChildren++
+		}
+	}
+	for _, taxon := range taxa {
+		if taxon.numChildren == 0 {
+			leaves = append(leaves, taxon)
+		}
+	}
+	for len(leaves) > 0 {
+		i := 0
+		for _, leaf := range leaves {
+			var parent *taxon
+			parent = taxa[leaf.parent]
+			if parent == nil || leaf.taxid == parent.taxid {
+				continue
+			}
+			for level, count := range leaf.rec {
+				parent.rec[level] += count
+			}
+			parent.numChildren--
+			if parent.numChildren == 0 {
+				leaves[i] = parent
+				i++
+			}
+		}
+		leaves = leaves[:i]
+	}
+	tx, err = db.Begin()
+	util.Check(err)
+	sqlStmt = "pragma foreign_keys=on"
+	_, err = tx.Exec(sqlStmt)
+	util.Check(err)
+	sqlStmt = `insert into genome_count(
+          level, recursive, raw, taxid)
+          values(?, ?, ?, ?)`
+	stmt, err = tx.Prepare(sqlStmt)
+	util.Check(err)
+	for _, t := range taxa {
+		for l, c := range t.rec {
+			_, err = stmt.Exec(
+				l, c, t.raw[l], t.taxid)
+			util.Check(err)
+		}
+	}
+	tx.Commit()
+	stmt.Close()
 }
 func coreAcc(acc string) string {
 	s := strings.Index(acc, "_") + 1
@@ -462,9 +521,9 @@ func OpenTaxonomyDB(name string) *TaxonomyDB {
 	db := new(TaxonomyDB)
 	var err error
 	db.db, err = sql.Open("sqlite3", name)
-	if err != nil {
-		log.Fatal(err)
-	}
+	util.Check(err)
+	_, err = db.db.Exec("PRAGMA foreign_keys = ON;")
+	util.Check(err)
 	return db
 }
 func traverseSubtree(t *TaxonomyDB, v int, taxa []int) ([]int, error) {

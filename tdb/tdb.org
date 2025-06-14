@@ -3,10 +3,10 @@
   ! Package tdb constructs and queries the taxonomy database.
 
   Figure~\ref{fig:db} shows the ER diagram of the taxonomy database,
-  which consists of two tables, taxon and genome. The outline of
-  \ty{tdb} has hooks for imports, types, methods, and functions. It also
-  has a hook for a special kind of package variable, the templates for
-  SQL queries.  \bpa{tdb}{pa:tdb}
+  which consists of three tables, \ty{taxon}, \ty{genome}, and
+  \ty{genome\_count}. The outline of \ty{tdb} has hooks for imports,
+  types, methods, and functions. It also has a hook for a special kind
+  of package variable, the templates for SQL queries.  \bpa{tdb}{pa:tdb}
 #+end_src
 #+begin_src go <<tdb.go>>=
   package tdb
@@ -53,7 +53,7 @@
   }
 #+end_src
 #+begin_src latex
-  We open the four input tables and defer their closure.
+  We open the four input tables and defer closing them again.
 #+end_src
 #+begin_src go <<Open files, Pa. \ref{pa:tdb}>>=
   of := util.Open(nodes)
@@ -110,12 +110,13 @@
   //<<Load tables, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
-  As illustrated in Figure~\ref{fig:db}, we construct two tables,
-  \ty{taxon} and \ty{genome}.
+  As illustrated in Figure~\ref{fig:db}, we construct three tables,
+  \ty{taxon} \ty{genome}, and \ty{genome\_count}.
 #+end_src
 #+begin_src go <<Construct tables, Pa. \ref{pa:tdb}>>=
   //<<Construct table \ty{taxon}, Pa. \ref{pa:tdb}>>
   //<<Construct table \ty{genome}, Pa. \ref{pa:tdb}>>
+  //<<Construct table \ty{genome\_count}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   Table \ty{taxon} has the four attributes \ty{taxid}, \ty{parent},
@@ -132,18 +133,13 @@
 #+end_src
 #+begin_src go <<Construct table \ty{taxon}, Pa. \ref{pa:tdb}>>=
   sqlStmt := `create table taxon (
-  taxid int, parent int, name text, rank text,
-  primary key(taxid));
+    taxid int primary key,
+    parent int,
+    name text,
+    rank text);
   create index taxon_parent_idx on taxon(parent);`
-  if _, err := db.Exec(sqlStmt); err != nil {
-	  log.Fatal(err)
-  }
-#+end_src
-#+begin_src latex
-  We import \ty{log}.
-#+end_src
-#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
-  "log"
+  _, err = db.Exec(sqlStmt)
+  util.Check(err)
 #+end_src
 #+begin_src latex
   Table \ty{genome} has the four attributes \ty{taxid}, \ty{size},
@@ -156,34 +152,55 @@
 #+end_src
 #+begin_src go <<Construct table \ty{genome}, Pa. \ref{pa:tdb}>>=
   sqlStmt = `create table genome (
-  taxid int, size real, 
-	 accession text, level text,
-  primary key(accession),
-  foreign key(taxid) references taxon(taxid));
+    taxid int,
+    size real, 
+    accession text primary key,
+    level text,
+    foreign key(taxid) references taxon(taxid));
   create index genome_taxid_idx on genome(taxid);
   create index genome_size_idx on genome(size);`
-  if _, err := db.Exec(sqlStmt); err != nil {
-	  log.Fatal(err)
-  }
+  _, err = db.Exec(sqlStmt)
+  util.Check(err)
+#+end_src
+#+begin_export latex
+Table \ty{genome\_count} has four attributes, \ty{taxid} and
+\ty{level}, which together form the primary key, and the two counts
+\ty{raw} and \ty{recursive}. The attribute \ty{taxid} is also a
+foreign key into table \ty{taxon}.
+#+end_export
+#+begin_src go <<Construct table \ty{genome\_count}, Pa. \ref{pa:tdb}>>=
+  sqlStmt = `create table genome_count (
+  taxid int, level text, raw int, recursive int,
+  primary key(taxid, level),
+  foreign key(taxid) references taxon(taxid));`
+  _, err = db.Exec(sqlStmt)
+  util.Check(err)
 #+end_src
 #+begin_src latex
-  Since \ty{genome} has a foreign key referring to \ty{taxon}, we load
-  \ty{taxon} before \ty{genome}.
+  Since \ty{genome} and \ty{genome\_count} have a foreign key referring
+  to \ty{taxon}, we load first \ty{taxon}. Moreover, the recursive
+  number of genomes can only be determined after we have entered the
+  number of genomes. Hence we load \ty{genome\_count} last.
 #+end_src
 #+begin_src go <<Load tables, Pa. \ref{pa:tdb}>>=
   //<<Load table \ty{taxon}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{genome}, Pa. \ref{pa:tdb}>>
+  //<<Load table \ty{genome\_count}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex 
   To load \ty{taxon}, we simulate a join of \ty{nodes.dmp} and
   \ty{names.dmp} on taxon-ID. For this we create the type \ty{taxon}
-  with the same four fields as the four attributes in
-  Figure~\ref{fig:db}.
+  with the same four fields as the five attributes in
+  Figure~\ref{fig:db}. In addition, we keep a counter of the node's
+  children, and note its raw and recursive genome counts per level.
 #+end_src
 #+begin_src go <<Types, Pa. \ref{pa:tdb}>>=
   type taxon struct {
 	  taxid, parent int
 	  name, rank string
+	  numChildren int
+	  raw map[string]int
+	  rec map[string]int
   }
 #+end_src
 #+begin_src latex
@@ -202,31 +219,44 @@
   //<<Parse names file, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
-  We traverse the nodes file using a scanner. The first column contains
-  the taxon-ID, the second the parent's ID, the third the taxon's
-  rank. Columns are delimited by \verb+\t|\t+ and we convert the strings
-  denoting IDs to integers before storing them.
+  We traverse the nodes file using a scanner. For each row in the file
+  we create a new taxon and split the row into its data fields. Then we
+  enter the values for this taxon.
 #+end_src
 #+begin_src go <<Parse nodes file, Pa. \ref{pa:tdb}>>=
   scanner := bufio.NewScanner(of)
   for scanner.Scan() {
 	  row := scanner.Text()
-	  fields := strings.SplitN(row, "\t|\t", 4)
 	  t := new(taxon)
-	  t.taxid, err = strconv.Atoi(fields[0])
-	  if err != nil { log.Fatal(err) }
-	  t.parent, err = strconv.Atoi(fields[1])
-	  if err != nil { log.Fatal(err) }
-	  t.rank = fields[2]
-	  taxa[t.taxid] = t
+	  t.raw = make(map[string]int)
+	  t.rec = make(map[string]int)
+	  fields := strings.SplitN(row, "\t|\t", 4)
+	  //<<Enter taxon values, Pa. \ref{pa:tdb}>>
   }
 #+end_src
 #+begin_src latex
-  We import \ty{bufio}, \ty{strings}, and \ty{strconv}.
+  We import \ty{bufio} and \ty{strings}.
 #+end_src
 #+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
   "bufio"
   "strings"
+#+end_src
+#+begin_export latex
+At this point, we can enter values for three of the five attributes,
+\ty{taxid}, \ty{parent}, and \ty{rank}.
+#+end_export
+#+begin_src go <<Enter taxon values, Pa. \ref{pa:tdb}>>=
+  t.taxid, err = strconv.Atoi(fields[0])
+  util.Check(err)
+  t.parent, err = strconv.Atoi(fields[1])
+  util.Check(err)
+  t.rank = fields[2]
+  taxa[t.taxid] = t
+#+end_src
+#+begin_export latex
+We import \ty{strconv}.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
   "strconv"
 #+end_src
 #+begin_src latex
@@ -247,7 +277,7 @@
 	  row := scanner.Text()
 	  fields := strings.Split(row, "\t|\t")
 	  id, err := strconv.Atoi(fields[0])
-	  if err != nil { log.Fatal(err) }
+	  util.Check(err)
 	  if fields[3][:3] == "sci" {
 		  taxa[id].name = fields[1]
 	  }
@@ -266,11 +296,11 @@
 #+end_src
 #+begin_src go <<Insert taxa, Pa. \ref{pa:tdb}>>=
   tx, err := db.Begin()
-  if err != nil { log.Fatal(err) }
+  util.Check(err)
   sqlStmt = "insert into taxon(taxid, parent, name, rank) " +
 	  "values(?, ?, ?, ?)"
   stmt, err := tx.Prepare(sqlStmt)
-  if err != nil { log.Fatal(err) }
+  util.Check(err)
   //<<Insert rows into table \ty{taxon}, Pa. \ref{pa:tdb}>>
   tx.Commit()
   stmt.Close()
@@ -281,7 +311,7 @@
 #+begin_src go <<Insert rows into table \ty{taxon}, Pa. \ref{pa:tdb}>>=
   for _, v := range taxa {
 	  _, err = stmt.Exec(v.taxid, v.parent, v.name, v.rank)
-	  if err != nil { log.Fatal(err) }
+	  util.Check(err)
   }
 #+end_src
 #+begin_src latex
@@ -320,16 +350,15 @@
   their accessions, we pick the refseq genome. We also need to take care
   of the handful of refseq genomes not contained in genbank.
 
-  To accomplish this, we store the refseq genomes in a map with the core
+  To accomplish this, we store the genomes in a map with the core
   accession as key and the genome as value. Then we construct a
   transaction for inserting the genomes into the database and actually
   insert them.
 #+end_src
 #+begin_src go <<Read genomes, Pa. \ref{pa:tdb}>>=
-  rsGenomes := make(map[string]*genome)
+  genomes := make(map[string]*genome)
   //<<Store refseq genomes, Pa. \ref{pa:tdb}>>
-  //<<Construct transaction for inserting genomes, Pa. \ref{pa:tdb}>>
-  //<<Insert genomes, Pa. \ref{pa:tdb}>>
+  //<<Store genbank genomes, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   To store the refseq genomes, we parse the refseq file with a buffered
@@ -350,7 +379,7 @@
 	  fields := strings.Split(row, "\t")
 	  k := coreAcc(fields[0])
 	  g := fields2genome(fields)
-	  rsGenomes[k] = g
+	  genomes[k] = g
   }
 #+end_src
 #+begin_src latex
@@ -429,84 +458,229 @@ assembly level, and a size.
   util.Check(err)
   g.size = float64(si) / 1000000.0
 #+end_src
+#+begin_export latex
+We store the genbank genomes that have no entry in our genomes map
+yet.
+#+end_export
+#+begin_src go <<Store genbank genomes, Pa. \ref{pa:tdb}>>=
+  scanner = bufio.NewScanner(gf)
+  for scanner.Scan() {
+	  row := scanner.Text()
+	  if row[0] == '#' { continue }
+	  fields := strings.Split(row, "\t")
+	  k := coreAcc(fields[0])
+	  if genomes[k] == nil {
+		  g := fields2genome(fields)
+		  genomes[k] = g
+	  }
+  }
+#+end_src
 #+begin_src latex
   To insert the genomes into the \ty{genome} table, we use a transaction
-  like we did for the \ty{taxon} table.
+  like we did for the \ty{taxon} table. Now, by default transactions in
+  sqlite ignore foreign key constraints. So we switch them on to ensure
+  the foreign key constraint of \ty{genome} is enforced.
 #+end_src
-#+begin_src go <<Construct transaction for inserting genomes, Pa. \ref{pa:tdb}>>=
+#+begin_src go <<Insert genomes, Pa. \ref{pa:tdb}>>=
   tx, err = db.Begin()
   util.Check(err)
+  //<<Switch on foreign keys, Pa. \ref{pa:tdb}>>
   sqlStmt = "insert into genome(accession, " +
 	  "taxid, level, size) " +
 	  "values(?, ?, ?, ?)"
   stmt, err = tx.Prepare(sqlStmt)
   util.Check(err)
-  defer tx.Commit()
-  defer stmt.Close()
+  //<<Insert rows into table \ty{genome}, Pa. \ref{pa:tdb}>>
+  tx.Commit()
+  stmt.Close()
 #+end_src
-#+begin_src latex
-  To insert the genomes, we iterate over the genbank accessions. We
-  extract the data fields, lookup or construct the genome for the
-  corresponding accession, and insert the genome. Then we insert the
-  refseq genomes that haven't been inserted yet. There should only be
-  very few, if any, such left-over refseq genomes.
-#+end_src
-#+begin_src go <<Insert genomes, Pa. \ref{pa:tdb}>>=
-  scanner = bufio.NewScanner(gf)
-  for scanner.Scan() {
-	  //<<Extract data fields, Pa. \ref{pa:tdb}>>
-	  //<<Lookup or construct genome, Pa. \ref{pa:tdb}>>
-	  //<<Insert genome, Pa. \ref{pa:tdb}>>
-  }
-  //<<Insert left-over refseq genomes, Pa. \ref{pa:tdb}>>
-#+end_src
-#+begin_src latex
-  Unless it is a comment, we split the row of data into its constituent
-  fields.
-#+end_src
-#+begin_src go <<Extract data fields, Pa. \ref{pa:tdb}>>=
-  row := scanner.Text()
-  if row[0] == '#' {
-	  continue
-  }
-  fields := strings.Split(row, "\t")
-#+end_src
-#+begin_src latex
-  Whenever we can look up a refseq equivalent, we store that in the
-  table, and note that this genome is going to be written to
-  table. Otherwise we construct the genbank genome.
-#+end_src
-#+begin_src go <<Lookup or construct genome, Pa. \ref{pa:tdb}>>=
-  ca := coreAcc(fields[0])
-  var g *genome
-  if _, ok := rsGenomes[ca]; ok {
-	  g = rsGenomes[ca]
-	  rsGenomes[ca].written = true
-  } else {
-	  g = fields2genome(fields)
-  }
-#+end_src
-#+begin_src latex
-  We insert the genome---refseq or genbank---by executing the prepared
-  statement.
-#+end_src
-#+begin_src go <<Insert genome, Pa. \ref{pa:tdb}>>=
-  _, err = stmt.Exec(g.accession, g.taxid,
-	  g.level, g.size)
+#+begin_export latex
+In sqlite the foreign key constraint is switched on via a pragma that
+we execute on the transaction we just prepared.
+#+end_export
+#+begin_src go <<Switch on foreign keys, Pa. \ref{pa:tdb}>>=
+  sqlStmt = "pragma foreign_keys=on"
+  _, err = tx.Exec(sqlStmt)
   util.Check(err)
 #+end_src
 #+begin_src latex
-  As our last step in constructing the \ty{genome} table, we iterate
-  over the refseq genomes and insert the ones that haven't been written
-  yet.
+  We iterate over the genomes and insert them.
 #+end_src
-#+begin_src go <<Insert left-over refseq genomes, Pa. \ref{pa:tdb}>>=
-  for _, g := range rsGenomes {
-	  if g.written {
-		  continue
+#+begin_src go <<Insert rows into table \ty{genome}, Pa. \ref{pa:tdb}>>=
+  for _, genome := range genomes {
+	  _, err = stmt.Exec(genome.accession, genome.taxid,
+		  genome.level, genome.size)
+	  util.Check(err)
+  }
+#+end_src
+#+begin_export latex
+At this point we have processed the genome and taxon data. This allows
+us to calculate the genome counts, first the raw counts and from them
+the recursive counts. Then we load the genome counts into the database.
+#+end_export
+#+begin_src go <<Load table \ty{genome\_count}, Pa. \ref{pa:tdb}>>=
+  //<<Calculate raw genome counts, Pa. \ref{pa:tdb}>>
+  //<<Calculate recursive genome counts, Pa. \ref{pa:tdb}>>
+  //<<Enter genome counts, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+We iterate over the genomes and sum their raw counts per level per
+taxon. If we encounter a genome from a taxon that is not in our
+collection of taxa, we write a warning.
+#+end_export
+#+begin_src go <<Calculate raw genome counts, Pa. \ref{pa:tdb}>>=
+  for _, genome := range genomes {
+	  t := taxa[genome.taxid]
+	  if t != nil {
+		  t.raw[genome.level]++
+	  } else {
+		  m := "WARNING[tdb]: no entry in taxonomy for %d; " +
+			  "referred to by assembly %s; " +
+			  "could this be an unmerged taxon?\n"
+		  fmt.Fprintf(os.Stderr, m, genome.taxid,
+			  genome.accession)
 	  }
-	  _, err = stmt.Exec(g.accession, g.taxid,
-		  g.level, g.size)
+  }
+#+end_src
+#+begin_export latex
+To calculate the recursive genome counts, we initialize them to the
+raw counts. In the actual recursion we carry out a bottom-up tree
+traversal by first iterating over the taxonomy's leaves. The parents
+of these leaves become the ``leaves'' in the next round, until there
+are no leaves left. So we need to determine the initial set of leaves,
+the leaves in the taxonomy. Then we iterate for as long as we have
+leaves. In every round we analyze each leaf and reslice to get the new
+set of pseudo-leaves.
+#+end_export
+#+begin_src go <<Calculate recursive genome counts, Pa. \ref{pa:tdb}>>=
+  //<<Initialize recursive to raw counts, Pa. \ref{pa:tdb}>>
+  leaves := []*taxon{}
+  //<<Find leaves in taxonomy, Pa. \ref{pa:tdb}>>
+  for len(leaves) > 0 {
+	  i := 0
+	  for _, leaf := range leaves {
+		  //<<Analyze leaf, Pa. \ref{pa:tdb}>>
+	  }
+	  leaves = leaves[:i]
+  }
+#+end_src
+#+begin_export latex
+We iterate over the taxa and initialize the recursive counts to the
+raw counts.
+#+end_export
+#+begin_src go <<Initialize recursive to raw counts, Pa. \ref{pa:tdb}>>=
+  for _, taxon := range taxa {
+	  for level, count := range taxon.raw {
+		  taxon.rec[level] = count
+	  }
+  }
+#+end_src
+#+begin_export latex
+To find the leaves in the taxonomy, we note that leaves have no
+children. So we count the nodes' children, before we store the leaves.
+#+end_export
+#+begin_src go <<Find leaves in taxonomy, Pa. \ref{pa:tdb}>>=
+  //<<Count children, Pa. \ref{pa:tdb}>>
+  //<<Store leaves, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+We iterate over the taxa and look up their parents. In a complete
+taxonomy, there is only one node that doesn't have a parent, the
+root. Its taxon-ID is identical to that of its parent. However, we
+might not be dealing with a complete taxonomy, in which case the
+current node's parent is nil. We check for both cases and if the
+current node does have a parent, we increment its child count.
+#+end_export
+#+begin_src go <<Count children, Pa. \ref{pa:tdb}>>=
+  for _, taxon := range taxa {
+	  parent := taxa[taxon.parent]
+	  if parent != nil && parent.taxid != taxon.taxid {
+		  parent.numChildren++
+	  }
+  }
+#+end_src
+#+begin_export latex
+We iterate over the taxa and store those with zero children in our
+initial slice of leaves.
+#+end_export
+#+begin_src go <<Store leaves, Pa. \ref{pa:tdb}>>=
+  for _, taxon := range taxa {
+	  if taxon.numChildren == 0 {
+		  leaves = append(leaves, taxon)
+	  }
+  }
+#+end_src
+#+begin_export latex
+To analyze a leaf, we find its parent, update the parent's genome
+count, and adjust the leaf list.
+#+end_export
+#+begin_src go <<Analyze leaf, Pa. \ref{pa:tdb}>>=
+  var parent *taxon
+  //<<Find parent, Pa. \ref{pa:tdb}>>
+  //<<Update parent's genome count, Pa. \ref{pa:tdb}>>
+  //<<Adjust leaf list, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+If the current node has no parent, there's nothing to be done and we
+skip the rest of this round of the iteration.
+#+end_export
+#+begin_src go <<Find parent, Pa. \ref{pa:tdb}>>=
+  parent = taxa[leaf.parent]
+  if parent == nil || leaf.taxid == parent.taxid {
+	  continue
+  }
+#+end_src
+#+begin_export latex
+We update the parent's recursive genome count for all levels.
+#+end_export
+#+begin_src go <<Update parent's genome count, Pa. \ref{pa:tdb}>>=
+  for level, count := range leaf.rec {
+	parent.rec[level] += count
+  }
+#+end_src
+#+begin_export latex
+We decrement the parents child count. If this is now zero, we add it
+to the leaf list for the next round.
+#+end_export
+#+begin_src go <<Adjust leaf list, Pa. \ref{pa:tdb}>>=
+  parent.numChildren--
+  if parent.numChildren == 0 {
+	  leaves[i] = parent
+	  i++
+  }
+#+end_src
+#+begin_export latex
+To enter the genome counts, we generate the transaction for storing
+the genome counts, switch on the foreign keys constraint, and insert
+the genome counts.
+#+end_export
+#+end_export
+#+begin_src go <<Enter genome counts, Pa. \ref{pa:tdb}>>=
+  tx, err = db.Begin()
+  util.Check(err)
+  //<<Switch on foreign keys, Pa. \ref{pa:tdb}>>
+  sqlStmt = `insert into genome_count(
+  level, recursive, raw, taxid)
+  values(?, ?, ?, ?)`
+  stmt, err = tx.Prepare(sqlStmt)
+  util.Check(err)
+  //<<Insert genome counts, Pa. \ref{pa:tdb}>>
+  tx.Commit()
+  stmt.Close()
+#+end_src
+#+begin_export latex
+We iterate over the taxa and insert their raw and recursive genome
+counts per level. Notice that for a given taxon the levels occupied by
+recursive counts are a superset of the levels occupied by raw
+counts. So we iterate over the levels of the recursive count.
+#+end_export
+#+begin_src go <<Insert genome counts, Pa. \ref{pa:tdb}>>=
+  for _, t := range taxa {
+	  for l, c := range t.rec {
+		  _, err = stmt.Exec(
+			  l, c, t.raw[l], t.taxid)
+		  util.Check(err)
+	  }
   }
 #+end_src
 #+begin_src latex
@@ -519,7 +693,9 @@ assembly level, and a size.
 	  db := new(TaxonomyDB)
 	  var err error
 	  db.db, err = sql.Open("sqlite3", name)
-	  if err != nil { log.Fatal(err) }
+	  util.Check(err)
+	  _, err = db.db.Exec("PRAGMA foreign_keys = ON;")
+	  util.Check(err)
 	  return db
   }
 #+end_src
@@ -1157,14 +1333,18 @@ We extract the number of taxa from the table row and check the error.
 #+end_src
 #+begin_export latex
 \subsection{\ty{NumGenomes}}
-! The method \ty{NumGenomes} returns the number of genomes in the
-! database and an error.
+!The method \ty{NumGenomes} takes as argument a taxon-ID and an
+!assembly level and returns the raw number of genomes associated with
+!this taxon assembled to that level and an error.
+!
+!NB: This is not the number of genomes in the subtree rooted on that
+!taxon, please use the method NumGenomesRecursive for that.
 
 We construc the query for the number of genomes, execute it, and
 extract the result.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (d *TaxonomyDB) NumGenomes() (int, error) {
+  func (d *TaxonomyDB) NumGenomes(taxid int, level string) (int, error) {
 	  n := 0
 	  var err error
 	  //<<Construct numgen query, Pa. \ref{pa:tdb}>>
@@ -1174,10 +1354,14 @@ extract the result.
   }
 #+end_src
 #+begin_export latex
-The query for the number of genomes is a simple \ty{count} statement.
+We look up the desired number of genomes in the table
+\ty{genome\_count}.
 #+end_export
 #+begin_src go <<Construct numgen query, Pa. \ref{pa:tdb}>>=
-  q := "select count(*) from genome"
+  q := "select raw from genome_count " +
+	  "where taxid=%d and " +
+	  "level like '%s'"
+  q = fmt.Sprintf(q, taxid, level)
 #+end_src
 #+begin_export latex
 We execute the query, store the table row returned, and check the
@@ -1195,6 +1379,57 @@ We extract the number of genomes from the table row and check the
 error.
 #+end_export
 #+begin_src go <<Extract numgen, Pa. \ref{pa:tdb}>>=
+  row.Next()
+  err = row.Scan(&n)
+  if err != nil {
+	  return 0, err
+  }
+#+end_src
+#+begin_export latex
+\subsection{\ty{NumGenomesRec}}
+!The method \ty{NumGenomesRec} takes as argument a taxon-ID and an
+!assembly level. It returns the number of genomes assembled to that
+!level contained in the subtree rooted on the taxon-ID and an error.
+
+We construct the query for the recursive number of genomes, execute
+the query, and extract the result.
+#+end_export
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (d *TaxonomyDB) NumGenomesRec(taxid int, level string) (int, error) {
+	  n := 0
+	  var err error
+	  //<<Construct recursive numgen query, Pa. \ref{pa:tdb}>>
+	  //<<Execute recursive numgen query, Pa. \ref{pa:tdb}>>
+	  //<<Extract recursive numgen, Pa. \ref{pa:tdb}>>
+	  return n, err
+  }
+#+end_src
+#+begin_export latex
+We look up the recursive number of genomes for the input taxon
+assembled to the desired level in table \ty{genome\_count}.
+#+end_export
+#+begin_src go <<Construct recursive numgen query, Pa. \ref{pa:tdb}>>=
+  q := "select recursive from genome_count " +
+	  "where taxid=%d and " +
+	  "level like '%s'"
+  q = fmt.Sprintf(q, taxid, level)
+#+end_src
+#+begin_export latex
+We execute the query for the recursive number of genomes and check the
+error.
+#+end_export
+#+begin_src go <<Execute recursive numgen query, Pa. \ref{pa:tdb}>>=
+  row, err := d.db.Query(q)
+  defer row.Close()
+  if err != nil {
+	  return 0, err
+  }
+#+end_src
+#+begin_export latex
+We extract the recursive number of genomes from the row returned by
+the query. And keep checking the error.
+#+end_export
+#+begin_src go <<Extract recursive numgen, Pa. \ref{pa:tdb}>>=
   row.Next()
   err = row.Scan(&n)
   if err != nil {
@@ -1227,24 +1462,15 @@ error.
   }
 #+end_src
 #+begin_src latex
-  We test the function \ty{NewTaxonomyDB}, and the eleven methods
-  \ty{Name}, \ty{Rank}, \ty{Parent}, \ty{Children}, \ty{Subtree},
-  \ty{Taxids}, \ty{MRCA}, \ty{Level}, \ty{FilterAccessions},
-  \ty{NumTaxa}, and \ty{NumGenomes}.
+  We test the function \ty{NewTaxonomyDB} and the methods in three
+  lots, depending on which table the access, \ty{genome},
+  \ty{accession}, or \ty{genome\_count}.
 #+end_src
 #+begin_src go <<Testing, Pa. \ref{pa:tdb}>>=
   //<<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{Name}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{Rank}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{Parent}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{Children}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{Subtree}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{MRCA}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{Level}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{FilterAccessions}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{NumGenomes}, Pa. \ref{pa:tdb}>>
+  //<<Test access to \ty{taxon}, Pa. \ref{pa:tdb}>>
+  //<<Test access to \ty{genome}, Pa. \ref{pa:tdb}>>
+  //<<Test access to \ty{genome\_count}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   We build a small database, \ty{taxSmall.db}.
@@ -1271,6 +1497,20 @@ error.
 		  println(s)
 	  }
   }
+#+end_src
+#+begin_export latex
+We test the seven methods that access \ty{taxon}, \ty{Name},
+\ty{Rank}, \ty{Parent}, \ty{Children}, \ty{Subtree}, \ty{MRCA}, and
+\ty{NumTaxa}.
+#+end_export
+#+begin_src go <<Test access to \ty{taxon}, Pa. \ref{pa:tdb}>>=
+  //<<Test \ty{Name}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Rank}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Parent}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Children}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Subtree}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{MRCA}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   We look up the name of taxon, 9606, \emph{Homo sapiens}.
@@ -1328,21 +1568,6 @@ The rank of \emph{Homo sapiens} is ``species''.
   }
 #+end_src
 #+begin_src latex
-  To test \ty{Taxids}, we get the four taxa whose names contain
-  \emph{homo sapiens}, but limit the output to the last two. Notice the
-  lower-case ``h'' in \emph{homo}, which SQL matches to the upper-case
-  ``H'' in the actual names.
-#+end_src
-#+begin_src go <<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>=
-  taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 2)
-  g = len(taxa)
-  w = 2
-  if g != w {
-	  t.Errorf("get %d taxa for homo sapiens; want %d",
-		  g, w)
-  }
-#+end_src
-#+begin_src latex
   To test \ty{MRCA}, we construct several tests and run them in a loop.
 #+end_src
 #+begin_src go <<Test \ty{MRCA}, Pa. \ref{pa:tdb}>>=
@@ -1384,6 +1609,55 @@ The rank of \emph{Homo sapiens} is ``species''.
 	  if get != want {
 		  t.Errorf("get: %d\nwant: %d\n", get, want)
 	  }
+  }
+#+end_src
+#+begin_export latex
+Our test database contains 33 taxa, we test whether \ty{NumTaxa}
+returns that number.
+#+end_export
+#+begin_src go <<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>=
+  g, _ = taxdb.NumTaxa()
+  w = 33
+  if g != w {
+	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
+  }
+#+end_src
+#+begin_export latex
+We test four Methods that access \ty{genome}, \ty{Accessions},
+\ty{Taxids}, \ty{Level}, and \ty{FilterAccessions}.
+#+end_export
+#+begin_src go <<Test access to \ty{genome}, Pa. \ref{pa:tdb}>>=
+  //<<Test \ty{Accessions}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Level}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{FilterAccessions}, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+\emph{Homo sapiens} has 1851 accessions in the database, so we check
+whether \ty{Accessions} returns this number of accessions.
+#+end_export
+#+begin_src go <<Test \ty{Accessions}, Pa. \ref{pa:tdb}>>=
+  tid = 9606
+  arr, _ := taxdb.Accessions(tid)
+  g = len(arr)
+  w = 1851
+  if g != w {
+	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
+  }
+#+end_src
+#+begin_src latex
+  To test \ty{Taxids}, we get the four taxa whose names contain
+  \emph{homo sapiens}, but limit the output to the last two. Notice the
+  lower-case ``h'' in \emph{homo}, which SQL matches to the upper-case
+  ``H'' in the actual names.
+#+end_src
+#+begin_src go <<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>=
+  taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 2)
+  g = len(taxa)
+  w = 2
+  if g != w {
+	  t.Errorf("get %d taxa for homo sapiens; want %d",
+		  g, w)
   }
 #+end_src
 #+begin_src latex
@@ -1475,25 +1749,53 @@ The rank of \emph{Homo sapiens} is ``species''.
   }
 #+end_src
 #+begin_export latex
-Our test database contains 33 taxa, we test whether \ty{NumTaxa}
-returns that number.
+We test two functions that access \ty{genome\_count}, \ty{NumGenomes}
+and \ty{NumGenomesRec}.
 #+end_export
-#+begin_src go <<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>=
-  g, _ = taxdb.NumTaxa()
-  w = 33
+#+begin_src go <<Test access to \ty{genome\_count}, Pa. \ref{pa:tdb}>>=
+  //<<Test \ty{NumGenomes}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{NumGenomesRec}, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+The test database contains 58 complete genomes for \emph{Homo sapiens}
+and we test whether \ty{NumGenomes} returns that.
+#+end_export
+#+begin_src go <<Test \ty{NumGenomes}, Pa. \ref{pa:tdb}>>=
+  tid = 9606
+  g, _ = taxdb.NumGenomes(tid, "complete")
+  w = 58
   if g != w {
 	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
   }
 #+end_src
 #+begin_export latex
-The test database contains 1919 genomes and we test whether
-\ty{NumGenomes} returns that.
+The 58 complete genomes for \emph{Homo sapiens} are the only complete
+genomes among the \emph{Homininae} subfamily, which has taxon-ID
+207598. So we test whether \ty{NumGenomesRec} returns 58 complete
+genomes for \emph{Homininae}.
 #+end_export
-#+begin_src go <<Test \ty{NumGenomes}, Pa. \ref{pa:tdb}>>=
-  g, _ = taxdb.NumGenomes()
-  w = 1919
+#+begin_src go <<Test \ty{NumGenomesRec}, Pa. \ref{pa:tdb}>>=
+  tid = 207598
+  g, _ = taxdb.NumGenomesRec(207598, "complete")
+  w = 58
+  if g != 58 {
+	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
+  }
+#+end_src
+#+begin_export latex
+Across the four assembly levels, we expect to find 1888 genomes in
+\emph{Homininae}.
+#+end_export
+#+begin_src go <<Test \ty{NumGenomesRec}, Pa. \ref{pa:tdb}>>=
+  g, _ = taxdb.NumGenomesRec(tid, "complete")
+  x, _ := taxdb.NumGenomesRec(tid, "chromosome")
+  g += x
+  x, _ = taxdb.NumGenomesRec(tid, "scaffold")
+  g += x
+  x, _ = taxdb.NumGenomesRec(tid, "contig")
+  g +=x
+  w = 1888
   if g != w {
 	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
   }
 #+end_src
-

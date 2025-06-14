@@ -49,13 +49,6 @@ func TestTdb(t *testing.T) {
 	if g != w {
 		t.Errorf("get %d nodes in subtree; want %d", g, w)
 	}
-	taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 2)
-	g = len(taxa)
-	w = 2
-	if g != w {
-		t.Errorf("get %d taxa for homo sapiens; want %d",
-			g, w)
-	}
 	targets := make([][]int, 0)
 	var res []int
 	targets = append(targets, []int{46359})
@@ -74,6 +67,25 @@ func TestTdb(t *testing.T) {
 		if get != want {
 			t.Errorf("get: %d\nwant: %d\n", get, want)
 		}
+	}
+	g, _ = taxdb.NumTaxa()
+	w = 33
+	if g != w {
+		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
+	}
+	tid = 9606
+	arr, _ := taxdb.Accessions(tid)
+	g = len(arr)
+	w = 1851
+	if g != w {
+		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
+	}
+	taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 2)
+	g = len(taxa)
+	w = 2
+	if g != w {
+		t.Errorf("get %d taxa for homo sapiens; want %d",
+			g, w)
 	}
 	acc := "GCA_049640585.1"
 	get, _ = taxdb.Level(acc)
@@ -122,15 +134,27 @@ func TestTdb(t *testing.T) {
 				filteredAcc[i])
 		}
 	}
-	g, _ = taxdb.NumTaxa()
-	w = 33
+	tid = 9606
+	g, _ = taxdb.NumGenomes(tid, "complete")
+	w = 58
 	if g != w {
 		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
 	}
-	g, _ = taxdb.NumGenomes()
-	w = 1919
+	tid = 207598
+	g, _ = taxdb.NumGenomesRec(207598, "complete")
+	w = 58
+	if g != 58 {
+		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
+	}
+	g, _ = taxdb.NumGenomesRec(tid, "complete")
+	x, _ := taxdb.NumGenomesRec(tid, "chromosome")
+	g += x
+	x, _ = taxdb.NumGenomesRec(tid, "scaffold")
+	g += x
+	x, _ = taxdb.NumGenomesRec(tid, "contig")
+	g += x
+	w = 1888
 	if g != w {
 		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
 	}
-
 }
