@@ -28,16 +28,19 @@
   //<<Construct database, Pr. \ref{pr:db}>>
 #+end_src
 #+begin_src latex
-  The program takes as input two files of genome information and two
+  The program takes as input two files of genome information and three
   files of taxonomy information. Hence we declare four options for these
-  four files. In addition, we declare \ty{-d} to set the database name
+  five files. In addition, we declare \ty{-d} to set the database name
   and \ty{-v} for printing the version.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:db}>>=
-  var optG = flag.String("g", "assembly_summary_genbank.txt", "genbank assemblies")
-  var optR = flag.String("r", "assembly_summary_refseq.txt", "refseq assemblies")
+  var optG = flag.String("g", "assembly_summary_genbank.txt",
+	  "genbank assemblies")
+  var optR = flag.String("r", "assembly_summary_refseq.txt",
+	  "refseq assemblies")
   var optA = flag.String("a", "names.dmp", "taxonomic names")
   var optO = flag.String("o", "nodes.dmp", "node information")
+  var optM = flag.String("m", "merged.dmp", "merged taxa")
   var optD = flag.String("d", "neidb", "database name")
   var optV = flag.Bool("v", false, "print version & " +
 	  "program information")
@@ -55,8 +58,9 @@
 #+end_src
 #+begin_src go <<Set usage, Pr. \ref{pr:db}>>=
   u := "makeNeiDb [option]..."
-  p := "Construct a taxonomy database for discovering neighbor genomes." +
-	  "\n\tGenomes:  <ftp>/genomes/ASSEMBLY_REPORTS/assembly_summary_" +
+  p := "Construct a taxonomy database for discovering " +
+	  "neighbor genomes.\n\tGenomes:  " +
+	  "<ftp>/genomes/ASSEMBLY_REPORTS/assembly_summary_" +
 	  "(genbank|refseq).txt" +
 	  "\n\tTaxonomy: <ftp>/pub/taxonomy/taxdump.tar.gz" +
 	  "\n\t<ftp>=ftp.ncbi.nlm.nih.gov"
@@ -88,7 +92,7 @@
   The database construction is delegated to \ty{NewTaxonomyDB}.
 #+end_src
 #+begin_src go <<Construct database, Pr. \ref{pr:db}>>=
-  tdb.NewTaxonomyDB(*optO, *optA, *optG, *optR, *optD)
+  tdb.NewTaxonomyDB(*optO, *optA, *optM, *optG, *optR, *optD)
 #+end_src
 #+begin_src latex
   We import \ty{tdb}.
@@ -139,6 +143,7 @@
 	  "-a", "../data/namesTest.dmp",
 	  "-d", "test.db",
 	  "-o", "../data/nodesTest.dmp",
+	  "-m", "../data/mergedTest.dmp",
 	  "-g", "../data/gbTest.txt",
 	  "-r", "../data/rsTest.txt")
   tests = append(tests, test)

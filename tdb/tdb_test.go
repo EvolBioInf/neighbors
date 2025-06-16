@@ -8,10 +8,11 @@ func TestTdb(t *testing.T) {
 	p := "../data/"
 	no := p + "nodesTest.dmp"
 	na := p + "namesTest.dmp"
+	me := p + "mergedTest.dmp"
 	gb := p + "gbTest.txt"
 	rs := p + "rsTest.txt"
 	db := p + "taxSmall.db"
-	NewTaxonomyDB(no, na, gb, rs, db)
+	NewTaxonomyDB(no, na, me, gb, rs, db)
 	taxdb := OpenTaxonomyDB(db)
 	subtree, _ := taxdb.Subtree(207598)
 	if len(subtree) != 26 {

@@ -304,13 +304,15 @@ func (d *TaxonomyDB) NumGenomesRec(taxid int, level string) (int, error) {
 	return n, err
 }
 
-// The function NewTaxonomyDB takes as parameters the names of the  four input files from which we construct the database, and the name of  the database. It opens these files, opens a new database, and  constructs the database.
-func NewTaxonomyDB(nodes, names, genbank,
-	refseq, dbName string) {
+// The function NewTaxonomyDB takes as parameters the names of the  five input files from which we construct the database, and the name of  the database. It opens these files, opens a new database, and  constructs the database.
+func NewTaxonomyDB(nodes, names, merged,
+	genbank, refseq, dbName string) {
 	of := util.Open(nodes)
 	defer of.Close()
 	af := util.Open(names)
 	defer af.Close()
+	mf := util.Open(merged)
+	defer mf.Close()
 	gf := util.Open(genbank)
 	defer gf.Close()
 	rf := util.Open(refseq)
@@ -343,9 +345,12 @@ func NewTaxonomyDB(nodes, names, genbank,
 	_, err = db.Exec(sqlStmt)
 	util.Check(err)
 	sqlStmt = `create table genome_count (
-          taxid int, level text, raw int, recursive int,
-          primary key(taxid, level),
-          foreign key(taxid) references taxon(taxid));`
+            taxid int,
+            level text,
+            raw int,
+            recursive int,
+            primary key(taxid, level),
+            foreign key(taxid) references taxon(taxid));`
 	_, err = db.Exec(sqlStmt)
 	util.Check(err)
 	taxa := make(map[int]*taxon)
@@ -410,6 +415,20 @@ func NewTaxonomyDB(nodes, names, genbank,
 			genomes[k] = g
 		}
 	}
+	merge := make(map[int]int)
+	scanner = bufio.NewScanner(mf)
+	for scanner.Scan() {
+		row := scanner.Text()
+		if row[0] == '#' {
+			continue
+		}
+		f := strings.Split(row, "\t|\t")
+		old, err := strconv.Atoi(f[0])
+		util.Check(err)
+		new, err := strconv.Atoi(f[1][:len(f[1])-2])
+		util.Check(err)
+		merge[old] = new
+	}
 	tx, err = db.Begin()
 	util.Check(err)
 	sqlStmt = "pragma foreign_keys=on"
@@ -421,6 +440,10 @@ func NewTaxonomyDB(nodes, names, genbank,
 	stmt, err = tx.Prepare(sqlStmt)
 	util.Check(err)
 	for _, genome := range genomes {
+		x := merge[genome.taxid]
+		if x != 0 {
+			genome.taxid = x
+		}
 		_, err = stmt.Exec(genome.accession, genome.taxid,
 			genome.level, genome.size)
 		util.Check(err)

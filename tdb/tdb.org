@@ -40,26 +40,28 @@
 #+begin_src latex
   \subsection{\ty{NewTaxonomyDB}}
   ! The function \ty{NewTaxonomyDB} takes as parameters the names of the
-  ! four input files from which we construct the database, and the name of
+  ! five input files from which we construct the database, and the name of
   ! the database. It opens these files, opens a new database, and
   ! constructs the database.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
-  func NewTaxonomyDB(nodes, names, genbank,
-	  refseq, dbName string) {
+  func NewTaxonomyDB(nodes, names, merged,
+	  genbank, refseq, dbName string) {
 	  //<<Open files, Pa. \ref{pa:tdb}>>
 	  //<<Open database, Pa. \ref{pa:tdb}>>
 	  //<<Construct database, Pa. \ref{pa:tdb}>>
   }
 #+end_src
 #+begin_src latex
-  We open the four input tables and defer closing them again.
+  We open the five input tables and defer closing them again.
 #+end_src
 #+begin_src go <<Open files, Pa. \ref{pa:tdb}>>=
   of := util.Open(nodes)
   defer of.Close()
   af := util.Open(names)
   defer af.Close()
+  mf := util.Open(merged)
+  defer mf.Close()
   gf := util.Open(genbank)
   defer gf.Close()
   rf := util.Open(refseq)
@@ -73,8 +75,8 @@
 #+end_src
 #+begin_src latex
   Before opening the database, we check whether it already exists. Then
-  we open it. If that fails, we abort. We also make sure the database is
-  eventually closed again.
+  we open and hence construct it from scratch. If that fails, we
+  abort. We also make sure the database is eventually closed again.
 #+end_src
 #+begin_src go <<Open database, Pa. \ref{pa:tdb}>>=
   //<<Does database exist? Pa. \ref{pa:tdb}>>
@@ -102,8 +104,8 @@
   "fmt"
 #+end_src
 #+begin_src latex
-  To construct the database, we construct the input tables, and load
-  their counterparts in the database.
+  To construct the database, we construct its tables and load
+  them.
 #+end_src
 #+begin_src go <<Construct database, Pa. \ref{pa:tdb}>>=
   //<<Construct tables, Pa. \ref{pa:tdb}>>
@@ -170,9 +172,12 @@ foreign key into table \ty{taxon}.
 #+end_export
 #+begin_src go <<Construct table \ty{genome\_count}, Pa. \ref{pa:tdb}>>=
   sqlStmt = `create table genome_count (
-  taxid int, level text, raw int, recursive int,
-  primary key(taxid, level),
-  foreign key(taxid) references taxon(taxid));`
+    taxid int,
+    level text,
+    raw int,
+    recursive int,
+    primary key(taxid, level),
+    foreign key(taxid) references taxon(taxid));`
   _, err = db.Exec(sqlStmt)
   util.Check(err)
 #+end_src
@@ -260,12 +265,6 @@ We import \ty{strconv}.
   "strconv"
 #+end_src
 #+begin_src latex
-  We are done with the nodes file and close it.
-#+end_src
-#+begin_src go <<Close files, Pa. \ref{pa:tdb}>>=
-  of.Close()
-#+end_src
-#+begin_src latex
   The names file contains the taxon-ID in the first column and the name
   in the second. Now, there are several kinds of names, scientific,
   common, and more. We only store the scientific names. To parse the
@@ -282,12 +281,6 @@ We import \ty{strconv}.
 		  taxa[id].name = fields[1]
 	  }
   }
-#+end_src
-#+begin_src latex
-  We are done with the names file and close it.
-#+end_src
-#+begin_src go <<Close files, Pa. \ref{pa:tdb}>>=
-  af.Close()
 #+end_src
 #+begin_src latex
   Having read the taxa from the input files, we insert them in the
@@ -316,10 +309,13 @@ We import \ty{strconv}.
 #+end_src
 #+begin_src latex
   The next table to load is \ty{genome}. Like the taxa, we read the
-  genomes from input and insert them.
+  genomes from files. However, the genome tables may contain taxon IDs
+  that have been merged. So we also read the merged table, before we
+  insert the genomes into the database.
 #+end_src
 #+begin_src go <<Load table \ty{genome}, Pa. \ref{pa:tdb}>>=
   //<<Read genomes, Pa. \ref{pa:tdb}>>
+  //<<Read merged table, Pa. \ref{pa:tdb}>>
   //<<Insert genomes, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
@@ -351,9 +347,8 @@ We import \ty{strconv}.
   of the handful of refseq genomes not contained in genbank.
 
   To accomplish this, we store the genomes in a map with the core
-  accession as key and the genome as value. Then we construct a
-  transaction for inserting the genomes into the database and actually
-  insert them.
+  accession as key and the genome as value. First we store the refseq
+  genomes, then the genbank genomes.
 #+end_src
 #+begin_src go <<Read genomes, Pa. \ref{pa:tdb}>>=
   genomes := make(map[string]*genome)
@@ -475,6 +470,29 @@ yet.
 	  }
   }
 #+end_src
+#+begin_export latex
+The merged table consists of two columns, old taxon ID and new taxon
+ID. Like the nodes and names files, we split the columns of the merged
+file at \verb+\t|\t+, which leaves the entry in the last column with a
+trailing \verb+\t|+. As we didn't use the last entry before, this
+didn't matter. Now, however, we need the entry in the second, that is
+last, column. So we remove its trailing \verb+\t|+. Then we are ready
+to store the merged table in a map between old and new taxon IDs.
+#+end_export
+#+begin_src go <<Read merged table, Pa. \ref{pa:tdb}>>=
+  merge := make(map[int]int)
+  scanner = bufio.NewScanner(mf)
+  for scanner.Scan() {
+	  row := scanner.Text()
+	  if row[0] == '#' { continue }
+	  f := strings.Split(row, "\t|\t")
+	  old, err := strconv.Atoi(f[0])
+	  util.Check(err)
+	  new, err := strconv.Atoi(f[1][:len(f[1])-2])
+	  util.Check(err)
+	  merge[old] = new
+  }
+#+end_src
 #+begin_src latex
   To insert the genomes into the \ty{genome} table, we use a transaction
   like we did for the \ty{taxon} table. Now, by default transactions in
@@ -504,10 +522,15 @@ we execute on the transaction we just prepared.
   util.Check(err)
 #+end_src
 #+begin_src latex
-  We iterate over the genomes and insert them.
+  We iterate over the genomes, perhaps correct their taxon ID by their
+  merged counter, and insert them.
 #+end_src
 #+begin_src go <<Insert rows into table \ty{genome}, Pa. \ref{pa:tdb}>>=
   for _, genome := range genomes {
+	  x := merge[genome.taxid]
+	  if x != 0 {
+		  genome.taxid = x
+	  }
 	  _, err = stmt.Exec(genome.accession, genome.taxid,
 		  genome.level, genome.size)
 	  util.Check(err)
@@ -1463,7 +1486,7 @@ the query. And keep checking the error.
 #+end_src
 #+begin_src latex
   We test the function \ty{NewTaxonomyDB} and the methods in three
-  lots, depending on which table the access, \ty{genome},
+  lots, depending on which table to access, \ty{genome},
   \ty{accession}, or \ty{genome\_count}.
 #+end_src
 #+begin_src go <<Testing, Pa. \ref{pa:tdb}>>=
@@ -1479,10 +1502,11 @@ the query. And keep checking the error.
   p := "../data/"
   no := p + "nodesTest.dmp"
   na := p + "namesTest.dmp"
+  me := p + "mergedTest.dmp"
   gb := p + "gbTest.txt"
   rs := p + "rsTest.txt"
   db := p + "taxSmall.db"
-  NewTaxonomyDB(no, na, gb, rs, db)
+  NewTaxonomyDB(no, na, me, gb, rs, db)
 #+end_src
 #+begin_src latex
   We extract the full taxonomy from the small database and check it has
