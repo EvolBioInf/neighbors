@@ -30,6 +30,11 @@ type genome struct {
 	written          bool
 }
 
+var assemblyLevels = []string{"complete",
+	"chromosome",
+	"scaffold",
+	"contig"}
+
 // The method Close closes a taxonomy database.
 func (t *TaxonomyDB) Close() {
 	t.db.Close()
@@ -56,7 +61,7 @@ func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
 	return accessions, err
 }
 
-// The method Name takes as argument a taxon ID and returns the  taxon's name and an error.
+// The method Name takes as argument a taxon-ID and returns the  taxon's name and an error.
 func (t *TaxonomyDB) Name(taxon int) (string, error) {
 	var err error
 	name := ""
@@ -74,7 +79,7 @@ func (t *TaxonomyDB) Name(taxon int) (string, error) {
 	return name, err
 }
 
-// The method Rank takes as argument a taxon ID and returns the taxon's rank and an error.
+// The method Rank takes as argument a taxon-ID and returns the taxon's rank and an error.
 func (t *TaxonomyDB) Rank(taxon int) (string, error) {
 	var err error
 	rank := ""
@@ -92,7 +97,7 @@ func (t *TaxonomyDB) Rank(taxon int) (string, error) {
 	return rank, err
 }
 
-// The method Parent takes as argument a taxon ID and returns the  taxon ID of its parent and an error.
+// The method Parent takes as argument a taxon-ID and returns the  taxon-ID of its parent and an error.
 func (t *TaxonomyDB) Parent(c int) (int, error) {
 	var err error
 	parent := 0
@@ -110,7 +115,7 @@ func (t *TaxonomyDB) Parent(c int) (int, error) {
 	return parent, err
 }
 
-// The method Children takes as argument a taxon ID and returns its  children and an error.
+// The method Children takes as argument a taxon-ID and returns its  children and an error.
 func (t *TaxonomyDB) Children(p int) ([]int, error) {
 	var err error
 	children := make([]int, 0)
@@ -142,7 +147,7 @@ func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
 	return taxa, err
 }
 
-// Taxids takes as arguments a taxon name, a limit on the number  of names returned, and an offset into the list of matching names. It  matches the taxon name, imposes the limit and offset, and returns  the corresponding taxon-IDs and an error.
+// Taxids takes as arguments a taxon name, a limit on the number  of names returned, and an offset into the list of matching names. It  matches the taxon name, orders them by their score, imposes the  limit and offset, and returns the corresponding taxon-IDs and an  error.
 func (t *TaxonomyDB) Taxids(name string,
 	limit, offset int) ([]int, error) {
 	var err error
@@ -164,7 +169,7 @@ func (t *TaxonomyDB) Taxids(name string,
 	return taxids, err
 }
 
-// The method MRCA takes as input a slice of taxon IDs and returns their most recent common ancestor and an error.
+// The method MRCA takes as input a slice of taxon-IDs and returns their most recent common ancestor and an error.
 func (t *TaxonomyDB) MRCA(ids []int) (int, error) {
 	var err error
 	mrca := -1
@@ -455,8 +460,8 @@ func NewTaxonomyDB(nodes, names, merged,
 		if t != nil {
 			t.raw[genome.level]++
 		} else {
-			m := "WARNING[tdb]: no entry in taxonomy for %d; " +
-				"referred to by assembly %s; " +
+			m := "WARNING[tdb]: no entry in taxonomy for " +
+				"%d referred to by assembly %s; " +
 				"could this be an unmerged taxon?\n"
 			fmt.Fprintf(os.Stderr, m, genome.taxid,
 				genome.accession)
@@ -509,14 +514,22 @@ func NewTaxonomyDB(nodes, names, merged,
 	stmt, err = tx.Prepare(sqlStmt)
 	util.Check(err)
 	for _, t := range taxa {
-		for l, c := range t.rec {
-			_, err = stmt.Exec(
-				l, c, t.raw[l], t.taxid)
+		for _, level := range assemblyLevels {
+			recCount := t.rec[level]
+			rawCount := t.raw[level]
+			_, err = stmt.Exec(level,
+				recCount, rawCount, t.taxid)
 			util.Check(err)
 		}
 	}
 	tx.Commit()
 	stmt.Close()
+	sqlStmt = `create table search as
+            select taxid, name, sum(recursive) as score
+            from genome_count natural join taxon
+            group by taxid`
+	_, err = db.Exec(sqlStmt)
+	util.Check(err)
 }
 func coreAcc(acc string) string {
 	s := strings.Index(acc, "_") + 1
@@ -573,7 +586,9 @@ var nameT = "select name from taxon where taxid=%d"
 var rankT = "select rank from taxon where taxid=%d"
 var parentT = "select parent from taxon where taxid=%d"
 var childrenT = "select taxid from taxon where parent=%d"
-var taxidsT = "select taxid from taxon where name like '%s' " +
+var taxidsT = "select taxid from search " +
+	"where name like '%s' " +
+	"order by score desc " +
 	"limit %d " +
 	"offset %d"
 var levelT = "select level from genome where accession='%s'"

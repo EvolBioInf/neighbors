@@ -1,13 +1,13 @@
 Diagnostic PCR-markers are designed to amplify all members of a target
-set of organisms and nothing else. A promising approach to ensure
+set of organisms and nothing else. A powerful first step to ensuring
 marker specificity is to compare the target genomes to the genomes of
 the closest distinct relatives, the neighbors. This usually removes
 the vast majority of non-specific material. The small remainder can
 then be further tested by \emph{in silico} PCR against, say, the
 non-redundant collection of nucleotide sequences, \ty{nt}. The
-published program \ty{fur} implements this comparison between targets
-and neighbors. Markers constructed from its output can have excellent
-specificity and sensifivity~\cite{hau21:fur}.
+program \ty{fur} implements this comparison between targets and
+neighbors for finding marker candidates. Markers constructed from its
+output have excellent specificity and sensifivity~\cite{hau21:fur}.
 
 Users of programs like \ty{fur} need to know the neighbors of their
 targets. But how can neighbors be discovered, if they aren't already
@@ -19,8 +19,8 @@ three additional targets, 3, 5, and 6. The neighbors are the nodes in
 the subtree rooted on 3's parent, minus the parent and minus the
 targets. So in our example there are five neighbors, 2, 8, 9, 10, and
 11. Notice that we look up all nodes in a subtree, not just the
-leaves, as genome sequences might be associated with taxa in terminal
-and internal nodes.
+leaves, as genome sequences might be associated with taxa both in
+terminal and internal nodes.
 
 \begin{figure}
 \begin{center}
@@ -31,9 +31,9 @@ targets are shown in bold.}\label{fig:tax}
 \end{figure}
 
 To put this a bit more formally, let $m$ be the most recent common
-ancestor of the targets. Their neighbors, $\mathcal{N}$, are then
-computed by subtracting the nodes in $m$'s subtree from the nodes in
-its parent's subtree, minus the parent
+ancestor of the targets in the taxonomy. Their neighbors,
+$\mathcal{N}$, are then computed by subtracting the nodes in $m$'s
+subtree from the nodes in its parent's subtree, minus the parent
 \begin{equation}\label{eq:nei}
 \mathcal{N} = s(p(m)) - s(m) - p(m),
 \end{equation}
@@ -67,13 +67,10 @@ four on a phylogeny, and one, \ty{outliers}, on numerical data.
 
 The taxonomy is supplied as an \ty{sqlite} database, let's call
 it \ty{neidb}, which is built using the program \ty{makeNeiDb}. As
-shown in Figure~\ref{fig:db}, \ty{neidb} consists of two
-tables, \ty{genome} and \ty{taxon}. Each genome has a unique
-accession, which also serves as primary key, comes from an organism
-identified by its taxon-ID, has a size, and an assembly level. Each
-genome belongs to a taxon. A taxon has a unique taxon-ID, which serves
-as primary key. A taxon also has a parent, a rank, a name, and a
-recursive genome count.
+shown in Figure~\ref{fig:db}, \ty{neidb} consists of four
+tables, two core tables, \ty{genome} and \ty{taxon}, and two
+auxiliary tables pre-computed from the core tables, \ty{genome\_count}
+and \ty{search}.
 
 \begin{figure}[ht]
   \begin{center}
@@ -84,6 +81,41 @@ recursive genome count.
   \caption{Diagram of \ty{neidb}.}\label{fig:db}
 \end{figure}
 
+Each \ty{genome} has a unique accession, which also serves as primary
+key, comes from an organism identified by its taxon-ID, has a size,
+and an assembly level. Each genome belongs to a \ty{taxon}. A taxon
+has a unique taxon-ID, which serves as primary key. A taxon also has a
+parent, a rank, and a name.
+
+The first auxiliary table, \ty{genome\_count}, stores genome counts
+for each taxon identified by its taxid. Genome counts are broken down
+by assembly level, which can be complete, chromosome, scaffold, or
+contig, in that order of quality. Genome counts are further subdivided
+into raw and recursive. A raw count is just the number of genomes
+listed in table \ty{genome} for that taxon. A recursive count it the
+number of genomes in the subtree rooted on that taxon. This recursive
+count cannot be conveniently implemented in SQL, so we implement it in
+Go.
+
+An important function of \ty{neidb} is to support text searches of
+taxon names. These searches should allow client programmers to write
+interfaces modeled on Google, where the user starts typing and
+instantaneously gets a proposal list of matches. After typing the
+first character, the number of possible matches will usually be much
+larger than can sensibly be passed to the user. So we need to order
+the matches by relevance. Google's initial breakthrough was to rank
+matching web sites by the number of incoming links. We propose to rank
+taxa by the number of genome sequences.
+
+Genome counts are contained in table \ty{genome\_count}, while taxon
+names are in table \ty{taxon} and . Our search thus requires a join of
+these two tables. To make searches fast, we pre-compute the join in
+the table \ty{search}, which has attributes taxid, name, and score. We
+say ``score'', rather than explicitly ``genome count'', as we might
+change our mind about the best way to rank searches. Alternatives to
+the unqualified genome we are using for now counts include nucleotide
+counts with or without regard to assembly quality.
+
 Once the database is constructed, we can query it. The tutorial shows
 how to do that for \emph{Leginonella pneumophila}. It is a notorious
 water-borne pathogen that can cause pneumonia in humans. The
@@ -93,7 +125,7 @@ of \emph{L. pneumophila}, \emph{subsp. pneumophila}.
 It is often useful to place this taxon-ID into context, for which we
 have two programs, \ty{dree} and \ty{andi}. Starting from a
 taxon-ID, \ty{dree} draws the taxonomic tree rooted on that
-taxon-ID. Instead of walking from a root towards the leaves, the
+taxon-ID. Instead of walking from a given node towards the leaves, the
 program \ty{ants} starts from a taxon and walks in the opposite
 direction toward the universal root. Along this path, \ty{ants} lists
 all ancestral taxa of our focal taxon. Once we've got our bearings in

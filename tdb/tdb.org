@@ -3,10 +3,11 @@
   ! Package tdb constructs and queries the taxonomy database.
 
   Figure~\ref{fig:db} shows the ER diagram of the taxonomy database,
-  which consists of three tables, \ty{taxon}, \ty{genome}, and
-  \ty{genome\_count}. The outline of \ty{tdb} has hooks for imports,
-  types, methods, and functions. It also has a hook for a special kind
-  of package variable, the templates for SQL queries.  \bpa{tdb}{pa:tdb}
+  which consists of four tables, \ty{taxon}, \ty{genome},
+  \ty{genome\_count}, and \ty{search}. The outline of \ty{tdb} has hooks
+  for imports, types, variables, methods, and functions. It also has a
+  hook for a special kind of package variable, the templates for SQL
+  queries.  \bpa{tdb}{pa:tdb}
 #+end_src
 #+begin_src go <<tdb.go>>=
   package tdb
@@ -15,6 +16,7 @@
 	  //<<Imports, Pa. \ref{pa:tdb}>>
   )
   //<<Types, Pa. \ref{pa:tdb}>>
+  //<<Variables, Pa. \ref{pa:tdb}>>
   //<<Methods, Pa. \ref{pa:tdb}>>
   //<<Functions, Pa. \ref{pa:tdb}>>
   //<<Query templates, Pa. \ref{pa:tdb}>>
@@ -75,7 +77,7 @@
 #+end_src
 #+begin_src latex
   Before opening the database, we check whether it already exists. Then
-  we open and hence construct it from scratch. If that fails, we
+  we open---and hence construct---it from scratch. If that fails, we
   abort. We also make sure the database is eventually closed again.
 #+end_src
 #+begin_src go <<Open database, Pa. \ref{pa:tdb}>>=
@@ -104,18 +106,22 @@
   "fmt"
 #+end_src
 #+begin_src latex
-  To construct the database, we construct its tables and load
-  them.
+  As illustrated in Figure~\ref{fig:db}, we construct four tables,
+  \ty{taxon}, \ty{genome}, \ty{genome\_count}, and \ty{search}. The
+  first three of these are base tables, while \ty{search} is constructed
+  from them. So we construct the base tables, load them, and then
+  construct \ty{search}.
 #+end_src
 #+begin_src go <<Construct database, Pa. \ref{pa:tdb}>>=
-  //<<Construct tables, Pa. \ref{pa:tdb}>>
-  //<<Load tables, Pa. \ref{pa:tdb}>>
+  //<<Construct base tables, Pa. \ref{pa:tdb}>>
+  //<<Load base tables, Pa. \ref{pa:tdb}>>
+  //<<Construct table \ty{search}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
-  As illustrated in Figure~\ref{fig:db}, we construct three tables,
-  \ty{taxon} \ty{genome}, and \ty{genome\_count}.
+  We construct the three base tables \ty{taxon}, \ty{genome}, and
+  \ty{genome\_count}.
 #+end_src
-#+begin_src go <<Construct tables, Pa. \ref{pa:tdb}>>=
+#+begin_src go <<Construct base tables, Pa. \ref{pa:tdb}>>=
   //<<Construct table \ty{taxon}, Pa. \ref{pa:tdb}>>
   //<<Construct table \ty{genome}, Pa. \ref{pa:tdb}>>
   //<<Construct table \ty{genome\_count}, Pa. \ref{pa:tdb}>>
@@ -126,12 +132,12 @@
   text. \ty{taxid} is also the primary key. As there are currently 2.7
   million taxa, and this number is bound to grow, we ensure that queries
   are quick by using indexes. The primary key, \ty{taxid}, is
-  automatically indexed and we construct an index for \ty{parent}. We
-  might be tempted to also index the remaining two attributes, \ty{name}
-  and \ty{rank}. However, these are text and \ty{sqlite} does not make
-  use of indexes on text columns. You can check this on an existing
-  database by prefacing a query with \ty{explain query plan}. So we
-  leave it at our index for \ty{parent}.
+  automatically indexed but we explicitly construct an index for
+  \ty{parent}. We might be tempted to also index the remaining two
+  attributes, \ty{name} and \ty{rank}. However, these are text and
+  \ty{sqlite} does not make use of indexes on text columns. You can
+  check this on an existing database by prefacing a query with
+  \ty{explain query plan}. So we just index \ty{parent}.
 #+end_src
 #+begin_src go <<Construct table \ty{taxon}, Pa. \ref{pa:tdb}>>=
   sqlStmt := `create table taxon (
@@ -185,9 +191,10 @@ foreign key into table \ty{taxon}.
   Since \ty{genome} and \ty{genome\_count} have a foreign key referring
   to \ty{taxon}, we load first \ty{taxon}. Moreover, the recursive
   number of genomes can only be determined after we have entered the
-  number of genomes. Hence we load \ty{genome\_count} last.
+  number of genomes. Hence we load \ty{genome\_count} last among our
+  three base tables.
 #+end_src
-#+begin_src go <<Load tables, Pa. \ref{pa:tdb}>>=
+#+begin_src go <<Load base tables, Pa. \ref{pa:tdb}>>=
   //<<Load table \ty{taxon}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{genome}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{genome\_count}, Pa. \ref{pa:tdb}>>
@@ -309,7 +316,7 @@ We import \ty{strconv}.
 #+end_src
 #+begin_src latex
   The next table to load is \ty{genome}. Like the taxa, we read the
-  genomes from files. However, the genome tables may contain taxon IDs
+  genomes from files. However, the genome tables may contain taxon-IDs
   that have been merged. So we also read the merged table, before we
   insert the genomes into the database.
 #+end_src
@@ -359,10 +366,9 @@ We import \ty{strconv}.
   To store the refseq genomes, we parse the refseq file with a buffered
   scanner. Each row that is not a comment is split into its constituent
   fields. The first field is the accession, which we reduce to its core
-  by calling the function \ty{coreAcc}, which we still need to
-  write. The genome is constructed by calling \ty{fields2genome}, which
-  we also still need to write. Then we insert the genome into the map as
-  value to the core accession.
+  by calling the as yet unwritten function \ty{coreAcc}. The genome is
+  constructed by calling \ty{fields2genome}, also still unwritten. Then
+  we insert the genome into the map as value to the core accession.
 #+end_src
 #+begin_src go <<Store refseq genomes, Pa. \ref{pa:tdb}>>=
   scanner = bufio.NewScanner(rf)
@@ -378,7 +384,8 @@ We import \ty{strconv}.
   }
 #+end_src
 #+begin_src latex
-  In function \ty{coreAcc} we take an accession of the form
+  In function \ty{coreAcc} we take an accession consisting of a prefix,
+  a core, and a version number, like
   \begin{verbatim}
   pref_core.num
   \end{verbatim}
@@ -405,14 +412,14 @@ We import \ty{strconv}.
   \end{center}
 \end{table}
 In function \ty{fields2genome} we take one row in the accession file
-and return a genome. A genome consists of an accession, a taxon ID, an
+and return a genome. A genome consists of an accession, a taxon-ID, an
 assembly level, and a size.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
   func fields2genome(fields []string) *genome {
 	  g := new(genome)
 	  //<<Set accession, Pa. \ref{pa:tdb}>>
-	  //<<Set taxon ID, Pa. \ref{pa:tdb}>>
+	  //<<Set taxon-ID, Pa. \ref{pa:tdb}>>
 	  //<<Set assembly level, Pa. \ref{pa:tdb}>>
 	  //<<Set size, Pa. \ref{pa:tdb}>>
 	  return g
@@ -425,10 +432,10 @@ assembly level, and a size.
   g.accession = fields[0]
 #+end_src
 #+begin_src latex
-  The taxon ID is in the sixth column and we convert it from its string
+  The taxon-ID is in the sixth column and we convert it from its string
   representation to integer.
 #+end_src
-#+begin_src go <<Set taxon ID, Pa. \ref{pa:tdb}>>=
+#+begin_src go <<Set taxon-ID, Pa. \ref{pa:tdb}>>=
   id, err := strconv.Atoi(fields[5])
   util.Check(err)
   g.taxid = id
@@ -436,7 +443,7 @@ assembly level, and a size.
 #+begin_src latex
   The assembly level in the 12th column and has values ``Complete
   Genome'', ``Chromosome'', ``Scaffold'', or ``Contig''. We store these
-  values as lower case and slightly abbreviated to ``complete'',
+  values in lower case and slightly abbreviated to ``complete'',
   ``chromosome'', ``scaffold'', or ``contig''.
 #+end_src
 #+begin_src go <<Set assembly level, Pa. \ref{pa:tdb}>>=
@@ -445,8 +452,8 @@ assembly level, and a size.
   g.level = strings.ToLower(g.level)
 #+end_src
 #+begin_src latex
-  The size is in the 26th column. It is given in bp, which we convert to
-  Mb.
+  The size is in the 26th column. It is given in bp, which we divide by
+  $10^6$ to convert to Mb.
 #+end_src
 #+begin_src go <<Set size, Pa. \ref{pa:tdb}>>=
   si, err := strconv.Atoi(fields[25])
@@ -471,13 +478,13 @@ yet.
   }
 #+end_src
 #+begin_export latex
-The merged table consists of two columns, old taxon ID and new taxon
+The merged table consists of two columns, old taxon-ID and new taxon
 ID. Like the nodes and names files, we split the columns of the merged
 file at \verb+\t|\t+, which leaves the entry in the last column with a
 trailing \verb+\t|+. As we didn't use the last entry before, this
 didn't matter. Now, however, we need the entry in the second, that is
 last, column. So we remove its trailing \verb+\t|+. Then we are ready
-to store the merged table in a map between old and new taxon IDs.
+to store the merged table in a map between old and new taxon-IDs.
 #+end_export
 #+begin_src go <<Read merged table, Pa. \ref{pa:tdb}>>=
   merge := make(map[int]int)
@@ -522,7 +529,7 @@ we execute on the transaction we just prepared.
   util.Check(err)
 #+end_src
 #+begin_src latex
-  We iterate over the genomes, perhaps correct their taxon ID by their
+  We iterate over the genomes, perhaps correct their taxon-ID by their
   merged counter, and insert them.
 #+end_src
 #+begin_src go <<Insert rows into table \ty{genome}, Pa. \ref{pa:tdb}>>=
@@ -557,8 +564,8 @@ collection of taxa, we write a warning.
 	  if t != nil {
 		  t.raw[genome.level]++
 	  } else {
-		  m := "WARNING[tdb]: no entry in taxonomy for %d; " +
-			  "referred to by assembly %s; " +
+		  m := "WARNING[tdb]: no entry in taxonomy for " +
+			  "%d referred to by assembly %s; " +
 			  "could this be an unmerged taxon?\n"
 		  fmt.Fprintf(os.Stderr, m, genome.taxid,
 			  genome.accession)
@@ -569,9 +576,9 @@ collection of taxa, we write a warning.
 To calculate the recursive genome counts, we initialize them to the
 raw counts. In the actual recursion we carry out a bottom-up tree
 traversal by first iterating over the taxonomy's leaves. The parents
-of these leaves become the ``leaves'' in the next round, until there
-are no leaves left. So we need to determine the initial set of leaves,
-the leaves in the taxonomy. Then we iterate for as long as we have
+of these leaves become ``leaves'' in the next round, until there are
+no leaves left. So we need to determine the initial set of leaves, the
+actual leaves in the taxonomy. Then we iterate for as long as we have
 leaves. In every round we analyze each leaf and reslice to get the new
 set of pseudo-leaves.
 #+end_export
@@ -634,7 +641,7 @@ initial slice of leaves.
   }
 #+end_src
 #+begin_export latex
-To analyze a leaf, we find its parent, update the parent's genome
+When analyzing a leaf, we find its parent, update the parent's genome
 count, and adjust the leaf list.
 #+end_export
 #+begin_src go <<Analyze leaf, Pa. \ref{pa:tdb}>>=
@@ -693,18 +700,44 @@ the genome counts.
 #+end_src
 #+begin_export latex
 We iterate over the taxa and insert their raw and recursive genome
-counts per level. Notice that for a given taxon the levels occupied by
-recursive counts are a superset of the levels occupied by raw
-counts. So we iterate over the levels of the recursive count.
+counts per level.
 #+end_export
 #+begin_src go <<Insert genome counts, Pa. \ref{pa:tdb}>>=
   for _, t := range taxa {
-	  for l, c := range t.rec {
-		  _, err = stmt.Exec(
-			  l, c, t.raw[l], t.taxid)
+	  for _, level := range assemblyLevels {
+		  recCount := t.rec[level]
+		  rawCount := t.raw[level]
+		  _, err = stmt.Exec(level,
+			  recCount, rawCount, t.taxid)
 		  util.Check(err)
 	  }
   }
+#+end_src
+#+begin_export latex
+We store the four possible assembly levels in the global variable
+\ty{assemblyLevels}.
+#+end_export
+#+begin_src go <<Variables, Pa. \ref{pa:tdb}>>=
+  var assemblyLevels = []string{"complete",
+	  "chromosome",
+	  "scaffold",
+	  "contig"}
+#+end_src
+#+begin_export latex
+We have now constructed the three tables \ty{taxon}, \ty{genome}, and
+\ty{genome\_count}. We construct our last table, \ty{search}, from
+\ty{taxon} and \ty{genome\_count}. The traditional mechanism for
+constructing a table from existing tables is a view. However, views
+tend to be slower than base tables, so we create \ty{search} as a
+derived base table instead.
+#+end_export
+#+begin_src go <<Construct table \ty{search}, Pa. \ref{pa:tdb}>>=
+  sqlStmt = `create table search as
+    select taxid, name, sum(recursive) as score
+    from genome_count natural join taxon
+    group by taxid`
+  _, err = db.Exec(sqlStmt)
+  util.Check(err)
 #+end_src
 #+begin_src latex
   \subsection{\ty{OpenTaxonomyDB}}
@@ -785,7 +818,7 @@ and check the error returned by the database.
 #+end_src
 #+begin_src latex
   \subsection{\ty{Name}}
-  ! The method \ty{Name} takes as argument a taxon ID and returns the
+  ! The method \ty{Name} takes as argument a taxon-ID and returns the
   ! taxon's name and an error.
 
   We construct the query, execute it, and extract the name.
@@ -836,7 +869,7 @@ and check the error returned by the database.
 #+end_src
 #+begin_src latex
   \subsection{\ty{Rank}}
-  !The method \ty{Rank} takes as argument a taxon ID and returns the
+  !The method \ty{Rank} takes as argument a taxon-ID and returns the
   !taxon's rank and an error.
 
   We construct the query, execute it, and extract the rank.
@@ -887,8 +920,8 @@ and check the error returned by the database.
 #+end_src
 #+begin_src latex
   \subsection{\ty{Parent}}
-  ! The method \ty{Parent} takes as argument a taxon ID and returns the
-  ! taxon ID of its parent and an error.
+  ! The method \ty{Parent} takes as argument a taxon-ID and returns the
+  ! taxon-ID of its parent and an error.
 
   We construct the query, execute it, and extract the parent.
 #+end_src
@@ -939,7 +972,7 @@ and check the error returned by the database.
 #+end_src
 #+begin_src latex
   \subsection{\ty{Children}}
-  ! The method \ty{Children} takes as argument a taxon ID and returns its
+  ! The method \ty{Children} takes as argument a taxon-ID and returns its
   ! children and an error.
 
   We construct the children query, execute it, and extract the children.
@@ -1044,8 +1077,9 @@ infinite loop.
   \subsection{\ty{Taxids}}
   ! \ty{Taxids} takes as arguments a taxon name, a limit on the number
   ! of names returned, and an offset into the list of matching names. It
-  ! matches the taxon name, imposes the limit and offset, and returns
-  ! the corresponding taxon-IDs and an error.
+  ! matches the taxon name, orders them by their score, imposes the
+  ! limit and offset, and returns the corresponding taxon-IDs and an
+  ! error.
 
   We construct and execute the query for taxon-IDs, extract the IDs, and
   return them.
@@ -1062,13 +1096,14 @@ infinite loop.
   }
 #+end_src
 #+begin_src latex
-  We declare a template for the taxids query. We ignore the
-  recommendation from the Sqlite documentation that the \ty{limit}
-  clause should be applied in conjunction with \ty{order by} as this can
-  slow down searches considerably and paging should still work.
+  We declare a template for the taxids query, where we order the
+  matching names by their score in descending order before imposing
+  paging.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
-  var taxidsT = "select taxid from taxon where name like '%s' " +
+  var taxidsT = "select taxid from search " +
+	  "where name like '%s' " +
+	  "order by score desc " +
 	  "limit %d " +
 	  "offset %d"
 #+end_src
@@ -1104,7 +1139,7 @@ infinite loop.
 #+end_src
 #+begin_src latex
   \subsection{\ty{MRCA}}
-  !The method \ty{MRCA} takes as input a slice of taxon IDs and returns
+  !The method \ty{MRCA} takes as input a slice of taxon-IDs and returns
   !their most recent common ancestor and an error.
 
   For example, in Figure~\ref{fig:tax}, the most recent common ancestor
@@ -1158,7 +1193,7 @@ children. Then we iterate over the parents.
   //<<Iterate over parents, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
-We store descendants in a map between a taxon ID, which is an integer,
+We store descendants in a map between a taxon-ID, which is an integer,
 and the number of its descendants, another integer. The initial number
 of descendants of the taxa supplied is one.
 #+end_src
@@ -1170,7 +1205,7 @@ of descendants of the taxa supplied is one.
 #+end_src
 #+begin_src latex
 We store the parent and child taxa as integer slices. The children
-slice is initialized to the taxon IDs supplied.
+slice is initialized to the taxon-IDs supplied.
 #+end_src
 #+begin_src go <<Construct variables for parents and children, Pa. \ref{pa:tdb}>>=
   parents := make([]int, 0)
