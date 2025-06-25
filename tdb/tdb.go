@@ -335,8 +335,10 @@ func NewTaxonomyDB(nodes, names, merged,
             taxid int primary key,
             parent int,
             name text,
-            rank text);
-          create index taxon_parent_idx on taxon(parent);`
+            rank text,
+            score float);
+          create index taxon_parent_idx on taxon(parent);
+          create index taxon_score_idx on taxon(score);`
 	_, err = db.Exec(sqlStmt)
 	util.Check(err)
 	sqlStmt = `create table genome (
@@ -355,7 +357,9 @@ func NewTaxonomyDB(nodes, names, merged,
             raw int,
             recursive int,
             primary key(taxid, level),
-            foreign key(taxid) references taxon(taxid));`
+            foreign key(taxid) references taxon(taxid));
+          create index genome_count_raw_idx on genome_count(raw);
+          create index genome_count_recursive_idx on genome_count(recursive);`
 	_, err = db.Exec(sqlStmt)
 	util.Check(err)
 	taxa := make(map[int]*taxon)
@@ -524,12 +528,23 @@ func NewTaxonomyDB(nodes, names, merged,
 	}
 	tx.Commit()
 	stmt.Close()
-	sqlStmt = `create table search as
-            select taxid, name, sum(recursive) as score
-            from genome_count natural join taxon
-            group by taxid`
-	_, err = db.Exec(sqlStmt)
+	tx, err = db.Begin()
 	util.Check(err)
+	sqlStmt = `update taxon
+            set score = ?
+            where taxid = ?`
+	stmt, err = tx.Prepare(sqlStmt)
+	util.Check(err)
+	for _, taxon := range taxa {
+		sum := 0
+		for _, count := range taxon.rec {
+			sum += count
+		}
+		_, err := stmt.Exec(sum, taxon.taxid)
+		util.Check(err)
+	}
+	tx.Commit()
+	stmt.Close()
 }
 func coreAcc(acc string) string {
 	s := strings.Index(acc, "_") + 1
@@ -586,7 +601,7 @@ var nameT = "select name from taxon where taxid=%d"
 var rankT = "select rank from taxon where taxid=%d"
 var parentT = "select parent from taxon where taxid=%d"
 var childrenT = "select taxid from taxon where parent=%d"
-var taxidsT = "select taxid from search " +
+var taxidsT = "select taxid from taxon " +
 	"where name like '%s' " +
 	"order by score desc " +
 	"limit %d " +

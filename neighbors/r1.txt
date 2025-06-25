@@ -2,4 +2,4 @@
 # MRCA(targets+neighbors): 499232, Gorilla beringei
 # Type  Taxon-ID  Name                       Genomes
 t       46359     Gorilla beringei graueri   -
-n       1159185   Gorilla beringei beringei  GCA_049640605.1|GCA_049640585.1
+n       1159185   Gorilla beringei beringei  GCA_049640585.1|GCA_049640605.1

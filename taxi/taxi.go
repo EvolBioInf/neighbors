@@ -7,7 +7,6 @@ import (
 	"github.com/evolbioinf/neighbors/tdb"
 	"github.com/evolbioinf/neighbors/util"
 	"os"
-	"sort"
 	"strings"
 	"text/tabwriter"
 )
@@ -43,7 +42,6 @@ func main() {
 	if len(taxa) == 0 {
 		return
 	}
-	sort.Ints(taxa)
 	w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
 	defer w.Flush()
 	fmt.Fprintf(w, "# ID\tParent\tName\n")

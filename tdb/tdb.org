@@ -3,11 +3,11 @@
   ! Package tdb constructs and queries the taxonomy database.
 
   Figure~\ref{fig:db} shows the ER diagram of the taxonomy database,
-  which consists of four tables, \ty{taxon}, \ty{genome},
-  \ty{genome\_count}, and \ty{search}. The outline of \ty{tdb} has hooks
-  for imports, types, variables, methods, and functions. It also has a
-  hook for a special kind of package variable, the templates for SQL
-  queries.  \bpa{tdb}{pa:tdb}
+  which consists of three tables, \ty{taxon}, \ty{genome}, and
+  \ty{genome\_count}. The outline of \ty{tdb} has hooks for imports,
+  types, variables, methods, and functions. It also has a hook for a
+  special kind of package variable, the templates for SQL queries.
+  \bpa{tdb}{pa:tdb}
 #+end_src
 #+begin_src go <<tdb.go>>=
   package tdb
@@ -106,46 +106,43 @@
   "fmt"
 #+end_src
 #+begin_src latex
-  As illustrated in Figure~\ref{fig:db}, we construct four tables,
-  \ty{taxon}, \ty{genome}, \ty{genome\_count}, and \ty{search}. The
-  first three of these are base tables, while \ty{search} is constructed
-  from them. So we construct the base tables, load them, and then
-  construct \ty{search}.
+  To construct the database, we construct the tables and load them.
 #+end_src
 #+begin_src go <<Construct database, Pa. \ref{pa:tdb}>>=
-  //<<Construct base tables, Pa. \ref{pa:tdb}>>
-  //<<Load base tables, Pa. \ref{pa:tdb}>>
-  //<<Construct table \ty{search}, Pa. \ref{pa:tdb}>>
+  //<<Construct tables, Pa. \ref{pa:tdb}>>
+  //<<Load tables, Pa. \ref{pa:tdb}>>
 #+end_src
-#+begin_src latex
-  We construct the three base tables \ty{taxon}, \ty{genome}, and
-  \ty{genome\_count}.
-#+end_src
-#+begin_src go <<Construct base tables, Pa. \ref{pa:tdb}>>=
+#+begin_export latex
+As illustrated in Figure~\ref{fig:db}, we construct three tables,
+\ty{taxon}, \ty{genome}, and \ty{genome\_count}.
+#+end_export
+#+begin_src go <<Construct tables, Pa. \ref{pa:tdb}>>=
   //<<Construct table \ty{taxon}, Pa. \ref{pa:tdb}>>
   //<<Construct table \ty{genome}, Pa. \ref{pa:tdb}>>
   //<<Construct table \ty{genome\_count}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
-  Table \ty{taxon} has the four attributes \ty{taxid}, \ty{parent},
-  \ty{name}, and \ty{rank}. Taxon-IDs are integers, names are
-  text. \ty{taxid} is also the primary key. As there are currently 2.7
-  million taxa, and this number is bound to grow, we ensure that queries
-  are quick by using indexes. The primary key, \ty{taxid}, is
-  automatically indexed but we explicitly construct an index for
-  \ty{parent}. We might be tempted to also index the remaining two
-  attributes, \ty{name} and \ty{rank}. However, these are text and
-  \ty{sqlite} does not make use of indexes on text columns. You can
-  check this on an existing database by prefacing a query with
-  \ty{explain query plan}. So we just index \ty{parent}.
+  Table \ty{taxon} has the five attributes \ty{taxid}, \ty{parent},
+  \ty{name}, \ty{rank}, and score. Taxon-IDs are integers, names are
+  text, scores are floats. \ty{taxid} is also the primary key. As there
+  are currently 2.7 million taxa, and this number is bound to grow, we
+  ensure that queries are quick by using indexes. The primary key,
+  \ty{taxid}, is automatically indexed but we explicitly construct an
+  index for \ty{parent} and \ty{score}. We might be tempted to also
+  index the remaining two attributes, \ty{name} and \ty{rank}. However,
+  these are text and \ty{sqlite} does not make use of indexes on text
+  columns. You can check this on an existing database by prefacing a
+  query with \ty{explain query plan}. So we just index \ty{parent}.
 #+end_src
 #+begin_src go <<Construct table \ty{taxon}, Pa. \ref{pa:tdb}>>=
   sqlStmt := `create table taxon (
     taxid int primary key,
     parent int,
     name text,
-    rank text);
-  create index taxon_parent_idx on taxon(parent);`
+    rank text,
+    score float);
+  create index taxon_parent_idx on taxon(parent);
+  create index taxon_score_idx on taxon(score);`
   _, err = db.Exec(sqlStmt)
   util.Check(err)
 #+end_src
@@ -174,7 +171,8 @@
 Table \ty{genome\_count} has four attributes, \ty{taxid} and
 \ty{level}, which together form the primary key, and the two counts
 \ty{raw} and \ty{recursive}. The attribute \ty{taxid} is also a
-foreign key into table \ty{taxon}.
+foreign key into table \ty{taxon}. We index the raw and recursive
+genome counts.
 #+end_export
 #+begin_src go <<Construct table \ty{genome\_count}, Pa. \ref{pa:tdb}>>=
   sqlStmt = `create table genome_count (
@@ -183,21 +181,26 @@ foreign key into table \ty{taxon}.
     raw int,
     recursive int,
     primary key(taxid, level),
-    foreign key(taxid) references taxon(taxid));`
+    foreign key(taxid) references taxon(taxid));
+  create index genome_count_raw_idx on genome_count(raw);
+  create index genome_count_recursive_idx on genome_count(recursive);`
   _, err = db.Exec(sqlStmt)
   util.Check(err)
 #+end_src
 #+begin_src latex
   Since \ty{genome} and \ty{genome\_count} have a foreign key referring
-  to \ty{taxon}, we load first \ty{taxon}. Moreover, the recursive
-  number of genomes can only be determined after we have entered the
-  number of genomes. Hence we load \ty{genome\_count} last among our
-  three base tables.
+  to \ty{taxon}, we load \ty{taxon} first. There's a snag here,
+  though. The score of a taxon can only be determined once the genome
+  counts have been determined. These in turn depend on the entries in
+  table \ty{genome}. Hence we load \ty{genomes} after \ty{taxon},
+  followed by \ty{genome\_count}. Then we return to table \ty{taxon} and
+  load the score.
 #+end_src
-#+begin_src go <<Load base tables, Pa. \ref{pa:tdb}>>=
+#+begin_src go <<Load tables, Pa. \ref{pa:tdb}>>=
   //<<Load table \ty{taxon}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{genome}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{genome\_count}, Pa. \ref{pa:tdb}>>
+  //<<Enter score in table \ty{taxon}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex 
   To load \ty{taxon}, we simulate a join of \ty{nodes.dmp} and
@@ -724,20 +727,35 @@ We store the four possible assembly levels in the global variable
 	  "contig"}
 #+end_src
 #+begin_export latex
-We have now constructed the three tables \ty{taxon}, \ty{genome}, and
-\ty{genome\_count}. We construct our last table, \ty{search}, from
-\ty{taxon} and \ty{genome\_count}. The traditional mechanism for
-constructing a table from existing tables is a view. However, views
-tend to be slower than base tables, so we create \ty{search} as a
-derived base table instead.
+We update the scores using a transaction that we prepare, before doing
+the actual updating. Then we commit the transaction and close it again.
 #+end_export
-#+begin_src go <<Construct table \ty{search}, Pa. \ref{pa:tdb}>>=
-  sqlStmt = `create table search as
-    select taxid, name, sum(recursive) as score
-    from genome_count natural join taxon
-    group by taxid`
-  _, err = db.Exec(sqlStmt)
+#+begin_src go <<Enter score in table \ty{taxon}, Pa. \ref{pa:tdb}>>=
+  tx, err = db.Begin()
   util.Check(err)
+  sqlStmt = `update taxon
+    set score = ?
+    where taxid = ?`
+  stmt, err = tx.Prepare(sqlStmt)
+  util.Check(err)
+  //<<Update score, Pa. \ref{pa:tdb}>>
+  tx.Commit()
+  stmt.Close()
+#+end_src
+#+begin_export latex
+We iterate over the taxa. For each taxon we calculate the score as the
+sum of the recursive genome counts across the assembly levels. This
+value is then used to update the database entry.
+#+end_export
+#+begin_src go <<Update score, Pa. \ref{pa:tdb}>>=
+  for _, taxon := range taxa {
+	  sum := 0
+	  for _, count := range taxon.rec {
+		  sum += count
+	  }
+	  _, err := stmt.Exec(sum, taxon.taxid)
+	  util.Check(err)
+  }
 #+end_src
 #+begin_src latex
   \subsection{\ty{OpenTaxonomyDB}}
@@ -1101,7 +1119,7 @@ infinite loop.
   paging.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
-  var taxidsT = "select taxid from search " +
+  var taxidsT = "select taxid from taxon " +
 	  "where name like '%s' " +
 	  "order by score desc " +
 	  "limit %d " +

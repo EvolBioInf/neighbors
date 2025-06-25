@@ -67,10 +67,8 @@ four on a phylogeny, and one, \ty{outliers}, on numerical data.
 
 The taxonomy is supplied as an \ty{sqlite} database, let's call
 it \ty{neidb}, which is built using the program \ty{makeNeiDb}. As
-shown in Figure~\ref{fig:db}, \ty{neidb} consists of four
-tables, two core tables, \ty{genome} and \ty{taxon}, and two
-auxiliary tables pre-computed from the core tables, \ty{genome\_count}
-and \ty{search}.
+shown in Figure~\ref{fig:db}, \ty{neidb} consists of three
+tables, \ty{genome}, \ty{taxon}, and \ty{genome\_count}.
 
 \begin{figure}[ht]
   \begin{center}
@@ -85,17 +83,16 @@ Each \ty{genome} has a unique accession, which also serves as primary
 key, comes from an organism identified by its taxon-ID, has a size,
 and an assembly level. Each genome belongs to a \ty{taxon}. A taxon
 has a unique taxon-ID, which serves as primary key. A taxon also has a
-parent, a rank, and a name.
+parent, a rank, a name, and a score.
 
-The first auxiliary table, \ty{genome\_count}, stores genome counts
-for each taxon identified by its taxid. Genome counts are broken down
-by assembly level, which can be complete, chromosome, scaffold, or
-contig, in that order of quality. Genome counts are further subdivided
-into raw and recursive. A raw count is just the number of genomes
-listed in table \ty{genome} for that taxon. A recursive count it the
-number of genomes in the subtree rooted on that taxon. This recursive
-count cannot be conveniently implemented in SQL, so we implement it in
-Go.
+The table \ty{genome\_count} stores genome counts for each taxon
+identified by its taxid. Genome counts are broken down by assembly
+level, which can be complete, chromosome, scaffold, or contig, in that
+order of quality. Genome counts are further subdivided into raw and
+recursive. A raw count is just the number of genomes listed in
+table \ty{genome} for that taxon. A recursive count it the number of
+genomes in the subtree rooted on that taxon. This recursive count
+cannot be conveniently implemented in SQL, so we implement it in Go.
 
 An important function of \ty{neidb} is to support text searches of
 taxon names. These searches should allow client programmers to write
@@ -105,16 +102,8 @@ first character, the number of possible matches will usually be much
 larger than can sensibly be passed to the user. So we need to order
 the matches by relevance. Google's initial breakthrough was to rank
 matching web sites by the number of incoming links. We propose to rank
-taxa by the number of genome sequences.
-
-Genome counts are contained in table \ty{genome\_count}, while taxon
-names are in table \ty{taxon} and . Our search thus requires a join of
-these two tables. To make searches fast, we pre-compute the join in
-the table \ty{search}, which has attributes taxid, name, and score. We
-say ``score'', rather than explicitly ``genome count'', as we might
-change our mind about the best way to rank searches. Alternatives to
-the unqualified genome we are using for now counts include nucleotide
-counts with or without regard to assembly quality.
+taxa by the number of genome sequences, which we store as attribute
+score in table \ty{taxon}.
 
 Once the database is constructed, we can query it. The tutorial shows
 how to do that for \emph{Leginonella pneumophila}. It is a notorious

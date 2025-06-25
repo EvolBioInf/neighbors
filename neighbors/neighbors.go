@@ -78,6 +78,14 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 		}
 	}
 	var w io.Writer
+	sort.Ints(targets)
+	sort.Ints(neighbors)
+	for _, target := range targets {
+		sort.Strings(genomes[target])
+	}
+	for _, neighbor := range neighbors {
+		sort.Strings(genomes[neighbor])
+	}
 	if tab {
 		w = os.Stdout
 	} else {
@@ -85,29 +93,19 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 	}
 	if list {
 		fmt.Fprintf(w, "# Sample\tAccession\n")
-		var acc []string
-		for _, target := range targets {
-			accessions := genomes[target]
-			for _, accession := range accessions {
-				acc = append(acc, accession)
-			}
-		}
-		sort.Strings(acc)
 		sample := "t"
-		for _, a := range acc {
-			fmt.Fprintf(w, "%s\t%s\n", sample, a)
-		}
-		acc = acc[:0]
-		for _, neighbor := range neighbors {
-			accessions := genomes[neighbor]
-			for _, accession := range accessions {
-				acc = append(acc, accession)
+		for _, target := range targets {
+			acc := genomes[target]
+			for _, a := range acc {
+				fmt.Fprintf(w, "%s\t%s\n", sample, a)
 			}
 		}
-		sort.Strings(acc)
 		sample = "n"
-		for _, a := range acc {
-			fmt.Fprintf(w, "%s\t%s\n", sample, a)
+		for _, neighbor := range neighbors {
+			acc := genomes[neighbor]
+			for _, a := range acc {
+				fmt.Fprintf(w, "%s\t%s\n", sample, a)
+			}
 		}
 	} else {
 		mrcaTname, err := taxdb.Name(mrcaT)
@@ -135,7 +133,6 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 			g = strings.TrimPrefix(g, " ")
 			fmt.Fprintf(w, "%s\t%d\t%s\t%s\n", t, target, name, g)
 		}
-		sort.Ints(neighbors)
 		for _, neighbor := range neighbors {
 			g := "-"
 			if len(genomes[neighbor]) > 0 {
@@ -179,7 +176,7 @@ func parse(r io.Reader, args ...interface{}) {
 func main() {
 	u := "neighbors [-h] [option]... <db> [targets.txt]..."
 	p := "Given a taxonomy database computed with makeNeiDb and " +
-		"a set of target taxon IDs, find their closest " +
+		"a set of target taxon-IDs, find their closest " +
 		"taxonomic neighbors."
 	e := "neighbors -t 9606 neidb"
 	clio.Usage(u, p, e)

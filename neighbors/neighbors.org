@@ -40,13 +40,13 @@
   The usage consists of the actual usage message, an explanation of the
   purpose of \ty{neighbors}, and an example command. In the usage we
   clarify that the first argument of \ty{neighbors} is the name of the
-  taxonomy database. In the example we show how to enter the human taxon
-  ID, 9606, as target.
+  taxonomy database. In the example we show how to enter the human
+  taxon-ID, 9606, as target.
 #+end_src
 #+begin_src go <<Set usage, Pr. \ref{pr:neig}>>=
   u := "neighbors [-h] [option]... <db> [targets.txt]..."
   p := "Given a taxonomy database computed with makeNeiDb and " +
-	  "a set of target taxon IDs, find their closest " +
+	  "a set of target taxon-IDs, find their closest " +
 	  "taxonomic neighbors."
   e := "neighbors -t 9606 neidb"
   clio.Usage(u, p, e)
@@ -95,7 +95,7 @@
   flag.Parse()
 #+end_src
 #+begin_src latex
-  We respond to the version option, \ty{-v}, the target taxon IDs,
+  We respond to the version option, \ty{-v}, the target taxon-IDs,
   \ty{-t}, and the assembly level, \ty{-L}.
 #+end_src
 #+begin_src go <<Respond to options, Pr. \ref{pr:neig}>>=
@@ -113,7 +113,7 @@
   }
 #+end_src
 #+begin_src latex
-  If the user gave target taxa, we check (s)he didn't also give input
+  If the user gave target taxa, we check they didn't also give input
   files. Then we collect the targets in the slice of integers we
   declare.
 #+end_src
@@ -380,12 +380,14 @@ impossible to find any neighbors and we bail.
   }
 #+end_src
 #+begin_src latex
-  We print the result using a \ty{Writer}. So we construct one and flush
-  it at the end. In between, the result consists either of a list of
-  accessions, or of the full report.
+  We sort the result to make the output reproducible. Then we print the
+  result using a \ty{Writer}. So we construct one and flush it at the
+  end. In between, the result consists either of a list of accessions,
+  or of the full report.
 #+end_src
 #+begin_src go <<Print result, Pr. \ref{pr:neig}>>=
   var w io.Writer
+  //<<Sort output, Pr. \ref{pr:neig}>>
   //<<Construct \ty{Writer}, Pr. \ref{pr:neig}>>
   if list {
 	  //<<List accessions, Pr. \ref{pr:neig}>>
@@ -393,6 +395,25 @@ impossible to find any neighbors and we bail.
 	  //<<Print report, Pr. \ref{pr:neig}>>
   }
   //<<Flush writer, Pr. \ref{pr:neig}>>
+#+end_src
+#+begin_export latex
+We sort the targets and neighbors, and their accessions.
+#+end_export
+#+begin_src go <<Sort output, Pr. \ref{pr:neig}>>=
+  sort.Ints(targets)
+  sort.Ints(neighbors)
+  for _, target := range targets {
+	  sort.Strings(genomes[target])
+  }
+  for _, neighbor := range neighbors {
+	  sort.Strings(genomes[neighbor])
+  }
+#+end_src
+#+begin_export latex
+Se import \ty{sort}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
+  "sort"
 #+end_src
 #+begin_src latex
   The user can choose between tab-delimited output and the default
@@ -414,30 +435,12 @@ impossible to find any neighbors and we bail.
   "text/tabwriter"
 #+end_src
 #+begin_src latex
-  We print the table header before we list the targets and neighbors. To
-  make these listings reproducible, we sort the targets and neighbors
-  beforehand.
+  We print the table header before we list the targets and neighbors.
 #+end_src
 #+begin_src go <<List accessions, Pr. \ref{pr:neig}>>=
   fmt.Fprintf(w, "# Sample\tAccession\n")
-  //<<Sort targets, Pr. \ref{pr:neig}>>
   //<<List targets, Pr. \ref{pr:neig}>>
-  //<<Sort neighbors, Pr. \ref{pr:neig}>>
   //<<List neighbors, Pr. \ref{pr:neig}>>
-#+end_src
-#+begin_src latex
-  To sort the targets, we store them as a slice of strings and sort
-  that.
-#+end_src
-#+begin_src go <<Sort targets, Pr. \ref{pr:neig}>>=
-  var acc []string
-  for _, target := range targets {
-	  accessions := genomes[target]
-	  for _, accession := range accessions {
-		  acc = append(acc, accession)
-	  }
-  }
-  sort.Strings(acc)
 #+end_src
 #+begin_src latex
   We iterate over the sorted accessions and list them together with a
@@ -445,32 +448,23 @@ impossible to find any neighbors and we bail.
 #+end_src
 #+begin_src go <<List targets, Pr. \ref{pr:neig}>>=
   sample := "t"
-  for _, a := range acc {
-	  fmt.Fprintf(w, "%s\t%s\n", sample, a)
-  }
-#+end_src
-#+begin_src latex
-  We sort the neighbors like we just sorted the targets, by placing them
-  in the emptied string slice we already used for the targets, and
-  sorting that.
-#+end_src
-#+begin_src go <<Sort neighbors, Pr. \ref{pr:neig}>>=
-  acc = acc[:0]
-  for _, neighbor := range neighbors {
-	  accessions := genomes[neighbor]
-	  for _, accession := range accessions {
-		  acc = append(acc, accession)
+  for _, target := range targets {
+	  acc := genomes[target]
+	  for _, a := range acc {
+		  fmt.Fprintf(w, "%s\t%s\n", sample, a)
 	  }
   }
-  sort.Strings(acc)
 #+end_src
 #+begin_src latex
   We list the neighbors together with their marker, \ty{n}.
 #+end_src
 #+begin_src go <<List neighbors, Pr. \ref{pr:neig}>>=
   sample = "n"
-  for _, a := range acc {
-	  fmt.Fprintf(w, "%s\t%s\n", sample, a)
+  for _, neighbor := range neighbors {
+	  acc := genomes[neighbor]
+	  for _, a := range acc {
+		  fmt.Fprintf(w, "%s\t%s\n", sample, a)
+	  }
   }
 #+end_src
 #+begin_src latex
@@ -513,8 +507,8 @@ impossible to find any neighbors and we bail.
 #+end_src
 #+begin_export latex
 We look up the target's name and remove the leading blank from the
-genomes string. Then print the four columns in our table, type, taxon
-ID, name, and genomes.
+genomes string. Then print the four columns in our table, type,
+taxon-ID, name, and genomes.
 #+end_export
 #+begin_src go <<Print target, Pr. \ref{pr:neig}>>=
   name, err := taxdb.Name(target)
@@ -523,11 +517,9 @@ ID, name, and genomes.
   fmt.Fprintf(w, "%s\t%d\t%s\t%s\n", t, target, name, g)
 #+end_src
 #+begin_src latex
-  Neighbors are marked as type ``n''. Since the targets were already
-  sorted, we sort the neighbors, too.
+  Neighbors are marked as type ``n''.
 #+end_src
 #+begin_src go <<Print neighbors, Pr. \ref{pr:neig}>>=
-  sort.Ints(neighbors)
   for _, neighbor := range neighbors {
 	  g := "-"
 	  if len(genomes[neighbor]) > 0 {
@@ -688,7 +680,7 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
 #+end_src
 #+begin_src latex
   The targets option, \ty{-t}, doesn't require an input file. We run it
-  first on a single taxon ID, and then on two.
+  first on a single taxon-ID, and then on two.
 #+end_src
 #+begin_src go <<Test \ty{-t}, Pr. \ref{pr:neig}>>=
   test = exec.Command("./neighbors", "-t", "9606", db)
