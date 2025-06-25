@@ -594,6 +594,11 @@ func traverseSubtree(t *TaxonomyDB, v int, taxa []int) ([]int, error) {
 	return taxa, err
 }
 
+// The function AssemblyLevels returns the slice of possible assembly levels.
+func AssemblyLevels() []string {
+	return assemblyLevels
+}
+
 var accessionT = "select accession " +
 	"from genome " +
 	"where taxid=%d"

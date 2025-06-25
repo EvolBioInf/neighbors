@@ -21,6 +21,10 @@ func TestTdb(t *testing.T) {
 			println(s)
 		}
 	}
+	nl := len(AssemblyLevels())
+	if nl != 4 {
+		t.Errorf("get %d assembly levels, want 4", nl)
+	}
 	tid := 9606
 	get, _ := taxdb.Name(tid)
 	want := "Homo sapiens"

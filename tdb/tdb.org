@@ -1512,6 +1512,16 @@ the query. And keep checking the error.
 	  return 0, err
   }
 #+end_src
+#+begin_export latex
+\subsection{\ty{AssemblyLevels}}
+!The function \ty{AssemblyLevels} returns the slice of possible
+!assembly levels.
+#+end_export
+#+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
+  func AssemblyLevels() []string {
+	  return assemblyLevels
+  }
+#+end_src
 #+begin_src latex
   \subsection{Testing}
   We test on the \emph{Homininae} subfamily shown in
@@ -1537,19 +1547,23 @@ the query. And keep checking the error.
 	  //<<Testing, Pa. \ref{pa:tdb}>>
   }
 #+end_src
-#+begin_src latex
-  We test the function \ty{NewTaxonomyDB} and the methods in three
-  lots, depending on which table to access, \ty{genome},
-  \ty{accession}, or \ty{genome\_count}.
-#+end_src
+#+begin_export latex
+We first test the functions, then the methods.
+#+end_export
 #+begin_src go <<Testing, Pa. \ref{pa:tdb}>>=
+  //<<Test functions, Pa. \ref{pa:tdb}>>
+  //<<Test methods, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+There are two functions, \ty{NewTaxonomyDB} and \ty{AssemblyLevels}.
+#+end_export
+#+begin_src go <<Test functions, Pa. \ref{pa:tdb}>>=
   //<<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>
-  //<<Test access to \ty{taxon}, Pa. \ref{pa:tdb}>>
-  //<<Test access to \ty{genome}, Pa. \ref{pa:tdb}>>
-  //<<Test access to \ty{genome\_count}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{AssemblyLevels}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
-  We build a small database, \ty{taxSmall.db}.
+  To test the function \ty{NewTaxonomyDB}, we build a small database,
+  \ty{taxSmall.db}.
 #+end_src
 #+begin_src go <<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>=
   p := "../data/"
@@ -1574,6 +1588,26 @@ the query. And keep checking the error.
 		  println(s)
 	  }
   }
+#+end_src
+#+begin_export latex
+To test the function \ty{AssemblyLevels}, we make sure it returns four
+levels.
+#+end_export
+#+begin_src go <<Test \ty{AssemblyLevels}, Pa. \ref{pa:tdb}>>=
+  nl := len(AssemblyLevels())
+  if nl != 4 {
+	  t.Errorf("get %d assembly levels, want 4", nl)
+  }
+#+end_src
+#+begin_export latex
+Having tested the functions, we test the methods. We do this in three
+lots, depending on which table to access, \ty{genome}, \ty{accession},
+or \ty{genome\_count}.
+#+end_export
+#+begin_src go <<Test methods, Pa. \ref{pa:tdb}>>=
+  //<<Test access to \ty{taxon}, Pa. \ref{pa:tdb}>>
+  //<<Test access to \ty{genome}, Pa. \ref{pa:tdb}>>
+  //<<Test access to \ty{genome\_count}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_export latex
 We test the seven methods that access \ty{taxon}, \ty{Name},
