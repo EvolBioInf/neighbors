@@ -11,8 +11,7 @@ import (
 
 var version, date string
 var name string
-var levels = []string{
-	"complete",
+var assemblyLevels = []string{"complete",
 	"chromosome",
 	"scaffold",
 	"contig"}
@@ -50,6 +49,7 @@ func Version() {
 	PrintInfo(name)
 }
 func LevelMsg() string {
+	levels := assemblyLevels
 	m := "assembly-level: comma-delimited combination " +
 		"of " + levels[0]
 	for i := 1; i < len(levels)-1; i++ {
@@ -58,11 +58,4 @@ func LevelMsg() string {
 	m += ", or " + levels[len(levels)-1]
 	m += " (default any)"
 	return m
-}
-func AssemblyLevels() map[string]bool {
-	al := make(map[string]bool)
-	for _, level := range levels {
-		al[level] = true
-	}
-	return al
 }

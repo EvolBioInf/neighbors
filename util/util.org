@@ -120,22 +120,12 @@ We declare the global string variable \ty{name}.
   !The function \ty{LevelMsg} prints the user message for the
   !option directing the assembly level.
 
-  We begin by declaring a variable containing the four possible assembly
-  levels, \emph{complete}, \emph{chromosome}, \emph{scaffold}, and
-  \emph{contig}, in that order of quality.
-#+end_src
-#+begin_src go <<Variables, Pa. \ref{pa:util}>>=
-  var levels = []string{
-	  "complete",
-	  "chromosome",
-	  "scaffold",
-	  "contig"}
-#+end_src
-#+begin_src latex
-  We use the four assembly levels to construct the user message.
+  We use the given assembly levels stored in the variable
+  \ty{assemblyLevels} to construct the user message.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func LevelMsg() string {
+	  levels := assemblyLevels
 	  m := "assembly-level: comma-delimited combination " +
 		  "of " +	levels[0]
 	  for i := 1; i < len(levels)-1; i++ {
@@ -146,19 +136,15 @@ We declare the global string variable \ty{name}.
 	  return m
   }
 #+end_src
-#+begin_src latex
-  \subsection{\ty{AssemblyLevels}}
-  ! The function \ty{AssemblyLevels} returns a map of possible assembly
-  ! levels.
-#+end_src
-#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func AssemblyLevels() map[string]bool {
-	  al := make(map[string]bool)
-	  for _, level := range levels {
-		  al[level] = true
-	  }
-	  return al
-  }
+#+begin_export latex
+The variable \ty{assemblyLevels} contains the four possible assembly
+levels.
+#+end_export
+#+begin_src go <<Variables, Pa. \ref{pa:util}>>=
+  var assemblyLevels = []string{"complete",
+	  "chromosome",
+	  "scaffold",
+	  "contig"}
 #+end_src
 #+begin_src latex
   We are done with writing the \ty{util} package, time to test it.
