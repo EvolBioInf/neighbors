@@ -20,14 +20,9 @@ func TestUtil(t *testing.T) {
 	}
 	m := "user message does not match level %q"
 	msg := LevelMsg()
-	for _, level := range levels {
+	for _, level := range assemblyLevels {
 		if strings.Index(msg, level) == -1 {
 			t.Errorf(m, level)
 		}
-	}
-	w := len(levels)
-	g := len(AssemblyLevels())
-	if w != g {
-		t.Errorf("want:\n%d levels\nget:\n%d levels", w, g)
 	}
 }

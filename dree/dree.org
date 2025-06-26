@@ -147,8 +147,9 @@
   known levels become the desired levels.
 #+end_src
 #+begin_src go <<Respond to \ty{-L}, Pr. \ref{pr:dr}>>=
-  knowns := util.AssemblyLevels()
   levels := make(map[string]bool)
+  knowns := make(map[string]bool)
+  //<<Fill in known levels, Pr. \ref{pr:dr}>>
   var requests []string
   if *optLL != "" {
 	  requests = strings.Split(*optLL, ",")
@@ -160,10 +161,19 @@
   }
 #+end_src
 #+begin_export latex
-We import \ty{strings}.
+We import \ty{tdb} and \ty{strings}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
+  "github.com/evolbioinf/neighbors/tdb"
   "strings"
+#+end_src
+#+begin_export latex
+We fill in the known assembly levels.
+#+end_export
+#+begin_src go <<Fill in known levels, Pr. \ref{pr:dr}>>=
+  for _, level := range tdb.AssemblyLevels() {
+	  knowns[level] = true
+  }
 #+end_src
 #+begin_export latex
 When iterating over the requested levels we store those that are
@@ -216,12 +226,6 @@ and we bail with a message.
 #+end_src
 #+begin_src go <<Open database connection, Pr. \ref{pr:dr}>>=
   neidb := tdb.OpenTaxonomyDB(dbname)
-#+end_src
-#+begin_src latex
-  We import \ty{tdb}.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
-  "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_src latex
   We get the subtree we're looking for.

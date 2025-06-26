@@ -30,8 +30,11 @@ func main() {
 	if *optV {
 		util.PrintInfo("dree")
 	}
-	knowns := util.AssemblyLevels()
 	levels := make(map[string]bool)
+	knowns := make(map[string]bool)
+	for _, level := range tdb.AssemblyLevels() {
+		knowns[level] = true
+	}
 	var requests []string
 	if *optLL != "" {
 		requests = strings.Split(*optLL, ",")
