@@ -168,7 +168,8 @@
   desired \ty{levels}.
 #+end_src
 #+begin_src go <<Respond to \ty{-L}, Pr. \ref{pr:neig}>>=
-  knowns := util.AssemblyLevels()
+  knowns := make(map[string]bool)
+  //<<Fill in known levels, Pr. \ref{pr:neig}>>
   levels := make(map[string]bool)
   var requests []string
   if *optLL != "" {
@@ -178,6 +179,14 @@
 	  //<<Iterate over requested levels, Pr. \ref{pr:neig}>>
   } else {
 	  levels = knowns
+  }
+#+end_src
+#+begin_export latex
+We fill in the map of known levels.
+#+end_export
+#+begin_src go <<Fill in known levels, Pr. \ref{pr:neig}>>=
+  for _, level := range tdb.AssemblyLevels() {
+	  knowns[level] = true
   }
 #+end_src
 #+begin_src latex
@@ -255,10 +264,10 @@
   The targets are nodes of the subtree of the most recent common
   ancestor of the taxon-IDs we just read. We call this MRCA the
   target-MRCA, \ty{mrcaT}, and calculate it from the partial taxonomy of
-  the targets. We check that our \ty{mrcaT} isn't also the root.
+  the targets. We check that \ty{mrcaT} isn't also the root.
 
   The subtree rooted on the \ty{mrcaT} contains the complete set of
-  targets. This complete set of targets might contain new targets not
+  targets. This complete set of targets might include new targets not
   contained in the taxa submitted. We mark these new targets.
 #+end_src
 #+begin_src go <<Compute targets, Pr. \ref{pr:neig}>>=
@@ -285,7 +294,7 @@ impossible to find any neighbors and we bail.
   }
 #+end_src
 #+begin_src latex
-  The new targets are put in a map.
+  The new targets are put in a dedicated map, \ty{newTargets}.
 #+end_src
 #+begin_src go <<Mark new targets, Pr. \ref{pr:neig}>>=
   newTargets := make(map[int]bool)
@@ -305,7 +314,8 @@ impossible to find any neighbors and we bail.
   "sort"
 #+end_src
 #+begin_src latex
-  The neighbors are the nodes in the subtree of the parent of the
+  As illustrated in Figure~\ref{fig:tax} in the Introduction, the
+  neighbors are the nodes in the subtree of the parent of the
   target-MRCA, minus the targets and the parent. We call the parent of
   the target-MRCA the analysis-MRCA, \ty{mrcaA}. If the analysis-MRCA
   has no nodes other than the target(s), we keep moving it up the tree
@@ -356,7 +366,8 @@ impossible to find any neighbors and we bail.
   for _, target := range targets {
 	  accessions, err := taxdb.Accessions(target)
 	  util.Check(err)
-	  accessions, err = taxdb.FilterAccessions(accessions, levels)
+	  accessions, err = taxdb.FilterAccessions(accessions,
+		  levels)
 	  util.Check(err)
 	  if len(accessions) > 0 {
 		  genomes[target] = accessions
@@ -386,7 +397,6 @@ impossible to find any neighbors and we bail.
   or of the full report.
 #+end_src
 #+begin_src go <<Print result, Pr. \ref{pr:neig}>>=
-  var w io.Writer
   //<<Sort output, Pr. \ref{pr:neig}>>
   //<<Construct \ty{Writer}, Pr. \ref{pr:neig}>>
   if list {
@@ -410,7 +420,7 @@ We sort the targets and neighbors, and their accessions.
   }
 #+end_src
 #+begin_export latex
-Se import \ty{sort}.
+We import \ty{sort}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "sort"
@@ -419,9 +429,11 @@ Se import \ty{sort}.
   The user can choose between tab-delimited output and the default
   pretty-printed output. For tab-delimited output we use the standard
   output stream. For pretty-printing we use a tabwriter. Notice that we
-  only need to flush the tabwriter at the end, not the stdout.
+  only flush the tabwriter at the end, not the stdout, which is a file
+  and cannot be flushed.
 #+end_src
 #+begin_src go <<Construct \ty{Writer}, Pr. \ref{pr:neig}>>=
+  var w io.Writer
   if tab {
 	  w = os.Stdout
   } else {
@@ -444,7 +456,7 @@ Se import \ty{sort}.
 #+end_src
 #+begin_src latex
   We iterate over the sorted accessions and list them together with a
-  marker for \emph{target}, \ty{t}.
+  marker for \emph{target}, the single character \ty{t}.
 #+end_src
 #+begin_src go <<List targets, Pr. \ref{pr:neig}>>=
   sample := "t"
@@ -535,7 +547,8 @@ taxon-ID, name, and genomes.
 #+begin_src latex
   Inside \ty{parse}, we retrieve the taxonomy database, the list option,
   the genomes option, the tab option, and the map of desired accession
-  levels. Then we read the taxon-IDs and call \ty{calcTarNei}.
+  levels. Then we read the taxon-IDs and calculate the targets and
+  neighbors by calling \ty{calcTarNei}.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:neig}>>=
   func parse(r io.Reader, args ...interface{}) {
@@ -665,7 +678,8 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
-  Similarly, we test the genomes only option, \ty{-g}, on \ty{tid4.txt}.
+  Similarly, we test the ``genomes only'' option, \ty{-g}, on
+  \ty{tid4.txt}.
 #+end_src
 #+begin_src go <<Test \ty{-g}, Pr. \ref{pr:neig}>>=
   test = exec.Command("./neighbors", "-g", db, "tid4.txt")

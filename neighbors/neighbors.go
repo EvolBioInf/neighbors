@@ -61,7 +61,8 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 	for _, target := range targets {
 		accessions, err := taxdb.Accessions(target)
 		util.Check(err)
-		accessions, err = taxdb.FilterAccessions(accessions, levels)
+		accessions, err = taxdb.FilterAccessions(accessions,
+			levels)
 		util.Check(err)
 		if len(accessions) > 0 {
 			genomes[target] = accessions
@@ -77,7 +78,6 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 			genomes[neighbor] = accessions
 		}
 	}
-	var w io.Writer
 	sort.Ints(targets)
 	sort.Ints(neighbors)
 	for _, target := range targets {
@@ -86,6 +86,7 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 	for _, neighbor := range neighbors {
 		sort.Strings(genomes[neighbor])
 	}
+	var w io.Writer
 	if tab {
 		w = os.Stdout
 	} else {
@@ -206,7 +207,10 @@ func main() {
 			targets = append(targets, target)
 		}
 	}
-	knowns := util.AssemblyLevels()
+	knowns := make(map[string]bool)
+	for _, level := range tdb.AssemblyLevels() {
+		knowns[level] = true
+	}
 	levels := make(map[string]bool)
 	var requests []string
 	if *optLL != "" {
