@@ -330,7 +330,8 @@ func (d *TaxonomyDB) NumGenomes(taxid int, level string) (int, error) {
 }
 
 // The method NumGenomesRec takes as argument a taxon-ID and an assembly level. It returns the number of genomes assembled to that level contained in the subtree rooted on the taxon-ID and an error.
-func (d *TaxonomyDB) NumGenomesRec(taxid int, level string) (int, error) {
+func (d *TaxonomyDB) NumGenomesRec(taxid int,
+	level string) (int, error) {
 	n := 0
 	var err error
 	q := "select recursive from genome_count " +
@@ -348,6 +349,29 @@ func (d *TaxonomyDB) NumGenomesRec(taxid int, level string) (int, error) {
 		return 0, err
 	}
 	return n, err
+}
+
+// The method IsLeaf takes as argument a taxon-ID and returns true if the taxon has no children, i. e. is a leaf, false otherwise. It also returns an error.
+func (d *TaxonomyDB) IsLeaf(taxid int) (bool, error) {
+	numChildren := 0
+	var err error
+	q := "select count(taxid) from taxon " +
+		"where parent=%d"
+	q = fmt.Sprintf(q, taxid)
+	row, err := d.db.Query(q)
+	defer row.Close()
+	if err != nil {
+		return false, err
+	}
+	row.Next()
+	err = row.Scan(&numChildren)
+	if err != nil {
+		return false, err
+	}
+	if numChildren == 0 {
+		return true, nil
+	}
+	return false, nil
 }
 
 // The function NewTaxonomyDB takes as parameters the names of the  five input files from which we construct the database, and the name of  the database. It opens these files, opens a new database, and  constructs the database.

@@ -1610,7 +1610,8 @@ We construct the query for the recursive number of genomes, execute
 the query, and extract the result.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (d *TaxonomyDB) NumGenomesRec(taxid int, level string) (int, error) {
+  func (d *TaxonomyDB) NumGenomesRec(taxid int,
+	  level string) (int, error) {
 	  n := 0
 	  var err error
 	  //<<Construct recursive numgen query, Pa. \ref{pa:tdb}>>
@@ -1659,6 +1660,58 @@ the query. And keep checking the error.
 #+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
   func AssemblyLevels() []string {
 	  return assemblyLevels
+  }
+#+end_src
+#+begin_export latex
+\subsection{\ty{IsLeaf}}
+!The method \ty{IsLeaf} takes as argument a taxon-ID and returns true
+!if the taxon has no children, i. e. is a leaf, false otherwise. It
+!also returns an error.
+
+We implement the method by counting the children associated with the
+incoming taxon-ID. If that number is zero, we return true, false
+otherwise.
+#+end_export
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (d *TaxonomyDB) IsLeaf(taxid int) (bool, error) {
+	  numChildren := 0
+	  var err error
+	  //<<Construct leaf query, Pa. \ref{pa:tdb}>>
+	  //<<Execute leaf query, Pa. \ref{pa:tdb}>>
+	  //<<Extract number of children, Pa. \ref{pa:tdb}>>
+	  if numChildren == 0 {
+		  return true, nil
+	  }
+	  return false, nil
+  }
+#+end_src
+#+begin_export latex
+We construct the query for counting the children of the given
+taxon-ID.
+#+end_export
+#+begin_src go <<Construct leaf query, Pa. \ref{pa:tdb}>>=
+  q := "select count(taxid) from taxon " +
+	  "where parent=%d"
+  q = fmt.Sprintf(q, taxid)
+#+end_src
+#+begin_export latex
+We execute the leaf query and bail if there was an error.
+#+end_export
+#+begin_src go <<Execute leaf query, Pa. \ref{pa:tdb}>>=
+  row, err := d.db.Query(q)
+  defer row.Close()
+  if err != nil {
+	  return false, err
+  }
+#+end_src
+#+begin_export latex
+We extract the number of children and bail if there was an error.
+#+end_export
+#+begin_src go <<Extract number of children, Pa. \ref{pa:tdb}>>=
+  row.Next()
+  err = row.Scan(&numChildren)
+  if err != nil {
+	  return false, err
   }
 #+end_src
 #+begin_src latex
@@ -1749,9 +1802,10 @@ or \ty{genome\_count}.
   //<<Test access to \ty{genome\_count}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_export latex
-We test the seven methods that access \ty{taxon}, \ty{Name},
+We test the eleven methods that access \ty{taxon}, \ty{Name},
 \ty{CommonName}, \ty{Rank}, \ty{Parent}, \ty{Children}, \ty{Subtree},
-\ty{MRCA}, and \ty{NumTaxa}, \ty{Taxids}, and \ty{CommonTaxids}.
+\ty{MRCA}, and \ty{NumTaxa}, \ty{Taxids}, \ty{CommonTaxids}, and
+\ty{IsLeaf}.
 #+end_export
 #+begin_src go <<Test access to \ty{taxon}, Pa. \ref{pa:tdb}>>=
   //<<Test \ty{Name}, Pa. \ref{pa:tdb}>>
@@ -1764,6 +1818,7 @@ We test the seven methods that access \ty{taxon}, \ty{Name},
   //<<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{CommonTaxids}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{IsLeaf}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   We look up the name of taxon, 9606, \emph{Homo sapiens}.
@@ -1912,6 +1967,18 @@ name contains ``man'', ``human'' and ``Heidelberg man''.
   if g != w {
 	  t.Errorf("get %d taxa for man; want %d",
 		  g, w)
+  }
+#+end_src
+#+begin_export latex
+We test \ty{IsLeaf}, we query for \emph{Homo sapiens}, which we know
+is not a leaf.
+#+end_export
+#+begin_src go <<Test \ty{IsLeaf}, Pa. \ref{pa:tdb}>>=
+  getBool, _ := taxdb.IsLeaf(9606)
+  wantBool := false
+  if getBool != wantBool {
+	  t.Errorf("get isLeaf %v; want %v",
+		  getBool, wantBool)
   }
 #+end_src
 #+begin_export latex

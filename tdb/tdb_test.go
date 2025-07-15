@@ -98,6 +98,12 @@ func TestTdb(t *testing.T) {
 		t.Errorf("get %d taxa for man; want %d",
 			g, w)
 	}
+	getBool, _ := taxdb.IsLeaf(9606)
+	wantBool := false
+	if getBool != wantBool {
+		t.Errorf("get isLeaf %v; want %v",
+			getBool, wantBool)
+	}
 	tid = 9606
 	arr, _ := taxdb.Accessions(tid)
 	g = len(arr)
