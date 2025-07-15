@@ -129,16 +129,18 @@ As illustrated in Figure~\ref{fig:db}, we construct three tables,
   ensure that queries are quick by using indexes. The primary key,
   \ty{taxid}, is automatically indexed but we explicitly construct an
   index for \ty{parent} and \ty{score}. We might be tempted to also
-  index the remaining two attributes, \ty{name} and \ty{rank}. However,
-  these are text and \ty{sqlite} does not make use of indexes on text
-  columns. You can check this on an existing database by prefacing a
-  query with \ty{explain query plan}. So we just index \ty{parent}.
+  index the remaining three attributes, \ty{name}, \ty{common\_name},
+  and \ty{rank}. However, these are text and \ty{sqlite} does not make
+  use of indexes on text columns. You can check this on an existing
+  database by prefacing a query with \ty{explain query plan}. So we just
+  index \ty{parent}.
 #+end_src
 #+begin_src go <<Construct table \ty{taxon}, Pa. \ref{pa:tdb}>>=
   sqlStmt := `create table taxon (
     taxid int primary key,
     parent int,
     name text,
+    common_name text,
     rank text,
     score float);
   create index taxon_parent_idx on taxon(parent);
@@ -205,14 +207,14 @@ genome counts.
 #+begin_src latex 
   To load \ty{taxon}, we simulate a join of \ty{nodes.dmp} and
   \ty{names.dmp} on taxon-ID. For this we create the type \ty{taxon}
-  with the same four fields as the five attributes in
+  with the same five fields as the five attributes in
   Figure~\ref{fig:db}. In addition, we keep a counter of the node's
   children, and note its raw and recursive genome counts per level.
 #+end_src
 #+begin_src go <<Types, Pa. \ref{pa:tdb}>>=
   type taxon struct {
 	  taxid, parent int
-	  name, rank string
+	  rank, name, comName string
 	  numChildren int
 	  raw map[string]int
 	  rec map[string]int
@@ -275,21 +277,38 @@ We import \ty{strconv}.
   "strconv"
 #+end_src
 #+begin_src latex
-  The names file contains the taxon-ID in the first column and the name
-  in the second. Now, there are several kinds of names, scientific,
-  common, and more. We only store the scientific names. To parse the
-  file, we again use a scanner and split the columns at \verb+\t|\t+.
+  We again use a scanner to parse the names file and split the columns
+  at \verb+\t|\t+. Then we store the taxon-ID, the names.
 #+end_src
 #+begin_src go <<Parse names file, Pa. \ref{pa:tdb}>>=
   scanner = bufio.NewScanner(af)
   for scanner.Scan() {
 	  row := scanner.Text()
 	  fields := strings.Split(row, "\t|\t")
-	  id, err := strconv.Atoi(fields[0])
-	  util.Check(err)
-	  if fields[3][:3] == "sci" {
-		  taxa[id].name = fields[1]
-	  }
+	  //<<Store taxon-ID, Pa. \ref{pa:tdb}>>
+	  //<<Store names, Pa. \ref{pa:tdb}>>
+  }
+#+end_src
+#+begin_export latex
+The taxon-ID is located in the first column. We convert it from string
+to integer and check the resulting error.
+#+end_export
+#+begin_src go <<Store taxon-ID, Pa. \ref{pa:tdb}>>=
+  id, err := strconv.Atoi(fields[0])
+  util.Check(err)
+#+end_src
+#+begin_export latex
+The names are stored in the second field and the kind of name is
+stated in the fourth field. We store the scientific and the genbank
+common names.
+#+end_export
+#+begin_src go <<Store names, Pa. \ref{pa:tdb}>>=
+  name := fields[1]
+  tag := fields[3][:3]
+  if tag == "sci" {
+	  taxa[id].name = name
+  } else if tag == "gen" {
+	  taxa[id].comName = name
   }
 #+end_src
 #+begin_src latex
@@ -300,8 +319,9 @@ We import \ty{strconv}.
 #+begin_src go <<Insert taxa, Pa. \ref{pa:tdb}>>=
   tx, err := db.Begin()
   util.Check(err)
-  sqlStmt = "insert into taxon(taxid, parent, name, rank) " +
-	  "values(?, ?, ?, ?)"
+  sqlStmt = "insert into taxon(taxid, parent, name, " +
+	  "common_name, rank) " +
+	  "values(?, ?, ?, ?, ?)"
   stmt, err := tx.Prepare(sqlStmt)
   util.Check(err)
   //<<Insert rows into table \ty{taxon}, Pa. \ref{pa:tdb}>>
@@ -313,7 +333,8 @@ We import \ty{strconv}.
 #+end_src
 #+begin_src go <<Insert rows into table \ty{taxon}, Pa. \ref{pa:tdb}>>=
   for _, v := range taxa {
-	  _, err = stmt.Exec(v.taxid, v.parent, v.name, v.rank)
+	  _, err = stmt.Exec(v.taxid, v.parent, v.name,
+		  v.comName, v.rank)
 	  util.Check(err)
   }
 #+end_src
@@ -885,6 +906,59 @@ and check the error returned by the database.
 	  return "", err
   }
 #+end_src
+
+#+begin_src latex
+  \subsection{\ty{CommonName}}
+  ! The method \ty{CommonName} takes as argument a taxon-ID and returns the
+  ! taxon's common name and an error.
+
+  We construct the common name query, execute it, and extract the name.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) CommonName(taxon int) (string, error) {
+	  var err error
+	  commonName := ""
+	  //<<Construct common name query, Pa. \ref{pa:tdb}>>
+	  //<<Execute common name query, Pa. \ref{pa:tdb}>>
+	  //<<Extract common name, Pa. \ref{pa:tdb}>>
+	  return commonName, err
+  }
+#+end_src
+#+begin_src latex
+  To construct the common name query, we define a template.
+#+end_src
+#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
+  var commonNameT = "select common_name " +
+	  "from taxon where taxid=%d"
+#+end_src
+#+begin_src latex
+  We construct the common name query from our new template.
+#+end_src
+#+begin_src go <<Construct common name query, Pa. \ref{pa:tdb}>>=
+  q := fmt.Sprintf(commonNameT, taxon)
+#+end_src
+#+begin_src latex
+  We execute the common name query, which might throw an error. We also
+  close the results table once we're done with it.
+#+end_src
+#+begin_src go <<Execute common name query, Pa. \ref{pa:tdb}>>=
+  rows, err := t.db.Query(q)
+  defer rows.Close()
+  if err != nil {
+	  return "", err
+  }
+#+end_src
+#+begin_src latex
+  Our results table contains only the requested single name. We scan
+  this and catch potential errors.
+#+end_src
+#+begin_src go <<Extract common name, Pa. \ref{pa:tdb}>>=
+  rows.Next()
+  err = rows.Scan(&commonName)
+  if err != nil {
+	  return "", err
+  }
+#+end_src
 #+begin_src latex
   \subsection{\ty{Rank}}
   !The method \ty{Rank} takes as argument a taxon-ID and returns the
@@ -1095,9 +1169,9 @@ infinite loop.
   \subsection{\ty{Taxids}}
   ! \ty{Taxids} takes as arguments a taxon name, a limit on the number
   ! of names returned, and an offset into the list of matching names. It
-  ! matches the taxon name, orders them by their score, imposes the
-  ! limit and offset, and returns the corresponding taxon-IDs and an
-  ! error.
+  ! matches the taxon name, to the scientific names in the database,
+  ! orders the hits by their score, imposes the limit and offset, and
+  ! returns the corresponding taxon-IDs and an error.
 
   We construct and execute the query for taxon-IDs, extract the IDs, and
   return them.
@@ -1115,13 +1189,13 @@ infinite loop.
 #+end_src
 #+begin_src latex
   We declare a template for the taxids query, where we order the
-  matching names by their score in descending order before imposing
-  paging.
+  matching names by their score in descending order before ordering by
+  name and then imposing paging.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
   var taxidsT = "select taxid from taxon " +
 	  "where name like '%s' " +
-	  "order by score desc " +
+	  "order by score desc, name " +
 	  "limit %d " +
 	  "offset %d"
 #+end_src
@@ -1153,6 +1227,71 @@ infinite loop.
 		  return nil, err
 	  }
 	  taxids = append(taxids, taxid)
+  }
+#+end_src
+#+begin_src latex
+  \subsection{\ty{CommonTaxids}}
+  ! \ty{CommonTaxids} takes as arguments a taxon name, a limit on the
+  ! number of names returned, and an offset into the list of matching
+  ! names. It matches the taxon name to the scientific and common names,
+  ! orders the hits by their score, imposes the limit and offset, and
+  ! returns the corresponding taxon-IDs and an error.
+
+  We construct and execute the query for taxon-IDs from common and
+  scientific names, extract the IDs, and return them.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) CommonTaxids(name string,
+	  limit, offset int) ([]int, error) {
+	  var err error
+	  commonTaxids := make([]int, 0)
+	  //<<Construct common taxids query, Pa. \ref{pa:tdb}>>
+	  //<<Execute common taxids query, Pa. \ref{pa:tdb}>>
+	  //<<Extract common taxids, Pa. \ref{pa:tdb}>>
+	  return commonTaxids, err
+  }
+#+end_src
+#+begin_src latex
+  We declare a template for the taxids query, where we order the
+  matching names by their score in descending order and name in
+  ascending order, before imposing paging.
+#+end_src
+#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
+  var commonTaxidsT = "select taxid from taxon " +
+	  "where name like '%s' " +
+	  "or common_name like '%s' " +
+	  "order by score desc, name " +
+	  "limit %d " +
+	  "offset %d"
+#+end_src
+#+begin_src latex
+  We construct the query for taxon-IDs from its template.
+#+end_src
+#+begin_src go <<Construct common taxids query, Pa. \ref{pa:tdb}>>=
+  q := fmt.Sprintf(commonTaxidsT, name, name, limit, offset)
+#+end_src
+#+begin_src latex
+  We execute the query for taxon-IDs and catch potential errors. We also
+  make sure the result table is eventually closed again.
+#+end_src
+#+begin_src go <<Execute common taxids query, Pa. \ref{pa:tdb}>>=
+  rows, err := t.db.Query(q)
+  defer rows.Close()
+  if err != nil {
+	  return nil, err
+  }
+#+end_src
+#+begin_src latex
+  We extract and store the taxon-IDs.
+#+end_src
+#+begin_src go <<Extract common taxids, Pa. \ref{pa:tdb}>>=
+  taxid := 0
+  for rows.Next() {
+	  err = rows.Scan(&taxid)
+	  if err != nil {
+		  return nil, err
+	  }
+	  commonTaxids = append(commonTaxids, taxid)
   }
 #+end_src
 #+begin_src latex
@@ -1611,17 +1750,20 @@ or \ty{genome\_count}.
 #+end_src
 #+begin_export latex
 We test the seven methods that access \ty{taxon}, \ty{Name},
-\ty{Rank}, \ty{Parent}, \ty{Children}, \ty{Subtree}, \ty{MRCA}, and
-\ty{NumTaxa}.
+\ty{CommonName}, \ty{Rank}, \ty{Parent}, \ty{Children}, \ty{Subtree},
+\ty{MRCA}, and \ty{NumTaxa}, \ty{Taxids}, and \ty{CommonTaxids}.
 #+end_export
 #+begin_src go <<Test access to \ty{taxon}, Pa. \ref{pa:tdb}>>=
   //<<Test \ty{Name}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{CommonName}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Rank}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Parent}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Children}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Subtree}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{MRCA}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{CommonTaxids}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   We look up the name of taxon, 9606, \emph{Homo sapiens}.
@@ -1632,6 +1774,17 @@ We test the seven methods that access \ty{taxon}, \ty{Name},
   want := "Homo sapiens"
   if get != want {
 	  t.Errorf("get: %q; want: %q", get, want)
+  }
+#+end_src
+#+begin_export latex
+The common name of \emph{Homo sapiens} is human.
+#+end_export
+#+begin_src go <<Test \ty{CommonName}, Pa. \ref{pa:tdb}>>=
+  get, _ = taxdb.CommonName(tid)
+  want = "human"
+  if get != want {
+	  t.Errorf("get common_name: %s; want: %s\n",
+		  get, want)
   }
 #+end_src
 #+begin_export latex
@@ -1733,13 +1886,40 @@ returns that number.
 	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
   }
 #+end_src
+#+begin_src latex
+  To test \ty{Taxids}, we get the four taxa whose names contain
+  \emph{homo sapiens}, but limit the output to the last two. Notice the
+  lower-case ``h'' in \emph{homo}, which SQL matches to the upper-case
+  ``H'' in the actual names.
+#+end_src
+#+begin_src go <<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>=
+  taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 2)
+  g = len(taxa)
+  w = 2
+  if g != w {
+	  t.Errorf("get %d taxa for homo sapiens; want %d",
+		  g, w)
+  }
+#+end_src
+#+begin_export latex
+To test \ty{CommonTaxids}, we get the two accession where the common
+name contains ``man'', ``human'' and ``Heidelberg man''.
+#+end_export
+#+begin_src go <<Test \ty{CommonTaxids}, Pa. \ref{pa:tdb}>>=
+  taxa, _ = taxdb.CommonTaxids("%man%", -1, 0)
+  g = len(taxa)
+  w = 2
+  if g != w {
+	  t.Errorf("get %d taxa for man; want %d",
+		  g, w)
+  }
+#+end_src
 #+begin_export latex
 We test four Methods that access \ty{genome}, \ty{Accessions},
-\ty{Taxids}, \ty{Level}, and \ty{FilterAccessions}.
+\ty{Level}, and \ty{FilterAccessions}.
 #+end_export
 #+begin_src go <<Test access to \ty{genome}, Pa. \ref{pa:tdb}>>=
   //<<Test \ty{Accessions}, Pa. \ref{pa:tdb}>>
-  //<<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Level}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{FilterAccessions}, Pa. \ref{pa:tdb}>>
 #+end_src
@@ -1754,21 +1934,6 @@ whether \ty{Accessions} returns this number of accessions.
   w = 1851
   if g != w {
 	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
-  }
-#+end_src
-#+begin_src latex
-  To test \ty{Taxids}, we get the four taxa whose names contain
-  \emph{homo sapiens}, but limit the output to the last two. Notice the
-  lower-case ``h'' in \emph{homo}, which SQL matches to the upper-case
-  ``H'' in the actual names.
-#+end_src
-#+begin_src go <<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>=
-  taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 2)
-  g = len(taxa)
-  w = 2
-  if g != w {
-	  t.Errorf("get %d taxa for homo sapiens; want %d",
-		  g, w)
   }
 #+end_src
 #+begin_src latex

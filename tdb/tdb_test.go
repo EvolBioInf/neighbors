@@ -31,6 +31,12 @@ func TestTdb(t *testing.T) {
 	if get != want {
 		t.Errorf("get: %q; want: %q", get, want)
 	}
+	get, _ = taxdb.CommonName(tid)
+	want = "human"
+	if get != want {
+		t.Errorf("get common_name: %s; want: %s\n",
+			get, want)
+	}
 	get, _ = taxdb.Rank(tid)
 	want = "species"
 	if get != want {
@@ -78,19 +84,26 @@ func TestTdb(t *testing.T) {
 	if g != w {
 		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
 	}
-	tid = 9606
-	arr, _ := taxdb.Accessions(tid)
-	g = len(arr)
-	w = 1851
-	if g != w {
-		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
-	}
 	taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 2)
 	g = len(taxa)
 	w = 2
 	if g != w {
 		t.Errorf("get %d taxa for homo sapiens; want %d",
 			g, w)
+	}
+	taxa, _ = taxdb.CommonTaxids("%man%", -1, 0)
+	g = len(taxa)
+	w = 2
+	if g != w {
+		t.Errorf("get %d taxa for man; want %d",
+			g, w)
+	}
+	tid = 9606
+	arr, _ := taxdb.Accessions(tid)
+	g = len(arr)
+	w = 1851
+	if g != w {
+		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
 	}
 	acc := "GCA_049640585.1"
 	get, _ = taxdb.Level(acc)

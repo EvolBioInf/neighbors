@@ -17,11 +17,11 @@ type TaxonomyDB struct {
 	db *sql.DB
 }
 type taxon struct {
-	taxid, parent int
-	name, rank    string
-	numChildren   int
-	raw           map[string]int
-	rec           map[string]int
+	taxid, parent       int
+	rank, name, comName string
+	numChildren         int
+	raw                 map[string]int
+	rec                 map[string]int
 }
 type genome struct {
 	taxid            int
@@ -76,7 +76,26 @@ func (t *TaxonomyDB) Name(taxon int) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return name, err
+}
+
+// The method CommonName takes as argument a taxon-ID and returns the  taxon's common name and an error.
+func (t *TaxonomyDB) CommonName(taxon int) (string, error) {
+	var err error
+	commonName := ""
+	q := fmt.Sprintf(commonNameT, taxon)
+	rows, err := t.db.Query(q)
+	defer rows.Close()
+	if err != nil {
+		return "", err
+	}
+	rows.Next()
+	err = rows.Scan(&commonName)
+	if err != nil {
+		return "", err
+	}
+	return commonName, err
 }
 
 // The method Rank takes as argument a taxon-ID and returns the taxon's rank and an error.
@@ -147,7 +166,7 @@ func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
 	return taxa, err
 }
 
-// Taxids takes as arguments a taxon name, a limit on the number  of names returned, and an offset into the list of matching names. It  matches the taxon name, orders them by their score, imposes the  limit and offset, and returns the corresponding taxon-IDs and an  error.
+// Taxids takes as arguments a taxon name, a limit on the number  of names returned, and an offset into the list of matching names. It  matches the taxon name, to the scientific names in the database,  orders the hits by their score, imposes the limit and offset, and  returns the corresponding taxon-IDs and an error.
 func (t *TaxonomyDB) Taxids(name string,
 	limit, offset int) ([]int, error) {
 	var err error
@@ -167,6 +186,28 @@ func (t *TaxonomyDB) Taxids(name string,
 		taxids = append(taxids, taxid)
 	}
 	return taxids, err
+}
+
+// CommonTaxids takes as arguments a taxon name, a limit on the  number of names returned, and an offset into the list of matching  names. It matches the taxon name to the scientific and common names,  orders the hits by their score, imposes the limit and offset, and  returns the corresponding taxon-IDs and an error.
+func (t *TaxonomyDB) CommonTaxids(name string,
+	limit, offset int) ([]int, error) {
+	var err error
+	commonTaxids := make([]int, 0)
+	q := fmt.Sprintf(commonTaxidsT, name, name, limit, offset)
+	rows, err := t.db.Query(q)
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	taxid := 0
+	for rows.Next() {
+		err = rows.Scan(&taxid)
+		if err != nil {
+			return nil, err
+		}
+		commonTaxids = append(commonTaxids, taxid)
+	}
+	return commonTaxids, err
 }
 
 // The method MRCA takes as input a slice of taxon-IDs and returns their most recent common ancestor and an error.
@@ -335,6 +376,7 @@ func NewTaxonomyDB(nodes, names, merged,
             taxid int primary key,
             parent int,
             name text,
+            common_name text,
             rank text,
             score float);
           create index taxon_parent_idx on taxon(parent);
@@ -383,18 +425,24 @@ func NewTaxonomyDB(nodes, names, merged,
 		fields := strings.Split(row, "\t|\t")
 		id, err := strconv.Atoi(fields[0])
 		util.Check(err)
-		if fields[3][:3] == "sci" {
-			taxa[id].name = fields[1]
+		name := fields[1]
+		tag := fields[3][:3]
+		if tag == "sci" {
+			taxa[id].name = name
+		} else if tag == "gen" {
+			taxa[id].comName = name
 		}
 	}
 	tx, err := db.Begin()
 	util.Check(err)
-	sqlStmt = "insert into taxon(taxid, parent, name, rank) " +
-		"values(?, ?, ?, ?)"
+	sqlStmt = "insert into taxon(taxid, parent, name, " +
+		"common_name, rank) " +
+		"values(?, ?, ?, ?, ?)"
 	stmt, err := tx.Prepare(sqlStmt)
 	util.Check(err)
 	for _, v := range taxa {
-		_, err = stmt.Exec(v.taxid, v.parent, v.name, v.rank)
+		_, err = stmt.Exec(v.taxid, v.parent, v.name,
+			v.comName, v.rank)
 		util.Check(err)
 	}
 	tx.Commit()
@@ -603,12 +651,20 @@ var accessionT = "select accession " +
 	"from genome " +
 	"where taxid=%d"
 var nameT = "select name from taxon where taxid=%d"
+var commonNameT = "select common_name " +
+	"from taxon where taxid=%d"
 var rankT = "select rank from taxon where taxid=%d"
 var parentT = "select parent from taxon where taxid=%d"
 var childrenT = "select taxid from taxon where parent=%d"
 var taxidsT = "select taxid from taxon " +
 	"where name like '%s' " +
-	"order by score desc " +
+	"order by score desc, name " +
+	"limit %d " +
+	"offset %d"
+var commonTaxidsT = "select taxid from taxon " +
+	"where name like '%s' " +
+	"or common_name like '%s' " +
+	"order by score desc, name " +
 	"limit %d " +
 	"offset %d"
 var levelT = "select level from genome where accession='%s'"

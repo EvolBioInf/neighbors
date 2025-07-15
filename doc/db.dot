@@ -2,9 +2,9 @@ graph ER {
 layout=neato
 overlap=scale
 // entities
-node [shape=box]; taxon; genome; genome_count; search
+node [shape=box]; taxon; genome; genome_count
 // attributes
-node [shape=ellipse] accession; size; parent; name; rank; raw; recursive; leve1; leve2; taxi1; taxi2; taxi3; score
+node [shape=ellipse] accession; size; parent; name; common_name; rank; raw; recursive; leve1; leve2; taxi1; taxi2; taxi3; score
 // relations
 node [shape=diamond] ha1; ha2;
 
@@ -17,6 +17,7 @@ genome -- ha1 [label="n"]
 taxon -- taxi2 
 taxon -- parent
 taxon -- name
+taxon -- common_name
 taxon -- rank
 taxon -- score
 taxon -- ha1 [label="1"]

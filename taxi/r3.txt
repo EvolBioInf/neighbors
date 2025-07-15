@@ -1,7 +1,7 @@
 # ID       Parent  Name
   730      724     [Haemophilus] ducreyi
   233412   730     [Haemophilus] ducreyi 35000HP
-  1005045  730     [Haemophilus] ducreyi 511
   1005044  730     [Haemophilus] ducreyi 025
-  1005047  730     [Haemophilus] ducreyi HMC112
+  1005045  730     [Haemophilus] ducreyi 511
   1005046  730     [Haemophilus] ducreyi ATCC 33921
+  1005047  730     [Haemophilus] ducreyi HMC112
