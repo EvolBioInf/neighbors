@@ -479,6 +479,13 @@ func NewTaxonomyDB(nodes, names, merged,
 			continue
 		}
 		fields := strings.Split(row, "\t")
+		n := len(fields)
+		if n != 38 {
+			m := "WARNING[tdb.NewGenomeDb]: there are " +
+				"%d fields instead of 38 in %q; skipped\n"
+			fmt.Fprintf(os.Stderr, m, n, row)
+			continue
+		}
 		k := coreAcc(fields[0])
 		g := fields2genome(fields)
 		genomes[k] = g
@@ -490,6 +497,13 @@ func NewTaxonomyDB(nodes, names, merged,
 			continue
 		}
 		fields := strings.Split(row, "\t")
+		n := len(fields)
+		if n != 38 {
+			m := "WARNING[tdb.NewGenomeDb]: there are " +
+				"%d fields instead of 38 in %q; skipped\n"
+			fmt.Fprintf(os.Stderr, m, n, row)
+			continue
+		}
 		k := coreAcc(fields[0])
 		if genomes[k] == nil {
 			g := fields2genome(fields)

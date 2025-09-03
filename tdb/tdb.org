@@ -388,23 +388,44 @@ common names.
 #+end_src
 #+begin_src latex
   To store the refseq genomes, we parse the refseq file with a buffered
-  scanner. Each row that is not a comment is split into its constituent
-  fields. The first field is the accession, which we reduce to its core
-  by calling the as yet unwritten function \ty{coreAcc}. The genome is
-  constructed by calling \ty{fields2genome}, also still unwritten. Then
-  we insert the genome into the map as value to the core accession.
+  scanner. We skip header rows and split each table row into its
+  constituent fields, which we check. The first field is the accession,
+  which we reduce to its core by calling the as yet unwritten function
+  \ty{coreAcc}. The genome is constructed by calling \ty{fields2genome},
+  also still unwritten. Then we insert the genome into the map as value
+  to the core accession.
 #+end_src
 #+begin_src go <<Store refseq genomes, Pa. \ref{pa:tdb}>>=
   scanner = bufio.NewScanner(rf)
   for scanner.Scan() {
 	  row := scanner.Text()
-	  if row[0] == '#' {
-		  continue
-	  }
+	  //<<Skip headers, Pa. \ref{pa:tdb}>>
 	  fields := strings.Split(row, "\t")
+	  //<<Check fields, Pa. \ref{pa:tdb}>>
 	  k := coreAcc(fields[0])
 	  g := fields2genome(fields)
 	  genomes[k] = g
+  }
+#+end_src
+#+begin_export latex
+Headers start with a hash, and we skip them.
+#+end_export
+#+begin_src go <<Skip headers, Pa. \ref{pa:tdb}>>=
+  if row[0] == '#' {
+	  continue
+  }
+#+end_src
+#+begin_export latex
+Each row should consist of 38 fields. If not, something is wrong. So
+we skip it with a warning.
+#+end_export
+#+begin_src go <<Check fields, Pa. \ref{pa:tdb}>>=
+  n := len(fields)
+  if n != 38 {
+	  m := "WARNING[tdb.NewGenomeDb]: there are " +
+		  "%d fields instead of 38 in %q; skipped\n"
+	  fmt.Fprintf(os.Stderr, m, n, row)
+	  continue
   }
 #+end_src
 #+begin_src latex
@@ -485,20 +506,29 @@ assembly level, and a size.
   g.size = float64(si) / 1000000.0
 #+end_src
 #+begin_export latex
-We store the genbank genomes that have no entry in our genomes map
-yet.
+Like we did with refseq accessions, we iterate over the rows of
+genbank accessions. We skip the headers, split the non-header lines
+into fields and check them. Then we store any new genome we might
+find.
 #+end_export
 #+begin_src go <<Store genbank genomes, Pa. \ref{pa:tdb}>>=
   scanner = bufio.NewScanner(gf)
   for scanner.Scan() {
 	  row := scanner.Text()
-	  if row[0] == '#' { continue }
+	  //<<Skip headers, Pa. \ref{pa:tdb}>>
 	  fields := strings.Split(row, "\t")
-	  k := coreAcc(fields[0])
-	  if genomes[k] == nil {
-		  g := fields2genome(fields)
-		  genomes[k] = g
-	  }
+	  //<<Check fields, Pa. \ref{pa:tdb}>>
+	  //<<Store new genome, Pa. \ref{pa:tdb}>>
+  }
+#+end_src
+#+begin_export latex
+A new genbank genome is one that has no entry in our genomes map yet.
+#+end_export
+#+begin_src go <<Store new genome, Pa. \ref{pa:tdb}>>=
+  k := coreAcc(fields[0])
+  if genomes[k] == nil {
+	  g := fields2genome(fields)
+	  genomes[k] = g
   }
 #+end_src
 #+begin_export latex
