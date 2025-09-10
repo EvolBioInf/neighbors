@@ -9,10 +9,11 @@ func TestTdb(t *testing.T) {
 	no := p + "nodesTest.dmp"
 	na := p + "namesTest.dmp"
 	me := p + "mergedTest.dmp"
+	im := p + "imagesTest.dmp"
 	gb := p + "gbTest.txt"
 	rs := p + "rsTest.txt"
 	db := p + "taxSmall.db"
-	NewTaxonomyDB(no, na, me, gb, rs, db)
+	NewTaxonomyDB(no, na, me, im, gb, rs, db)
 	taxdb := OpenTaxonomyDB(db)
 	subtree, _ := taxdb.Subtree(207598)
 	if len(subtree) != 26 {
@@ -181,4 +182,11 @@ func TestTdb(t *testing.T) {
 	if g != w {
 		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
 	}
+	images, _ := taxdb.Images(9606)
+	get = images[0].Attribution
+	want = "All of Us Initiative_"
+	if get != want {
+		t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+	}
+
 }

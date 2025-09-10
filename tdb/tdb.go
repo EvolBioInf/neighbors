@@ -29,6 +29,12 @@ type genome struct {
 	size             float64
 	written          bool
 }
+type Image struct {
+	Id          int
+	Url         string
+	Attribution string
+	taxids      []int
+}
 
 var assemblyLevels = []string{"complete",
 	"chromosome",
@@ -374,18 +380,46 @@ func (d *TaxonomyDB) IsLeaf(taxid int) (bool, error) {
 	return false, nil
 }
 
-// The function NewTaxonomyDB takes as parameters the names of the  five input files from which we construct the database, and the name of  the database. It opens these files, opens a new database, and  constructs the database.
-func NewTaxonomyDB(nodes, names, merged,
-	genbank, refseq, dbName string) {
-	of := util.Open(nodes)
+// The method Images takes as argument a taxon-ID and returns all images associated with the taxon. It also returns an error.
+func (d *TaxonomyDB) Images(taxid int) ([]Image, error) {
+	images := []Image{}
+	var err error
+	q := "select image_id, url, attribution " +
+		"from image natural join tax2ima " +
+		"where taxid=%d"
+	q = fmt.Sprintf(q, taxid)
+	rows, err := d.db.Query(q)
+	defer rows.Close()
+	if err != nil {
+		return images, err
+	}
+	for rows.Next() {
+		image := Image{}
+		err = rows.Scan(&image.Id,
+			&image.Url,
+			&image.Attribution)
+		if err != nil {
+			return images, err
+		}
+		images = append(images, image)
+	}
+	return images, err
+}
+
+// The function NewTaxonomyDB takes as parameters the names of the  six input files from which we construct the database, and the name  of the database. The six input files are nodes, names, merged,  images, genbank accessions, and refseq accessions. The function  opens these files, opens a new database, and constructs the  database.
+func NewTaxonomyDB(nof, naf, mef,
+	imf, gef, ref, dbName string) {
+	of := util.Open(nof)
 	defer of.Close()
-	af := util.Open(names)
+	af := util.Open(naf)
 	defer af.Close()
-	mf := util.Open(merged)
+	mf := util.Open(mef)
 	defer mf.Close()
-	gf := util.Open(genbank)
+	pf := util.Open(imf)
+	defer pf.Close()
+	gf := util.Open(gef)
 	defer gf.Close()
-	rf := util.Open(refseq)
+	rf := util.Open(ref)
 	defer rf.Close()
 	_, err := os.Stat(dbName)
 	if err == nil {
@@ -426,6 +460,24 @@ func NewTaxonomyDB(nodes, names, merged,
             foreign key(taxid) references taxon(taxid));
           create index genome_count_raw_idx on genome_count(raw);
           create index genome_count_recursive_idx on genome_count(recursive);`
+	_, err = db.Exec(sqlStmt)
+	util.Check(err)
+	sqlStmt = `create table image (
+             image_id int,
+             url text,
+             attribution text,
+             primary key(image_id));
+          create index image_id_idx on image(image_id);`
+	_, err = db.Exec(sqlStmt)
+	util.Check(err)
+	sqlStmt = `create table tax2ima (
+             taxid int,
+             image_id int,
+             primary key(taxid, image_id),
+             foreign key(taxid) references taxon(taxid),
+             foreign key(image_id) references image(image_id));
+          create index tax2ima_taxid_idx on tax2ima(taxid);
+          create index tax2ima_image_id_idx on tax2ima(image_id);`
 	_, err = db.Exec(sqlStmt)
 	util.Check(err)
 	taxa := make(map[int]*taxon)
@@ -628,6 +680,56 @@ func NewTaxonomyDB(nodes, names, merged,
 		}
 		_, err := stmt.Exec(sum, taxon.taxid)
 		util.Check(err)
+	}
+	tx.Commit()
+	stmt.Close()
+	images := []Image{}
+	scanner = bufio.NewScanner(pf)
+	for scanner.Scan() {
+		row := scanner.Text()
+		fields := strings.Split(row, "\t|\t")
+		var image Image
+		id, err := strconv.Atoi(fields[0])
+		util.Check(err)
+		image.Id = id
+		image.Url = fields[2]
+		image.Attribution = fields[4]
+		tstr := fields[7]
+		i := strings.Index(tstr, "\t")
+		tstr = tstr[:i]
+		taxids := strings.Fields(tstr)
+		for _, taxid := range taxids {
+			tn, err := strconv.Atoi(taxid)
+			util.Check(err)
+			image.taxids = append(image.taxids, tn)
+		}
+		images = append(images, image)
+	}
+	tx, err = db.Begin()
+	util.Check(err)
+	sqlStmt = "insert into image(" +
+		"image_id, url, attribution) " +
+		"values(?, ?, ?)"
+	stmt, err = tx.Prepare(sqlStmt)
+	util.Check(err)
+	for _, v := range images {
+		_, err = stmt.Exec(v.Id, v.Url, v.Attribution)
+		util.Check(err)
+	}
+	tx.Commit()
+	stmt.Close()
+	tx, err = db.Begin()
+	util.Check(err)
+	sqlStmt = "insert into tax2ima(" +
+		"image_id, taxid) " +
+		"values(?, ?)"
+	stmt, err = tx.Prepare(sqlStmt)
+	util.Check(err)
+	for _, image := range images {
+		for _, taxid := range image.taxids {
+			_, err = stmt.Exec(image.Id, taxid)
+			util.Check(err)
+		}
 	}
 	tx.Commit()
 	stmt.Close()

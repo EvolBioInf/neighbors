@@ -42,31 +42,36 @@
 #+begin_src latex
   \subsection{\ty{NewTaxonomyDB}}
   ! The function \ty{NewTaxonomyDB} takes as parameters the names of the
-  ! five input files from which we construct the database, and the name of
-  ! the database. It opens these files, opens a new database, and
-  ! constructs the database.
+  ! six input files from which we construct the database, and the name
+  ! of the database. The six input files are nodes, names, merged,
+  ! images, genbank accessions, and refseq accessions. The function
+  ! opens these files, opens a new database, and constructs the
+  ! database.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
-  func NewTaxonomyDB(nodes, names, merged,
-	  genbank, refseq, dbName string) {
+  func NewTaxonomyDB(nof, naf, mef,
+	  imf, gef, ref, dbName string) {
 	  //<<Open files, Pa. \ref{pa:tdb}>>
 	  //<<Open database, Pa. \ref{pa:tdb}>>
 	  //<<Construct database, Pa. \ref{pa:tdb}>>
   }
 #+end_src
 #+begin_src latex
-  We open the five input tables and defer closing them again.
+  We open the six input files and make sure they are eventually closed
+  again.
 #+end_src
 #+begin_src go <<Open files, Pa. \ref{pa:tdb}>>=
-  of := util.Open(nodes)
+  of := util.Open(nof)
   defer of.Close()
-  af := util.Open(names)
+  af := util.Open(naf)
   defer af.Close()
-  mf := util.Open(merged)
+  mf := util.Open(mef)
   defer mf.Close()
-  gf := util.Open(genbank)
+  pf := util.Open(imf)
+  defer pf.Close()
+  gf := util.Open(gef)
   defer gf.Close()
-  rf := util.Open(refseq)
+  rf := util.Open(ref)
   defer rf.Close()
 #+end_src
 #+begin_src latex
@@ -113,13 +118,17 @@
   //<<Load tables, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_export latex
-As illustrated in Figure~\ref{fig:db}, we construct three tables,
-\ty{taxon}, \ty{genome}, and \ty{genome\_count}.
+Figure~\ref{fig:db} shows four primary tables in our database,
+\ty{taxon}, \ty{genome}, \ty{genome\_count}, and \ty{image}. In
+addition, we implement the many to may relationship between \ty{taxon}
+and \ty{image} as the auxiliary table \ty{tax2ima}.
 #+end_export
 #+begin_src go <<Construct tables, Pa. \ref{pa:tdb}>>=
   //<<Construct table \ty{taxon}, Pa. \ref{pa:tdb}>>
   //<<Construct table \ty{genome}, Pa. \ref{pa:tdb}>>
   //<<Construct table \ty{genome\_count}, Pa. \ref{pa:tdb}>>
+  //<<Construct table \ty{image}, Pa. \ref{pa:tdb}>>
+  //<<Construct table \ty{tax2ima}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex
   Table \ty{taxon} has the five attributes \ty{taxid}, \ty{parent},
@@ -185,24 +194,60 @@ genome counts.
     primary key(taxid, level),
     foreign key(taxid) references taxon(taxid));
   create index genome_count_raw_idx on genome_count(raw);
-  create index genome_count_recursive_idx on genome_count(recursive);`
+  create index genome_count_recursive_idx on
+    genome_count(recursive);`
+  _, err = db.Exec(sqlStmt)
+  util.Check(err)
+#+end_src
+#+begin_export latex
+Table \ty{image} has attributes \ty{image\_id}, which is also the
+primary key,\ty{url}, and \ty{attribution}.
+#+end_export
+#+begin_src go <<Construct table \ty{image}, Pa. \ref{pa:tdb}>>=
+  sqlStmt = `create table image (
+     image_id int,
+     url text,
+     attribution text,
+     primary key(image_id));`
+  _, err = db.Exec(sqlStmt)
+  util.Check(err)
+#+end_src
+#+begin_export latex
+Table \ty{tax2ima} has two attributes, \ty{taxid} and \ty{image\_id},
+which together form the primary key, and which we index
+individually. \ty{taxid} and \ty{image\_id} are also foreign keys into
+\ty{taxon} and \ty{image}, respectively.
+#+end_export
+#+begin_src go <<Construct table \ty{tax2ima}, Pa. \ref{pa:tdb}>>=
+  sqlStmt = `create table tax2ima (
+     taxid int,
+     image_id int,
+     primary key(taxid, image_id),
+     foreign key(taxid) references taxon(taxid),
+     foreign key(image_id) references image(image_id));
+  create index tax2ima_taxid_idx on tax2ima(taxid);
+  create index tax2ima_image_id_idx on tax2ima(image_id);`
   _, err = db.Exec(sqlStmt)
   util.Check(err)
 #+end_src
 #+begin_src latex
-  Since \ty{genome} and \ty{genome\_count} have a foreign key referring
-  to \ty{taxon}, we load \ty{taxon} first. There's a snag here,
-  though. The score of a taxon can only be determined once the genome
-  counts have been determined. These in turn depend on the entries in
-  table \ty{genome}. Hence we load \ty{genomes} after \ty{taxon},
-  followed by \ty{genome\_count}. Then we return to table \ty{taxon} and
-  load the score.
+  Since \ty{genome}, \ty{genome\_count}, and \ty{tax2ima} have a foreign
+  key referring to \ty{taxon}, we load \ty{taxon} first. There's a snag
+  here, though. The score of a taxon can only be determined once the
+  genome counts have been determined. These in turn depend on the
+  entries in table \ty{genome}. Hence we load \ty{genomes} after
+  \ty{taxon}, followed by \ty{genome\_count}. Then we return to table
+  \ty{taxon} and load the score. We end by loading the two tables dealing
+  with images, \ty{image} and \ty{tax2ima}. Since \ty{tax2ima} refers to
+  \ty{image}, we start with \ty{image}.
 #+end_src
 #+begin_src go <<Load tables, Pa. \ref{pa:tdb}>>=
   //<<Load table \ty{taxon}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{genome}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{genome\_count}, Pa. \ref{pa:tdb}>>
   //<<Enter score in table \ty{taxon}, Pa. \ref{pa:tdb}>>
+  //<<Load table \ty{image}, Pa. \ref{pa:tdb}>>
+  //<<Load table \ty{tax2ima}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_src latex 
   To load \ty{taxon}, we simulate a join of \ty{nodes.dmp} and
@@ -618,9 +663,9 @@ collection of taxa, we write a warning.
 	  if t != nil {
 		  t.raw[genome.level]++
 	  } else {
-		  m := "WARNING[tdb]: no entry in taxonomy for " +
-			  "%d referred to by assembly %s; " +
-			  "could this be an unmerged taxon?\n"
+		  m := "WARNING[tdb]: no taxon %d " +
+			  "referred to by assembly %s; " +
+			  "%s could this be an unmerged taxon?\n"
 		  fmt.Fprintf(os.Stderr, m, genome.taxid,
 			  genome.accession)
 	  }
@@ -738,7 +783,6 @@ To enter the genome counts, we generate the transaction for storing
 the genome counts, switch on the foreign keys constraint, and insert
 the genome counts.
 #+end_export
-#+end_export
 #+begin_src go <<Enter genome counts, Pa. \ref{pa:tdb}>>=
   tx, err = db.Begin()
   util.Check(err)
@@ -806,6 +850,147 @@ value is then used to update the database entry.
 	  }
 	  _, err := stmt.Exec(sum, taxon.taxid)
 	  util.Check(err)
+  }
+#+end_src
+#+begin_export latex
+To load the table \ty{image}, we read the images and insert them.
+#+end_export
+#+begin_src go <<Load table \ty{image}, Pa. \ref{pa:tdb}>>=
+  //<<Store images, Pa. \ref{pa:tdb}>>
+  //<<Insert images, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+We store an image in a struct with four fields, \ty{ID}, \ty{Url},
+\ty{Attribution}, and \ty{taxids}. The first three fields are public,
+as we shall use them to return images from method \ty{Images}. The
+taxids attached to an image are only used in the construction of table
+\ty{tax2ima} below, so we make them private.
+#+end_export
+#+begin_src go <<Types, Pa. \ref{pa:tdb}>>=
+  type Image struct {
+	  Id int
+	  Url string
+	  Attribution string
+	  taxids []int
+  }
+#+end_src
+#+begin_export latex
+We iterate over the file of images, split its fields, and store each
+individual image in a slice of images.
+#+end_export
+#+begin_src go <<Store images, Pa. \ref{pa:tdb}>>=
+  images := []Image{}
+  scanner = bufio.NewScanner(pf)
+  for scanner.Scan() {
+	  row := scanner.Text()
+	  fields := strings.Split(row, "\t|\t")
+	  var image Image
+	  //<<Store individual image, Pa. \ref{pa:tdb}>>
+	  images = append(images, image)
+  }
+#+end_src
+#+begin_export latex
+For a given image we store its ID, URL, attribution, and set of
+taxids.
+#+end_export
+#+begin_src go <<Store individual image, Pa. \ref{pa:tdb}>>=
+  //<<Store image ID, Pa. \ref{pa:tdb}>>
+  //<<Store image URL, Pa. \ref{pa:tdb}>>
+  //<<Store image attribution, Pa. \ref{pa:tdb}>>
+  //<<Store image taxids, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+The image ID is the first field in the input row, and we convert it
+from string to integer.
+#+end_export
+#+begin_src go <<Store image ID, Pa. \ref{pa:tdb}>>=
+  id, err := strconv.Atoi(fields[0])
+  util.Check(err)
+  image.Id = id
+#+end_src
+#+begin_export latex
+The image URL is in the third field.
+#+end_export
+#+begin_src go <<Store image URL, Pa. \ref{pa:tdb}>>=
+  image.Url = fields[2]
+#+end_src
+#+begin_export latex
+The attribution is in the fifth field.
+#+end_export
+#+begin_src go <<Store image attribution, Pa. \ref{pa:tdb}>>=
+  image.Attribution = fields[4]
+#+end_src
+#+begin_export latex
+The taxon IDs of the image are stored as a blank-separated string in
+the eighth and last field of the row. This last field is terminated by
+\verb+\t|+, which we chop off before converting the taxids from
+strings to integers.
+#+end_export
+#+begin_src go <<Store image taxids, Pa. \ref{pa:tdb}>>=
+  tstr := fields[7]
+  i := strings.Index(tstr, "\t")
+  tstr = tstr[:i]
+  taxids := strings.Fields(tstr)
+  for _, taxid := range taxids {
+	  tn, err := strconv.Atoi(taxid)
+	  util.Check(err)
+	  image.taxids = append(image.taxids, tn)
+  }
+#+end_src
+#+begin_export latex
+We have read the images, so we are ready to insert them into their
+table using the usual transaction executed on a prepared statement.
+#+end_export
+#+begin_src go <<Insert images, Pa. \ref{pa:tdb}>>=
+  tx, err = db.Begin()
+  util.Check(err)
+  sqlStmt = "insert into image(" +
+	  "image_id, url, attribution) " +
+	  "values(?, ?, ?)"
+  stmt, err = tx.Prepare(sqlStmt)
+  util.Check(err)
+  //<<Insert rows into table \ty{image}, Pa. \ref{pa:tdb}>>
+  tx.Commit()
+  stmt.Close()
+#+end_src
+#+begin_export latex
+We iterate over the images and insert each one as a row into table
+\ty{image}.
+#+end_export
+#+begin_src go <<Insert rows into table \ty{image}, Pa. \ref{pa:tdb}>>=
+  for _, v := range images {
+	  _, err = stmt.Exec(v.Id, v.Url, v.Attribution)
+	  util.Check(err)
+  }
+#+end_src
+#+begin_export latex
+The data we need to load table \ty{tax2ima} is already contained in
+our slice of images. So we can directly construct the transaction for
+inserting the rows into that table.
+#+end_export
+#+begin_src go <<Load table \ty{tax2ima}, Pa. \ref{pa:tdb}>>=
+  tx, err = db.Begin()
+  util.Check(err)
+  sqlStmt = "insert into tax2ima(" +
+	  "image_id, taxid) " +
+	  "values(?, ?)"
+  stmt, err = tx.Prepare(sqlStmt)
+  util.Check(err)
+  //<<Insert rows into table \ty{ima2tax}, Pa. \ref{pa:tdb}>>
+  tx.Commit()
+  stmt.Close()
+#+end_src
+#+begin_export latex
+We iterate over the images, and for each image we iterate over the
+associated taxids to create the image/taxid pairs we insert into
+\ty{tax2ima}.
+#+end_export
+#+begin_src go <<Insert rows into table \ty{ima2tax}, Pa. \ref{pa:tdb}>>=
+  for _, image := range images {
+	  for _, taxid := range image.taxids {
+		  _, err = stmt. Exec(image.Id, taxid)
+		  util.Check(err)
+	  }
   }
 #+end_src
 #+begin_src latex
@@ -1744,6 +1929,59 @@ We extract the number of children and bail if there was an error.
 	  return false, err
   }
 #+end_src
+#+begin_export latex
+\subsection{\ty{Images}}
+!The method \ty{Images} takes as argument a taxon-ID and returns all
+!images associated with the taxon. It also returns an error.
+#+end_export
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (d *TaxonomyDB) Images(taxid int) ([]Image, error) {
+	  images := []Image{}
+	  var err error
+	  //<<Construct image query, Pa. \ref{pa:tdb}>>
+	  //<<Execute image query, Pa. \ref{pa:tdb}>>
+	  //<<Extract images, Pa. \ref{pa:tdb}>>
+	  return images, err
+  }
+#+end_src
+#+begin_export latex
+The table \ty{tax2ima} links taxa to images, while the actual image
+information is stored in \ty{image}. We join these two tables on their
+one common attribute, \ty{image\_id}, and select the rows for the
+incoming taxid.
+#+end_export
+#+begin_src go <<Construct image query, Pa. \ref{pa:tdb}>>=
+  q := "select image_id, url, attribution " +
+	  "from image natural join tax2ima " +
+	  "where taxid=%d"
+  q = fmt.Sprintf(q, taxid)
+#+end_src
+#+begin_export latex
+We execute the image query and check the error returned.
+#+end_export
+#+begin_src go <<Execute image query, Pa. \ref{pa:tdb}>>=
+  rows, err := d.db.Query(q)
+  defer rows.Close()
+  if err != nil {
+	  return images, err
+  }
+#+end_src
+#+begin_export latex
+We iterate over the rows returned by our query and for each row store
+an image.
+#+end_export
+#+begin_src go <<Extract images, Pa. \ref{pa:tdb}>>=
+  for rows.Next() {
+	  image := Image{}
+	  err = rows.Scan(&image.Id,
+		  &image.Url,
+		  &image.Attribution)
+	  if err != nil {
+		  return images, err
+	  }
+	  images = append(images, image)
+  }
+#+end_src
 #+begin_src latex
   \subsection{Testing}
   We test on the \emph{Homininae} subfamily shown in
@@ -1792,10 +2030,11 @@ There are two functions, \ty{NewTaxonomyDB} and \ty{AssemblyLevels}.
   no := p + "nodesTest.dmp"
   na := p + "namesTest.dmp"
   me := p + "mergedTest.dmp"
+  im := p + "imagesTest.dmp"
   gb := p + "gbTest.txt"
   rs := p + "rsTest.txt"
   db := p + "taxSmall.db"
-  NewTaxonomyDB(no, na, me, gb, rs, db)
+  NewTaxonomyDB(no, na, me, im, gb, rs, db)
 #+end_src
 #+begin_src latex
   We extract the full taxonomy from the small database and check it has
@@ -1822,14 +2061,15 @@ levels.
   }
 #+end_src
 #+begin_export latex
-Having tested the functions, we test the methods. We do this in three
+Having tested the functions, we test the methods. We do this in four
 lots, depending on which table to access, \ty{genome}, \ty{accession},
-or \ty{genome\_count}.
+\ty{genome\_count}, or \ty{image}.
 #+end_export
 #+begin_src go <<Test methods, Pa. \ref{pa:tdb}>>=
   //<<Test access to \ty{taxon}, Pa. \ref{pa:tdb}>>
   //<<Test access to \ty{genome}, Pa. \ref{pa:tdb}>>
   //<<Test access to \ty{genome\_count}, Pa. \ref{pa:tdb}>>
+  //<<Test access to \ty{image}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_export latex
 We test the eleven methods that access \ty{taxon}, \ty{Name},
@@ -2172,3 +2412,17 @@ Across the four assembly levels, we expect to find 1888 genomes in
 	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
   }
 #+end_src
+#+begin_export latex
+There is only one method for accessing table \ty{image},
+\ty{Images}. For human it returns a single item attributed to ``All of
+Us Initiative''.
+#+end_export
+#+begin_src go <<Test access to \ty{image}, Pa. \ref{pa:tdb}>>=
+  images, _ := taxdb.Images(9606)
+  get = images[0].Attribution
+  want = "All of Us Initiative"
+  if get != want {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+

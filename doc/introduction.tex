@@ -74,7 +74,7 @@ tables, \ty{genome}, \ty{taxon}, and \ty{genome\_count}.
   \begin{center}
   \LARGE
   \input{labels}
-    \scalebox{0.5}{\includegraphics{db}}
+    \scalebox{0.55}{\includegraphics{db}}
   \end{center}
   \caption{Diagram of \ty{neidb}.}\label{fig:db}
 \end{figure}
@@ -93,6 +93,11 @@ recursive. A raw count is just the number of genomes listed in
 table \ty{genome} for that taxon. A recursive count it the number of
 genomes in the subtree rooted on that taxon. This recursive count
 cannot be conveniently implemented in SQL, so we implement it in Go.
+
+The table \ty{image} stores images of taxa. Each image has an ID, a
+URL, and an attribution. Since a taxon might have one or more images,
+and an image might depict more than one taxon, tables \ty{image}
+and \ty{taxon} have a many to many relationship.
 
 An important function of \ty{neidb} is to support text searches of
 taxon names. These searches should allow client programmers to write

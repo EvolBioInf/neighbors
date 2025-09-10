@@ -1,12 +1,13 @@
 graph ER {
 layout=neato
-overlap=scale
+mode="ipsep"
+overlap=ipsep
 // entities
-node [shape=box]; taxon; genome; genome_count
+node [shape=box]; taxon; genome; genome_count; image
 // attributes
-node [shape=ellipse] accession; size; parent; name; common_name; rank; raw; recursive; leve1; leve2; taxi1; taxi2; taxi3; score
+node [shape=ellipse] accession; size; parent; name; common_name; rank; raw; recursive; leve1; leve2; taxi1; taxi2; taxi3; score; image_id; url; attribution
 // relations
-node [shape=diamond] ha1; ha2;
+node [shape=diamond] ha1; ha2; ha3
 
 genome -- leve1
 genome -- accession
@@ -28,5 +29,12 @@ genome_count -- raw
 genome_count -- recursive
 genome_count -- leve2
 genome_count -- ha2 [label="n"]
+
+image -- image_id
+image -- url
+image -- attribution
+
+taxon -- ha3 [label="n"]
+image -- ha3 [label="m"]
 
 }
