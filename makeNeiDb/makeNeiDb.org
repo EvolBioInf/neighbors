@@ -28,7 +28,7 @@
   //<<Construct database, Pr. \ref{pr:db}>>
 #+end_src
 #+begin_src latex
-  The program takes as input two files of genome information and three
+  The program takes as input two files of genome information and four
   files of taxonomy information. Hence we declare four options for these
   five files. In addition, we declare \ty{-d} to set the database name
   and \ty{-v} for printing the version.
@@ -41,6 +41,7 @@
   var optA = flag.String("a", "names.dmp", "taxonomic names")
   var optO = flag.String("o", "nodes.dmp", "node information")
   var optM = flag.String("m", "merged.dmp", "merged taxa")
+  var optI = flag.String("i", "images.dmp", "images")
   var optD = flag.String("d", "neidb", "database name")
   var optV = flag.Bool("v", false, "print version & " +
 	  "program information")
@@ -92,7 +93,8 @@
   The database construction is delegated to \ty{NewTaxonomyDB}.
 #+end_src
 #+begin_src go <<Construct database, Pr. \ref{pr:db}>>=
-  tdb.NewTaxonomyDB(*optO, *optA, *optM, *optG, *optR, *optD)
+  tdb.NewTaxonomyDB(*optO, *optA, *optM, *optI,
+	  ,*optG, *optR, *optD)
 #+end_src
 #+begin_src latex
   We import \ty{tdb}.
@@ -144,6 +146,7 @@
 	  "-d", "test.db",
 	  "-o", "../data/nodesTest.dmp",
 	  "-m", "../data/mergedTest.dmp",
+	  "-i", "../data/imagesTest.dmp",
 	  "-g", "../data/gbTest.txt",
 	  "-r", "../data/rsTest.txt")
   tests = append(tests, test)

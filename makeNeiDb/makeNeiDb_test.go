@@ -15,6 +15,7 @@ func TestMakeNeiDb(t *testing.T) {
 		"-d", "test.db",
 		"-o", "../data/nodesTest.dmp",
 		"-m", "../data/mergedTest.dmp",
+		"-i", "../data/imagesTest.dmp",
 		"-g", "../data/gbTest.txt",
 		"-r", "../data/rsTest.txt")
 	tests = append(tests, test)

@@ -15,6 +15,7 @@ func main() {
 	var optA = flag.String("a", "names.dmp", "taxonomic names")
 	var optO = flag.String("o", "nodes.dmp", "node information")
 	var optM = flag.String("m", "merged.dmp", "merged taxa")
+	var optI = flag.String("i", "images.dmp", "images")
 	var optD = flag.String("d", "neidb", "database name")
 	var optV = flag.Bool("v", false, "print version & "+
 		"program information")
@@ -31,5 +32,6 @@ func main() {
 	if *optV {
 		util.PrintInfo("makeNeiDb")
 	}
-	tdb.NewTaxonomyDB(*optO, *optA, *optM, *optG, *optR, *optD)
+	tdb.NewTaxonomyDB(*optO, *optA, *optM, *optI,
+		*optG, *optR, *optD)
 }
