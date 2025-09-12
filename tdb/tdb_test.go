@@ -188,5 +188,10 @@ func TestTdb(t *testing.T) {
 	if get != want {
 		t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
 	}
-
+	images, _ = taxdb.Images(0)
+	g = len(images)
+	w = 0
+	if g != w {
+		t.Errorf("get:\n%dwant:\n%d\n", g, w)
+	}
 }

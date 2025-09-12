@@ -2425,4 +2425,16 @@ Us Initiative''.
 	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
   }
 #+end_src
-
+#+begin_export latex
+We also test what happens when we try to retrieve the pictures for a
+non-existent taxon. In that case the length of the image slice
+returned should be zero.
+#+end_export
+#+begin_src go <<Test access to \ty{image}, Pa. \ref{pa:tdb}>>=
+  images, _ = taxdb.Images(0)
+  g = len(images)
+  w = 0
+  if g != w {
+	  t.Errorf("get:\n%dwant:\n%d\n", g, w)
+  }
+#+end_src
