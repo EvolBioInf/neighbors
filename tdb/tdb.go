@@ -459,15 +459,15 @@ func NewTaxonomyDB(nof, naf, mef,
             primary key(taxid, level),
             foreign key(taxid) references taxon(taxid));
           create index genome_count_raw_idx on genome_count(raw);
-          create index genome_count_recursive_idx on genome_count(recursive);`
+          create index genome_count_recursive_idx on
+            genome_count(recursive);`
 	_, err = db.Exec(sqlStmt)
 	util.Check(err)
 	sqlStmt = `create table image (
              image_id int,
              url text,
              attribution text,
-             primary key(image_id));
-          create index image_id_idx on image(image_id);`
+             primary key(image_id));`
 	_, err = db.Exec(sqlStmt)
 	util.Check(err)
 	sqlStmt = `create table tax2ima (
@@ -602,8 +602,8 @@ func NewTaxonomyDB(nof, naf, mef,
 		if t != nil {
 			t.raw[genome.level]++
 		} else {
-			m := "WARNING[tdb]: no entry in taxonomy for " +
-				"%d referred to by assembly %s; " +
+			m := "WARNING[tdb]: no taxon %d " +
+				"referred to by assembly %s; " +
 				"could this be an unmerged taxon?\n"
 			fmt.Fprintf(os.Stderr, m, genome.taxid,
 				genome.accession)

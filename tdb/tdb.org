@@ -665,7 +665,7 @@ collection of taxa, we write a warning.
 	  } else {
 		  m := "WARNING[tdb]: no taxon %d " +
 			  "referred to by assembly %s; " +
-			  "%s could this be an unmerged taxon?\n"
+			  "could this be an unmerged taxon?\n"
 		  fmt.Fprintf(os.Stderr, m, genome.taxid,
 			  genome.accession)
 	  }

@@ -184,7 +184,7 @@ func TestTdb(t *testing.T) {
 	}
 	images, _ := taxdb.Images(9606)
 	get = images[0].Attribution
-	want = "All of Us Initiative_"
+	want = "All of Us Initiative"
 	if get != want {
 		t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
 	}
