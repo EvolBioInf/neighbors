@@ -66,7 +66,7 @@ bash scripts/setupTutorial.sh
 As an alternative to building `neighbors` from scratch, we also post it as a [docker
   container](https://hub.docker.com/r/itsers/neighbors). The container
   includes all programs needed to work through the tutorial in
-  [`neighborsDoc.pdf`](https://owncloud.gwdg.de/index.php/s/MlypXN3t5XUhvZJ).
+  [`neighborsDoc.pdf`](https://owncloud.gwdg.de/index.php/s/QC2FBA88HMHuiTB).
 ```
 docker pull itsers/neighbors
 docker container run --detach-keys="ctrl-@" -h neighbors -it itsers/neighbors
