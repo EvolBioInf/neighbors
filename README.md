@@ -55,7 +55,7 @@ package. Put them somewhere in your `PATH`. Additional scripts are in
 `scripts`.
 
 The
-[documentation](https://owncloud.gwdg.de/index.php/s/MlypXN3t5XUhvZJ)
+[documentation](https://owncloud.gwdg.de/index.php/s/QC2FBA88HMHuiTB)
 comes with a tutorial. To work through it, additional programs need to
 be installed. Again, on Ubuntu you can run the script
 [`setupTutorial.sh`](scripts/setupTutorial.sh).
