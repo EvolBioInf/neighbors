@@ -1,38 +1,38 @@
 #+begin_src latex
-\section{\ty{outliers}}
-Given a set of measurements, outliers are values far removed from the
-data's center. The following description of outliers is taken from the
-handbook of the American National Institute of Standards and
-Technology, which is published on the
-web\footnote{\ty{https://www.itl.nist.gov/div898/handbook/prc/section1/prc16.htm}}. The
-handbook follows the common definition of outliers based on the lower
-and upper quartile of a distribution, $q_{\rm l}$ and $q_{\rm u}$. Let
-$r=q_{\rm u}-q_{\rm l}$ be the interquartile range, then $f_{\rm
-  l}=q_{\rm l}-1.5r$ is the \emph{lower inner fence}, $f_{\rm
-  u}=q_{\rm u}+1.5r$ the \emph{upper inner fence}. Values outside the
-interval spanned by the lower and upper inner fences are considered
-\emph{mild} outliers. We can also define the \emph{lower outer fence}
-as $F_{\rm l}=q_{\rm l}-3r$ and the \emph{upper outer fence} as
-$F_{\rm u}=q_{\rm u}+3r$. Values outside interval spanned by the lower
-and upper outer fences are considered \emph{extreme} outliers.
+  \section{\ty{outliers}}
+  Given a set of measurements, outliers are values far removed from the
+  data's center. The following description of outliers is taken from the
+  handbook of the American National Institute of Standards and
+  Technology, which is published on the
+  web\footnote{\ty{https://www.itl.nist.gov/div898/handbook/prc/section1/prc16.htm}}. The
+  handbook follows the common definition of outliers based on the lower
+  and upper quartile of a distribution, $q_{\rm l}$ and $q_{\rm u}$. Let
+  $r=q_{\rm u}-q_{\rm l}$ be the interquartile range, then $f_{\rm
+    l}=q_{\rm l}-1.5r$ is the \emph{lower inner fence}, $f_{\rm
+    u}=q_{\rm u}+1.5r$ the \emph{upper inner fence}. Values outside the
+  interval spanned by the lower and upper inner fences are considered
+  \emph{mild} outliers. We can also define the \emph{lower outer fence}
+  as $F_{\rm l}=q_{\rm l}-3r$ and the \emph{upper outer fence} as
+  $F_{\rm u}=q_{\rm u}+3r$. Values outside the interval spanned by the
+  lower and upper outer fences are considered \emph{extreme} outliers.
 
-The program \ty{outliers} takes as input a list of numbers and returns
-seven measures of their distribution:
-\begin{enumerate}
-\item the lower outer fence
-\item the inner outer fence
-\item the first quartile
-\item the median
-\item the upper quartile
-\item the upper inner fence
-\item the upper outer fence
-\end{enumerate}
+  The program \ty{outliers} takes as input a list of numbers and returns
+  seven measures of their distribution:
+  \begin{enumerate}
+  \item the lower outer fence
+  \item the inner outer fence
+  \item the first quartile
+  \item the median
+  \item the upper quartile
+  \item the upper inner fence
+  \item the upper outer fence
+  \end{enumerate}
 
-It also lists mild and extreme outliers.
-\subsection*{Implementation}
-Our outline of \ty{outliers} contains hooks for imports, functions,
-and the logic of the main function.
-\bpr{outlines}{pr:out}
+  It also lists mild and extreme outliers.
+  \subsection*{Implementation}
+  Our outline of \ty{outliers} contains hooks for imports, functions,
+  and the logic of the main function.
+  \bpr{outlines}{pr:out}
 #+end_src
 #+begin_src go <<outliers.go>>=
   package main
