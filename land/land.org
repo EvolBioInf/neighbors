@@ -2,7 +2,8 @@
   \section{\ty{land}}
   The program \ty{land} labels the internal nodes of a Newick tree. This
   makes it easy to subsequently pick individual clades in the tree with
-  \ty{pickle}.
+  \ty{pickle}. The program can also remove labels from the internal
+  nodes of a labeled tree.
 
   \subsection*{Implementation}
   \ty{land} contains hooks for imports, functions, and the logic of the
@@ -47,12 +48,13 @@
 #+end_src
 #+begin_src latex
   The user can request the version (\ty{-v}), set a label prefix
-  (\ty{-p}), or set a label suffix (\ty{-s}).
+  (\ty{-p}), set a label suffix (\ty{-s}), or remove labels (\ty{-r}).
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:lan}>>=
   var optV = flag.Bool("v", false, "version")
   var optP = flag.String("p", "", "prefix")
   var optS = flag.String("s", "", "suffix")
+  var optR = flag.Bool("r", false, "remove labels")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -80,12 +82,12 @@
   The remaining tokens on the command line are interpreted as the names
   of input files. These are the argument of the function
   \ty{ParseFiles}. In addition, \ty{ParseFiles} takes as argument the
-  function \ty{parse}, which in turn takes as arguments the prefix and
-  the suffix.
+  function \ty{parse}, which in turn takes as arguments the prefix, 
+  the suffix, and the remove option.
 #+end_src
 #+begin_src go <<Parse input files, Pr. \ref{pr:lan}>>=
   files := flag.Args()
-  clio.ParseFiles(files, parse, *optP, *optS)
+  clio.ParseFiles(files, parse, *optP, *optS, *optR)
 #+end_src
 #+begin_src latex
   Inside \ty{parse}, we retrieve the arguments we just passed and
@@ -104,11 +106,12 @@
   "io"
 #+end_src
 #+begin_src latex
-  We retrieve the prefix and the suffix.
+  We retrieve the prefix, the suffix, and the remove option.
 #+end_src
 #+begin_src go <<Retrieve arguments, Pr. \ref{pr:lan}>>=
   pr := args[0].(string)
   su := args[1].(string)
+  rm := args[2].(bool)
 #+end_src
 #+begin_src latex
   We scan the trees in the input. Each tree is labeled starting with 1
@@ -118,7 +121,7 @@
   sc := nwk.NewScanner(r)
   for sc.Scan() {
 	  tree := sc.Tree()
-	  labelTree(tree, 1, pr, su)
+	  labelTree(tree, 1, pr, su, rm)
 	  fmt.Println(tree)
   }
 #+end_src
@@ -133,13 +136,14 @@
 Inside the function \ty{labelTree} we label the nodes in order.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:lan}>>=
-  func labelTree(v *nwk.Node, c int, pr, su string) int {
+  func labelTree(v *nwk.Node, c int, pr, su string,
+	  rm bool) int {
 	  if v == nil {
 		  return c
 	  }
 	  //<<Label node, Pr. \ref{pr:lan}>>
-	  c = labelTree(v.Child, c, pr, su)
-	  c = labelTree(v.Sib, c, pr, su)
+	  c = labelTree(v.Child, c, pr, su, rm)
+	  c = labelTree(v.Sib, c, pr, su, rm)
 	  return c
   }
 #+end_src
@@ -150,8 +154,12 @@ labels for internal nodes.
 #+begin_src go <<Label node, Pr. \ref{pr:lan}>>=
   l := v.Label
   if v.Child != nil {
-	  l = pr + strconv.Itoa(c) + su
-	  c++
+	  if rm {
+		  l = ""
+	  } else {
+		  l = pr + strconv.Itoa(c) + su
+		  c++
+	  }
   }
   v.Label = l
 #+end_src
@@ -197,17 +205,22 @@ labels for internal nodes.
   "os/exec"
 #+end_src
 #+begin_src latex
-  We construct three tests, one with default options, one where we set a
-  prefix, and one where we set a suffix. Each test works on the tree
-  contained in \ty{test.nwk}.
+  We construct four tests, one with default options, one where we set a
+  prefix, one where we set a suffix, and one where we remove existing
+  labels. The first three tests work on the unlabeled tree contained in
+  \ty{test1.nwk}, the last on the labeled tree contained in
+  \ty{test2.nwk}.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:lan}>>=
-  f := "test.nwk"
-  test := exec.Command("./land", f)
+  f1 := "test1.nwk"
+  f2 := "test2.nwk"
+  test := exec.Command("./land", f1)
   tests = append(tests, test)
-  test = exec.Command("./land", "-p", "p", f)
+  test = exec.Command("./land", "-p", "p", f1)
   tests = append(tests, test)
-  test = exec.Command("./land", "-s", "s", f)
+  test = exec.Command("./land", "-s", "s", f1)
+  tests = append(tests, test)
+  test = exec.Command("./land", "-r", f2)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

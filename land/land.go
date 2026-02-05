@@ -13,25 +13,31 @@ import (
 func parse(r io.Reader, args ...interface{}) {
 	pr := args[0].(string)
 	su := args[1].(string)
+	rm := args[2].(bool)
 	sc := nwk.NewScanner(r)
 	for sc.Scan() {
 		tree := sc.Tree()
-		labelTree(tree, 1, pr, su)
+		labelTree(tree, 1, pr, su, rm)
 		fmt.Println(tree)
 	}
 }
-func labelTree(v *nwk.Node, c int, pr, su string) int {
+func labelTree(v *nwk.Node, c int, pr, su string,
+	rm bool) int {
 	if v == nil {
 		return c
 	}
 	l := v.Label
 	if v.Child != nil {
-		l = pr + strconv.Itoa(c) + su
-		c++
+		if rm {
+			l = ""
+		} else {
+			l = pr + strconv.Itoa(c) + su
+			c++
+		}
 	}
 	v.Label = l
-	c = labelTree(v.Child, c, pr, su)
-	c = labelTree(v.Sib, c, pr, su)
+	c = labelTree(v.Child, c, pr, su, rm)
+	c = labelTree(v.Sib, c, pr, su, rm)
 	return c
 }
 func main() {
@@ -42,10 +48,11 @@ func main() {
 	var optV = flag.Bool("v", false, "version")
 	var optP = flag.String("p", "", "prefix")
 	var optS = flag.String("s", "", "suffix")
+	var optR = flag.Bool("r", false, "remove labels")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("land")
 	}
 	files := flag.Args()
-	clio.ParseFiles(files, parse, *optP, *optS)
+	clio.ParseFiles(files, parse, *optP, *optS, *optR)
 }
