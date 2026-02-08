@@ -33,6 +33,12 @@ func TestNeighbors(t *testing.T) {
 	test = exec.Command("./neighbors", "-t", "9606",
 		"-L", "complete,chromosome", db)
 	tests = append(tests, test)
+	test = exec.Command("./neighbors",
+		"-o", db, "tid4.txt")
+	tests = append(tests, test)
+	test = exec.Command("./neighbors",
+		"-l", "-o", db, "tid4.txt")
+	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()
 		if err != nil {

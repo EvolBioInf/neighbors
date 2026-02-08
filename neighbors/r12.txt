@@ -1,0 +1,11 @@
+# MRCA(targets): 9596, Pan
+# MRCA(targets+neighbors): 9596, Pan
+# Type  Taxon-ID  Name                                 Genomes
+tt      9596      Pan                                  -
+t       9597      Pan paniscus                         GCA_000258655.2|GCA_013052645.3|GCA_015021855.1|GCA_028858825.2|GCA_028858845.2|GCA_030221875.1|GCA_030221885.1
+tt      9598      Pan troglodytes                      GCA_000001515.5|GCA_000090855.1|GCA_000325845.1|GCA_002880755.3|GCA_028858805.2|GCA_030128845.1|GCA_030128855.1|GCA_900156565.1|GCA_965153035.1|GCA_965153115.1|GCA_965153145.1|GCA_965153165.1
+tt      37010     Pan troglodytes schweinfurthii       -
+t       37011     Pan troglodytes troglodytes          -
+tt      37012     Pan troglodytes verus                GCA_000002175.2
+tt      756884    Pan troglodytes ellioti              -
+tt      1294088   Pan troglodytes verus x troglodytes  -

@@ -58,10 +58,10 @@
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  Apart from the version, we declare five more options:
+  Apart from the version, we declare six more options:
   \begin{itemize}
   \item \ty{-g}: restrict output to taxa with one or more genomes
-  \item \ty{-l}: just list the genomes
+  \item \ty{-l}: just list the genomes and their taxon-IDs
   \item \ty{-t}: target taxon-IDs in comma-delimited list instead of IDs
     from files
   \item \ty{-T}: tab-delimited output instead of pretty printing
@@ -70,16 +70,18 @@
     output to genomes of one or more assembly levels. Like the taxon-IDs
     of targets, levels can be combined in a comma-delimited string. If
     no level is given, we return all accessions.
+  \item \ty{-o}: output only targets
   \end{itemize}
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:neig}>>=
   optV := flag.Bool("v", false, "version")
   optG := flag.Bool("g", false, "genome sequences only")
-  optL := flag.Bool("l", false, "list genomes")
+  optL := flag.Bool("l", false, "list genomes and taxids")
   optT := flag.String("t", "", "comma-delimited targets")
   optTT := flag.Bool("T", false, "tab-delimited output " +
 	  "(default pretty-printing)")
   optLL := flag.String("L", "", util.LevelMsg())
+  optO := flag.Bool("o", false, "output only targets")
 #+end_src
 #+begin_src latex
   We import \ty{flag} and \ty{util}.
@@ -235,16 +237,16 @@ We fill in the map of known levels.
   \ty{calcTarNei}. Otherwise, we parse the remaining files using the
   function \ty{clio.ParseFiles}. It takes as argument the function
   \ty{parse}. In turn, \ty{parse} takes as arguments the database
-  connection, the list option, the genomes option, the tab option, and
-  the map of requested levels.
+  connection, the list option, the genomes option, the tab option, the
+  map of requested levels, and the targets only option.
 #+end_src
 #+begin_src go <<Parse input files, Pr. \ref{pr:neig}>>=
   if len(targets) > 0 {
 	  calcTarNei(targets, taxdb, *optL, *optG,
-		  ,*optTT, levels)
+		  ,*optTT, levels, *optO)
   } else {
 	  clio.ParseFiles(files, parse, taxdb, *optL,
-		  ,*optG, *optTT, levels)
+		  ,*optG, *optTT, levels, *optO)
   }
 #+end_src
 #+begin_src latex
@@ -253,7 +255,9 @@ We fill in the map of known levels.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:neig}>>=
   func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
-	  list, onlyG, tab bool, levels map[string]bool) {
+	  list, onlyG, tab bool, levels map[string]bool, onlyT bool) {
+	  targets := []int{}
+	  neighbors := []int{}
 	  //<<Compute targets, Pr. \ref{pr:neig}>>
 	  //<<Compute neighbors, Pr. \ref{pr:neig}>>
 	  //<<Look up genomes, Pr. \ref{pr:neig}>>
@@ -274,7 +278,7 @@ We fill in the map of known levels.
   mrcaT, err := taxdb.MRCA(taxa)
   util.Check(err)
   //<<Check target MRCA isn't root, Pr. \ref{pr:neig}>>
-  targets, err := taxdb.Subtree(mrcaT)
+  targets, err = taxdb.Subtree(mrcaT)
   util.Check(err)
   //<<Mark new targets, Pr. \ref{pr:neig}>>
 #+end_src
@@ -317,14 +321,14 @@ impossible to find any neighbors and we bail.
   As illustrated in Figure~\ref{fig:tax} in the Introduction, the
   neighbors are the nodes in the subtree of the parent of the
   target-MRCA, minus the targets and the parent. We call the parent of
-  the target-MRCA the analysis-MRCA, \ty{mrcaA}. If the analysis-MRCA
-  has no nodes other than the target(s), we keep moving it up the tree
-  until we've found at least one neighbor.
+  the target-MRCA the analysis-MRCA, \ty{mrcaA}. Unless the user opted
+  for targets-only---if the analysis-MRCA has no nodes other than the
+  target(s), we keep moving it up the tree until we've found at least
+  one neighbor.
 #+end_src
 #+begin_src go <<Compute neighbors, Pr. \ref{pr:neig}>>=
-  var neighbors []int
   mrcaA := mrcaT
-  for len(neighbors) == 0 {
+  for !onlyT && len(neighbors) == 0 {
 	  mrcaA, err = taxdb.Parent(mrcaA)
 	  util.Check(err)
 	  nodes, err := taxdb.Subtree(mrcaA)
@@ -450,32 +454,35 @@ We import \ty{sort}.
   We print the table header before we list the targets and neighbors.
 #+end_src
 #+begin_src go <<List accessions, Pr. \ref{pr:neig}>>=
-  fmt.Fprintf(w, "# Sample\tAccession\n")
+  fmt.Fprintf(w, "# Sample\tAccession\tTaxid\n")
   //<<List targets, Pr. \ref{pr:neig}>>
   //<<List neighbors, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
-  We iterate over the sorted accessions and list them together with a
-  marker for \emph{target}, the single character \ty{t}.
+  We iterate over the sorted accessions and list them and the taxon-ID,
+  together with a marker for \emph{target}, the single character \ty{t}.
 #+end_src
 #+begin_src go <<List targets, Pr. \ref{pr:neig}>>=
   sample := "t"
   for _, target := range targets {
 	  acc := genomes[target]
 	  for _, a := range acc {
-		  fmt.Fprintf(w, "%s\t%s\n", sample, a)
+		  fmt.Fprintf(w, "%s\t%s\t%d\n",
+			  sample, a, target)
 	  }
   }
 #+end_src
 #+begin_src latex
-  We list the neighbors together with their marker, \ty{n}.
+  We list the neighbors and their taxon-IDs together with their marker,
+  \ty{n}.
 #+end_src
 #+begin_src go <<List neighbors, Pr. \ref{pr:neig}>>=
   sample = "n"
   for _, neighbor := range neighbors {
 	  acc := genomes[neighbor]
 	  for _, a := range acc {
-		  fmt.Fprintf(w, "%s\t%s\n", sample, a)
+		  fmt.Fprintf(w, "%s\t%s\t%d\n",
+			  sample, a, neighbor)
 	  }
   }
 #+end_src
@@ -546,9 +553,9 @@ taxon-ID, name, and genomes.
 #+end_src
 #+begin_src latex
   Inside \ty{parse}, we retrieve the taxonomy database, the list option,
-  the genomes option, the tab option, and the map of desired accession
-  levels. Then we read the taxon-IDs and calculate the targets and
-  neighbors by calling \ty{calcTarNei}.
+  the genomes option, the tab option, the map of desired accession
+  levels, and the targets only option. Then we read the taxon-IDs and
+  calculate the targets and neighbors by calling \ty{calcTarNei}.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:neig}>>=
   func parse(r io.Reader, args ...interface{}) {
@@ -557,9 +564,10 @@ taxon-ID, name, and genomes.
 	  optG := args[2].(bool)
 	  optTT := args[3].(bool)
 	  levels := args[4].(map[string]bool)
+	  optO := args[5].(bool)
 	  var taxa []int
 	  //<<Read taxon-IDs, Pr. \ref{pr:neig}>>
-	  calcTarNei(taxa, taxdb, optL, optG, optTT, levels)
+	  calcTarNei(taxa, taxdb, optL, optG, optTT, levels, optO)
   }
 #+end_src
 #+begin_src latex
@@ -661,7 +669,7 @@ taxon-ID, name, and genomes.
 #+end_src
 #+begin_src latex
   We test the five options list, \ty{-l}, genomes, \ty{-g}, tab,
-  \ty{-T}, targets, \ty{-t}, and level, \ty{-L}.
+  \ty{-T}, targets, \ty{-t}, level, \ty{-L}, and targets-only, \ty{-o}.
 #+end_src
 #+begin_src go <<Test options, Pr. \ref{pr:neig}>>=
   //<<Test \ty{-l}, Pr. \ref{pr:neig}>>
@@ -669,6 +677,7 @@ taxon-ID, name, and genomes.
   //<<Test \ty{-T}, Pr. \ref{pr:neig}>>
   //<<Test \ty{-t}, Pr. \ref{pr:neig}>>
   //<<Test \ty{-L}, Pr. \ref{pr:neig}>>
+  //<<Test \ty{-o}, Pr. \ref{pr:neig}>>
 #+end_src
 #+begin_src latex
 We test the list option, \ty{-l}, on \ty{tid4.txt}.
@@ -713,6 +722,18 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   tests = append(tests, test)
   test = exec.Command("./neighbors", "-t", "9606",
 	  "-L", "complete,chromosome", db)
+  tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  We test the targets-only option, \ty{-o}, by limiting the ordinary
+  output and the list output for \ty{tid4.txt} to the targets.
+#+end_src
+#+begin_src go <<Test \ty{-o}, Pr. \ref{pr:neig}>>=
+  test = exec.Command("./neighbors",
+	  "-o", db, "tid4.txt")
+  tests = append(tests, test)
+  test = exec.Command("./neighbors",
+	  "-l", "-o", db, "tid4.txt")
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

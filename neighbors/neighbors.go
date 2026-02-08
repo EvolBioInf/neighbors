@@ -17,7 +17,9 @@ import (
 )
 
 func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
-	list, onlyG, tab bool, levels map[string]bool) {
+	list, onlyG, tab bool, levels map[string]bool, onlyT bool) {
+	targets := []int{}
+	neighbors := []int{}
 	mrcaT, err := taxdb.MRCA(taxa)
 	util.Check(err)
 	parent, err := taxdb.Parent(mrcaT)
@@ -28,7 +30,7 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 			"the targets and root"
 		log.Fatalf(m, mrcaT)
 	}
-	targets, err := taxdb.Subtree(mrcaT)
+	targets, err = taxdb.Subtree(mrcaT)
 	util.Check(err)
 	newTargets := make(map[int]bool)
 	sort.Ints(taxa)
@@ -39,9 +41,8 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 			newTargets[t] = true
 		}
 	}
-	var neighbors []int
 	mrcaA := mrcaT
-	for len(neighbors) == 0 {
+	for !onlyT && len(neighbors) == 0 {
 		mrcaA, err = taxdb.Parent(mrcaA)
 		util.Check(err)
 		nodes, err := taxdb.Subtree(mrcaA)
@@ -93,19 +94,21 @@ func calcTarNei(taxa []int, taxdb *tdb.TaxonomyDB,
 		w = tabwriter.NewWriter(os.Stdout, 1, 0, 2, ' ', 0)
 	}
 	if list {
-		fmt.Fprintf(w, "# Sample\tAccession\n")
+		fmt.Fprintf(w, "# Sample\tAccession\tTaxid\n")
 		sample := "t"
 		for _, target := range targets {
 			acc := genomes[target]
 			for _, a := range acc {
-				fmt.Fprintf(w, "%s\t%s\n", sample, a)
+				fmt.Fprintf(w, "%s\t%s\t%d\n",
+					sample, a, target)
 			}
 		}
 		sample = "n"
 		for _, neighbor := range neighbors {
 			acc := genomes[neighbor]
 			for _, a := range acc {
-				fmt.Fprintf(w, "%s\t%s\n", sample, a)
+				fmt.Fprintf(w, "%s\t%s\t%d\n",
+					sample, a, neighbor)
 			}
 		}
 	} else {
@@ -159,6 +162,7 @@ func parse(r io.Reader, args ...interface{}) {
 	optG := args[2].(bool)
 	optTT := args[3].(bool)
 	levels := args[4].(map[string]bool)
+	optO := args[5].(bool)
 	var taxa []int
 	sc := bufio.NewScanner(r)
 	for sc.Scan() {
@@ -172,7 +176,7 @@ func parse(r io.Reader, args ...interface{}) {
 		}
 		taxa = append(taxa, i)
 	}
-	calcTarNei(taxa, taxdb, optL, optG, optTT, levels)
+	calcTarNei(taxa, taxdb, optL, optG, optTT, levels, optO)
 }
 func main() {
 	u := "neighbors [-h] [option]... <db> [targets.txt]..."
@@ -183,11 +187,12 @@ func main() {
 	clio.Usage(u, p, e)
 	optV := flag.Bool("v", false, "version")
 	optG := flag.Bool("g", false, "genome sequences only")
-	optL := flag.Bool("l", false, "list genomes")
+	optL := flag.Bool("l", false, "list genomes and taxids")
 	optT := flag.String("t", "", "comma-delimited targets")
 	optTT := flag.Bool("T", false, "tab-delimited output "+
 		"(default pretty-printing)")
 	optLL := flag.String("L", "", util.LevelMsg())
+	optO := flag.Bool("o", false, "output only targets")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("neighbors")
@@ -236,9 +241,9 @@ func main() {
 	files = files[1:]
 	if len(targets) > 0 {
 		calcTarNei(targets, taxdb, *optL, *optG,
-			*optTT, levels)
+			*optTT, levels, *optO)
 	} else {
 		clio.ParseFiles(files, parse, taxdb, *optL,
-			*optG, *optTT, levels)
+			*optG, *optTT, levels, *optO)
 	}
 }
