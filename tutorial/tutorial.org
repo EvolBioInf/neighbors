@@ -300,11 +300,10 @@
   t       91891     L. p....                GCF_000306845.1...
   tt      272624    L. p....                GCF_000008485.1
   ...
-  n       91890     L. p. subsp. pascullei  GCF_001590615.2...
-  n       91892     L. p. subsp. fraseri    GCF_001886795.1...
+  n       91890     L. p. subsp. pascullei  GCA_001590645.1...
+  n       91892     L. p. subsp. fraseri    GCA_003003865.1...
   ...
   \end{verbatim}
-
   I've edited the output of \ty{neighbors} above and also of other
   programs throughout this tutorial for clarity and to fit the printed
   page. The output begins with three hashed lines. The first states the
@@ -319,20 +318,21 @@
   To download the target and neighbor genomes, we need the genome
   accessions. These are a bit tricky to extract from the current
   ``report view'' of the \ty{neighbors} results. So we use the ``list
-  view'' instead. It consists of two columns, sample---t and n for
-  target and neighbor, respectively---and accession.
+  view'' instead. It consists of three columns, sample with t for target
+  and n for neighbor, accession, and taxon-ID.
 #+end_src
 #+begin_src sh <<small.sh>>=
   neighbors -L complete,chromosome -g -t 91891 -l ../neidb
 #+end_src
 #+begin_src latex
   \begin{verbatim}
-  # Sample  Accession
-  t         GCA_000277025.1
-  t         GCA_000277065.1
-  t         GCF_000008485.1
+  # Sample  Accession        Taxid
+  t         GCF_000306845.1  91891
+  t         GCF_000306865.1  91891
+  t         GCF_001592705.1  91891
+  t         GCF_001766275.1  91891
   ...
-  n         GCA_001590645.1
+  n         GCA_001590645.1  91890
   ...
   \end{verbatim}
 #+end_src
