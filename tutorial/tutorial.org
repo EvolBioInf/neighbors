@@ -607,7 +607,7 @@ Figure~\ref{fig:lpn}.
 #+begin_src latex
   \begin{verbatim}
   #Clade  Targets  Neighbors  Split (%)  Parent  Dist(Parent)
-  16      23       7          84.4       1       0.0246
+  16      23       7          84.44      1       0.0246
   \end{verbatim}
 #+end_src
 #+begin_src latex
@@ -802,7 +802,7 @@ Figure~\ref{fig:lpn}.
 #+begin_src latex
   \begin{verbatim}
   #Clade  Targets  Neighbors  Split (%)  Parent  Dist(Parent)
-  25      23       7          84.4       1       0.0247
+  25      23       7          84.44      1       0.0247
   \end{verbatim}
   Sprinkled among the taxonomic targets and neighbors are unknowns. To
   find out how many, we count the 129 unknowns among the targets.
