@@ -63,7 +63,7 @@ func parse(r io.Reader, args ...interface{}) {
 			if pl == "" {
 				pl = "-"
 			}
-			fmt.Fprintf(w, "%s\t%d\t%d\t%.1f\t%s\t%g\n",
+			fmt.Fprintf(w, "%s\t%d\t%d\t%.2f\t%s\t%g\n",
 				cs[i].label, cs[i].vt, cs[i].vn,
 				cs[i].sv, pl, cs[i].dp)
 		}
@@ -73,7 +73,7 @@ func parse(r io.Reader, args ...interface{}) {
 				if pl == "" {
 					pl = "-"
 				}
-				fmt.Fprintf(w, "%s\t%d\t%d\t%.1f\t%s\t%g\n",
+				fmt.Fprintf(w, "%s\t%d\t%d\t%.2f\t%s\t%g\n",
 					cs[i].label, cs[i].vt, cs[i].vn,
 					cs[i].sv, pl, cs[i].dp)
 			}

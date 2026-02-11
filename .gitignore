@@ -10,6 +10,7 @@ data/assembly_summary_refseq.txt
 data/citations.dmp
 data/delnodes.dmp
 data/division.dmp
+data/eco_o104_h4.nwk
 data/eukaryotes.txt
 data/gc.prt
 data/gencode.dmp
