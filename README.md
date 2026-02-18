@@ -65,21 +65,21 @@ bash scripts/setupTutorial.sh
 
 ## Make the Database
 
-Get the neidb data and untar it.
+Get the database files and untar them.
 
 ```
 curl https://neighbors.evolbio.mpg.de/data/neidbData.tgz -o neidbData.tgz
 tar -xzvf neidbData.tgz
 ```
 
-Change into neidbData and untar the taxdump.
+Change into `neidbData` and untar the taxonomy data.
 
 ```
 cd neidbData
 tar -xzvf taxdump.tar.gz
 ```
 
-Run makeNeiDb to construct database `neidb`.
+Run `makeNeiDb` to construct the database `neidb`.
 
 ```
 makeNeiDb -d neidb
