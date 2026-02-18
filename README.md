@@ -62,15 +62,6 @@ be installed. Again, on Ubuntu you can run the script
 ```
 bash scripts/setupTutorial.sh
 ```
-## Run Docker Container 
-As an alternative to building `neighbors` from scratch, we also post it as a [docker
-  container](https://hub.docker.com/r/itsers/neighbors). The container
-  includes all programs needed to work through the tutorial in
-  [`neighborsDoc.pdf`](https://owncloud.gwdg.de/index.php/s/QC2FBA88HMHuiTB).
-```
-docker pull itsers/neighbors
-docker container run --detach-keys="ctrl-@" -h neighbors -it itsers/neighbors
-```
 
 ## Make the Database
 
@@ -94,6 +85,15 @@ Run makeNeiDb to construct database `neidb`.
 makeNeiDb -d neidb
 ```
 
+## Run Docker Container 
+As an alternative to building `neighbors` from scratch, we also post it as a [docker
+  container](https://hub.docker.com/r/itsers/neighbors). The container
+  includes all programs needed to work through the tutorial in
+  [`neighborsDoc.pdf`](https://owncloud.gwdg.de/index.php/s/QC2FBA88HMHuiTB).
+```
+docker pull itsers/neighbors
+docker container run --detach-keys="ctrl-@" -h neighbors -it itsers/neighbors
+```
 
 ## Make the Docker Container
 The command
