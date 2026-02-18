@@ -71,6 +71,30 @@ As an alternative to building `neighbors` from scratch, we also post it as a [do
 docker pull itsers/neighbors
 docker container run --detach-keys="ctrl-@" -h neighbors -it itsers/neighbors
 ```
+
+## Make the Database
+
+Get the neidb data and untar it.
+
+```
+curl https://neighbors.evolbio.mpg.de/data/neidbData.tgz -o neidbData.tgz
+tar -xzvf neidbData.tgz
+```
+
+Change into neidbData and untar the taxdump.
+
+```
+cd neidbData
+tar -xzvf taxdump.tar.gz
+```
+
+Run makeNeiDb to construct database `neidb`.
+
+```
+makeNeiDb -d neidb
+```
+
+
 ## Make the Docker Container
 The command
 ```
