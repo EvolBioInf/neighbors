@@ -33,7 +33,8 @@ func main() {
 	name := args[0]
 	db := args[1]
 	if !*optE {
-		name = strings.ReplaceAll(name, " ", "% %")
+		na := strings.Fields(name)
+		name = strings.Join(na, "% %")
 		name = "%" + name + "%"
 	}
 	taxdb := tdb.OpenTaxonomyDB(db)

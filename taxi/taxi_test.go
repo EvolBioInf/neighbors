@@ -12,6 +12,7 @@ func TestTaxi(t *testing.T) {
 	var tests []*exec.Cmd
 	db := "../data/test.db"
 	taxa := []string{"homo sapiens",
+		"homo  sapiens",
 		"haemophilus ducreyi",
 		"pseudomonas fluorescens ATCC 17400"}
 	for _, taxon := range taxa {

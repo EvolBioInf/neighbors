@@ -95,8 +95,9 @@
   first, as this would stop the program. Then we get the remaining
   arguments and check there are two of them, the name of the taxon and
   the database. We store both names. Unless the user opted for exact
-  matching, we bracket the taxon name and any blanks it might contain
-  with wild cards.
+  matching, we summarize consecutive white space into single
+  blanks. Then we bracket the taxon name and any remaining blanks with
+  wild cards.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:tax}>>=
   flag.Parse()
@@ -106,7 +107,8 @@
   name := args[0]
   db := args[1]
   if !*optE {
-	  name = strings.ReplaceAll(name, " ", "% %")
+	  na := strings.Fields(name)
+	  name = strings.Join(na , "% %")
 	  name = "%" + name + "%"
   }
 #+end_src
@@ -211,13 +213,16 @@
   "os/exec"
 #+end_src
 #+begin_src latex
-  Our query is \emph{Homo sapiens}, which we run in default mode and in
-  exact mode. Remember that string matching in SQL databases is
+  Our query is \emph{Homo sapiens}, \emph{Homo\_\_sapiens} with two
+  blanks in the middle, \emph{Haemophilus ducreyi}, and
+  \emph{Pseudomonas fluorescens}. We run these queries in default mode
+  and in exact mode. Remember that string matching in SQL databases is
   case-insensitive.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:tax}>>=
   db := "../data/test.db"
   taxa := []string{"homo sapiens",
+	  "homo  sapiens",
 	  "haemophilus ducreyi",
 	  "pseudomonas fluorescens ATCC 17400"}
   for _, taxon := range taxa {
