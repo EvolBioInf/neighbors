@@ -92,7 +92,7 @@ func main() {
 	sort.Ints(subtree)
 	if *optL {
 		w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
-		fmt.Fprint(w, "# Taxid\tRank\tGenomes")
+		fmt.Fprint(w, "# Taxid\tParent\tRank\tGenomes")
 		if *optN {
 			fmt.Fprint(w, "\tName")
 		}
@@ -105,9 +105,11 @@ func main() {
 			util.Check(err)
 			numAcc = len(acc)
 			if !*optG || numAcc > 0 {
+				p, err := neidb.Parent(v)
+				util.Check(err)
 				r, err := neidb.Rank(v)
 				util.Check(err)
-				fmt.Fprintf(w, "%d\t%s\t%d", v, r, numAcc)
+				fmt.Fprintf(w, "%d\t%d\t%s\t%d", v, p, r, numAcc)
 				if *optN {
 					a, err := neidb.Name(v)
 					util.Check(err)

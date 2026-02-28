@@ -312,15 +312,15 @@ We import \ty{sort}.
   "sort"
 #+end_src
 #+begin_src latex
-  We list the subtree in a table consisting of three mandatory columns,
-  taxon-ID, rank, and the number of genomes. In addition, the user might
-  have opted for names. We construct this table with a
+  We list the subtree in a table consisting of four mandatory columns,
+  taxon-ID, parent, rank, and the number of genomes. In addition, the
+  user might have opted for names. We construct this table with a
   \ty{tabwriter}. Then we iterate over the nodes and list each one. At
   the end we flush the tabwriter.
 #+end_src
 #+begin_src go <<List subtree, Pr. \ref{pr:dr}>>=
   w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
-  fmt.Fprint(w, "# Taxid\tRank\tGenomes")
+  fmt.Fprint(w, "# Taxid\tParent\tRank\tGenomes")
   if *optN {
 	  fmt.Fprint(w, "\tName")
   }
@@ -359,13 +359,15 @@ the final number of accessions.
   numAcc = len(acc)
 #+end_src
 #+begin_export latex
-We write the current node into a line consisting of the taxon-ID, the
-rank, and the number of genomes.
+We write the current node into a line consisting of taxon-ID, parent,
+rank, and number of genomes.
 #+end_export
 #+begin_src go <<Print node line, Pr. \ref{pr:dr}>>=
+  p, err := neidb.Parent(v)
+  util.Check(err)
   r, err := neidb.Rank(v)
   util.Check(err)
-  fmt.Fprintf(w, "%d\t%s\t%d", v, r, numAcc)
+  fmt.Fprintf(w, "%d\t%d\t%s\t%d", v, p, r, numAcc)
   if *optN {
 	  a, err := neidb.Name(v)
 	  util.Check(err)

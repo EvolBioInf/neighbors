@@ -185,28 +185,28 @@
 #+begin_src latex
   Instead of merely marking the presence of absence of genomes by
   presence or absence of color, we can list the individual nodes of the
-  taxonomy with the counts of the associated genomes. Some of these
-  genome counts are quite large, starting with the 6,768 genomes
-  associated with the species \emph{Legionella pneumophila}. The
-  distribution of genome counts becomes clearer when we sort according
-  to it.
+  taxonomy with their parent, rank, and the counts of the associated
+  genomes. Some of these genome counts are quite large, starting with
+  the 6,768 genomes associated with the species \emph{Legionella
+  pneumophila}. The distribution of genome counts becomes clearer when
+  we sort according to it.
 #+end_src
 #+begin_src sh <<query.sh>>=
   dree -n -g -l 446 neidb |
       tail -n +2 |
-      sort -k 3 -n -r
+      sort -k 4 -n -r
 #+end_src
 #+begin_src latex
   \begin{verbatim}
-  # Taxid  Rank        Genomes  Name
-  446      species     6768     L. p.
-  66976    serogroup   777      L. p. serogroup 1
-  91891    subspecies  432      L. p. subsp. pneumophila
-  91892    subspecies  23       L. p. subsp. fraseri
-  66977    serogroup   14       L. p. serogroup 2
-  66978    serogroup   13       L. p. serogroup 3
-  66983    serogroup   9        L. p. serogroup 8
-  91890    subspecies  8        L. p. subsp. pascullei
+  # Taxid  Parent   Rank        Genomes  Name
+  446      445      species     6768     L. p.
+  66976    446      serogroup   777      L. p. serogroup 1
+  91891    446      subspecies  432      L. p. subsp. pneumophila
+  91892    446      subspecies  23       L. p. subsp. fraseri
+  66977    446      serogroup   14       L. p. serogroup 2
+  66978    446      serogroup   13       L. p. serogroup 3
+  66983    446      serogroup   9        L. p. serogroup 8
+  91890    446      subspecies  8        L. p. subsp. pascullei
   ...
   \end{verbatim}
 #+end_src
@@ -230,7 +230,7 @@
 #+begin_src sh <<query.sh>>=
   dree -n -g -l -L complete,chromosome  446 neidb  |
       tail -n +2 |
-      sort -k 3 -n -r
+      sort -k 4 -n -r
 #+end_src
 #+begin_src latex
   The 20 genomes for subspecies \emph{pneumophila} do not include the

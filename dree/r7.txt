@@ -1,9 +1,9 @@
-# Taxid  Rank        Genomes  Name
-9593     species     2        Gorilla gorilla
-9595     subspecies  12       Gorilla gorilla gorilla
-9597     species     7        Pan paniscus
-9598     species     12       Pan troglodytes
-9606     species     1851     Homo sapiens
-37012    subspecies  1        Pan troglodytes verus
-499232   species     1        Gorilla beringei
-1159185  subspecies  2        Gorilla beringei beringei
+# Taxid  Parent  Rank        Genomes  Name
+9593     9592    species     2        Gorilla gorilla
+9595     9593    subspecies  12       Gorilla gorilla gorilla
+9597     9596    species     7        Pan paniscus
+9598     9596    species     12       Pan troglodytes
+9606     9605    species     1851     Homo sapiens
+37012    9598    subspecies  1        Pan troglodytes verus
+499232   9592    species     1        Gorilla beringei
+1159185  499232  subspecies  2        Gorilla beringei beringei

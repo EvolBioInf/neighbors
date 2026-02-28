@@ -1,9 +1,9 @@
-# Taxid  Rank        Genomes
-9593     species     2
-9595     subspecies  12
-9597     species     7
-9598     species     12
-9606     species     1851
-37012    subspecies  1
-499232   species     1
-1159185  subspecies  2
+# Taxid  Parent  Rank        Genomes
+9593     9592    species     2
+9595     9593    subspecies  12
+9597     9596    species     7
+9598     9596    species     12
+9606     9605    species     1851
+37012    9598    subspecies  1
+499232   9592    species     1
+1159185  499232  subspecies  2
