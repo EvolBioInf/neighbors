@@ -24,16 +24,16 @@ func scan(r io.Reader, args ...interface{}) {
 			data = append(data, d)
 		}
 	}
-	var st *util.OutlierStats
+	var q *util.Quart
 	if len(data) >= 4 {
-		st = util.OutlierStatistics(data)
-		lof := st.LowerOuterFence
-		lif := st.LowerInnerFence
-		q1 := st.LowerQuartile
-		q2 := st.Median
-		q3 := st.UpperQuartile
-		uif := st.UpperInnerFence
-		uof := st.UpperOuterFence
+		q = util.Quartiles(data)
+		lof := q.LowerOuterFence
+		lif := q.LowerInnerFence
+		q1 := q.LowerQuartile
+		q2 := q.Median
+		q3 := q.UpperQuartile
+		uif := q.UpperInnerFence
+		uof := q.UpperOuterFence
 		w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
 		msg := "#Lower_outer_fence\tLower_inner_fence\t" +
 			"Lower_quartile\tMedian\tUpper_quartile\t" +

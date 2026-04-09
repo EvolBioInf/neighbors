@@ -11,7 +11,7 @@ import (
 	"sort"
 )
 
-type OutlierStats struct {
+type Quart struct {
 	LowerOuterFence float64
 	LowerInnerFence float64
 	LowerQuartile   float64
@@ -83,30 +83,30 @@ func LevelMsg() string {
 	return m
 }
 
-// The function OutlierStatistics takes as argument a slice of floats and calculates outlier statistics as defined by the National Institute of Standards and Technology,  https://www.itl.nist.gov/div898/handbook/prc/section1/prc16.htm
-func OutlierStatistics(data []float64) *OutlierStats {
-	os := new(OutlierStats)
+// The function Quartiles takes as argument a slice of floats and calculates the quartiles, including fences for outlier analysis.
+func Quartiles(data []float64) *Quart {
+	q := new(Quart)
 	sort.Float64s(data)
 	n := len(data)
 	m := (n + 1) / 2
-	os.Median = data[m-1]
+	q.Median = data[m-1]
 	if n%2 == 0 {
-		os.Median = (os.Median + data[m]) / 2.0
+		q.Median = (q.Median + data[m]) / 2.0
 	}
 	exactQ := float64(n+1) * 0.25
 	f := math.Floor(exactQ)
 	l := int(f)
 	x := math.Remainder(exactQ, f)
-	os.LowerQuartile = data[l-1] + (data[l]-data[l-1])*x
+	q.LowerQuartile = data[l-1] + (data[l]-data[l-1])*x
 	exactQ = float64(n+1) * 0.75
 	f = math.Floor(exactQ)
 	l = int(f)
 	x = math.Remainder(exactQ, f)
-	os.UpperQuartile = data[l-1] + (data[l]-data[l-1])*x
-	r := os.UpperQuartile - os.LowerQuartile
-	os.LowerInnerFence = os.LowerQuartile - 1.5*r
-	os.UpperInnerFence = os.UpperQuartile + 1.5*r
-	os.LowerOuterFence = os.LowerQuartile - 3.0*r
-	os.UpperOuterFence = os.UpperQuartile + 3.0*r
-	return os
+	q.UpperQuartile = data[l-1] + (data[l]-data[l-1])*x
+	r := q.UpperQuartile - q.LowerQuartile
+	q.LowerInnerFence = q.LowerQuartile - 1.5*r
+	q.UpperInnerFence = q.UpperQuartile + 1.5*r
+	q.LowerOuterFence = q.LowerQuartile - 3.0*r
+	q.UpperOuterFence = q.UpperQuartile + 3.0*r
+	return q
 }

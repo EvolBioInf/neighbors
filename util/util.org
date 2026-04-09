@@ -148,22 +148,20 @@ levels.
 	  "contig"}
 #+end_src
 #+begin_export latex
-\subsection{\ty{OutlierStatistics}}
-  !The function \ty{OutlierStatistics} takes as argument a slice of
-  !floats and calculates outlier statistics as defined by the National
-  !Institute of Standards and Technology, 
-  !https://www.itl.nist.gov/div898/handbook/prc/section1/prc16.htm
+\subsection{\ty{Quartiles}}
+  !The function \ty{Quartiles} takes as argument a slice of floats and
+  !calculates the quartiles, including fences for outlier
+  !analysis.
 
-  Inside the function, we first create the variable \ty{os} for
-  holding the outlier statistics. This variable is of type
-  \ty{OutlierStats}, which we still need to define. Then we sort the
-  incoming data, determine the median, the lower quartile, the upper
-  quartile, the interquartile range, the inner fences, and the outer
-  fences.
+  Inside \ty{Quartiles} function, we first create the variable \ty{q}
+  for holding the quartiles. This variable is of type \ty{Quart},
+  which we still need to define. Then we sort the incoming data,
+  determine the median, the lower quartile, the upper quartile, the
+  interquartile range, the inner fences, and the outer fences.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func OutlierStatistics(data []float64) *OutlierStats {
-	  os := new(OutlierStats)
+  func Quartiles(data []float64) *Quart {
+	  q := new(Quart)
 	  sort.Float64s(data)
 	  //<<Determine median, Pa. \ref{pa:util}>>
 	  //<<Determine lower quartile, Pa. \ref{pa:util}>>
@@ -171,7 +169,7 @@ levels.
 	  //<<Determine interquartile range, Pa. \ref{pa:util}>>
 	  //<<Determine inner fences, Pa. \ref{pa:util}>>
 	  //<<Determine outer fences, Pa. \ref{pa:util}>>
-	  return os
+	  return q
   }
 #+end_src
 #+begin_src latex
@@ -192,10 +190,10 @@ Section~\ref{sec:out}, outlier analysis generates seven values:
 \item the upper inner fence
 \item the upper outer fence
 \end{enumerate}
-We store these values in the structure \ty{OutlierStats}.
+We store these values in the structure \ty{Quart}.
 #+end_export
 #+begin_src go <<Types, Pa. \ref{pa:util}>>=
-  type OutlierStats struct {
+  type Quart struct {
 	  LowerOuterFence float64
 	  LowerInnerFence float64
 	  LowerQuartile   float64
@@ -212,9 +210,9 @@ We store these values in the structure \ty{OutlierStats}.
 #+begin_src go <<Determine median, Pa. \ref{pa:util}>>=
   n := len(data)
   m := (n+1) / 2
-  os.Median = data[m-1]
+  q.Median = data[m-1]
   if n % 2 == 0 {
-	  os.Median = (os.Median + data[m]) / 2.0
+	  q.Median = (q.Median + data[m]) / 2.0
   }
 #+end_src
 #+begin_src latex
@@ -225,7 +223,7 @@ We store these values in the structure \ty{OutlierStats}.
   f := math.Floor(exactQ)
   l := int(f)
   x := math.Remainder(exactQ, f)
-  os.LowerQuartile = data[l-1] + (data[l]-data[l-1]) * x
+  q.LowerQuartile = data[l-1] + (data[l]-data[l-1]) * x
 #+end_src
 #+begin_src latex
 We import \ty{math}.
@@ -241,30 +239,30 @@ We import \ty{math}.
   f = math.Floor(exactQ)
   l = int(f)
   x = math.Remainder(exactQ, f)
-  os.UpperQuartile = data[l-1] + (data[l]-data[l-1]) * x
+  q.UpperQuartile = data[l-1] + (data[l]-data[l-1]) * x
 #+end_src
 #+begin_src latex
   The interquartile range, $r$, is the difference between the upper and
   lower quartile.
 #+end_src
 #+begin_src go <<Determine interquartile range, Pa. \ref{pa:util}>>=
-  r := os.UpperQuartile - os.LowerQuartile
+  r := q.UpperQuartile - q.LowerQuartile
 #+end_src
 #+begin_src latex
   The lower and the upper \emph{inner} fences are $1.5r$ removed from
   their nearest quartile.
 #+end_src
 #+begin_src go <<Determine inner fences, Pa. \ref{pa:util}>>=
-  os.LowerInnerFence = os.LowerQuartile - 1.5 * r
-  os.UpperInnerFence = os.UpperQuartile + 1.5 * r
+  q.LowerInnerFence = q.LowerQuartile - 1.5 * r
+  q.UpperInnerFence = q.UpperQuartile + 1.5 * r
 #+end_src
 #+begin_src latex
   The lower and upper \emph{outer} fences are $3r$ removed from their
   nearest quartile.
 #+end_src
 #+begin_src go <<Determine outer fences, Pa. \ref{pa:util}>>=
-  os.LowerOuterFence = os.LowerQuartile - 3.0 * r
-  os.UpperOuterFence = os.UpperQuartile + 3.0 * r
+  q.LowerOuterFence = q.LowerQuartile - 3.0 * r
+  q.UpperOuterFence = q.UpperQuartile + 3.0 * r
 #+end_src
 #+begin_src latex
   We are done with writing the \ty{util} package, time to test it.
@@ -286,12 +284,12 @@ We import \ty{math}.
 #+end_src
 #+begin_src latex
   There are three functions we can sensibly test, \ty{Open},
-  \ty{LevelMsg} and \ty{Outlier\-Sta\-tis\-tics}.
+  \ty{LevelMsg} and \ty{Quartiles}.
 #+end_src
 #+begin_src go <<Testing, Pa. \ref{pa:util}>>=
   //<<Test \ty{Open}, Pa. \ref{pa:util}>>
   //<<Test \ty{LevelMsg}, Pa. \ref{pa:util}>>
-  //<<Test \ty{OutlierStatistics}, Pa. \ref{pa:util}>>
+  //<<Test \ty{Quartiles}, Pa. \ref{pa:util}>>
 #+end_src
 #+begin_src latex
   To test \ty{Open}, we open a test file and read the string ``success''
@@ -336,17 +334,17 @@ We import \ty{math}.
   "strings"
 #+end_src
 #+begin_export latex
-We test the function \ty{OutlierStatatistics} on four data points and
+We test the function \ty{Quartiles} on four data points and
 compare the results we get to the results we want.
 #+end_export
-#+begin_src go <<Test \ty{OutlierStatistics}, Pa. \ref{pa:util}>>=
+#+begin_src go <<Test \ty{Quartiles}, Pa. \ref{pa:util}>>=
   data := []float64{30, 171, 184, 201}
-  os := OutlierStatistics(data)
+  q := Quartiles(data)
   wr := []float64{-329.25, -132, 65.25, 177.5,
 	  196.75, 394, 591.25}
-  gr := []float64{os.LowerOuterFence, os.LowerInnerFence,
-	  os.LowerQuartile, os.Median, os.UpperQuartile,
-	  os.UpperInnerFence, os.UpperOuterFence}
+  gr := []float64{q.LowerOuterFence, q.LowerInnerFence,
+	  q.LowerQuartile, q.Median, q.UpperQuartile,
+	  q.UpperInnerFence, q.UpperOuterFence}
   //<<Compare results, Pa. \ref{pa:util}>>
 #+end_src
 #+begin_export latex

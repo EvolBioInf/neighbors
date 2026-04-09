@@ -157,9 +157,9 @@ results. Otherwise, we skip the current data set with a friendly
 warning message.
 #+end_export
 #+begin_src go <<Analyze data, Pr. \ref{pr:out}>>=
-  var st *util.OutlierStats
+  var q *util.Quart
   if len(data) >= 4 {
-	  st = util.OutlierStatistics(data)
+	  q = util.Quartiles(data)
 	  //<<Print results, Pr. \ref{pr:out}>>
   } else {
 	  m := "outliers - Need at least 4 data " +
@@ -189,13 +189,13 @@ We give succinct names to the seven variables returned by the outlier
 analysis.
 #+end_export
 #+begin_src go <<Rename variables, Pr. \ref{pr:out}>>=
-  lof := st.LowerOuterFence
-  lif := st.LowerInnerFence
-  q1 := st.LowerQuartile
-  q2 := st.Median
-  q3 := st.UpperQuartile
-  uif := st.UpperInnerFence
-  uof := st.UpperOuterFence
+  lof := q.LowerOuterFence
+  lif := q.LowerInnerFence
+  q1 := q.LowerQuartile
+  q2 := q.Median
+  q3 := q.UpperQuartile
+  uif := q.UpperInnerFence
+  uof := q.UpperOuterFence
 #+end_src
 #+begin_src latex
 We print the quartiles and outliers in a table that we format with a
