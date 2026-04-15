@@ -28,7 +28,7 @@
   neighbors, to 100, if $v$ contains all targets and no neighbors.
   \subsection*{Implementation}
   The outline of \ty{fintac} has hooks for imports, types, methods,
-  functions, and the logic of the main function.  \bpr{dree}{pr:fit}
+  functions, and the logic of the main function.  \bpr{fintac}{pr:fit}
 #+end_src
 #+begin_src go <<fintac.go>>=
   package main
