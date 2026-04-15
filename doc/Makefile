@@ -1,4 +1,4 @@
-SRC1 =   makeNeiDb.tex taxi.tex ants.tex climt.tex neighbors.tex dree.tex fintac.tex land.tex outliers.tex pickle.tex tdb.tex tutorial.tex util.tex
+SRC1 =   makeNeiDb.tex taxi.tex ants.tex climt.tex clusters.tex neighbors.tex dree.tex fintac.tex land.tex outliers.tex pickle.tex tdb.tex tutorial.tex util.tex
 SRC2 =   header.tex introduction.tex neighborsDoc.tex labels.tex
 
 date = $(shell git log | grep -m 1 Date | sed -r 's/Date: +[A-Z][a-z]+ ([A-Z][a-z]+) ([0-9]+) [^ ]+ ([0-9]+) .+/\2_\1_\3/')
@@ -29,6 +29,8 @@ ants.tex: ../ants/ants.org
 	awk -f ../scripts/preWeave.awk ../ants/ants.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > ants.tex
 climt.tex: ../climt/climt.org
 	awk -f ../scripts/preWeave.awk ../climt/climt.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > climt.tex
+clusters.tex: ../clusters/clusters.org
+	awk -f ../scripts/preWeave.awk ../clusters/clusters.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > clusters.tex
 neighbors.tex: ../neighbors/neighbors.org
 	awk -f ../scripts/preWeave.awk ../neighbors/neighbors.org | bash ../scripts/org2nw | noweave -n -x | sed 's/_test/\\_test/g' > neighbors.tex
 dree.tex: ../dree/dree.org

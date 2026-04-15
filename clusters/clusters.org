@@ -1,0 +1,623 @@
+#+begin_export latex
+\section{\ty{clusters}}
+\subsection*{Introduction}
+The program \ty{clusters} reads a phylogeny in Newick format and
+determines whether a given internal node, $v$, forms a cluster or
+not. A cluster is characterized by a long parental branch compared to
+the branch lengths inside $v$. For example, Figure~\ref{fig:o111}
+shows the cluster of \emph{Escherichia coli} O111:H8 genomes and its
+parent.
+
+\begin{figure}
+  \begin{center}
+    \rput(2,2){O111:H8}
+    \scalebox{0.7}{\includegraphics{../clusters/o111}}
+  \end{center}
+  \caption{The cluster of \emph{Escherichia coli} O111:H8 genomes in
+    Genbank with two neighboring genomes; leaf labels show the taxon
+    ID---991910 is O111:H8---followed by the genome
+    accession.}\label{fig:o111}
+\end{figure}
+
+A ``long'' branch is defined as an extreme outlier, greater than 3
+times the interquartile range of the branch lengths inside $v$. The
+user can also opt for 1.5 times the interquartile range to include
+``mild'' outliers in the output (\ty{-m}). By default, $v$ needs to
+contain at least ten members to qualify as a cluster, but the user can
+adjust the minimum cluster size (\ty{-s}).
+
+We call a cluster that does not contain further clusters
+\emph{terminal}. By default, the program \ty{clusters} prints just the
+terminal clusters of at least ten taxa in a table consisting of four
+columns, cluster, parent, cluster size, and cluster score, $C$. To
+define $C$, let $\ell$ be the length of the parental branch and
+$r$ the interquartile range; then
+\begin{equation}\label{eq:c}
+  C=\ell/r.
+\end{equation}
+The table is ordered by descending cluster size.
+
+The user can also opt to print nested clusters (\ty{-n}). In addition,
+the user can opt to print the input tree with marked clusters instead
+of the clusters themselves (\ty{-t}). We mark a cluster by appending
+$\ty{c}$ to its label.
+
+\subsection*{Implementation}
+The outline of \ty{clusters} contains hooks for imports, types,
+functions, and the logic of the main function.  \bpr{clusters}{pr:clu}
+#+end_export
+#+begin_src go <<clusters.go>>=
+  package main
+
+  import (
+      //<<Imports, Pr. \ref{pr:clu}>>
+  )
+  //<<Types, Pr. \ref{pr:clu}>>
+  //<<Functions, Pr. \ref{pr:clu}>>
+  func main() {
+	  //<<Main function, Pr. \ref{pr:clu}>>
+  }
+#+end_src
+#+begin_export latex
+\epr
+Inside \ty{main}, we set the name of \ty{clusters}, set the usage,
+declare and parse the options, and parse the input files.
+#+end_export
+#+begin_src go <<Main function, Pr. \ref{pr:clu}>>=
+  util.SetName("clusters")
+  //<<Set usage, Pr. \ref{pr:clu}>>
+  //<<Declare options, Pr. \ref{pr:clu}>>
+  //<<Parse options, Pr. \ref{pr:clu}>>
+  //<<Parse input files, Pr. \ref{pr:clu}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:clu}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_export latex
+The usage consists of the actual usage message, an explanation of the
+purpose of \ty{clusters}, and an example command.
+#+end_export
+#+begin_src go <<Set usage, Pr. \ref{pr:clu}>>=
+  u := "clusters [option]... [foo.nwk]..."
+  p := "Find nodes with long parental " +
+	  "branches in Newick trees."
+  e := "clusters -n myTree.nwk"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_export latex
+We import \ty{clui}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:clu}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_export latex
+Apart from the obligatory version, \ty{-v}, we declare the five
+options already described in the introduction:
+\begin{enumerate}
+\item \ty{-m} include mild clusters
+\item \ty{-n} print nested clusters
+\item \ty{-t} print the input tree with marked clusters
+\item \ty{-s} minimum cluster size
+\item \ty{-c} sort by cluster score
+\end{enumerate}
+#+end_export
+#+begin_src go <<Declare options, Pr. \ref{pr:clu}>>=
+  optV := flag.Bool("v", false, "version")
+  m := "include mild clusters (default extreme)"
+  optM := flag.Bool("m", false, m)
+  m = "print nested clusters (default terminal)"
+  optN := flag.Bool("n", false, m)
+  m = "print tree with marked clusters"
+  optT := flag.Bool("t", false, m)
+  m = "minimum size of cluster"
+  optS := flag.Int("s", 10, m)
+  m = "sort by cluster score, C (default sort by size)"
+  optC := flag.Bool("c", false, m)
+#+end_src
+#+begin_export latex
+We import \ty{flag}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:clu}>>=
+  "flag"
+#+end_src
+#+begin_export latex
+We parse the options and print the version as part of the program
+info, if requested to do so.
+#+end_export
+#+begin_src go <<Parse options, Pr. \ref{pr:clu}>>=
+  flag.Parse()
+  if *optV {
+	  util.PrintInfo("clusters")
+  }
+#+end_src
+#+begin_export latex
+The remaining tokens on the command line are interpreted as file
+names. We pass them to the function \ty{ParseFiles}, which applies the
+function \ty{parse} to each one of them. Parse, in turn, takes the
+five main options mild, nested, tree, size, and $C$ as arguments.
+#+end_export
+#+begin_src go <<Parse input files, Pr. \ref{pr:clu}>>=
+  files := flag.Args()
+  clio.ParseFiles(files, parse, optM, optN, optT, optS, optC)
+#+end_src
+#+begin_export latex
+Inside \ty{parse}, we retrieve the options and analyze each tree.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:clu}>>=
+  func parse(r io.Reader, args ...interface{}) {
+	  //<<Retrieve options, Pr. \ref{pr:clu}>>
+	  sc := nwk.NewScanner(r)
+	  for sc.Scan() {
+		  tree := sc.Tree()
+		  //<<Analyze tree, Pr. \ref{pr:clu}>>
+	  }
+  }
+#+end_src
+#+begin_export latex
+We import \ty{io}, \ty{nwk}, and \ty{fmt}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:clu}>>=
+  "io"
+  "github.com/evolbioinf/nwk"
+  "fmt"
+#+end_src
+#+begin_export latex
+We retrieve the five options we just passed, mild, nested, tree, size,
+and $C$.
+#+end_export
+#+begin_src go <<Retrieve options, Pr. \ref{pr:clu}>>=
+  optM := args[0].(*bool)
+  optN := args[1].(*bool)
+  optT := args[2].(*bool)
+  optS := args[3].(*int)
+  optC := args[4].(*bool)
+#+end_src
+#+begin_export latex
+To analyze a given tree, we store its branch lengths and detect
+clusters, and filter them. Then we either mark the clusters in the
+tree and print it, or sort the actual clusters and print them.
+#+end_export
+#+begin_src go <<Analyze tree, Pr. \ref{pr:clu}>>=
+  //<<Store branch lengths, Pr. \ref{pr:clu}>>
+  //<<Detect clusters, Pr. \ref{pr:clu}>>
+  //<<Filter clusters, Pr. \ref{pr:clu}>>
+  if *optT {
+	  markClusters(tree, clusters)
+	  fmt.Println(tree)
+  } else {
+	  //<<Sort clusters, Pr. \ref{pr:clu}>>
+	  //<<Print clusters, Pr. \ref{pr:clu}>>
+  }
+#+end_src
+#+begin_export latex
+We store the branch lengths in a map where the key is the node ID and
+the value is the slice of branch lengths. Once we have constructed the
+map, we traverse the tree with it.
+#+end_export
+#+begin_src go <<Store branch lengths, Pr. \ref{pr:clu}>>=
+  branchLengths := make(map[int][]float64)
+  traverse(tree, branchLengths)
+#+end_src
+#+begin_export latex
+The branch lengths are collected by moving from the leaves toward the
+root. To achieve this in \ty{traverse}, we carry out a post order
+traversal where we visit the children before the parent. We store each
+node's branch lengths in its parent, unless we are dealing with the
+root, which has no parent.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:clu}>>=
+  func traverse(v *nwk.Node, branchLengths map[int][]float64) {
+	  if v == nil {
+		  return
+	  }
+	  traverse(v.Child, branchLengths)
+	  if v.Child != nil {
+		  traverse(v.Child.Sib, branchLengths)
+	  }
+	  if v.Parent != nil {
+		  //<<Store branch lengths in parent, Pr. \ref{pr:clu}>>
+	  }
+  }
+#+end_src
+#+begin_export latex
+We append the current node's branch lengths---including its parental
+branch---to the existing slice of parental branch lengths.
+#+end_export
+#+begin_src go <<Store branch lengths in parent, Pr. \ref{pr:clu}>>=
+  blv := branchLengths[v.Id]
+  blp := branchLengths[v.Parent.Id]
+  blp = append(blp, blv...)
+  blp = append(blp, v.Length)
+  branchLengths[v.Parent.Id] = blp
+#+end_src
+#+begin_export latex
+We detect clusters by calling the function \ty{findCl} on the tree. In
+addition, we pass as arguments the mild outlier option and a map of
+clusters. If we also mark the terminal clusters.
+#+end_export
+#+begin_src go <<Detect clusters, Pr. \ref{pr:clu}>>=
+  clusters := make(map[int]*Cluster)
+  findCl(tree, branchLengths, optM, clusters)
+  //<<Mark terminal clusters, Pr. \ref{pr:clu}>>
+#+end_src
+#+begin_export latex
+A cluster has an ID and holds two labels, that of itself and that of
+its parent. It has a score and a size. A cluster may contain other
+clusters. If it \emph{doesn't}, we call it \emph{terminal}. To later
+be able to determine whether or not a cluster is terminal, we
+reference the root of the cluster's subtree.
+#+end_export
+#+begin_src go <<Types, Pr. \ref{pr:clu}>>=
+  type Cluster struct {
+	  Id int
+	  Label, Parent string
+	  Score float64
+	  Size int
+	  IsTerminal bool
+	  Root *nwk.Node
+  }
+#+end_src
+#+begin_export latex
+Inside \ty{findCl}, we again traverse the tree from the leaves to
+make sure we can determine whether a given node is terminal or not.
+We analyze each node we encounter.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:clu}>>=
+  func findCl(v *nwk.Node, branchLengths map[int][]float64,
+	  optM *bool, clusters map[int]*Cluster) {
+	  if v == nil {
+		  return
+	  }
+	  findCl(v.Child, branchLengths, optM, clusters)
+	  findCl(v.Sib, branchLengths, optM, clusters)
+	  //<<Analyze node, Pr. \ref{pr:clu}>>
+  }
+#+end_src
+#+begin_export latex
+Outlier analysis depends on the four quarters of a distribution. So we
+require a minimum sample size of four, and for a given node check that
+it has at least four branch lengths and isn't the root. If that is the
+case, we run the outlier analysis on its branch lengths.
+#+end_export
+#+begin_src go <<Analyze node, Pr. \ref{pr:clu}>>=
+  bl := branchLengths[v.Id]
+  if len(bl) > 3  && v.Parent != nil {
+	  //<<Run outlier analysis, Pr. \ref{pr:clu}>>
+  }
+#+end_src
+#+begin_export latex
+For the outlier analysis, we calculate the quartiles of the
+distribution of the current node's branch lengths. If the parental
+branch length is either an extreme outlier, or, if desired, a mild
+outlier, we construct a new cluster and store it.
+#+end_export
+#+begin_src go <<Run outlier analysis, Pr. \ref{pr:clu}>>=
+  q := util.Quartiles(bl)
+  t := q.UpperOuterFence
+  if *optM {
+	  t = q.UpperInnerFence
+  }
+  if v.Length > t {
+	  cluster := new(Cluster)
+	  //<<Construct cluster, Pr. \ref{pr:clu}>>
+	  clusters[cluster.Id] = cluster
+  }
+#+end_src
+#+begin_export latex
+The new cluster has the current node's ID and a label. If the current
+node is not the root, the cluster also has a parent label. We also
+store the cluster's root, determine its size by calling \ty{size}, and
+calculate its score according to equation~(\ref{eq:c}).
+#+end_export
+#+begin_src go <<Construct cluster, Pr. \ref{pr:clu}>>=
+  cluster.Id = v.Id
+  cluster.Label = v.Label
+  if v.Parent != nil {
+	  cluster.Parent = v.Parent.Label
+  }
+  cluster.Root = v.Child
+  n := 0
+  cluster.Size = size(cluster.Root, n)
+  r := q.UpperQuartile - q.LowerQuartile
+  cluster.Score = v.Length / r
+#+end_src
+#+begin_export latex
+The function \ty{size} counts the leaves in the tree rooted on the
+incoming node.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:clu}>>=
+  func size(v *nwk.Node, c int) int {
+	  if v == nil {
+		  return c
+	  }
+	  c = size(v.Child, c)
+	  c = size(v.Sib, c)
+	  if v.Child == nil {
+		  c++
+	  }
+	  return c
+  }
+#+end_src
+#+begin_export latex
+We iterate over the clusters and mark those that are terminal by
+calling the function \ty{isTerminal}.
+#+end_export
+#+begin_src go <<Mark terminal clusters, Pr. \ref{pr:clu}>>=
+  for _, cluster := range clusters {
+	  it := true
+	  cluster.IsTerminal = isTerminal(cluster.Root,
+		  clusters, it)
+  }
+#+end_src
+#+begin_export latex
+Inside \ty{isTerminal} clusters are classified as terminal unless we
+encounter another cluster.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:clu}>>=
+  func isTerminal(v *nwk.Node, clusters map[int]*Cluster,
+	  it bool) bool {
+	  if v == nil {
+		  return it
+	  }
+	  it = isTerminal(v.Child, clusters, it)
+	  it = isTerminal(v.Sib, clusters, it)
+	  if clusters[v.Id] != nil {
+		  it = false
+	  }
+	  return it
+  }
+#+end_src
+#+begin_export latex
+We remove clusters that are too small. We also remove clusters that
+are not terminal, unless the user asked for nested clusters.
+#+end_export
+#+begin_src go <<Filter clusters, Pr. \ref{pr:clu}>>=
+  for k, v := range clusters {
+	  if v.Size < *optS || (!v.IsTerminal && !*optN) {
+		  delete(clusters, k)
+	  }
+  }
+#+end_src
+#+begin_export latex
+We mark clusters in the input tree by appending \ty{c} to their
+labels.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:clu}>>=
+  func markClusters(v *nwk.Node, clusters map[int]*Cluster) {
+	  if v == nil {
+		  return
+	  }
+	  markClusters(v.Child, clusters)
+	  markClusters(v.Sib, clusters)
+	  if clusters[v.Id] != nil {
+		  v.Label += "c"
+	  }
+  }
+#+end_src
+#+begin_export latex
+To sort the clusters, we first store them and then sort them by score
+or by size, depending on what the user asked for.
+#+end_export
+#+begin_src go <<Sort clusters, Pr. \ref{pr:clu}>>=
+  //<<Store clusters, Pr. \ref{pr:clu}>>
+  if *optC {
+	  //<<Sort clusters by score, Pr. \ref{pr:clu}>>
+  } else {
+	  //<<Sort clusters by size, Pr. \ref{pr:clu}>>
+  }
+#+end_src
+#+begin_export latex
+We make a slice of the clusters.
+#+end_export
+#+begin_src go <<Store clusters, Pr. \ref{pr:clu}>>=
+  clusterSlice := make([]*Cluster, 0)
+  for _, cluster := range clusters {
+	  clusterSlice = append(clusterSlice, cluster)
+  }
+#+end_src
+#+begin_export latex
+If we sort the clusters by score, this is our primary key. As scores
+are not integers, we cannot simply return their difference but must
+compare them explicitly instead. Clusters with the same score are
+sorted by size, clusters with the same score \emph{and} size by
+ID. Sorting by score and size is done in descending order.
+#+end_export
+#+begin_src go <<Sort clusters by score, Pr. \ref{pr:clu}>>=
+  slices.SortFunc(clusterSlice, func(a, b *Cluster) int {
+	  if a.Score != b.Score {
+		  //<<Compare scores, Pr. \ref{pr:clu}>>
+
+	  } else if a.Size != b.Size {
+		  return b.Size - a.Size
+	  }
+	  return a.Id - b.Id
+  })
+#+end_src
+#+begin_export latex
+We import \ty{slices}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:clu}>>=
+  "slices"
+#+end_src
+#+begin_export latex
+We compare the scores to sort by them in descending order.
+#+end_export
+#+begin_src go <<Compare scores, Pr. \ref{pr:clu}>>=
+  if a.Score == b.Score {
+	  return 0
+  } else if a.Score < b.Score {
+	  return 1
+  }
+  return -1
+#+end_src
+#+begin_export latex
+If we sort the clusters by size, this is the primary key. Clusters
+with the same size are sorted by score. Clusters with the same size
+\emph{and} score are sorted by ID.
+#+end_export
+#+begin_src go <<Sort clusters by size, Pr. \ref{pr:clu}>>=
+  slices.SortFunc(clusterSlice, func(a, b *Cluster) int {
+	  if a.Size != b.Size {
+		  return b.Size - a.Size
+	  } else if a.Score != b.Score {
+		  //<<Compare scores, Pr. \ref{pr:clu}>>
+	  }
+	  return a.Id - b.Id
+  })
+#+end_src
+#+begin_export latex
+We print clusters in a table that we generate with a tab writer
+directed to the standard output stream. First we print the table
+header, then the body.
+#+end_export
+#+begin_src go <<Print clusters, Pr. \ref{pr:clu}>>=
+  w := tabwriter.NewWriter(os.Stdout, 2, 1, 1, ' ', 0)
+  //<<Print table header, Pr. \ref{pr:clu}>>
+  //<<Print table body, Pr. \ref{pr:clu}>>
+  w.Flush()
+#+end_src
+#+begin_export latex
+We import \ty{tabwriter} and \ty{os}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:clu}>>=
+  "text/tabwriter"
+  "os"
+#+end_src
+#+begin_export latex
+We print the table header only if we found at least one cluster.
+#+end_export
+#+begin_src go <<Print table header, Pr. \ref{pr:clu}>>=
+  if len(clusterSlice) > 0 {
+	  fmt.Fprintf(w, "#Cluster\tParent\tSize\tC\n")
+  }
+#+end_src
+#+begin_export latex
+To print the table body, we iterate over the clusters.
+#+end_export
+#+begin_src go <<Print table body, Pr. \ref{pr:clu}>>=
+  for _, cluster := range clusterSlice {
+	  fmt.Fprintf(w, "%s\t%s\t%d\t%.3g\n",
+		  cluster.Label, cluster.Parent,
+		  cluster.Size, cluster.Score)
+  }
+#+end_src
+#+begin_export latex
+We have finished \ty{clusters}, let's test it.
+
+\subsection*{Testing}
+Our testing code has hooks for imports and the testing logic.
+#+end_export
+#+begin_src go <<clusters_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr. \ref{pr:clu}>>
+  )
+  func TestClusters(t *testing.T) {
+	  //<<Testing, Pr. \ref{pr:clu}>>
+  }
+#+end_src
+#+begin_export latex
+We construct a set of tests and then run each one.
+#+end_export
+#+begin_src go <<Testing, Pr. \ref{pr:clu}>>=
+  var tests []*exec.Cmd
+  //<<Construct tests, Pr. \ref{pr:clu}>>
+  for i, test := range tests {
+	  //<<Run test, Pr. \ref{pr:clu}>>
+  }
+#+end_src
+#+begin_export latex
+We import \ty{exec}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:clu}>>=
+  "os/exec"
+#+end_src
+#+begin_export latex
+\begin{figure}
+  \begin{center}
+    \scalebox{0.6}{\includegraphics{../clusters/test}}
+  \end{center}
+  \caption{Tree used for testing \ty{clusters}.}\label{fig:testCl}
+\end{figure}
+We run all tests on the same tree, \ty{text.nwk}, which is shown in
+Figure~\ref{fig:testCl}. The first test is without options. For the
+remaining tests we go through the options in alphabetical order, sort
+by $C$, \ty{-c}, include mild outliers, \ty{-m}, include nested
+clusters, \ty{-n}, sort by score, \ty{-s}, and print tree, \ty{-t}.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:clu}>>=
+  f := "test.nwk"
+  test := exec.Command("./clusters", f)
+  tests = append(tests, test)
+  //<<Test \ty{-c}, Pr. \ref{pr:clu}>>
+  //<<Test \ty{-m}, Pr. \ref{pr:clu}>>
+  //<<Test \ty{-n}, Pr. \ref{pr:clu}>>
+  //<<Test \ty{-s}, Pr. \ref{pr:clu}>>
+  //<<Test \ty{-t}, Pr. \ref{pr:clu}>>
+#+end_src
+#+begin_export latex
+We test sorting by $C$, \ty{-c}.
+#+end_export
+#+begin_src go <<Test \ty{-c}, Pr. \ref{pr:clu}>>=
+  test = exec.Command("./clusters", "-c", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test inclusion of mild outliers, \ty{-m}.
+#+end_export
+#+begin_src go <<Test \ty{-m}, Pr. \ref{pr:clu}>>=
+  test = exec.Command("./clusters", "-m", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test inclusion of nested clusters, \ty{-n}.
+#+end_export
+#+begin_src go <<Test \ty{-n}, Pr. \ref{pr:clu}>>=
+  test = exec.Command("./clusters", "-n", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test setting the minimum cluster size to 4.
+#+end_export
+#+begin_src go <<Test \ty{-s}, Pr. \ref{pr:clu}>>=
+  test = exec.Command("./clusters", "-s", "4", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test tree printing, \ty{-t}.
+#+end_export
+#+begin_src go <<Test \ty{-t}, Pr. \ref{pr:clu}>>=
+  test = exec.Command("./clusters", "-t", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+When running a test, we compare the results we get with the results we
+want, which are stored in files \ty{r1}.txt, \ty{r2.txt}, and so on.
+#+end_export
+#+begin_src go <<Run test, Pr. \ref{pr:clu}>>=
+  get, err := test.Output()
+  if err != nil {
+	  t.Error(err)
+  }
+  f := "r" + strconv.Itoa(i+1) + ".txt"
+  want, err := os.ReadFile(f)
+  if err != nil {
+	  t.Error(err)
+  }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strconv}, \ty{os}, and \ty{bytes}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:clu}>>=
+  "strconv"
+  "os"
+  "bytes"
+#+end_src

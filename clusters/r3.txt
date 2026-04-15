@@ -1,0 +1,2 @@
+#Cluster Parent Size C
+3011     3010   27   3.14

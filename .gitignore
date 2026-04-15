@@ -3,6 +3,10 @@
 ants/ants
 bin
 climt/climt
+clusters/clusters
+clusters/makeRes.sh
+clusters/phylonium*.nwk
+clusters/sim.sh
 data/*.db
 data/acc.txt
 data/assembly_summary_genbank.txt
@@ -32,6 +36,7 @@ doc/*.out
 doc/*.toc
 doc/ants.tex
 doc/climt.tex
+doc/clusters.tex
 doc/date.txt
 doc/db.ps
 doc/dree.tex

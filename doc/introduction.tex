@@ -41,7 +41,7 @@ where $s(v)$ returns the nodes in the subtree rooted on $v$, and
 $p(v)$ the parent of $v$. This set subtraction is implemented in the
 program \ty{neighbors}.
 
-The Neighbors package consists of the ten programs listed in
+The Neighbors package consists of the eleven programs listed in
 Table~\ref{tab:pro}. Five of these programs are based on the taxonomy,
 four on a phylogeny, and one, \ty{outliers}, on numerical data.
 
@@ -54,13 +54,14 @@ four on a phylogeny, and one, \ty{outliers}, on numerical data.
 1 & \ty{ants} & taxonomy & list ancestors\\
 2 & \ty{climt} & phylogeny & climb tree\\
 3 & \ty{dree} & taxonomy & draw tree\\
-4 & \ty{fintac} & phylogeny & find target clade\\
-5 & \ty{land} & phylogeny & label nodes\\
-6 & \ty{makeNeiDb} & taxonomy & make neighbors database\\
-7 & \ty{neighbors} & taxonomy & find neighbors (and targets)\\
-8 & \ty{outliers} & numbers & find outliers\\
-9 & \ty{pickle} & phylogeny & pick clades\\
-10 & \ty{taxi} & taxonomy & get taxon-ID for taxon name\\\hline
+4 & \ty{clusters} & phylogeny & find clusters in a phylogeny\\
+5 & \ty{fintac} & phylogeny & find target clade\\
+6 & \ty{land} & phylogeny & label nodes\\
+7 & \ty{makeNeiDb} & taxonomy & make neighbors database\\
+8 & \ty{neighbors} & taxonomy & find neighbors (and targets)\\
+9 & \ty{outliers} & numbers & find outliers\\
+10 & \ty{pickle} & phylogeny & pick clades\\
+11 & \ty{taxi} & taxonomy & get taxon-ID for taxon name\\\hline
 \end{tabular}
 \end{center}
 \end{table}
@@ -137,8 +138,9 @@ is \ty{phylonium}~\cite{klo20:phy}.
 The phylogenies of targets and neighbors may comprise hundreds of
 taxa. To help analyze such large phylogenies, Neighbors
 contains \ty{land} for labeling nodes, \ty{pickle} for picking nodes,
-\ty{fintac} for finding the target clade, and \ty{climt} for climbing
-the phylogenetic tree.
+\ty{clusters} for finding clusters of closely related
+taxa, \ty{fintac} for finding the target clade, and \ty{climt} for
+climbing the phylogenetic tree.
 
 Even a clean set of phylogenetic targets might still contain genomes
 that are outliers in some way, for example with respect to their
