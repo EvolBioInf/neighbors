@@ -13,12 +13,10 @@ import (
 )
 
 type Cluster struct {
-	Id            int
-	Label, Parent string
-	Score         float64
-	Size          int
-	IsTerminal    bool
-	Root          *nwk.Node
+	Size       int
+	IsTerminal bool
+	C          float64
+	Id         int
 }
 
 func parse(r io.Reader, args ...interface{}) {
@@ -30,34 +28,74 @@ func parse(r io.Reader, args ...interface{}) {
 	sc := nwk.NewScanner(r)
 	for sc.Scan() {
 		tree := sc.Tree()
+		var nodes []*nwk.Node
 		branchLengths := make(map[int][]float64)
-		traverse(tree, branchLengths)
 		clusters := make(map[int]*Cluster)
-		findCl(tree, branchLengths, optM, clusters)
-		for _, cluster := range clusters {
-			it := true
-			cluster.IsTerminal = isTerminal(cluster.Root,
-				clusters, it)
+		nodes = traverse(tree, nodes)
+		for i, node := range nodes {
+			node.Id = i
 		}
-		for k, v := range clusters {
-			if v.Size < *optS || (!v.IsTerminal && !*optN) {
+		for _, node := range nodes {
+			if node.Parent == nil {
+				continue
+			}
+			bln := branchLengths[node.Id]
+			blp := branchLengths[node.Parent.Id]
+			blp = append(blp, bln...)
+			blp = append(blp, node.Length)
+			branchLengths[node.Parent.Id] = blp
+		}
+		for i, bl := range branchLengths {
+			if bl == nil {
+				continue
+			}
+			if len(bl) > 3 && nodes[i].Parent != nil {
+				q := util.Quartiles(bl)
+				t := q.UpperOuterFence
+				if *optM {
+					t = q.UpperInnerFence
+				}
+				if nodes[i].Length > t {
+					cluster := &Cluster{Id: i}
+					clusters[i] = cluster
+				}
+			}
+		}
+		for _, cluster := range clusters {
+			v := nodes[cluster.Id].Child
+			cluster.Size = size(v, 0)
+			cluster.IsTerminal = isTerminal(v, clusters, true)
+			bl := branchLengths[cluster.Id]
+			q := util.Quartiles(bl)
+			r := q.UpperQuartile - q.LowerQuartile
+			l := nodes[cluster.Id].Length
+			cluster.C = l / r
+		}
+		for k, cluster := range clusters {
+			if cluster.Size < *optS || (!cluster.IsTerminal && !*optN) {
 				delete(clusters, k)
 			}
 		}
-		if *optT {
-			markClusters(tree, clusters)
+		bla := false
+		optB := &bla
+		if *optB {
+			fmt.Println("TODO: print branch lengths")
+		} else if *optT {
+			for _, cluster := range clusters {
+				nodes[cluster.Id].Label += "c"
+			}
 			fmt.Println(tree)
 		} else {
-			clusterSlice := make([]*Cluster, 0)
+			var clusterSlice []*Cluster
 			for _, cluster := range clusters {
 				clusterSlice = append(clusterSlice, cluster)
 			}
 			if *optC {
 				slices.SortFunc(clusterSlice, func(a, b *Cluster) int {
-					if a.Score != b.Score {
-						if a.Score == b.Score {
+					if a.C != b.C {
+						if a.C == b.C {
 							return 0
-						} else if a.Score < b.Score {
+						} else if a.C < b.C {
 							return 1
 						}
 						return -1
@@ -71,10 +109,10 @@ func parse(r io.Reader, args ...interface{}) {
 				slices.SortFunc(clusterSlice, func(a, b *Cluster) int {
 					if a.Size != b.Size {
 						return b.Size - a.Size
-					} else if a.Score != b.Score {
-						if a.Score == b.Score {
+					} else if a.C != b.C {
+						if a.C == b.C {
 							return 0
-						} else if a.Score < b.Score {
+						} else if a.C < b.C {
 							return 1
 						}
 						return -1
@@ -83,63 +121,28 @@ func parse(r io.Reader, args ...interface{}) {
 				})
 			}
 			w := tabwriter.NewWriter(os.Stdout, 2, 1, 1, ' ', 0)
-			if len(clusterSlice) > 0 {
+			if len(clusters) > 0 {
 				fmt.Fprintf(w, "#Cluster\tParent\tSize\tC\n")
 			}
 			for _, cluster := range clusterSlice {
+				label := nodes[cluster.Id].Label
+				parent := nodes[cluster.Id].Parent.Label
 				fmt.Fprintf(w, "%s\t%s\t%d\t%.3g\n",
-					cluster.Label, cluster.Parent,
-					cluster.Size, cluster.Score)
+					label, parent,
+					cluster.Size, cluster.C)
 			}
 			w.Flush()
 		}
 	}
 }
-func traverse(v *nwk.Node, branchLengths map[int][]float64) {
+func traverse(v *nwk.Node, nodes []*nwk.Node) []*nwk.Node {
 	if v == nil {
-		return
+		return nodes
 	}
-	traverse(v.Child, branchLengths)
-	if v.Child != nil {
-		traverse(v.Child.Sib, branchLengths)
-	}
-	if v.Parent != nil {
-		blv := branchLengths[v.Id]
-		blp := branchLengths[v.Parent.Id]
-		blp = append(blp, blv...)
-		blp = append(blp, v.Length)
-		branchLengths[v.Parent.Id] = blp
-	}
-}
-func findCl(v *nwk.Node, branchLengths map[int][]float64,
-	optM *bool, clusters map[int]*Cluster) {
-	if v == nil {
-		return
-	}
-	findCl(v.Child, branchLengths, optM, clusters)
-	findCl(v.Sib, branchLengths, optM, clusters)
-	bl := branchLengths[v.Id]
-	if len(bl) > 3 && v.Parent != nil {
-		q := util.Quartiles(bl)
-		t := q.UpperOuterFence
-		if *optM {
-			t = q.UpperInnerFence
-		}
-		if v.Length > t {
-			cluster := new(Cluster)
-			cluster.Id = v.Id
-			cluster.Label = v.Label
-			if v.Parent != nil {
-				cluster.Parent = v.Parent.Label
-			}
-			cluster.Root = v.Child
-			n := 0
-			cluster.Size = size(cluster.Root, n)
-			r := q.UpperQuartile - q.LowerQuartile
-			cluster.Score = v.Length / r
-			clusters[cluster.Id] = cluster
-		}
-	}
+	nodes = traverse(v.Child, nodes)
+	nodes = traverse(v.Sib, nodes)
+	nodes = append(nodes, v)
+	return nodes
 }
 func size(v *nwk.Node, c int) int {
 	if v == nil {
@@ -163,16 +166,6 @@ func isTerminal(v *nwk.Node, clusters map[int]*Cluster,
 		it = false
 	}
 	return it
-}
-func markClusters(v *nwk.Node, clusters map[int]*Cluster) {
-	if v == nil {
-		return
-	}
-	markClusters(v.Child, clusters)
-	markClusters(v.Sib, clusters)
-	if clusters[v.Id] != nil {
-		v.Label += "c"
-	}
 }
 func main() {
 	util.SetName("clusters")
