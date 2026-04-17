@@ -13,6 +13,8 @@ func TestClusters(t *testing.T) {
 	f := "test.nwk"
 	test := exec.Command("./clusters", f)
 	tests = append(tests, test)
+	test = exec.Command("./clusters", "-b", "3090", f)
+	tests = append(tests, test)
 	test = exec.Command("./clusters", "-c", f)
 	tests = append(tests, test)
 	test = exec.Command("./clusters", "-m", f)

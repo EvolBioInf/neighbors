@@ -22,9 +22,11 @@ parent.
 A ``long'' branch is defined as an extreme outlier, greater than 3
 times the interquartile range of the branch lengths inside $v$. The
 user can also opt for 1.5 times the interquartile range to include
-``mild'' outliers in the output (\ty{-m}). By default, $v$ needs to
-contain at least ten members to qualify as a cluster, but the user can
-adjust the minimum cluster size (\ty{-s}).
+``mild'' outliers in the output (\ty{-m}). To make the outlier
+analysis transparent, the user can opt to print the branch lengths of
+a node identified by its label. By default, $v$ needs to contain at
+least ten members to qualify as a cluster, but the user can adjust the
+minimum cluster size (\ty{-s}).
 
 We call a cluster that does not contain further clusters
 \emph{terminal}. By default, the program \ty{clusters} prints just the
@@ -120,10 +122,11 @@ We import \ty{clui}.
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_export latex
-Apart from the obligatory version, \ty{-v}, we declare the five
+Apart from the obligatory version, \ty{-v}, we declare the six
 options already described in the introduction:
 \begin{enumerate}
 \item \ty{-m} include mild clusters
+\item \ty{-b} print branch lengths of given node
 \item \ty{-n} print nested clusters
 \item \ty{-t} print the input tree with marked clusters
 \item \ty{-s} minimum cluster size
@@ -132,22 +135,61 @@ options already described in the introduction:
 #+end_export
 #+begin_src go <<Declare options, Pr. \ref{pr:clu}>>=
   optV := flag.Bool("v", false, "version")
-  m := "include mild clusters (default extreme)"
-  optM := flag.Bool("m", false, m)
-  m = "print nested clusters (default terminal)"
-  optN := flag.Bool("n", false, m)
-  m = "print tree with marked clusters"
-  optT := flag.Bool("t", false, m)
-  m = "minimum size of cluster"
-  optS := flag.Int("s", 10, m)
-  m = "sort by cluster score, C (default sort by size)"
-  optC := flag.Bool("c", false, m)
+  //<<Declare \ty{-m}, Pr. \ref{pr:clu}>>
+  //<<Declare \ty{-b}, Pr. \ref{pr:clu}>>
+  //<<Declare \ty{-n}, Pr. \ref{pr:clu}>>
+  //<<Declare \ty{-t}, Pr. \ref{pr:clu}>>
+  //<<Declare \ty{-s}, Pr. \ref{pr:clu}>>
+  //<<Declare \ty{-c}, Pr. \ref{pr:clu}>>
 #+end_src
 #+begin_export latex
 We import \ty{flag}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:clu}>>=
   "flag"
+#+end_src
+#+begin_export latex
+We allow the user to include mild outliers.
+#+end_export
+#+begin_src go <<Declare \ty{-m}, Pr. \ref{pr:clu}>>=
+  m := "include mild clusters (default extreme)"
+  optM := flag.Bool("m", false, m)
+#+end_src
+#+begin_export latex
+The user can opt to print the branch lengths of a particular node.
+#+end_export
+#+begin_src go <<Declare \ty{-b}, Pr. \ref{pr:clu}>>=
+  m = "print branch lengths of given node (default clusters)"
+  optB := flag.String("b", "", m)
+#+end_src
+#+begin_export latex
+The user can opt for nested instead of terminal clusters.
+#+end_export
+#+begin_src go <<Declare \ty{-n}, Pr. \ref{pr:clu}>>=
+  m = "nested clusters (default terminal)"
+  optN := flag.Bool("n", false, m)
+#+end_src
+#+begin_export latex
+The user can print the tree with marked clusters instead of the
+clusters themselves.
+#+end_export
+#+begin_src go <<Declare \ty{-t}, Pr. \ref{pr:clu}>>=
+  m = "print tree with marked clusters"
+  optT := flag.Bool("t", false, m)
+#+end_src
+#+begin_export latex
+The user can change the minimum cluster size from default 10.
+#+end_export
+#+begin_src go <<Declare \ty{-s}, Pr. \ref{pr:clu}>>=
+  m = "minimum size of cluster"
+  optS := flag.Int("s", 10, m)
+#+end_src
+#+begin_export latex
+The user can score the clusters by $C$ rather than size.
+#+end_export
+#+begin_src go <<Declare \ty{-c}, Pr. \ref{pr:clu}>>=
+  m = "sort by cluster score, C (default sort by size)"
+  optC := flag.Bool("c", false, m)
 #+end_src
 #+begin_export latex
 We parse the options and print the version as part of the program
@@ -163,11 +205,13 @@ info, if requested to do so.
 The remaining tokens on the command line are interpreted as file
 names. We pass them to the function \ty{ParseFiles}, which applies the
 function \ty{parse} to each one of them. Parse, in turn, takes the
-five main options mild, nested, tree, size, and $C$ as arguments.
+six main options mild, branch lengths, nested, tree, size, and $C$ as
+arguments.
 #+end_export
 #+begin_src go <<Parse input files, Pr. \ref{pr:clu}>>=
   files := flag.Args()
-  clio.ParseFiles(files, parse, optM, optN, optT, optS, optC)
+  clio.ParseFiles(files, parse, optM, optB,
+	  optN, optT, optS, optC)
 #+end_src
 #+begin_export latex
 Inside \ty{parse}, we retrieve the options, analyze each tree, and
@@ -193,15 +237,16 @@ We import \ty{io}, \ty{nwk}, and \ty{fmt}.
   "fmt"
 #+end_src
 #+begin_export latex
-We retrieve the five options we just passed, mild, nested, tree, size,
-and $C$.
+We retrieve the six options we just passed, mild, branches, nested,
+tree, size, and $C$.
 #+end_export
 #+begin_src go <<Retrieve options, Pr. \ref{pr:clu}>>=
   optM := args[0].(*bool)
-  optN := args[1].(*bool)
-  optT := args[2].(*bool)
-  optS := args[3].(*int)
-  optC := args[4].(*bool)
+  optB := args[1].(*string)
+  optN := args[2].(*bool)
+  optT := args[3].(*bool)
+  optS := args[4].(*int)
+  optC := args[5].(*bool)
 #+end_src
 #+begin_export latex
 As already sketched at the beginning of the Implementation, to analyze
@@ -385,9 +430,7 @@ branch lengths of a particular node, or to print the tree with marked
 clusters, or to print the clusters sorted by size or $C$.
 #+end_export
 #+begin_src go <<Print output, Pr. \ref{pr:clu}>>=
-  bla := false
-  optB := &bla
-  if *optB {
+  if *optB != "" {
 	  //<<Print branch lengths, Pr. \ref{pr:clu}>>
   } else if *optT {
 	  //<<Mark clusters, Pr. \ref{pr:clu}>>
@@ -404,10 +447,48 @@ We import \ty{fmt}.
   "fmt"
 #+end_src
 #+begin_export latex
-We print the branch lengths.
+To print the branch lengths, we look up the node that matches the
+label passed. For the branch lengths themselves we create a table of
+two columns, length and type, where type can be either descendant, or
+parent.
 #+end_export
 #+begin_src go <<Print branch lengths, Pr. \ref{pr:clu}>>=
-  fmt.Println("TODO: print branch lengths")
+  w := tabwriter.NewWriter(os.Stdout, 2, 1, 1, ' ', 0)
+  fmt.Fprintf(w, "#Len\tType\n")
+  for i, bl := range branchLengths {
+	  v := nodes[i]
+	  if v.Label == *optB {
+		  //<<Print branch length of parent, Pr. \ref{pr:clu}>>
+		  //<<Print branch lengths descendants, Pr. \ref{pr:clu}>>
+	  }
+  }
+  w.Flush()
+#+end_src
+#+begin_export latex
+We import \ty{tabwriter} and \ty{os}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:clu}>>=
+  "text/tabwriter"
+  "os"
+#+end_src
+#+begin_export latex
+We pare sure the node actually has a parent before printing its
+distance marked by \ty{p}.
+#+end_export
+#+begin_src go <<Print branch length of parent, Pr. \ref{pr:clu}>>=
+  if v.Parent != nil {
+	  pl := v.Parent.Length
+	  fmt.Fprintf(w, "%.3g\tp\n", pl)
+  }
+#+end_src
+#+begin_export latex
+We iterate over the branch lengths of the descendants and mark each
+one \ty{d}.
+#+end_export
+#+begin_src go <<Print branch lengths descendants, Pr. \ref{pr:clu}>>=
+  for _, dl := range(bl) {
+	  fmt.Fprintf(w, "%.3g\td\n", dl)
+  }
 #+end_src
 #+begin_export latex
 We mark clusters in the input tree by appending \ty{c} to their
@@ -502,13 +583,6 @@ header, then the body.
   w.Flush()
 #+end_src
 #+begin_export latex
-We import \ty{tabwriter} and \ty{os}.
-#+end_export
-#+begin_src go <<Imports, Pr. \ref{pr:clu}>>=
-  "text/tabwriter"
-  "os"
-#+end_src
-#+begin_export latex
 We print the table header only if we found at least one cluster.
 #+end_export
 #+begin_src go <<Print table header, Pr. \ref{pr:clu}>>=
@@ -570,19 +644,28 @@ We import \ty{exec}.
 \end{figure}
 We run all tests on the same tree, \ty{text.nwk}, which is shown in
 Figure~\ref{fig:testCl}. The first test is without options. For the
-remaining tests we go through the options in alphabetical order, sort
-by $C$, \ty{-c}, include mild outliers, \ty{-m}, include nested
-clusters, \ty{-n}, sort by score, \ty{-s}, and print tree, \ty{-t}.
+remaining tests we go through the options in alphabetical order, print
+branch lengths for a particular node, \ty{-b}, sort by $C$, include
+mild outliers, \ty{-m}, include nested clusters, \ty{-n}, sort by
+score, \ty{-s}, and print tree, \ty{-t}.
 #+end_export
 #+begin_src go <<Construct tests, Pr. \ref{pr:clu}>>=
   f := "test.nwk"
   test := exec.Command("./clusters", f)
   tests = append(tests, test)
+  //<<Test \ty{-b}, Pr. \ref{pr:clu}>>
   //<<Test \ty{-c}, Pr. \ref{pr:clu}>>
   //<<Test \ty{-m}, Pr. \ref{pr:clu}>>
   //<<Test \ty{-n}, Pr. \ref{pr:clu}>>
   //<<Test \ty{-s}, Pr. \ref{pr:clu}>>
   //<<Test \ty{-t}, Pr. \ref{pr:clu}>>
+#+end_src
+#+begin_export latex
+We test printing of branch lengths for node 3006, \ty{-b}.
+#+end_export
+#+begin_src go <<Test \ty{-b}, Pr. \ref{pr:clu}>>=
+  test = exec.Command("./clusters", "-b", "3090", f)
+  tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We test sorting by $C$, \ty{-c}.

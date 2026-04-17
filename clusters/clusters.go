@@ -21,10 +21,11 @@ type Cluster struct {
 
 func parse(r io.Reader, args ...interface{}) {
 	optM := args[0].(*bool)
-	optN := args[1].(*bool)
-	optT := args[2].(*bool)
-	optS := args[3].(*int)
-	optC := args[4].(*bool)
+	optB := args[1].(*string)
+	optN := args[2].(*bool)
+	optT := args[3].(*bool)
+	optS := args[4].(*int)
+	optC := args[5].(*bool)
 	sc := nwk.NewScanner(r)
 	for sc.Scan() {
 		tree := sc.Tree()
@@ -76,10 +77,22 @@ func parse(r io.Reader, args ...interface{}) {
 				delete(clusters, k)
 			}
 		}
-		bla := false
-		optB := &bla
-		if *optB {
-			fmt.Println("TODO: print branch lengths")
+		if *optB != "" {
+			w := tabwriter.NewWriter(os.Stdout, 2, 1, 1, ' ', 0)
+			fmt.Fprintf(w, "#Len\tType\n")
+			for i, bl := range branchLengths {
+				v := nodes[i]
+				if v.Label == *optB {
+					if v.Parent != nil {
+						pl := v.Parent.Length
+						fmt.Fprintf(w, "%.3g\tp\n", pl)
+					}
+					for _, dl := range bl {
+						fmt.Fprintf(w, "%.3g\td\n", dl)
+					}
+				}
+			}
+			w.Flush()
 		} else if *optT {
 			for _, cluster := range clusters {
 				nodes[cluster.Id].Label += "c"
@@ -177,7 +190,9 @@ func main() {
 	optV := flag.Bool("v", false, "version")
 	m := "include mild clusters (default extreme)"
 	optM := flag.Bool("m", false, m)
-	m = "print nested clusters (default terminal)"
+	m = "print branch lengths of given node (default clusters)"
+	optB := flag.String("b", "", m)
+	m = "nested clusters (default terminal)"
 	optN := flag.Bool("n", false, m)
 	m = "print tree with marked clusters"
 	optT := flag.Bool("t", false, m)
@@ -190,5 +205,6 @@ func main() {
 		util.PrintInfo("clusters")
 	}
 	files := flag.Args()
-	clio.ParseFiles(files, parse, optM, optN, optT, optS, optC)
+	clio.ParseFiles(files, parse, optM, optB,
+		optN, optT, optS, optC)
 }
