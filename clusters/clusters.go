@@ -84,7 +84,7 @@ func parse(r io.Reader, args ...interface{}) {
 				v := nodes[i]
 				if v.Label == *optB {
 					if v.Parent != nil {
-						pl := v.Parent.Length
+						pl := v.Length
 						fmt.Fprintf(w, "%.3g\tp\n", pl)
 					}
 					for _, dl := range bl {
