@@ -73,7 +73,8 @@ func parse(r io.Reader, args ...interface{}) {
 			cluster.C = l / r
 		}
 		for k, cluster := range clusters {
-			if cluster.Size < *optS || (!cluster.IsTerminal && !*optN) {
+			if cluster.Size < *optS ||
+				(!cluster.IsTerminal && !*optN) {
 				delete(clusters, k)
 			}
 		}
