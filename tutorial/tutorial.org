@@ -458,10 +458,34 @@ with prefix \ty{n}.
   midpoint root it with \ty{midRoot}. Both programs are part of the
   biobox\footnote{\ty{https://github.com/evolbioinf/biobox}}. Then we
   label the internal nodes of the phylogeny with \ty{land}, which is
-  part of Neighbors, and save the final tree in \ty{lpn.nwk}.
+  part of Neighbors, and save the tree in \ty{lpn.nwk}.
 #+end_src
 #+begin_src sh <<small.sh>>=
-  nj lpn.dist | midRoot | land > lpn.nwk
+  nj lpn.dist |
+      midRoot |
+      land > lpn.nwk
+#+end_src
+#+begin_export latex
+We list the clusters contained in the tree, as one of them often
+corresponds to the desired target clade. With default options,
+\ty{clusters} detects two clusters in \ty{lpn.nwk}.
+#+end_export
+#+begin_src sh <<small.sh>>=
+  clusters lpn.nwk
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+#Cluster Parent Size C
+16       1      30   8.71
+2        1      15   5.13
+\end{verbatim}
+#+end_export
+#+begin_export latex
+Instead of listing clusters, we can also mark them on the tree.
+#+end_export
+#+begin_src sh <<small.sh>>=
+  clusters -t lpn.nwk > tmp
+  mv tmp lpn.nwk
 #+end_src
 #+begin_src latex
   The tree in \ty{lpn.nwk} is in the popular Newick format for
@@ -484,9 +508,11 @@ with prefix \ty{n}.
       \includegraphics{../tutorial/lpn}
     \end{center}
     \caption{The phylogeny of 45 genomes of \emph{L. pneumophila}
-      highlighting taxonomic targets (\emph{t}), neighbors
-      (\emph{n}), and the three subspecies \emph{pneumophila},
-      \emph{fraseri}, and \emph{pascullei}.}\label{fig:lpn}
+      highlighting taxonomic targets (\emph{t}), neighbors (\emph{n}),
+      and the three subspecies \emph{pneumophila}, \emph{fraseri}, and
+      \emph{pascullei}. There are six clusters of minimum size 6, which
+      are marked with terminal \ty{c}, 16c, 2c, 8c, 18c, 39c, and
+      3c.}\label{fig:lpn}
   \end{figure}
 #+end_src
 #+begin_src sh <<small.sh>>=
@@ -496,9 +522,9 @@ with prefix \ty{n}.
 #+begin_src latex
   In Figure~\ref{fig:lpn} the subspecies are given, but not on the raw
   tree we just plotted with \ty{plotTree}. To find the subspecies, we
-  first of all observe that node 16 contains all targets, so it is
+  first of all observe that node 16c contains all targets, so it is
   presumably \emph{subsp. pneumophila}. To annotate the two remaining
-  clades rooted on node 2, we look for a leaf from one of the two
+  clades rooted on node 2c, we look for a leaf from one of the two
   remaining subspecies, say \emph{fraseri}. However, leaves are labeled
   by file name without any taxon information, which is included in the
   header lines inside the sequence files. We list both the file name and
@@ -529,7 +555,7 @@ with prefix \ty{n}.
   \begin{verbatim}
   # Up   Node               Branch Length   Cumul...
   5      1                  0               0.032798
-  4      2                  0.0095          0.023298
+  4      2c                 0.0095          0.023298
   3      8                  0.0165          0.006798
   2      9                  0.000348        0.00645
   1      10                 0.00354         0.00291
@@ -564,13 +590,49 @@ with prefix \ty{n}.
 	  head -n 1 all/$a
       done
 #+end_src
+#+begin_export latex
+You might be wondering why nodes 8 and 3 were not identified as
+clusters. By default, the minimum cluster size is 10. If we lower that
+to 5, nodes 8 and 3 are included in the list of clusters.
+#+end_export
+#+begin_src sh <<small.sh>>=
+clusters -s 5 lpn.nwk
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+#Cluster Parent Size C
+8        2c     9    8.49
+39       36     7    119
+3        2c     6    301
+19       18     5    5.46
+\end{verbatim}
+#+end_export
+#+begin_export latex
+However, now 16c and 2c are missing from the list of clusters. This is
+because by default \ty{clusters} only prints \emph{terminal} clusters,
+that is clusters that don't contain other clusters. If we request
+nested clusters, 16c and 2c reappear in the list of clusters.
+#+end_export
+#+begin_src sh <<small.sh>>=
+  clusters -s 5 -n lpn.nwk
+#+end_src
 #+begin_src latex
-  We can see in Figure~\ref{fig:lpn} that the target clade, node 16, has
+  \begin{verbatim}
+  #Cluster Parent Size C
+  16c      1      30   8.71
+  2c       1      15   5.13
+  8        2c     9    8.49
+  18       17     8    12.4
+  39       36     7    119
+  3        2c     6    301
+  19       18     5    5.46
+  \end{verbatim}
+  We can see in Figure~\ref{fig:lpn} that the target clade, node 16c, has
   a number of taxonomic neighbors sprinkled in. We can count these seven
   taxonomic neighbors using the program \ty{pickle} (Neighbors).
 #+end_src
 #+begin_src sh <<small.sh>>=
-  pickle 16 lpn.nwk |
+  pickle 16c lpn.nwk |
       grep -c '^n'
 #+end_src
 #+begin_export latex
@@ -590,16 +652,19 @@ eye. However, in densely sequenced taxa the number of targets and
 neighbors is often so large as to render the resulting tree
 illegible. In such a situation we can still find the target clade
 using the program \ty{fintac} (Neighbors). As expected, it picks clade
-16 from our example tree, and reports that this clade contains all 23
+16c from our example tree, and reports that this clade contains all 23
 taxonomic targets and the 7 taxonomic neighbors we just counted
 directly. According to equation~(\ref{eq:spl}), this ratio of targets
 and neighbors leads to a split of
 \[
 s(v)=\frac{23+22-7}{45}\times 100\approx 84\,\%.
 \]
-The parent of node 16 is node 1, the root. The branch connecting node
-16 to the root has length 0.025, one of the longer branches in
-Figure~\ref{fig:lpn}.
+The parent of node 16c is node 1, the root and the two are connected
+by a long branch, as is characteristic of a cluster
+(Figure~\ref{fig:lpn}). However, Sometimes \ty{fintac} identifies a
+node that doesn't contain all known targets and isn't a cluster. In a
+situation like that it might be helpful to use \ty{climt} to climb
+from the node identified by \ty{fintac} to the nearest cluster.
 #+end_export
 #+begin_src sh <<small.sh>>=
   fintac lpn.nwk
@@ -607,19 +672,19 @@ Figure~\ref{fig:lpn}.
 #+begin_src latex
   \begin{verbatim}
   #Clade  Targets  Neighbors  Split (%)  Parent  Dist(Parent)
-  16      23       7          84.44      1       0.0246
+  16c     23       7          84.44      1       0.0246
   \end{verbatim}
 #+end_src
 #+begin_src latex
   We begin our search for markers by splitting our genomes into targets,
-  i. e. clade 16, and neighbors, the rest. To separate the targets, we
+  i. e. clade 16c, and neighbors, the rest. To separate the targets, we
   make a directory, \ty{targets}. Then we use \ty{pickle} in default
   mode to list the taxa in the target clade. For each genome we create a
   symbolic link to the original data.
 #+end_src
 #+begin_src sh <<small.sh>>=
   mkdir targets
-  pickle 16 lpn.nwk |
+  pickle 16c lpn.nwk |
       grep -v '^#' |
       while read a; do
 	  ln -s $(pwd)/all/$a targets/$a
@@ -780,10 +845,11 @@ Figure~\ref{fig:lpn}.
 #+end_src
 #+begin_src latex
   We convert the distances into a neighbor-joining tree, midpoint root
-  it, and label its nodes. Then we saved the tree in file \ty{lpn.nwk}.
+  it, label its nodes, and mark its clusters. Then we save the tree
+  in file \ty{lpn.nwk}.
 #+end_src
 #+begin_src sh <<large.sh>>=
-  nj lpn.dist | midRoot | land > lpn.nwk
+  nj lpn.dist | midRoot | land | clusters -t > lpn.nwk
 #+end_src
 #+begin_src latex
   In our tree the targets should be rooted on the node that maximizes
@@ -794,7 +860,7 @@ Figure~\ref{fig:lpn}.
   mark and ignoring the messages that warn about taxa that are neither
   target nor neighbor. This returns the same 84\,\% split as before,
   with an almost identical branch length to the parent, 0.025. This is
-  reassuring. Our target clade in the large tree is labeled 25.
+  reassuring. Our target clade in the large tree is cluster 25c.
 #+end_src
 #+begin_src sh <<large.sh>>=
   fintac -n "^n" lpn.nwk
@@ -802,13 +868,13 @@ Figure~\ref{fig:lpn}.
 #+begin_src latex
   \begin{verbatim}
   #Clade  Targets  Neighbors  Split (%)  Parent  Dist(Parent)
-  25      23       7          84.44      1       0.0247
+  25c     23       7          84.44      1       0.0247
   \end{verbatim}
   Sprinkled among the taxonomic targets and neighbors are unknowns. To
   find out how many, we count the 129 unknowns among the targets.
 #+end_src
 #+begin_src sh <<large.sh>>=
-  pickle 25 lpn.nwk |
+  pickle 25c lpn.nwk |
       grep -c '^u'
 #+end_src
 #+begin_src latex
@@ -816,16 +882,16 @@ Figure~\ref{fig:lpn}.
   targets, the neighbors.
 #+end_src
 #+begin_src sh <<large.sh>>=
-  pickle -c 25 lpn.nwk |
+  pickle -c 25c lpn.nwk |
       grep -c '^u'
 #+end_src
 #+begin_export latex
 So we create a directory, \ty{targets}, and link the 129 target
-genomes in clade 25.
+genomes in clade 25c.
 #+end_export
 #+begin_src sh <<large.sh>>=
   mkdir targets
-  pickle 25 lpn.nwk |
+  pickle 25c lpn.nwk |
       grep -v '^#' |
       while read a; do
 	  ln -s $(pwd)/all/$a targets/$a
@@ -833,11 +899,11 @@ genomes in clade 25.
 #+end_src
 #+begin_src latex
   We do the same with the neighbors, which are all the taxa outside
-  of node 25.
+  of node 25c.
 #+end_src
 #+begin_src sh <<large.sh>>=
   mkdir neighbors
-  pickle -c 25 lpn.nwk |
+  pickle -c 25c lpn.nwk |
       grep -v '^#' |
       while read a; do
 	  ln -s $(pwd)/all/$a neighbors/$a

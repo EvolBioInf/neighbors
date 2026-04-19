@@ -34,7 +34,12 @@ do
     mv $a all/n$b
 done
 phylonium all/* > lpn.dist
-nj lpn.dist | midRoot | land > lpn.nwk
+nj lpn.dist |
+    midRoot |
+    land > lpn.nwk
+clusters lpn.nwk
+clusters -t lpn.nwk > tmp
+mv tmp lpn.nwk
 sed -E 's/([nt])[^f]*fna/\1/g' lpn.nwk |
     plotTree
 head -n 1 all/*.fna |
@@ -51,11 +56,13 @@ pickle 3 lpn.nwk |
     while read a; do
           head -n 1 all/$a
     done
-pickle 16 lpn.nwk |
+clusters -s 5 lpn.nwk
+clusters -s 5 -n lpn.nwk
+pickle 16c lpn.nwk |
     grep -c '^n'
 fintac lpn.nwk
 mkdir targets
-pickle 16 lpn.nwk |
+pickle 16c lpn.nwk |
     grep -v '^#' |
     while read a; do
           ln -s $(pwd)/all/$a targets/$a

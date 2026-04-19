@@ -25,20 +25,20 @@ do
 done
 ls all | wc -l
 phylonium all/*.fna > lpn.dist
-nj lpn.dist | midRoot | land > lpn.nwk
+nj lpn.dist | midRoot | land | clusters -t > lpn.nwk
 fintac -n "^n" lpn.nwk
-pickle 25 lpn.nwk |
+pickle 25c lpn.nwk |
     grep -c '^u'
-pickle -c 25 lpn.nwk |
+pickle -c 25c lpn.nwk |
     grep -c '^u'
 mkdir targets
-pickle 25 lpn.nwk |
+pickle 25c lpn.nwk |
     grep -v '^#' |
     while read a; do
           ln -s $(pwd)/all/$a targets/$a
     done
 mkdir neighbors
-pickle -c 25 lpn.nwk |
+pickle -c 25c lpn.nwk |
     grep -v '^#' |
     while read a; do
           ln -s $(pwd)/all/$a neighbors/$a
