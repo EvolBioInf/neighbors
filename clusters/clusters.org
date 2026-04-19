@@ -280,10 +280,13 @@ As already sketched at the beginning of the Implementation, to analyze
 a given tree, we firsts store its nodes in a slice of nodes using a
 post order traversal. Then we store the branch lengths in a map of
 slices. Based on the branch lengths, we detect the clusters. Having
-detected the nodes that are clusters, we characterize each cluster
-according to size, score, and whether or not it is terminal, as
-described in the Introduction. Then we filter the clusters according
-to the user's requests, before we print the output.
+detected the nodes that are clusters, we calculate their size and
+score. Clusters smaller than the minimum size get removed, and from
+the remaining clusters we remove those that are not terminal, unless
+the user opted for nested clusters. Note that it is important we
+remove the small clusters \emph{before} we determine nestedness,
+otherwise terminal clusters that contain a small cluster are
+inadvertently excluded from the output.
 #+end_export
 #+begin_src go <<Analyze tree, Pr. \ref{pr:clu}>>=
   var nodes []*nwk.Node
@@ -292,8 +295,11 @@ to the user's requests, before we print the output.
   //<<Store nodes, Pr. \ref{pr:clu}>>
   //<<Store branch lengths, Pr. \ref{pr:clu}>>
   //<<Detect clusters, Pr. \ref{pr:clu}>>
-  //<<Characterize clusters, Pr. \ref{pr:clu}>>
-  //<<Filter clusters, Pr. \ref{pr:clu}>>
+  //<<Calculate clusters' size and $C$, Pr. \ref{pr:clu}>>
+  //<<Remove small clusters, Pr. \ref{pr:clu}>>
+  if !*optN {
+	  //<<Remove non-terminal clusters, Pr. \ref{pr:clu}>>
+  }
 #+end_src
 #+begin_export latex
 We import \ty{nwk}.
@@ -381,19 +387,20 @@ ID.
   }
 #+end_src
 #+begin_export latex
-Clusters are characterized by their size, whether or not they are
-terminal, and $C$. For determining a node's size and whether or not it
-is terminal, we need to traverse the tree rooted on the current
-node. This tree traversal is packaged in calls to recursive
-functions. As the third and last characteristic of the current node we
-calculate $C$.
+We iterate over the clusters and for a given node, $v$, calculate its
+size by calling the recursive function \ty{size} on the tree rooted on
+$v$. Then we calculate $C$ as the ratio of the parental branch length
+and the interquartile range, as defined in equation~(\ref{eq:c}).
 #+end_export
-#+begin_src go <<Characterize clusters, Pr. \ref{pr:clu}>>=
+#+begin_src go <<Calculate clusters' size and $C$, Pr. \ref{pr:clu}>>=
   for _, cluster := range clusters {
 	  v := nodes[cluster.Id].Child
 	  cluster.Size = size(v, 0)
-	  cluster.IsTerminal = isTerminal(v, clusters, true)
-	  //<<Calculate $C$, Pr. \ref{pr:clu}>>
+	  bl := branchLengths[cluster.Id]
+	  q := util.Quartiles(bl)
+	  r := q.UpperQuartile - q.LowerQuartile
+	  l := nodes[cluster.Id].Length
+	  cluster.C = l / r
   }
 #+end_src
 #+begin_export latex
@@ -414,6 +421,30 @@ incoming node.
   }
 #+end_src
 #+begin_export latex
+We remove the clusters that are smaller than the threshold size.
+#+end_export
+#+begin_src go <<Remove small clusters, Pr. \ref{pr:clu}>>=
+  for k, cluster := range clusters {
+	  if cluster.Size < *optS {
+		  delete(clusters, k)
+	  }
+  }
+#+end_src
+#+begin_export latex
+We determine whether or not a cluster $v$ is terminal by calling the
+recursive function \ty{isTerminal} on the tree rooted on $v$. If it
+isn't terminal, we remove it.
+#+end_export
+#+begin_src go <<Remove non-terminal clusters, Pr. \ref{pr:clu}>>=
+  for k, cluster := range clusters {
+	  v := nodes[cluster.Id].Child
+	  cluster.IsTerminal = isTerminal(v, clusters, true)
+	  if !cluster.IsTerminal {
+		  delete(clusters, k)
+	  }
+  }
+#+end_src
+#+begin_export latex
 Inside \ty{isTerminal} clusters are classified as terminal unless we
 encounter another cluster.
 #+end_export
@@ -429,30 +460,6 @@ encounter another cluster.
 		  it = false
 	  }
 	  return it
-  }
-#+end_src
-#+begin_export latex
-We calculate $C$ as the ratio of the parental branch length and the
-interquartile range, as defined in equation~(\ref{eq:c}).
-#+end_export
-#+begin_src go <<Calculate $C$, Pr. \ref{pr:clu}>>=
-  bl := branchLengths[cluster.Id]
-  q := util.Quartiles(bl)
-  r := q.UpperQuartile - q.LowerQuartile
-  l := nodes[cluster.Id].Length
-  cluster.C = l / r
-#+end_src
-#+begin_export latex
-When filtering the clusters, we remove clusters that are too small. We
-also remove clusters that are not terminal, unless the user asked for
-nested clusters.
-#+end_export
-#+begin_src go <<Filter clusters, Pr. \ref{pr:clu}>>=
-  for k, cluster := range clusters {
-	  if cluster.Size < *optS ||
-		  (!cluster.IsTerminal && !*optN) {
-		  delete(clusters, k)
-	  }
   }
 #+end_src
 #+begin_export latex

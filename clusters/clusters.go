@@ -65,7 +65,6 @@ func parse(r io.Reader, args ...interface{}) {
 		for _, cluster := range clusters {
 			v := nodes[cluster.Id].Child
 			cluster.Size = size(v, 0)
-			cluster.IsTerminal = isTerminal(v, clusters, true)
 			bl := branchLengths[cluster.Id]
 			q := util.Quartiles(bl)
 			r := q.UpperQuartile - q.LowerQuartile
@@ -73,9 +72,17 @@ func parse(r io.Reader, args ...interface{}) {
 			cluster.C = l / r
 		}
 		for k, cluster := range clusters {
-			if cluster.Size < *optS ||
-				(!cluster.IsTerminal && !*optN) {
+			if cluster.Size < *optS {
 				delete(clusters, k)
+			}
+		}
+		if !*optN {
+			for k, cluster := range clusters {
+				v := nodes[cluster.Id].Child
+				cluster.IsTerminal = isTerminal(v, clusters, true)
+				if !cluster.IsTerminal {
+					delete(clusters, k)
+				}
 			}
 		}
 		if *optB != "" {
