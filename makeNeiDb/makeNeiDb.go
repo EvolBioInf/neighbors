@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	util.SetName("makeNeiDb")
 	var optG = flag.String("g", "assembly_summary_genbank.txt",
 		"genbank assemblies")
 	var optR = flag.String("r", "assembly_summary_refseq.txt",

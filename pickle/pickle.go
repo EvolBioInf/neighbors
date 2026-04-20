@@ -93,6 +93,7 @@ func listLeaves(v *nwk.Node) {
 	listLeaves(v.Sib)
 }
 func main() {
+	util.SetName("pickle")
 	u := "pickle <clade1,clade2...> [option]... [foo.nwk]..."
 	p := "Pick clades in Newick trees."
 	e := "pickle 3,5 foo.nwk"

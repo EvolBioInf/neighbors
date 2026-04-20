@@ -17,15 +17,22 @@
   }
 #+end_src
 #+begin_src latex
-  \epr
-  In the main function, we declare the options, set the usage, parse the
-  options, and construct the database.
+  \epr In the main function, we declare the name of \ty{makeNeiDb} and
+  its options, set the usage, parse the options, and construct the
+  database.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:db}>>=
+  util.SetName("makeNeiDb")
   //<<Declare options, Pr. \ref{pr:db}>>
   //<<Set usage, Pr. \ref{pr:db}>>
   //<<Parse options, Pr. \ref{pr:db}>>
   //<<Construct database, Pr. \ref{pr:db}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:db}>>=
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   The program takes as input two files of genome information and four
@@ -82,12 +89,6 @@
   if *optV {
 	  util.PrintInfo("makeNeiDb")
   }
-#+end_src
-#+begin_src latex
-  We import \ty{util}.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:db}>>=
-  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   The database construction is delegated to \ty{NewTaxonomyDB}.

@@ -58,17 +58,24 @@
   }
 #+end_src
 #+begin_src latex
-  \epr
-  In the main function we set the usage, declare the options, and parse
-  them. Then we get the subtree we're after, annotate it, and print it.
+  \epr In the main function we set the name of \ty{dree} and its usage,
+  declare the options, and parse them. Then we get the subtree we're
+  after, annotate it, and print it.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:dr}>>=
+  util.SetName("dree")
   //<<Set usage, Pr. \ref{pr:dr}>>
   //<<Declare options, Pr. \ref{pr:dr}>>
   //<<Parse options, Pr. \ref{pr:dr}>>
   //<<Get subtree, Pr. \ref{pr:dr}>>
   //<<Annotate subtree, Pr. \ref{pr:dr}>>
   //<<Draw subtree, Pr. \ref{pr:dr}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
@@ -105,11 +112,10 @@
   optLL := flag.String("L", "", util.LevelMsg())
 #+end_src
 #+begin_src latex
-  We import \ty{flag} and \ty{util}.
+  We import \ty{flag}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "flag"
-  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   We parse the options and respond to the version option, \ty{-v}, and

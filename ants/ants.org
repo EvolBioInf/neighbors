@@ -20,16 +20,23 @@
   }
 #+end_src
 #+begin_src latex
-  \epr
-  In the main function we set the usage, declare the options, parse the
-  options, get the ancestors, and print them.
+  \epr In the main function we set the program name and the usage,
+  declare the options, parse the options, get the ancestors, and print
+  them.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:ant}>>=
+  util.SetName("ants")
   //<<Set usage, Pr. \ref{pr:ant}>>
   //<<Declare options, Pr. \ref{pr:ant}>>
   //<<Parse options, Pr. \ref{pr:ant}>>
   //<<Get ancestors, Pr. \ref{pr:ant}>>
   //<<Print ancestors, Pr. \ref{pr:ant}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:ant}>>=
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
@@ -76,10 +83,9 @@
   db := args[1]
 #+end_src
 #+begin_src latex
-  We import \ty{util}, \ty{strconv}, and \ty{log}.
+  We import \ty{strconv} and \ty{log}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:ant}>>=
-  "github.com/evolbioinf/neighbors/util"
   "strconv"
   "log"
 #+end_src

@@ -21,14 +21,22 @@
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function of \ty{land} we set the usage, declare the
-  options, parse the options, and parse the input files.
+  \epr In the main function of \ty{land} we set the name of \ty{land}
+  and its usage, declare the options, parse the options, and parse the
+  input files.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:lan}>>=
+  util.SetName("land")
   //<<Set usage, Pr. \ref{pr:lan}>>
   //<<Declare options, Pr. \ref{pr:lan}>>
   //<<Parse options, Pr. \ref{pr:lan}>>
   //<<Parse input files, Pr. \ref{pr:lan}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:lan}>>=
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
@@ -71,12 +79,6 @@
   if *optV {
 	  util.PrintInfo("land")
   }
-#+end_src
-#+begin_src latex
-  We import \ty{util}.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:lan}>>=
-  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   The remaining tokens on the command line are interpreted as the names

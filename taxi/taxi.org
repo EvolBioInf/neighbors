@@ -46,16 +46,23 @@
   }
 #+end_src
 #+begin_src latex
-  \epr
-  In the \ty{main} function we set the usage, declare the options, parse
-  the options, get the taxon-IDs, and print them.
+  \epr In the \ty{main} function we set the name of \ty{taxi} and its
+  usage, declare the options, parse the options, get the taxon-IDs, and
+  print them.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:tax}>>=
+  util.SetName("taxi")
   //<<Set usage, Pr. \ref{pr:tax}>>
   //<<Declare options, Pr. \ref{pr:tax}>>
   //<<Parse options, Pr. \ref{pr:tax}>>
   //<<Get taxon-IDs, Pr. \ref{pr:tax}>>
   //<<Print taxon-IDs, Pr. \ref{pr:tax}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   The usage consists of three parts: The actual usage message, an
@@ -113,10 +120,9 @@
   }
 #+end_src
 #+begin_src latex
-  We import \ty{util} and \ty{strings}.
+  We import \ty{strings}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
-  "github.com/evolbioinf/neighbors/util"
   "strings"
 #+end_src
 #+begin_src latex

@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	util.SetName("taxi")
 	u := "taxi [option] <scientific-name> <db>"
 	p := "Take user from scientific name to taxon-ID."
 	e := "taxi \"homo sapiens\" neidb"

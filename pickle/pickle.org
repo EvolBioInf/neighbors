@@ -22,14 +22,22 @@
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function we set the usage, declare the options, parse
-  the options, and parse the input files.
+  \epr In the main function we set the name of \ty{pickle} and its
+  usage, declare the options, parse the options, and parse the input
+  files.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:pic}>>=
+  util.SetName("pickle")
   //<<Set usage, Pr. \ref{pr:pic}>>
   //<<Declare options, Pr. \ref{pr:pic}>>
   //<<Parse options, Pr. \ref{pr:pic}>>
   //<<Parse input files, Pr. \ref{pr:pic}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:pic}>>=
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   The usage consists of three parts, the usage message proper, an
@@ -82,10 +90,9 @@
   labels := strings.Split(args[0],",")
 #+end_src
 #+begin_src latex
-  We import \ty{util}, \ty{fmt}, \ty{os}, and \ty{strings}.
+  We import \ty{fmt}, \ty{os}, and \ty{strings}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:pic}>>=
-  "github.com/evolbioinf/neighbors/util"
   "fmt"
   "os"
   "strings"

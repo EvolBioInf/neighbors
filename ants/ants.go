@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	util.SetName("ants")
 	u := "ants [option] <taxon-ID> <db>"
 	p := "Get a taxon's ancestors."
 	e := "ants 9606 neidb"
