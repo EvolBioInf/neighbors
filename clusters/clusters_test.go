@@ -19,7 +19,7 @@ func TestClusters(t *testing.T) {
 	tests = append(tests, test)
 	test = exec.Command("./clusters", "-m", f)
 	tests = append(tests, test)
-	test = exec.Command("./clusters", "-n", f)
+	test = exec.Command("./clusters", "-T", f)
 	tests = append(tests, test)
 	test = exec.Command("./clusters", "-s", "4", f)
 	tests = append(tests, test)

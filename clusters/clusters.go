@@ -22,7 +22,7 @@ type Cluster struct {
 func parse(r io.Reader, args ...interface{}) {
 	optM := args[0].(*bool)
 	optB := args[1].(*string)
-	optN := args[2].(*bool)
+	optTT := args[2].(*bool)
 	optT := args[3].(*bool)
 	optS := args[4].(*int)
 	optC := args[5].(*bool)
@@ -76,7 +76,7 @@ func parse(r io.Reader, args ...interface{}) {
 				delete(clusters, k)
 			}
 		}
-		if !*optN {
+		if *optTT {
 			for k, cluster := range clusters {
 				v := nodes[cluster.Id].Child
 				cluster.IsTerminal = isTerminal(v, clusters, true)
@@ -86,7 +86,7 @@ func parse(r io.Reader, args ...interface{}) {
 			}
 		}
 		if *optB != "" {
-			w := tabwriter.NewWriter(os.Stdout, 2, 1, 1, ' ', 0)
+			w := tabwriter.NewWriter(os.Stdout, 2, 1, 2, ' ', 0)
 			fmt.Fprintf(w, "#Len\tType\n")
 			for i, bl := range branchLengths {
 				v := nodes[i]
@@ -141,7 +141,7 @@ func parse(r io.Reader, args ...interface{}) {
 					return a.Id - b.Id
 				})
 			}
-			w := tabwriter.NewWriter(os.Stdout, 2, 1, 1, ' ', 0)
+			w := tabwriter.NewWriter(os.Stdout, 2, 1, 2, ' ', 0)
 			if len(clusters) > 0 {
 				fmt.Fprintf(w, "#Cluster\tParent\tSize\tC\n")
 			}
@@ -193,20 +193,20 @@ func main() {
 	u := "clusters [option]... [foo.nwk]..."
 	p := "Find nodes with long parental " +
 		"branches in Newick trees."
-	e := "clusters -n myTree.nwk"
+	e := "clusters -t myTree.nwk"
 	clio.Usage(u, p, e)
 	optV := flag.Bool("v", false, "version")
 	m := "include mild clusters (default extreme)"
 	optM := flag.Bool("m", false, m)
 	m = "print branch lengths of given node (default clusters)"
 	optB := flag.String("b", "", m)
-	m = "nested clusters (default terminal)"
-	optN := flag.Bool("n", false, m)
+	m = "terminal clusters only"
+	optTT := flag.Bool("T", false, m)
 	m = "print tree with marked clusters"
 	optT := flag.Bool("t", false, m)
 	m = "minimum size of cluster"
 	optS := flag.Int("s", 10, m)
-	m = "sort by cluster score, C (default sort by size)"
+	m = "sort by cluster score, C (default size)"
 	optC := flag.Bool("c", false, m)
 	flag.Parse()
 	if *optV {
@@ -214,5 +214,5 @@ func main() {
 	}
 	files := flag.Args()
 	clio.ParseFiles(files, parse, optM, optB,
-		optN, optT, optS, optC)
+		optTT, optT, optS, optC)
 }
