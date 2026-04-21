@@ -105,7 +105,7 @@ func parse(r io.Reader, args ...interface{}) {
 			for _, cluster := range clusters {
 				label := nodes[cluster.Id].Label
 				l := len(label)
-				if label[l-1:l] == "c" {
+				if l > 0 && label[l-1:l] == "c" {
 					continue
 				}
 				nodes[cluster.Id].Label += "c"
