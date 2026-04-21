@@ -19,11 +19,11 @@ func TestClusters(t *testing.T) {
 	tests = append(tests, test)
 	test = exec.Command("./clusters", "-m", f)
 	tests = append(tests, test)
-	test = exec.Command("./clusters", "-T", f)
-	tests = append(tests, test)
 	test = exec.Command("./clusters", "-s", "4", f)
 	tests = append(tests, test)
 	test = exec.Command("./clusters", "-t", f)
+	tests = append(tests, test)
+	test = exec.Command("./clusters", "-T", f)
 	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()
@@ -36,7 +36,7 @@ func TestClusters(t *testing.T) {
 			t.Error(err)
 		}
 		if !bytes.Equal(get, want) {
-			t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+			t.Errorf("%s - get:\n%s\nwant:\n%s\n", f, get, want)
 		}
 	}
 }

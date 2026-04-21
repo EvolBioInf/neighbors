@@ -527,21 +527,21 @@ We import \ty{tabwriter} and \ty{os}.
 #+end_src
 #+begin_export latex
 We make sure the node actually has a parent before printing its
-distance marked by the single character \ty{p}.
+distance marked by \ty{par}.
 #+end_export
 #+begin_src go <<Print parent branch length, Pr. \ref{pr:clu}>>=
   if v.Parent != nil {
 	  pl := v.Length
-	  fmt.Fprintf(w, "%.3g\tp\n", pl)
+	  fmt.Fprintf(w, "%.3g\tpar\n", pl)
   }
 #+end_src
 #+begin_export latex
 We iterate over the branch lengths of the descendants and mark each
-one \ty{d}.
+one \ty{des}.
 #+end_export
 #+begin_src go <<Print descendants branch lengths, Pr. \ref{pr:clu}>>=
   for _, dl := range(bl) {
-	  fmt.Fprintf(w, "%.3g\td\n", dl)
+	  fmt.Fprintf(w, "%.3g\tdes\n", dl)
   }
 #+end_src
 #+begin_export latex
@@ -773,7 +773,7 @@ on. If we don't get what we want, we throw an error.
 	  t.Error(err)
   }
   if !bytes.Equal(get, want) {
-	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+	  t.Errorf("%s - get:\n%s\nwant:\n%s\n", f, get, want)
   }
 #+end_src
 #+begin_export latex

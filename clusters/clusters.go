@@ -93,10 +93,10 @@ func parse(r io.Reader, args ...interface{}) {
 				if v.Label == *optB {
 					if v.Parent != nil {
 						pl := v.Length
-						fmt.Fprintf(w, "%.3g\tp\n", pl)
+						fmt.Fprintf(w, "%.3g\tpar\n", pl)
 					}
 					for _, dl := range bl {
-						fmt.Fprintf(w, "%.3g\td\n", dl)
+						fmt.Fprintf(w, "%.3g\tdes\n", dl)
 					}
 				}
 			}
