@@ -12,8 +12,7 @@ neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2) db.ps
 	bibtex neighborsDoc
 	latex neighborsDoc.tex
 	latex neighborsDoc.tex
-	dvips neighborsDoc -o -q
-	ps2pdf -dALLOWPSTRANSPARENCY neighborsDoc.ps
+	dvipdf -dALLOWPSTRANSPARENCY neighborsDoc
 publish: neighborsDoc.pdf
 	if [ -d ~/WinHome/ownCloud/ ]; then \
 		cp neighborsDoc.pdf ~/WinHome/ownCloud/docs/; \
