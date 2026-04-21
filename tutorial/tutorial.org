@@ -1,52 +1,42 @@
 #+begin_src latex
   \section*{Introduction}
   The Neighbors package provides tools for finding the target and
-  neighbor genomes used to identify regions that are ubiquitous in the
-  targets and absent from the neighbors. These target regions are good
-  starting material for constructing diagnostic markers. In this
-  tutorial I demonstrate the application of most of the ten programs in
-  the Neighbors package listed in Table~\ref{tab:pro}. We begin by
-  constructing a local relational database from the taxonomy and genome
-  data supplied by the NCBI using the program \ty{makeNeiDb}. Then we
-  query the database with \ty{taxid} to find the taxon-ID for our target
-  organism, \emph{Leginoella pneumophila}, a bacterial pathogen that
-  causes pneumonia in humans. The programs \ty{ants} and \ty{dree} allow
-  us to explore the taxonomic context of our target organism. Based on
-  the target taxon-ID, we carry out the search for target and neighbor
-  genomes using \ty{neighbors}.
+  neighbor genomes used to identify putative genetic markers. These are
+  regions that are ubiquitous in the targets and absent from the
+  neighbors. Such target regions make good starting material for
+  constructing production diagnostic markers. In this tutorial I
+  demonstrate the application of most of the eleven programs in the
+  Neighbors package listed in the Introduction in Table~\ref{tab:pro}.
+
+  We begin by constructing a local relational database from the taxonomy
+  and genome data supplied by the NCBI using the program
+  \ty{makeNeiDb}. Then we query the database with \ty{taxid} to find the
+  taxon-ID for our target organism, \emph{Leginoella pneumophila}, a
+  bacterial pathogen that causes pneumonia in humans. The programs
+  \ty{ants} and \ty{dree} allow us to explore the taxonomic context of
+  our target organism. Based on the target taxon-ID, we carry out the
+  search for target and neighbor genomes using \ty{neighbors}.
 
   Any genomes suggested by \ty{neighbors} are best subjected to
   phylogeny reconstruction before we extract marker candidates from
   them. The prerequisite phylogeny reconstruction is done with
   \ty{phylonium}\footnote{\ty{https://github.com/evolbioinf/phylonium}}. The
-  resulting tree can be very large and its analysis is supported by four
+  resulting tree can be very large and its analysis is supported by five
   additional programs from the Neighbors package, \ty{land} for labeling
-  the nodes, \ty{pickle} for picking a particular node, \ty{fintac} for
-  finding the target clade, and \ty{climt} for climbing the phylogeny
-  from a given node. Once we have settled on the target and neighbor
-  genomes, markers are extracted from them with
+  the nodes, \ty{pickle} for picking a particular node, \ty{clusters}
+  for identifying clusters, \ty{fintac} for finding the target clade,
+  and \ty{climt} for climbing the phylogeny from a given node. Once we
+  have settled on the target and neighbor genomes, markers are extracted
+  from them with
   \ty{fur}\footnote{\ty{https://github.com/evolbioinf/fur}}.
 
-  I occasionally cite run times to give readers an idea of how long a
-  step may take. I made these measurements on my run-of-the-mill laptop
-  with 16 12th Gen Intel i7 CPUs and 32\,MB memory running WSL under
-  Windows11.
+  I occasionally cite run times to give an idea of how long a step may
+  take. I made these measurements on my run-of-the-mill laptop with 16
+  12th Gen Intel i7 CPUs and 32\,MB memory running WSL under Windows11.
 
   \section*{Construct Database}
-  A dump of the current NCBI taxonomy database is posted as a tar ball at
-  \begin{verbatim}
-  <ftp>/<path1>/taxdump.tar.gz
-  \end{verbatim}
-  where \ty{ftp} is \ty{ftp.ncbi.nlm.nih.gov} and \ty{path1} is
-  \ty{pub/taxonomy}.  The corresponding assembly reports for genbank and
-  refseq are posted at
-  \begin{verbatim}
-  <ftp>/<path2>/assembly_summary_<source>.txt
-  \end{verbatim}
-  where \ty{path2} is \ty{genomes/ASSEMBLY\_REPORTS} and \ty{source} is
-  either \ty{genbank} or \ty{refseq}.  The database dump and the
-  assembly reports are updated regularly. To ensure the stability of
-  this tutorial, we use files downloaded on 28th April 2025:
+  To ensure the stability of this tutorial, we use the taxonomy and
+  genome accessions downloaded from the NCBI on 28th April 2025:
 #+end_src
 #+begin_src sh <<db.sh>>=
   wget owncloud.gwdg.de/index.php/s/sNVcgHAkc1JHVPq/download \
@@ -84,9 +74,9 @@
   pneumophila subsp. pneumophila str. Philadelphia 1}. For this we use
   \ty{taxi}, which takes as input the name of an organism and returns
   its taxon-ID. The full strain name is a bit inconvenient to type, so
-  we look for a distinctive substring. Since all \ty{taxi} queries are
-  case insensitive, we try ``philadelphia 1'', which gives us a single
-  hit with the type strain's taxon-ID, 272624.
+  we look for a distinctive substring. Since \ty{taxi} queries are case
+  insensitive, we try ``philadelphia 1'', which gives us a single hit
+  with the type strain's taxon-ID, 272624.
 #+end_src
 #+begin_src sh <<query.sh>>=
   taxi "philadelphia 1" neidb
@@ -223,7 +213,7 @@
     \caption{The taxa of \emph{L. pneumophila} ordered by the number of
       high-quality sequenced genomes they contain.}\label{tab:gen}
     \begin{center}
-      \resizebox{\textwidth}{!}{\input{../tutorial/gen}}
+      \resizebox{0.9\textwidth}{!}{\input{../tutorial/gen}}
     \end{center}
   \end{table}
 #+end_src
@@ -239,13 +229,13 @@
   five last lines in Table~\ref{tab:gen}.
 
   Row 6 of Table~\ref{tab:gen} contains another
-  \emph{subsp. pneumophila} strain, taxon 933093. However, it is a
-  descendant of taxon 66987 instead of the appropriate subspecies, taxon
-  91891 (Figure~\ref{fig:446s}). When we list the ancestors of that
-  stray \emph{subsp pneumophila} strain, we can see that its parent
-  belongs to Serogroup 12. This serogroup is, in fact, synonymous with
-  \emph{pneumophila}~\cite[Table~6]{bre88:leg}, but this is not apparent
-  from the taxonomy, so beware.
+  \emph{subsp. pneumophila} strain, taxon 933093. However,
+  Figure~\ref{fig:446s} shows that it is a descendant of taxon 66987
+  instead of the appropriate subspecies, taxon 91891. When we list the
+  ancestors of that stray \emph{subsp pneumophila} strain, we can see
+  that its parent belongs to Serogroup 12. This serogroup is, in fact,
+  synonymous with \emph{pneumophila}~\cite[Table~6]{bre88:leg}, but this
+  is not apparent from the taxonomy, so beware.
 #+end_src
 #+begin_src sh <<query.sh>>=
   ants 933093 neidb
@@ -306,14 +296,15 @@
   \end{verbatim}
   I've edited the output of \ty{neighbors} above and also of other
   programs throughout this tutorial for clarity and to fit the printed
-  page. The output begins with three hashed lines. The first states the
-  most recent common ancestor of the targets, \emph{L. pneumophila
-  subsp. pneumophila}, with taxon-ID 91891. The second line states the
-  most recent common ancestor of the neighbors \emph{and} the targets,
-  \emph{L. pneumophila} with taxon-ID 446. The third line is the header
-  of the subsequent table, which consists of four columns, type,
-  taxon-ID, name, and genomes. There are three possible types, ``t'' for
-  known target, ``tt'' for new target, and ``n'' for neighbor.
+  page. The output begins with three hashed header lines. The first
+  states the most recent common ancestor of the targets,
+  \emph{L. pneumophila subsp. pneumophila}, with taxon-ID 91891. The
+  second line states the most recent common ancestor of the neighbors
+  \emph{and} the targets, \emph{L. pneumophila} with taxon-ID 446. The
+  third line is the header of the subsequent table, which consists of
+  four columns, type, taxon-ID, name, and genomes. There are three
+  possible types, ``t'' for known target, ``tt'' for new target, and
+  ``n'' for neighbor.
 
   To download the target and neighbor genomes, we need the genome
   accessions. These are a bit tricky to extract from the current
@@ -337,7 +328,7 @@
   \end{verbatim}
 #+end_src
 #+begin_src latex
-  We save the accessions to the file \ty{acc.txt}.
+  We save the accessions in the file \ty{acc.txt}.
 #+end_src
 #+begin_src sh <<small.sh>>=
   neighbors -L complete,chromosome -g -t 91891 \
@@ -416,7 +407,7 @@ We rehydrate the 22 neighbor genomes.
 #+end_src
 #+begin_src latex
   To remind us that the final division into targets and neighbors is
-  still pending, we move all 45 genomes into a common directory,
+  still pending, we link all 45 genomes into a common directory,
   \ty{all}. We begin with the targets. To help us later divide the data
   into true, i. e. phylogenetic, targets and neighbors, we prefix the
   names of the target genomes with \ty{t}.
@@ -426,18 +417,18 @@ We rehydrate the 22 neighbor genomes.
   for a in tdata/ncbi_dataset/data/*/*.fna
   do
       b=$(basename $a)
-      mv $a all/t$b
+      ln -s $(pwd)/$a all/t$b
   done
 #+end_src
 #+begin_src latex
-We also move the neighbor genomes into \ty{all} and mark their names
+We also link the neighbor genomes into \ty{all} and mark their names
 with prefix \ty{n}.
 #+end_src
 #+begin_src sh <<small.sh>>=
   for a in ndata/ncbi_dataset/data/*/*.fna
   do
       b=$(basename $a)
-      mv $a all/n$b
+      ln -s $(pwd)/$a all/n$b
   done
 #+end_src
 #+begin_src latex
@@ -467,17 +458,17 @@ with prefix \ty{n}.
 #+end_src
 #+begin_export latex
 We list the clusters contained in the tree, as one of them often
-corresponds to the desired target clade. With default options,
-\ty{clusters} detects two clusters in \ty{lpn.nwk}.
+corresponds to the desired target clade. With default options, there
+are two clusters, 16 and 2.
 #+end_export
 #+begin_src sh <<small.sh>>=
   clusters lpn.nwk
 #+end_src
 #+begin_export latex
 \begin{verbatim}
-#Cluster Parent Size C
-16       1      30   8.71
-2        1      15   5.13
+#Cluster  Parent  Size  C
+16        1       30    8.71
+2         1       15    5.13
 \end{verbatim}
 #+end_export
 #+begin_export latex
@@ -490,13 +481,13 @@ Instead of listing clusters, we can also mark them on the tree.
 #+begin_src latex
   The tree in \ty{lpn.nwk} is in the popular Newick format for
   phylogenies\footnote{\ty{https://phylipweb.github.io/phylip/newick\_doc.html}},
-  and you can render it with your favorite tree plotting program. One
-  example of such a program is \ty{plotTree} from the biobox. At this
-  point, the taxon names consist of prefix t or n followed by accession
-  numbers. These are a bit tedious to read, so we remove them to just
-  leave the single-character prefix before plotting the tree to give
-  Figure~\ref{fig:lpn}, with added annotations for the three subspecies
-  \emph{pneumophila}, \emph{fraseri}, and \emph{pascullei}.
+  and you can be rendered it with any tree plotting program, for example
+  \ty{plotTree} from the biobox. At this point, the taxon names consist
+  of prefix t or n followed by accession numbers. These are a bit
+  tedious to read, so we reduce them to just the single-character prefix
+  before plotting the tree to give Figure~\ref{fig:lpn}, with added
+  annotations for the three subspecies \emph{pneumophila},
+  \emph{fraseri}, and \emph{pascullei}.
   \begin{figure}
     \begin{center}
       \psfrag{0.01}{
@@ -509,29 +500,55 @@ Instead of listing clusters, we can also mark them on the tree.
     \end{center}
     \caption{The phylogeny of 45 genomes of \emph{L. pneumophila}
       highlighting taxonomic targets (\emph{t}), neighbors (\emph{n}),
-      and the three subspecies \emph{pneumophila}, \emph{fraseri}, and
-      \emph{pascullei}. There are six clusters of minimum size 6, which
-      are marked with terminal \ty{c}, 16c, 2c, 8c, 18c, 39c, and
-      3c.}\label{fig:lpn}
+      and the three subspecies \emph{pneumophila}, \emph{fraseri},
+      \emph{pascullei}, and the two clusters 16c and 2c.}\label{fig:lpn}
   \end{figure}
 #+end_src
 #+begin_src sh <<small.sh>>=
   sed -E 's/([nt])[^f]*fna/\1/g' lpn.nwk |
       plotTree
 #+end_src
+#+begin_export latex
+You might be wondering why nodes 8 and 3 were not identified as
+clusters. They certainly look like clusters with their long parental
+branch and short descendant branches. By default, the minimum cluster
+size is 10. If we lower that to 5, nodes 8 and 3 are added to the list
+of clusters, together with 18, 39, and 19.
+#+end_export
+#+begin_src sh <<small.sh>>=
+  clusters -s 5 lpn.nwk
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+#Cluster  Parent  Size  C
+16c       1       30    8.71
+2c        1       15    5.13
+8         2c      9     8.49
+18        17      8     12.4
+39        36      7     119
+3         2c      6     301
+19        18      5     5.46
+\end{verbatim}
+#+end_export
+#+begin_export latex
+We can plot this tree with the additional clusters marked.
+#+end_export
+#+begin_src sh <<small.sh>>=
+  clusters -s 5 -t lpn.nwk |
+      plotTree
+#+end_src
 #+begin_src latex
-  In Figure~\ref{fig:lpn} the subspecies are given, but not on the raw
-  tree we just plotted with \ty{plotTree}. To find the subspecies, we
-  first of all observe that node 16c contains all targets, so it is
-  presumably \emph{subsp. pneumophila}. To annotate the two remaining
-  clades rooted on node 2c, we look for a leaf from one of the two
-  remaining subspecies, say \emph{fraseri}. However, leaves are labeled
-  by file name without any taxon information, which is included in the
-  header lines inside the sequence files. We list both the file name and
-  the header line by calling \ty{head} on all input files. Then we
-  filter for \emph{fraseri}, which we output together with the
-  corresponding file name in the preceding line. We restrict our output
-  to the first two lines containing the first hit.
+  To find the subspecies shown in Figure~\ref{fig:lpn}, we first of all
+  observe that node 16c contains all targets, so it is presumably
+  \emph{subsp. pneumophila}. To annotate clades 8 and 3, we look for a
+  leaf from one of the two remaining subspecies, say
+  \emph{fraseri}. However, leaves are labeled by file name without any
+  taxon information, which is included in the header lines inside the
+  sequence files. We list both the file name and the header line by
+  calling \ty{head} on all input files. Then we filter for
+  \emph{fraseri}, which we output together with the corresponding file
+  name in the preceding line. We restrict our output to the first two
+  lines containing the first hit.
 #+end_src
 #+begin_src sh <<small.sh>>=
   head -n 1 all/*.fna |
@@ -545,7 +562,7 @@ Instead of listing clusters, we can also mark them on the tree.
   \end{verbatim}
   We climb from the \emph{fraseri} accession we just found,
   \ty{GCA\_003003865}, toward the root using \ty{climt} in regex
-  mode. Since node 8 is on this path, so hypothesize that clade 8 is
+  mode. Since node 8 is on this path, we hypothesize that clade 8 is
   \emph{subsp. fraseri}.
 #+end_src
 #+begin_src sh <<small.sh>>=
@@ -580,8 +597,8 @@ Instead of listing clusters, we can also mark them on the tree.
   \end{verbatim}
 
   This implies that clade 3 is \emph{pascullei}, and if we check the
-  headers of the genomes in this clade, they indeed all belong to
-  \emph{pascullei}.
+  headers of the genomes in this clade, they are indeed all classified
+  as \emph{pascullei}.
 #+end_src
 #+begin_src sh <<small.sh>>=
   pickle 3 lpn.nwk |
@@ -591,46 +608,10 @@ Instead of listing clusters, we can also mark them on the tree.
       done
 #+end_src
 #+begin_export latex
-You might be wondering why nodes 8 and 3 were not identified as
-clusters. By default, the minimum cluster size is 10. If we lower that
-to 5, nodes 8 and 3 are included in the list of clusters.
+We can see in Figure~\ref{fig:lpn} that the target clade, node 16c, has
+a number of taxonomic neighbors sprinkled in. We can count these seven
+taxonomic neighbors using the program \ty{pickle} (Neighbors).
 #+end_export
-#+begin_src sh <<small.sh>>=
-clusters -s 5 lpn.nwk
-#+end_src
-#+begin_export latex
-\begin{verbatim}
-#Cluster Parent Size C
-8        2c     9    8.49
-39       36     7    119
-3        2c     6    301
-19       18     5    5.46
-\end{verbatim}
-#+end_export
-#+begin_export latex
-However, now 16c and 2c are missing from the list of clusters. This is
-because by default \ty{clusters} only prints \emph{terminal} clusters,
-that is clusters that don't contain other clusters. If we request
-nested clusters, 16c and 2c reappear in the list of clusters.
-#+end_export
-#+begin_src sh <<small.sh>>=
-  clusters -s 5 -n lpn.nwk
-#+end_src
-#+begin_src latex
-  \begin{verbatim}
-  #Cluster Parent Size C
-  16c      1      30   8.71
-  2c       1      15   5.13
-  8        2c     9    8.49
-  18       17     8    12.4
-  39       36     7    119
-  3        2c     6    301
-  19       18     5    5.46
-  \end{verbatim}
-  We can see in Figure~\ref{fig:lpn} that the target clade, node 16c, has
-  a number of taxonomic neighbors sprinkled in. We can count these seven
-  taxonomic neighbors using the program \ty{pickle} (Neighbors).
-#+end_src
 #+begin_src sh <<small.sh>>=
   pickle 16c lpn.nwk |
       grep -c '^n'
@@ -649,17 +630,17 @@ to subspecies \emph{pneumophila}.
 We follow the phylogeny and call everything inside clade 16 a
 target. In Figure~\ref{fig:lpn} it is easy to pick the target clade by
 eye. However, in densely sequenced taxa the number of targets and
-neighbors is often so large as to render the resulting tree
-illegible. In such a situation we can still find the target clade
-using the program \ty{fintac} (Neighbors). As expected, it picks clade
-16c from our example tree, and reports that this clade contains all 23
-taxonomic targets and the 7 taxonomic neighbors we just counted
+neighbors is often too large to inspect the resulting tree. In such a
+situation we can still find the target clade using the program
+\ty{fintac} (Neighbors). As expected, it picks clade 16c from our
+example tree, and reports that this clade contains all 23 taxonomic
+targets and the 7 taxonomic neighbors we just counted
 directly. According to equation~(\ref{eq:spl}), this ratio of targets
 and neighbors leads to a split of
 \[
 s(v)=\frac{23+22-7}{45}\times 100\approx 84\,\%.
 \]
-The parent of node 16c is node 1, the root and the two are connected
+The parent of node 16c is node 1, the root, and the two are connected
 by a long branch, as is characteristic of a cluster
 (Figure~\ref{fig:lpn}). However, Sometimes \ty{fintac} identifies a
 node that doesn't contain all known targets and isn't a cluster. In a
@@ -696,7 +677,7 @@ from the node identified by \ty{fintac} to the nearest cluster.
 #+end_src
 #+begin_src sh <<small.sh>>=
   mkdir neighbors
-  pickle -c 16 lpn.nwk |
+  pickle -c 16c lpn.nwk |
       grep -v '^#' |
       while read a; do
 	  ln -s $(pwd)/all/$a neighbors/$a
@@ -710,7 +691,7 @@ from the node identified by \ty{fintac} to the nearest cluster.
   makeFurDb -t targets/ -n neighbors/ -d lpn.db
 #+end_src
 #+begin_src latex
-  We apply \ty{fur} to the database, which takes 9\,s and returns 24
+  We apply \ty{fur} to the database, which takes 9\,s, and returns 24
   fragments totalling 9.1\,kb marker candidates with 0.7\,kb \ty{N}s. We
   save the potential markers in the file \ty{lpn.fasta}.
 #+end_src
@@ -753,7 +734,7 @@ from the node identified by \ty{fintac} to the nearest cluster.
 #+end_src
 #+begin_src latex
   We run \ty{neighbors} using as target the species
-  \emph{L. pneumophila}, taxon-ID 446 (Table~\ref{tab:pic}. We save the
+  \emph{L. pneumophila}, taxon-ID 446 (Table~\ref{tab:pic}). We save the
   unknown accessions in \ty{uacc.txt}.
 #+end_src
 #+begin_src sh <<large.sh>>=
@@ -819,7 +800,7 @@ from the node identified by \ty{fintac} to the nearest cluster.
   datasets rehydrate --directory udata
 #+end_src
 #+begin_src latex
-  We copy the directory \ty{all} from the small analysis, move the
+  We copy the directory \ty{all} from the small analysis, link the
   unknown genomes into it, and mark them with prefix u.
 #+end_src
 #+begin_src sh <<large.sh>>=
@@ -827,7 +808,7 @@ from the node identified by \ty{fintac} to the nearest cluster.
   for a in udata/ncbi_dataset/data/*/*.fna
   do
       b=$(basename $a)
-      mv $a all/u$b
+      ln -s $(pwd)/$a all/u$b
   done
 #+end_src
 #+begin_src latex
@@ -857,13 +838,13 @@ from the node identified by \ty{fintac} to the nearest cluster.
   neighbors outside while ignoring the unknowns. We could try looking
   for this manually, but this is difficult as our tree contains 183
   taxa. Instead, we run \ty{fintac} specifying prefix n as the neighbor
-  mark and ignoring the messages that warn about taxa that are neither
-  target nor neighbor. This returns the same 84\,\% split as before,
-  with an almost identical branch length to the parent, 0.025. This is
-  reassuring. Our target clade in the large tree is cluster 25c.
+  mark and everything else as the target mark. This returns the same
+  84\,\% split as before, with an almost identical branch length to the
+  parent, 0.025. This is reassuring. Our target clade in the large tree
+  is cluster 25c.
 #+end_src
 #+begin_src sh <<large.sh>>=
-  fintac -n "^n" lpn.nwk
+  fintac -n "^n" -t "^[^n]" lpn.nwk
 #+end_src
 #+begin_src latex
   \begin{verbatim}

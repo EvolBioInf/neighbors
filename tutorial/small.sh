@@ -26,12 +26,12 @@ mkdir all
 for a in tdata/ncbi_dataset/data/*/*.fna
 do
     b=$(basename $a)
-    mv $a all/t$b
+    ln -s $(pwd)/$a all/t$b
 done
 for a in ndata/ncbi_dataset/data/*/*.fna
 do
     b=$(basename $a)
-    mv $a all/n$b
+    ln -s $(pwd)/$a all/n$b
 done
 phylonium all/* > lpn.dist
 nj lpn.dist |
@@ -41,6 +41,9 @@ clusters lpn.nwk
 clusters -t lpn.nwk > tmp
 mv tmp lpn.nwk
 sed -E 's/([nt])[^f]*fna/\1/g' lpn.nwk |
+    plotTree
+clusters -s 5 lpn.nwk
+clusters -s 5 -t lpn.nwk |
     plotTree
 head -n 1 all/*.fna |
     grep -B 1 fraseri |
@@ -56,8 +59,6 @@ pickle 3 lpn.nwk |
     while read a; do
           head -n 1 all/$a
     done
-clusters -s 5 lpn.nwk
-clusters -s 5 -n lpn.nwk
 pickle 16c lpn.nwk |
     grep -c '^n'
 fintac lpn.nwk
@@ -68,7 +69,7 @@ pickle 16c lpn.nwk |
           ln -s $(pwd)/all/$a targets/$a
     done
 mkdir neighbors
-pickle -c 16 lpn.nwk |
+pickle -c 16c lpn.nwk |
     grep -v '^#' |
     while read a; do
           ln -s $(pwd)/all/$a neighbors/$a

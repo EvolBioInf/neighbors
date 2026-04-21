@@ -21,12 +21,12 @@ cp -r ../small/all .
 for a in udata/ncbi_dataset/data/*/*.fna
 do
     b=$(basename $a)
-    mv $a all/u$b
+    ln -s $(pwd)/$a all/u$b
 done
 ls all | wc -l
 phylonium all/*.fna > lpn.dist
 nj lpn.dist | midRoot | land | clusters -t > lpn.nwk
-fintac -n "^n" lpn.nwk
+fintac -n "^n" -t "^[^n]" lpn.nwk
 pickle 25c lpn.nwk |
     grep -c '^u'
 pickle -c 25c lpn.nwk |
