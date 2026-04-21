@@ -545,11 +545,16 @@ one \ty{des}.
   }
 #+end_src
 #+begin_export latex
-We mark clusters in the input tree by appending \ty{c} to their
-labels.
+If the cluster's label is already marked by suffix \ty{c}, we skip
+it. Otherwise we append \ty{c}.
 #+end_export
 #+begin_src go <<Mark clusters, Pr. \ref{pr:clu}>>=
   for _, cluster := range clusters {
+	  label := nodes[cluster.Id].Label
+	  l := len(label)
+	  if label[l-1:l] == "c" {
+		  continue
+	  }
 	  nodes[cluster.Id].Label += "c"
   }
 #+end_src

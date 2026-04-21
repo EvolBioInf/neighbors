@@ -103,6 +103,11 @@ func parse(r io.Reader, args ...interface{}) {
 			w.Flush()
 		} else if *optT {
 			for _, cluster := range clusters {
+				label := nodes[cluster.Id].Label
+				l := len(label)
+				if label[l-1:l] == "c" {
+					continue
+				}
 				nodes[cluster.Id].Label += "c"
 			}
 			fmt.Println(tree)
