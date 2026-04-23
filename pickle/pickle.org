@@ -84,7 +84,8 @@ We import \ty{util}.
   }
   args := flag.Args()
   if len(args) < 1 {
-	  fmt.Fprintf(os.Stderr, "please enter a clade identifier\n")
+	  m := "please enter a clade identifier"
+	  fmt.Fprintf(os.Stderr, "%s\n", m)
 	  os.Exit(-1)
   }
   labels := strings.Split(args[0],",")
@@ -229,7 +230,39 @@ matching label and note that we found it.
   if clade.Parent == nil {
 	  t = nil
   } else {
+	  //<<Remove clade, Pr. \ref{pr:pic}>>
+  }
+#+end_src
+#+begin_export latex
+If we print the tree, we'd like to have a visual marker of the removed
+clade. So we set the label of the removed clade to the size of the
+clade---that is, the number of leaves it contains---and set its child
+link to nil. Otherwise, we just remove the clade.
+#+end_export
+#+begin_src go <<Remove clade, Pr. \ref{pr:pic}>>=
+  if *optT {
+	  n := size(clade.Child, 0)
+	  clade.Label = fmt.Sprintf("n=%d", n)
+	  clade.Child = nil
+  } else {
 	  clade.RemoveClade()
+  }
+#+end_src
+#+begin_export latex
+The function \ty{size} traverses the incoming tree and counts its
+leaves.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:pic}>>=
+  func size(v *nwk.Node, n int) int {
+	  if v == nil {
+		  return n
+	  }
+	  if v.Child == nil {
+		  n++
+	  }
+	  n = size(v.Child, n)
+	  n = size(v.Sib, n)
+	  return n
   }
 #+end_src
 #+begin_src latex
