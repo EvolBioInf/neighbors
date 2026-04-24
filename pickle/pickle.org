@@ -1,10 +1,35 @@
 #+begin_src latex
   \section{\ty{pickle}}
   In Newick trees with labeled clades, \ty{pickle} picks the clades
-  requested by the user and prints their leaf labels. It can also print
-  the requested clade as a Newick tree. The program also has a
-  ``complement'' option to get everything but the nodes in the
-  designated clade.
+  requested by the user and prints their leaf labels. Alternatively, it
+  prints the requested clade as a Newick tree, which can be rendered
+  with any tree drawing program. For example, we can draw clade 9 of the
+  test tree to get Figure~\ref{fig:tree}A.
+  \begin{verbatim}
+  $ pickle -t 9 pickle/test.nwk | plotTree
+  \end{verbatim}
+
+  \begin{figure}
+    \begin{center}
+    \begin{tabular}{cc}
+      \textbf{A} & \textbf{B}\\
+      \includegraphics{../pickle/tree1.ps} & %% 5cm x 5cm
+      \includegraphics{../pickle/tree2.ps}   %% 5cm x 5cm
+    \end{tabular}
+    \end{center}
+    \caption{Full tree for testing the program \ty{pickle} (\textbf{A}),
+    and the same tree with node 8 removed (\textbf{B}).}\label{fig:tree}
+  \end{figure}
+
+  The program \ty{pickle} also has a ``complement'' option to get
+  everything but the nodes in the target clade. In tree mode the
+  complement effectively removes the target clade, which gets replaced
+  by the number of leaves in its subtree. For example, we can remove
+  clade 8 from the tree in Figure~\ref{fig:tree}A, we get
+  Figure~\ref{fig:tree}B with $n=5$ where clade 8 used to be.
+  \begin{verbatim}
+  pickle -t -c 8 pickle/test.nwk | plotTree
+  \end{verbatim}
 
   \subsection*{Implementation}
   \ty{pickle} contains hooks for imports, functions, and the logic of the
@@ -351,16 +376,10 @@ leaves.
 #+end_src
 #+begin_src latex
   We begin with four basic tests, all based on the tree in
-  Figure~\ref{fig:tree} contained in the file \ty{test.nwk}. The first
+  Figure~\ref{fig:tree}A contained in the file \ty{test.nwk}. The first
   test picks clade 7, the second picks clades 7 and 3, the third picks
   clade 9, which is the root, and the fourth test picks clade 4, which,
   in contrast to clades 7 and 3, is not at the end of a sibling chain.
-  \begin{figure}
-    \begin{center}
-      \includegraphics{../pickle/tree}
-    \end{center}
-    \caption{Tree for testing the program \ty{pickle}.}\label{fig:tree}
-  \end{figure}
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
   f := "test.nwk"
