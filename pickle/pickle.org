@@ -1,10 +1,11 @@
 #+begin_src latex
   \section{\ty{pickle}}
-  In Newick trees with labeled clades, \ty{pickle} picks the clades
-  requested by the user and prints their leaf labels. Alternatively, it
-  prints the requested clade as a Newick tree, which can be rendered
-  with any tree drawing program. For example, we can draw clade 9 of the
-  test tree to get Figure~\ref{fig:tree}A.
+  The program \ty{pickle} picks clades from trees. It reads a Newick
+  tree with labeled clades. It then picks the clades requested by the
+  user and prints their leaf labels. Alternatively, it prints the
+  requested clade as a Newick tree, which can be rendered with a
+  suitable tree drawing program. For example, we can use \ty{plotTree}
+  to draw clade 9 of the test tree to get Figure~\ref{fig:tree}A.
   \begin{verbatim}
   $ pickle -t 9 pickle/test.nwk | plotTree
   \end{verbatim}
@@ -18,14 +19,14 @@
     \end{tabular}
     \end{center}
     \caption{Full tree for testing the program \ty{pickle} (\textbf{A}),
-    and the same tree with node 8 removed (\textbf{B}).}\label{fig:tree}
+    and the same tree with clade 8 removed (\textbf{B}).}\label{fig:tree}
   \end{figure}
 
   The program \ty{pickle} also has a ``complement'' option to get
-  everything but the nodes in the target clade. In tree mode the
-  complement effectively removes the target clade, which gets replaced
-  by the number of leaves in its subtree. For example, we can remove
-  clade 8 from the tree in Figure~\ref{fig:tree}A, we get
+  everything \emph{but} the nodes in the target clade. When used in tree
+  mode, the complement effectively removes the target clade, which gets
+  replaced by the number of leaves in its subtree. For example, we can
+  remove clade 8 from the tree in Figure~\ref{fig:tree}A, to get
   Figure~\ref{fig:tree}B with $n=5$ where clade 8 used to be.
   \begin{verbatim}
   pickle -t -c 8 pickle/test.nwk | plotTree
