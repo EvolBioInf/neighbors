@@ -46,15 +46,15 @@ Table~\ref{tab:pro}. Five of these programs are based on the taxonomy,
 four on a phylogeny, and one, \ty{outliers}, on numerical data.
 
 \begin{table}
-\caption{The ten programs of Neighbors}\label{tab:pro}
+\caption{The eleven programs of Neighbors}\label{tab:pro}
 \begin{center}
 \begin{tabular}{rlll}
 \hline
 \# & Name & Based on & Function\\\hline
 1 & \ty{ants} & taxonomy & list ancestors\\
 2 & \ty{climt} & phylogeny & climb tree\\
-3 & \ty{dree} & taxonomy & draw tree\\
-4 & \ty{clusters} & phylogeny & find clusters\\
+3 & \ty{clusters} & phylogeny & find clusters\\
+4 & \ty{dree} & taxonomy & draw tree\\
 5 & \ty{fintac} & phylogeny & find target clade\\
 6 & \ty{land} & phylogeny & label nodes\\
 7 & \ty{makeNeiDb} & taxonomy & make neighbors database\\
@@ -96,9 +96,9 @@ genomes in the subtree rooted on that taxon. This recursive count
 cannot be conveniently implemented in SQL, so we implement it in Go.
 
 The table \ty{image} stores images of taxa. Each image has an ID, a
-URL, and an attribution. Since a taxon might have one or more images,
-and an image might depict more than one taxon, tables \ty{image}
-and \ty{taxon} have a many to many relationship.
+URL, and an attribution. Since a taxon might have zero, one or more
+images, and an image might depict more than one taxon,
+tables \ty{image} and \ty{taxon} have a many to many relationship.
 
 An important function of \ty{neidb} is to support text searches of
 taxon names. These searches should allow client programmers to write
@@ -108,8 +108,13 @@ first character, the number of possible matches will usually be much
 larger than can sensibly be passed to the user. So we need to order
 the matches by relevance. Google's initial breakthrough was to rank
 matching web sites by the number of incoming links. We propose to rank
-taxa by the number of genome sequences, which we store as attribute
-score in table \ty{taxon}.
+taxa by the number of genome sequences. However, we'd also like to
+give preference to taxa that have a common name over taxa that
+don't. To achieve this, we calculate the scores in three steps: The
+initial scores are equal to the recursive genome counts. Then we
+calculate the maximum of these initial scores. In the third step we
+increment the scores of taxa with common names by that maximum.  This
+final score is then stored as attribute score in table \ty{taxon}.
 
 Once the database is constructed, we can query it. The tutorial shows
 how to do that for \emph{Leginonella pneumophila}. It is a notorious
@@ -129,10 +134,11 @@ set of target and neighbor genomes currently available.
 
 The genomes returned by \ty{neighbors} form the raw material for
 marker discovery. However, the classification into targets and
-neighbors retrieved from the taxonomy may contradict the phylogeny
+neighbors retrieved from the taxonomy may differ from the phylogeny
 calculated from the target and neighbor genomes to determine the final
-list of target and neighbor genomes. So we compute a phylogeny from
-our target and neighbor genomes. A program for doing this efficiently
+list of target and neighbor genomes. In that case we'd like to follow
+the phylogeny. So we compute a phylogeny from our target and neighbor
+genomes. A program for doing this efficiently
 is \ty{phylonium}~\cite{klo20:phy}.
 
 The phylogenies of targets and neighbors may comprise hundreds of
