@@ -11,7 +11,7 @@
   We begin by constructing a local relational database from the taxonomy
   and genome data supplied by the NCBI using the program
   \ty{makeNeiDb}. Then we query the database with \ty{taxid} to find the
-  taxon-ID for our target organism, \emph{Leginoella pneumophila}, a
+  taxon-ID for our target organism, \emph{Legionella pneumophila}, a
   bacterial pathogen that causes pneumonia in humans. The programs
   \ty{ants} and \ty{dree} allow us to explore the taxonomic context of
   our target organism. Based on the target taxon-ID, we carry out the
@@ -257,16 +257,17 @@
     0     933093   L. p. subsp. pneumophila ATCC 43290  strain
   \end{verbatim}
 
-  In summary, our target taxon has 25 genomes, its neighbors 22, giving
-  a total of 47 genomes. This leaves the 138 genomes only classified to
-  species level unaccounted for. They should belong to one of the three
-  subspecies, but this classification beyond the species level has
-  evidently not been made in these cases. To still use all
-  \emph{L. pneumonia} genomes available, we carry out two analyses. In
-  the first we analyze the 47 targets and neighbors at the subspecies
-  level. We call this the ``small'' analysis to distinguish it from the
-  subsequent ``large'' analysis that also includes the 138 species
-  genomes.
+  In summary, our target taxon \emph{L. p. subs pneumophila} has 25
+  genomes, 20 \emph{subsp pneumophila} genomes and 5 from its children,
+  its neighbors 22, giving a total of 47 genomes. This leaves the 138
+  genomes only classified to species level unaccounted for. They should
+  belong to one of the three subspecies, but this classification beyond
+  the species level has evidently not been made in these cases. To still
+  use all \emph{L. pneumonia} genomes available, we carry out two
+  analyses. In the first we analyze the 47 targets and neighbors at the
+  subspecies level. We call this the ``small'' analysis to distinguish
+  it from the subsequent ``large'' analysis that also includes the 138
+  species genomes.
   \section*{Small Analysis---Genomes in Subspecies Only}
   We begin by creating the directory \ty{small} and changing into it.
 #+end_src
