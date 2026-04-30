@@ -1637,9 +1637,10 @@ slice is initialized to the taxon-IDs supplied.
   }
 #+end_src
 #+begin_src latex
-  For each parent we reach, we check whether the number of its
-  descendants is greater or equal to the number of taxa submitted. If
-  yes, we've found the MRCA and return it.
+  For each parent we reach, we increment its descendants count by that
+  of its children and check whether the number of its descendants is
+  greater or equal to the number of taxa submitted. If yes, we've found
+  the MRCA and return it.
 #+end_src
 #+begin_src go <<Climb to parents, Pa. \ref{pa:tdb}>>=
   for _, child := range children {
@@ -1657,7 +1658,7 @@ slice is initialized to the taxon-IDs supplied.
 #+end_src
 #+begin_src latex
 If the MRCA hasn't been found yet, we replace the children by the
-parent and reset the parent slice to empty.
+parents and reset the parent slice to empty.
 #+end_src
 #+begin_src go <<Replace parents by children, Pa. \ref{pa:tdb}>>=
   if mrca == -1 {
