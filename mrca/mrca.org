@@ -2,54 +2,50 @@
 \section{\ty{mrca}}
 \subsection*{Introduction}
 The program \ty{mrca} reads a set of starting nodes in a phylogeny and
-finds their most recent common ancestor, the MRCA. During the
-computation of the MRCA, the program prints the labels of nodes where
-lines of descent coalesce. Figure~\ref{fig:mrca} is an example tree
-where the six leaves, or taxa, are labeled $a, b,...,f$, and the five
-internal nodes are numbered $1,2,...,5$. Let the three boxed taxa $a$,
-$b$, and $c$ be the starting nodes. Their MRCA happens to be the root,
-node 1.
+finds their most recent common ancestor, the MRCA. It also prints the
+labels of nodes where lines of descent of the starting nodes
+coalesce. Figure~\ref{fig:mrca} is an example tree where the six
+leaves, or taxa, are labeled $a, b,...,f$, and the five internal nodes
+are numbered $1,2,...,5$. Let the three boxed taxa $a$, $b$, and $c$
+be the starting nodes. Their MRCA happens to be the root, node 1.
 
-We find this MRCA by climbing level-wise from the starting nodes
-towards their parents. While doing so, we add the current list of
-descendants in square brackets to the parental list. If the original
-parental list has at least one element and adding to it changes its
-size, a coalescence event has been found.
-
-In our example, the first climb is shown with black arrows. This adds
-$a$ to the descendants list of the root, $c$ to the descendants list
-of node 3, and $e$ to the descendants list of node 5. The second climb
-is shown in blue arrows, which adds $c$ to the descendants list of 2
-and $e$ to the descendants list of 4. The third climb is shown in
-orange. It adds $c$ to the descendant list of 1, which makes 1 the
-MRCA of $a$ and $c$, indicated by the orange circle. It also adds $e$
-to the descendants list of node 2, which makes it the MRCA of $c$ and
-$e$, again indicated by an orange circle. The fourth and last climb is
-shown in red, which makes node 1 the MRCA of the three starting nodes
-indicated by the red circle.
-
-In our description, the orange move from node 2 to node 1 preceded the
-corresponding move from node 4 to node 2. If this order of execution
-is reversed, the correct MRCA is already found in the third climb, at
-which point the algorithm would stop.
-\begin{figure}[ht]
-  \begin{center}
+\begin{figure}  \begin{center}
     \input{../mrca/labels}
-    \scalebox{0.7}{\includegraphics{../mrca/test}}
+    \includegraphics{../mrca/test}
     \input{../mrca/arrows}
   \end{center}
   \caption{An example tree for finding the most recent common ancestor
-    between taxa $a$, $c$, and $e$ (boxed); the walk towards the most
-    recent common ancestor, node 1 in this example, proceeds in four
-    phases, black, blue, orange, and red, in that order; nodes where
-    lines of descent coalesce are circled; the descendants lists are
-    in square brackets, with descendants taking the color of the arrow
-    that delivered them.}\label{fig:mrca}
+    between taxa $a$, $c$, and $e$ (boxed); the walk towards their
+    most recent common ancestor, node 1 in this example, proceeds in
+    four phases, black, blue, orange, and red, in that order; the
+    descendants lists calculated during this walk are in square
+    brackets, with descendants taking the color of the arrow that
+    delivered them; nodes where lines of descent coalesce are
+    discovered in a second traversal and are circled.}\label{fig:mrca}
 \end{figure}
+
+We find this MRCA by climbing level-wise from the starting nodes
+towards their parents. While doing so, we add the current list of
+descendants to the parental list. In our example the descendants lists
+are shown in square brackets. The descendants lists of the three
+starting nodes are initialized to themselves.
+
+The first climb is shown with black arrows. This adds $a$ to the
+descendants list of node 1, $c$ to the descendants list of node 3, and
+$e$ to the descendants list of node 5. The second climb is shown in
+blue arrows, which adds $c$ to the descendants list of 2 and $e$ to
+the descendants list of 4. The third climb is shown in orange. It adds
+$c$ to the descendant list of 1 and $e$ to the descendants list of
+node 2. The fourth and last climb is shown in red, which adds $e$ to
+the descendants list of node 1, making it the MRCA of the three
+starting nodes.
+
+The individual coalescence events are found in a second tree traversal
+and are shown as the circled nodes.
 
 \subsection*{Implementation}
 The central idea of the implementation is to identify nodes by their
-IDs. IDs are integers, which we also use as keys to a map that
+IDs. Node IDs are integers, which we also use as keys to a map that
 references the original nodes.
 
 Our outline of \ty{mrca} has hooks for imports, functions, and the
@@ -68,10 +64,9 @@ logic of the main function.
   }
 #+end_src
 #+begin_export latex
-\epr
-In the main function we set the name of \ty{mrca}, set the usage,
-declare the options, and parse them. Then we compile the regex
-specifying the node names and parse the input files containing
+\epr In the main function we set the name of \ty{mrca}, set its usage,
+declare its options, and parse them. Then we compile the regex
+specifying the node names and parse the input files containing the
 phylogenies.
 #+end_export
 #+begin_src go <<Main function, Pr. \ref{pr:mrca}>>=
@@ -85,7 +80,7 @@ phylogenies.
 #+begin_export latex
 We import \ty{util}.
 #+end_export
-#+begin_src go <<Import, Pr. \ref{pr:mrca}>>=
+#+begin_src go <<Imports, Pr. \ref{pr:mrca}>>=
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_export latex
@@ -96,13 +91,13 @@ purpose of \ty{mrca}, and an example command.
   u := "mrca [-v] regex [foo.nwk]..."
   p := "Calculate the MRCA of nodes matching regex."
   e := "mrca 941322 eco7k.nwk"
-  clui.Usage(u, p, e)
+  clio.Usage(u, p, e)
 #+end_src
 #+begin_export latex
-We import \ty{clui}.
+We import \ty{clio}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:mrca}>>=
-  "github.com/evolbioinf/clui"
+  "github.com/evolbioinf/clio"
 #+end_src
 #+begin_export latex
 We declare only one option, the version.
@@ -118,7 +113,7 @@ We import \ty{flag}.
 #+end_src
 #+begin_export latex
 We parse the options. If the user requested the version, we print the
-program information, which includes the version, and exits.
+program information, which includes the version.
 #+end_export
 #+begin_src go <<Parse options, Pr. \ref{pr:mrca}>>=
   flag.Parse()
@@ -128,17 +123,18 @@ program information, which includes the version, and exits.
 #+end_src
 #+begin_export latex
 The first of the remaining command line arguments is the regex
-specifying the nodes. If the user provided one, we compile
-it. Otherwise, we exit with a friendly request for starting nodes.
+specifying the nodes. If the user didn't provided one, we exit with a
+friendly request for starting nodes. Otherwise, we compile the regex.
 #+end_export
 #+begin_src go <<Compile regex, Pr. \ref{pr:mrca}>>=
   args := flag.Args()
   if len(args) == 0 {
-	  m := "please provide a regex specifying " +
-		  "the starting nodes"
+	  m := "Please provide a regex specifying " +
+		  "the starting nodes."
 	  log.Fatal(m)
   }
   nodeNames, err := regexp.Compile(args[0])
+  util.Check(err)
 #+end_src
 #+begin_export latex
 We import \ty{regexp}.
@@ -154,15 +150,15 @@ takes as argument the regular expression specifying the node names.
 #+end_export
 #+begin_src go <<Parse input files, Pr. \ref{pr:mrca}>>=
   files := args[1:]
-  clio.ParseFiles(files, nodeNames)
+  clio.ParseFiles(files, parse, nodeNames)
 #+end_src
 #+begin_export latex
 Inside \ty{parse}, we retrieve the node names and construct a scanner
 with which we read the phylogenies contained in the current input. We
-analyze each phylogeny in turn.
+analyze each phylogenetic tree in turn.
 #+end_export
 #+begin_src go <<Functions, Pr. \ref{pr:mrca}>>=
-  func parse(r io.Reader, args ..interface{}) {
+  func parse(r io.Reader, args ...interface{}) {
 	  nodeNames := args[0].(*regexp.Regexp)
 	  sc := nwk.NewScanner(r)
 	  for sc.Scan() {
@@ -172,45 +168,65 @@ analyze each phylogeny in turn.
   }
 #+end_src
 #+begin_export latex
+We import \ty{io} and \ty{nwk}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:mrca}>>=
+  "io"
+  "github.com/evolbioinf/nwk"
+#+end_src
+#+begin_export latex
 To analyze a tree, we first store its nodes. Then we find the starting
-nodes, which we print for the user to see. From these starting nodes
-we climb towards the root to find the MRCA.
+nodes, which we print to allow the user to double-check them. From
+these starting nodes we climb towards the root to find the MRCA. This
+climb yields all coalescence events, which we report in a second tree
+traversal before printing the MRCA.
 #+end_export
 #+begin_src go <<Analyze tree, Pr. \ref{pr:mrca}>>=
+  nodes := make([]*nwk.Node, 0)
+  mrca := 0
   //<<Store tree nodes, Pr. \ref{pr:mrca}>>
   //<<Find starting nodes, Pr. \ref{pr:mrca}>>
   //<<Print starting nodes, Pr. \ref{pr:mrca}>>
   //<<Find MRCA, Pr. \ref{pr:mrca}>>
+  //<<Report coalescence events, Pr. \ref{pr:mrca}>>
+  fmt.Printf("MRCA: %s\n", nodes[mrca].Label)
 #+end_src
 #+begin_export latex
-We store the tree nodes in a map between node IDs and the node
-themselves, \ty{nodes}. To fill this map, we call the function
-\ty{storeNodes} on our current tree.
+We import \ty{fmt}.
 #+end_export
-#+begin_src go <<Declare variables, Pr. \ref{pr:mrca}>>=
-  nodes := make(map[int]*nwk.Node)
-  storeNodes(tree, nodes)
+#+begin_src go <<Imports, Pr. \ref{pr:mrca}>>=
+  "fmt"
 #+end_src
 #+begin_export latex
-The function \ty{storeNodes} implements a recursive tree traversal,
-during which we store each node we encounter.
+We store the tree nodes in a slice of nodes using the function
+\ty{storeNodes}. then we set the Id of each node to its slice index.
+#+end_export
+#+begin_src go <<Store tree nodes, Pr. \ref{pr:mrca}>>=
+  nodes = storeNodes(tree, nodes)
+  for i, node := range nodes {
+	  node.Id = i
+  }
+#+end_src
+#+begin_export latex
+Nodes are stored in a recursive tree traversal.
 #+end_export
 #+begin_src go <<Functions, Pr. \ref{pr:mrca}>>=
-  func storeNodes(v *nwk.Node, nodes map[int]*nwk.Node) {
+  func storeNodes(v *nwk.Node, nodes []*nwk.Node) []*nwk.Node {
 	  if v == nil {
-		  return
+		  return nodes
 	  }
-	  nodes[v.Id] = v
-	  storeNodes(v.Child)
-	  storeNodes(v.Sib)
+	  nodes = append(nodes, v)
+	  nodes = storeNodes(v.Child, nodes)
+	  nodes = storeNodes(v.Sib, nodes)
+	  return nodes
   }
 #+end_src
 #+begin_export latex
 We iterate over the nodes and store those that match the node
-names. If we end up with an empty slice of starting nodes, we exit
-with a friendly message.
+names. If we end up with an empty slice of starting nodes, something
+went wrong and we exit with a friendly message.
 #+end_export
-#+begin_src go <<Find starting nodes, Pr. \ref{pr:mrca}>>
+#+begin_src go <<Find starting nodes, Pr. \ref{pr:mrca}>>=
   startNodes := []int{}
   for i, node := range nodes {
 	  if nodeNames.MatchString(node.Label) {
@@ -218,27 +234,26 @@ with a friendly message.
 	  }
   }
   if len(startNodes) == 0 {
-	  log.Fatal("couldn't find any nodes matching %s",
+	  log.Fatalf("couldn't find any nodes matching %s",
 		  nodeNames)
   }
 #+end_src
 #+begin_export latex
-We print he starting nodes in a user-friendly message.
-#+end_export
-#+begin_src go <<Print starting nodes, Pr. \ref{pr:mrca}>>=
-  label := nodes[startNodes[0]].Label
-  fmt.Printf("# Looking for MRCA among %s", label)
-  for i := 1; i < len(startNodes); i++ {
-	  label = nodes[i].Label
-	  fmt.Printf(", %s", label)
-  }
-  fmt.Printf("\n")
-#+end_src
-#+begin_export latex
-We import \ty{fmt}.
+We import \ty{log}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:mrca}>>=
-  "fmt"
+  "log"
+#+end_src
+#+begin_export latex
+We print the starting nodes in one line.
+#+end_export
+#+begin_src go <<Print starting nodes, Pr. \ref{pr:mrca}>>=
+  fmt.Printf("Start:")
+  for _, startNode := range startNodes {
+	  label := nodes[startNode].Label
+	  fmt.Printf(" %s", label)
+  }
+  fmt.Printf("\n")
 #+end_src
 #+begin_export latex
 To find the MRCA, we construct the variables we need and then climb
@@ -250,83 +265,338 @@ the tree.
 #+end_src
 #+begin_export latex
 As illustrated in Figure~\ref{fig:mrca}, finding the MRCA requires
-repeated rounds of moving up the tree, for which we use a sliced child
-IDs and a slice of parent IDs. We initialize the slice of parent IDs
-with the starting nodes.
+repeated rounds of moving up the tree, for which we use a map of
+child IDs and a map of parent IDs. We initialize the map of child
+IDs with the starting nodes.
 #+end_export
 #+begin_src go <<Construct variables, Pr. \ref{pr:mrca}>>=
-  var children, parents []int
+  children := make(map[int]bool)
+  parents := make(map[int]bool)
   for _, startNode := range startNodes {
-	  children = append(children, startNode)
+	  children[startNode] = true
   }
 #+end_src
 #+begin_export latex
 Our climb to the MRCA ends when we have found all starting nodes among
 the descendants of a given node. So we also need to keep track of the
 descendants of the nodes we encounter during our climb. We do this
-using a map between a node and its pertinent descendants. The map is
-initialized by setting each start node as its own descendant.
+using a map between a node and its descendants among the starting
+nodes. The map is initialized by setting each starting node as its own
+descendant.
 #+end_export
 #+begin_src go <<Construct variables, Pr. \ref{pr:mrca}>>=
-  desc := make(map[int][]int)
+  desc := make(map[int]map[int]bool)
   for _, startNode := range startNodes {
-	  desc[startNode] = append(desc[startNode],
-		  startNode)
+	  desc[startNode] = make(map[int]bool)
+	  desc[startNode][startNode] = true
   }
 #+end_src
 #+begin_export latex
-We climb the tree until we have found the MRCA. At each iteration of
-the climb, we first check, whether the MRCA has been found. Then we
-copy the descendants from the children to the parents, compare the
-resulting descendants to find coalescence events, and replace the
-children by the parents to prepare the next round.
+In order to later call coalescence events, we also need to count the
+lines of descent that gave rise to them. Here we have to ensure we
+count each distinct descendant at most once. We do this using a map of
+maps, \ty{count}. It maps node IDs to sets of lines of descent. The
+sizes of these sets are the desired counts of the lines of descent. We
+initialize the counts of the starting nodes to 1.
+#+end_export
+#+begin_src go <<Construct variables, Pr. \ref{pr:mrca}>>=
+  counts := make(map[int]map[int]bool)
+  for _, startNode := range startNodes {
+	  counts[startNode] = make(map[int]bool)
+	  counts[startNode][startNode] = true
+  }
+#+end_src
+#+begin_export latex
+We climb the tree until we find the MRCA. At each climbing step, we
+first check, whether the MRCA has been found. This is done by
+comparing the sizes of the current descendants sets to the number of
+starting nodes, \ty{ns}. Then we copy the descendants from the
+children to the parents, and replace the children by the parents to
+prepare the next round.
 #+end_export
 #+begin_src go <<Climb tree, Pr. \ref{pr:mrca}>>=
+  ns := len(startNodes)
   for true {
 	  //<<Has MRCA been found? Pr. \ref{pr:mrca}>>
 	  //<<Copy descendants from children to parents, Pr. \ref{pr:mrca}>>
-	  //<<Compare descendants lists, Pr. \ref{pr:mrca}>>
 	  //<<Replace children by parents, Pr. \ref{pr:mrca}>>
   }
 #+end_src
 #+begin_export latex
 The child with the same number of descendants as there are starting
-nodes is the MRCA.
+nodes is the MRCA. If we find it, we report the MRCA and skip the rest
+of the search for the MRCA.
 #+end_export
 #+begin_src go <<Has MRCA been found? Pr. \ref{pr:mrca}>>=
-  ns := len(startNodes)
-  for _, child := range children {
+  found := false
+  for child, _ := range children {
 	  nd := len(desc[child])
 	  if ns == nd {
-		  fmt.Printf("MRCA: %d\n", nodes[child].Label)
+		  mrca = child
+		  found = true
 		  break
+	  }
+  }
+  if found {
+	  break
+  }
+#+end_src
+#+begin_export latex
+For each child, we ask whether it has a parent. If so, we add the
+child's descendants to those of its parents and store the parent. We
+also count the parent's descendants. 
+#+end_export
+#+begin_src go <<Copy descendants from children to parents, Pr. \ref{pr:mrca}>>=
+  for child, _ := range children {
+	  if nodes[child].Parent != nil {
+		  parent := nodes[child].Parent.Id
+		  //<<Add descendants, Pr. \ref{pr:mrca}>>
+		  parents[parent] = true
+		  //<<Count parent's decendants, Pr. \ref{pr:mrca}>>
 	  }
   }
 #+end_src
 #+begin_export latex
-We iterate over the children and append their descendants to those of
-their parents.
+We still need to add the descendants of the current crop of children
+to their parents.
 #+end_export
-#+begin_src go <<Copy descendants from children to parents, Pr. \ref{pr:mrca}>>=
-  for _, child := range children {
-	  desc[parent] = append(desc[parent],
-		  desc[child]...)
+#+begin_src go <<Add descendants, Pr. \ref{pr:mrca}>>=
+  if desc[parent] == nil {
+	  desc[parent] = make(map[int]bool)
+  }
+  for d, _ := range desc[child] {
+	  desc[parent][d] = true
   }
 #+end_src
+#+begin_export latex
+We make sure the parent's map of descendants exists and note the line
+of descent for the current child.
+#+end_export
+#+begin_src go <<Count parent's decendants, Pr. \ref{pr:mrca}>>=
+  if counts[parent] == nil {
+	  counts[parent] = make(map[int]bool)
+  }
+  counts[parent][child] = true
+#+end_src
+#+begin_export latex
+To climb to the next level of the tree, we replace the children by the
+parents. For this we reset the map of children, copy the map of
+parents to the map of children, and reset the map of parents. The tree
+climbing can now be repeated.
+#+end_export
+#+begin_src go <<Replace children by parents, Pr. \ref{pr:mrca}>>=
+  reset(children)
+  for parent, _ := range parents {
+	  children[parent] = true
+  }
+  reset(parents)
+#+end_src
+#+begin_export latex
+Inside \ty{reset} we delete each element of the incoming map.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:mrca}>>=
+  func reset(m map[int]bool) {
+	  for k, _ := range m {
+		  delete(m, k)
+	  }
+  }
+#+end_src
+#+begin_export latex
+We have now finished the search for the MRCA. This allows us to report
+the coalescence events on the way from the starting nodes to the
+MRCA. So we initialize the children again with the starting
+nodes. Then we iterate until we reach the MRCA, at which point we
+break from the iteration. Until then we repeatedly look up the
+parents, check for coalescence events among them, and replace the
+children by the parents. Since we might traverse the same coalescence
+event more than once, we keep a list of the ones we've done.
+#+end_export
+#+begin_src go <<Report coalescence events, Pr. \ref{pr:mrca}>>=
+  //<<Initialize children, Pr. \ref{pr:mrca}>>
+  done := make(map[int]bool)
+  for true {
+	  //<<Reached MRCA?, Pr. \ref{pr:mrca}>>
+	  //<<Look up parents, Pr. \ref{pr:mrca}>>
+	  //<<Check for coalescence events, Pr. \ref{pr:mrca}>>
+	  //<<Replace children by parents, Pr. \ref{pr:mrca}>>
+  }
+#+end_src
+#+begin_export latex
+We set the children to the starting nodes.
+#+end_export
+#+begin_src go <<Initialize children, Pr. \ref{pr:mrca}>>=
+  reset(children)
+  for _, startNode := range startNodes {
+	  children[startNode] = true
+  }
+#+end_src
+#+begin_export latex
+If we find the MRCA among the children, we break from the loop.
+#+end_export
+#+begin_src go <<Reached MRCA?, Pr. \ref{pr:mrca}>>=
+  found := false
+  for child, _ := range children {
+	  if child == mrca {
+		  found = true
+		  break
+	  }
+  }
+  if found {
+	  break
+  }
+#+end_src
+#+begin_export latex
+We reset the parents and look them up anew.
+#+end_export
+#+begin_src go <<Look up parents, Pr. \ref{pr:mrca}>>=
+  reset(parents)
+  for child, _ := range children {
+	  if nodes[child].Parent != nil {
+		  parent := nodes[child].Parent.Id
+		  parents[parent] = true
+	  }
+  }
+#+end_src
+#+begin_export latex
+We iterate over the parents and report a coalescence event if three
+conditions hold, the descendants count is greater than 1, the parent
+isn't the MRCA, and it hasn't been reported as a coalescence event
+before. In that case we print the coalescence. In order to get
+reproducible output, we sort the keys of the parents map using the
+function \ty{sortKeys}, which we still need to write.
+#+end_export
+#+begin_src go <<Check for coalescence events, Pr. \ref{pr:mrca}>>=
+  keys := sortKeys(parents)
+  for _, parent := range keys {
+	  if len(counts[parent]) > 1 && parent != mrca &&
+		  !done[parent] {
+		  //<<Print coalescence, Pr. \ref{pr:mrca}>>
+		  done[parent] = true
+	  }
+  }
+#+end_src
+#+begin_export latex
+Inside \ty{sortKeys} we convert the keys of the incoming map into a
+sorted slice.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:mrca}>>=
+  func sortKeys(m map[int]bool) []int {
+	  keys := make([]int, 0)
+	  for key, _ := range m {
+		  keys = append(keys, key)
+	  }
+	  sort.Ints(keys)
+	  return keys
+  }
+#+end_src
+#+begin_export latex
+We import \ty{sort}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:mrca}>>=
+  "sort"
+#+end_src
+#+begin_export latex
+We print the parent's label and the labels of its descendants, again
+in fixed order.
+#+end_export
+#+begin_src go <<Print coalescence, Pr. \ref{pr:mrca}>>=
+  fmt.Printf("CA: %s", nodes[parent].Label)
+  keys2 := sortKeys(desc[parent])
+  for _, d := range keys2 {
+	  fmt.Printf(" %s", nodes[d].Label)
+  }
+  fmt.Printf("\n")
+#+end_src
+#+begin_export latex
+We have finished writing \ty{mrca}, time to test it.
+\subsection*{Testing}
+Our code for testing \ty{mrca} has hooks for imports and the testing
+logic.
+#+end_export
+#+begin_src go <<mrca_test.go>>=
+  package main
 
-
-<<Compare descendants lists, Pr. \ref{pr:mrca}>>
-<<Replace children by parents, Pr. \ref{pr:mrca}>>
- 
-
-
- repeatedly climb from a set of children to their
-parents, which we represent by slices of integers. While climbing the
-tree, we keep track of a given node's descendants among the starting
-nodes. For this we use a map between a node ID and a slice of node
-IDs.
-
-
-
-
-<<Imports, Pr. \ref{pr:mrca}>>
+  import (
+	  //<<Testing imports, Pr. \ref{pr:mrca}>>
+	  "testing"
+  )
+  func TestMrca(t *testing.T) {
+	  //<<Testing, Pr. \ref{pr:mrca}>>
+  }
+#+end_src
+#+begin_export latex
+We construct a set of tests and iterate over them.
+#+end_export
+#+begin_src go <<Testing, Pr. \ref{pr:mrca}>>=
+  var tests []*exec.Cmd
+  //<<Construct tests, Pr. \ref{pr:mrca}>>
+  for i, test := range tests {
+	  //<<Run test, Pr. \ref{pr:mrca}>>
+  }
+#+end_src
+#+begin_export latex
+We import \ty{exec}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:mrca}>>=
+  "os/exec"
+#+end_src
+#+begin_export latex
+Our first couple of tests run on the tree \ty{test.nwk} shown in
+Figure~\ref{fig:mrca}. The first test has starting node $a$.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:mrca}>>=
+  f := "test.nwk"
+  p := "./mrca"
+  test := exec.Command(p, "a", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+The next test starts from $e$ and $f$.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:mrca}>>=
+  test = exec.Command(p, "e|f", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+Now we recreate the example in Figure~\ref{fig:mrca} and start from
+$a, c$, and $e$.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:mrca}>>=
+  test = exec.Command(p, "a|c|e", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+Our last test runs on the \emph{Escherichia coli} tree of 7k genomes,
+where we look up O25b:H4-ST131, which has taxon ID 941322.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:mrca}>>=
+  f = "../data/eco7k.nwk"
+  test = exec.Command(p, "941322", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+When running a test, we compare the results we get to the results we
+want, which are stored in files \ty{r1.txt}, \ty{r2.txt}, and so on.
+#+end_export
+#+begin_src go <<Run test, Pr. \ref{pr:mrca}>>=
+  g, err := test.Output()
+  if err != nil {
+	  t.Error(err)
+  }
+  f := "r" + strconv.Itoa(i+1) + ".txt"
+  w, err := os.ReadFile(f)
+  if err != nil {
+	  t.Error(err)
+  }
+  if !bytes.Equal(g, w) {
+	  t.Errorf("%s - get:\n%s\nwant:\n%s\n", f, g, w)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strconv}, \ty{os}, and \ty{bytes}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:mrca}>>=
+  "strconv"
+  "os"
+  "bytes"
+#+end_src

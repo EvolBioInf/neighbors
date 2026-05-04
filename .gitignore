@@ -61,6 +61,8 @@ fintac/fintac
 land/land
 makeNeiDb/makeNeiDb
 makeNeiDb/test.db
+mrca/mrca
+mrca/makeRes.sh
 neighbors/makeRes.sh
 neighbors/neighbors
 outliers/makeRes.sh
