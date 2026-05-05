@@ -4,8 +4,8 @@
   neighbor genomes used to identify putative genetic markers. These are
   regions that are ubiquitous in the targets and absent from the
   neighbors. Such target regions make good starting material for
-  constructing production diagnostic markers. In this tutorial I
-  demonstrate the application of most of the eleven programs in the
+  constructing production diagnostic markers. In this tutorial we
+  demonstrate the application of most of the twelve programs in the
   Neighbors package listed in the Introduction in Table~\ref{tab:pro}.
 
   We begin by constructing a local relational database from the taxonomy
@@ -24,14 +24,15 @@
   resulting tree can be very large and its analysis is supported by five
   additional programs from the Neighbors package, \ty{land} for labeling
   the nodes, \ty{pickle} for picking a particular node, \ty{clusters}
-  for identifying clusters, \ty{fintac} for finding the target clade,
+  for identifying clusters, \ty{mrca} for finding the most recent common
+  ancestor of a set of nodes, \ty{fintac} for finding the target clade,
   and \ty{climt} for climbing the phylogeny from a given node. Once we
   have settled on the target and neighbor genomes, markers are extracted
   from them with
   \ty{fur}\footnote{\ty{https://github.com/evolbioinf/fur}}.
 
-  I occasionally cite run times to give an idea of how long a step may
-  take. I made these measurements on my run-of-the-mill laptop with 16
+  We occasionally cite run times to give an idea of how long a step may
+  take. We made these measurements on my run-of-the-mill laptop with 16
   12th Gen Intel i7 CPUs and 32\,MB memory running WSL under Windows11.
 
   \section*{Construct Database}
@@ -295,7 +296,7 @@
   n       91892     L. p. subsp. fraseri    GCA_003003865.1...
   ...
   \end{verbatim}
-  I've edited the output of \ty{neighbors} above and also of other
+  We've edited the output of \ty{neighbors} above and also of other
   programs throughout this tutorial for clarity and to fit the printed
   page. The output begins with three hashed header lines. The first
   states the most recent common ancestor of the targets,
@@ -457,28 +458,6 @@ with prefix \ty{n}.
       midRoot |
       land > lpn.nwk
 #+end_src
-#+begin_export latex
-We list the clusters contained in the tree, as one of them often
-corresponds to the desired target clade. With default options, there
-are two clusters, 16 and 2.
-#+end_export
-#+begin_src sh <<small.sh>>=
-  clusters lpn.nwk
-#+end_src
-#+begin_export latex
-\begin{verbatim}
-#Cluster  Parent  Size  C
-16        1       30    8.71
-2         1       15    5.13
-\end{verbatim}
-#+end_export
-#+begin_export latex
-Instead of listing clusters, we can also mark them on the tree.
-#+end_export
-#+begin_src sh <<small.sh>>=
-  clusters -t lpn.nwk > tmp
-  mv tmp lpn.nwk
-#+end_src
 #+begin_src latex
   The tree in \ty{lpn.nwk} is in the popular Newick format for
   phylogenies\footnote{\ty{https://phylipweb.github.io/phylip/newick\_doc.html}},
@@ -510,6 +489,43 @@ Instead of listing clusters, we can also mark them on the tree.
       plotTree
 #+end_src
 #+begin_export latex
+We list the clusters contained in the tree, as one of them often
+corresponds to the desired target clade. With default options, there
+are two clusters, 16 and 2.
+#+end_export
+#+begin_src sh <<small.sh>>=
+  clusters lpn.nwk
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+#Cluster  Parent  Size  C
+16        1       30    8.71
+2         1       15    5.13
+\end{verbatim}
+#+end_export
+#+begin_export latex
+Instead of listing clusters, we can also mark them on the tree.
+#+end_export
+#+begin_src sh <<small.sh>>=
+  clusters -t lpn.nwk > tmp
+  mv tmp lpn.nwk
+#+end_src
+#+begin_export latex
+We can use the program \ty{mrca} to look up the most recent common
+ancestor of all targets, which happens to be the largest cluster, node
+16c.
+#+end_export
+#+begin_src sh <<small.sh>>=
+mrca '^t' lpn.nwk
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+Start: tGCF_003004155.1_ASM300415v1_genomic.fna...
+CA: 19 tGCF_003004155.1_ASM300415v1_genomic.fna...
+CA: 21 tGCF_022870105.1_ASM2287010v1_genomic.fna...
+...
+MRCA: 16c
+\end{verbatim}
 You might be wondering why nodes 8 and 3 were not identified as
 clusters. They certainly look like clusters with their long parental
 branch and short descendant branches. By default, the minimum cluster
@@ -540,7 +556,7 @@ We can plot this tree with the additional clusters marked.
 #+end_src
 #+begin_src latex
   To find the subspecies shown in Figure~\ref{fig:lpn}, we first of all
-  observe that node 16c contains all targets, so it is presumably
+  reason that since node 16c contains all targets, it is presumably
   \emph{subsp. pneumophila}. To annotate clades 8 and 3, we look for a
   leaf from one of the two remaining subspecies, say
   \emph{fraseri}. However, leaves are labeled by file name without any
@@ -735,12 +751,13 @@ from the node identified by \ty{fintac} to the nearest cluster.
 #+end_src
 #+begin_src latex
   We run \ty{neighbors} using as target the species
-  \emph{L. pneumophila}, taxon-ID 446 (Table~\ref{tab:pic}). We save the
-  unknown accessions in \ty{uacc.txt}.
+  \emph{L. pneumophila}, taxon-ID 446 (Table~\ref{tab:pic}). We get only
+  the targets (\ty{-o}) and save these unknown accessions in
+  \ty{uacc.txt}.
 #+end_src
 #+begin_src sh <<large.sh>>=
-  neighbors -t 446 -l -L complete,chromosome ../neidb |
-      grep '^t' |
+  neighbors -t 446 -l -L complete,chromosome -o ../neidb |
+      tail -n +2 |
       awk '{print $2}' > uacc.txt
 #+end_src
 #+begin_src latex
@@ -833,16 +850,44 @@ from the node identified by \ty{fintac} to the nearest cluster.
 #+begin_src sh <<large.sh>>=
   nj lpn.dist | midRoot | land | clusters -t > lpn.nwk
 #+end_src
+#+begin_export latex
+We can plot the tree without the long taxon names to get
+Figure~\ref{fig:lpn2}.
+\begin{figure}
+  \begin{center}
+    \psfrag{ 25c}{\textcolor{red}{25c}}
+    \includegraphics{../tutorial/lpn2}
+  \end{center}
+  \caption{The phylogeny of 183 genomes of
+    \emph{L. pneumophila}; the target clade, 25c, is shown in red.}\label{fig:lpn2}
+\end{figure}
+#+end_export
+#+begin_src sh <<large.sh>>=
+  sed -E 's/([ntu])[^f]*.fna/\1/g' lpn.nwk |
+      plotTree
+#+end_src
+#+begin_export latex
+Instead of inspecting the tree, we can look up the most recent common
+ancestor of all known targets, 25c, shown in red in
+Figure~\ref{fig:lpn2}.
+#+end_export
+#+begin_src sh <<large.sh>>=
+mrca '^t' lpn.nwk
+#+end_src
 #+begin_src latex
-  In our tree the targets should be rooted on the node that maximizes
-  the number of taxonomic targets inside and the number of taxonomic
-  neighbors outside while ignoring the unknowns. We could try looking
-  for this manually, but this is difficult as our tree contains 183
-  taxa. Instead, we run \ty{fintac} specifying prefix n as the neighbor
-  mark and everything else as the target mark. This returns the same
-  84\,\% split as before, with an almost identical branch length to the
-  parent, 0.025. This is reassuring. Our target clade in the large tree
-  is cluster 25c.
+  \begin{verbatim}
+  Start: tGCF_001766335.1_ASM176633v1_genomic.fna...
+  CA: 28 tGCF_001766335.1_ASM176633v1_genomic.fna...
+  CA: 29 tGCF_001766315.1_ASM176631v1_genomic.fna...
+  ...
+  MRCA: 25c
+  \end{verbatim}
+  We can also look for the node that maximizes the split between targets
+  and neighbors using \ty{fintac}. We specify prefix \ty{n} as the
+  neighbor mark and everything else as the target mark. This returns the
+  same 84\,\% split as before, with an almost identical branch length to
+  the parent, 0.025. This is reassuring. Our target clade in the large
+  tree is cluster 25c.
 #+end_src
 #+begin_src sh <<large.sh>>=
   fintac -n "^n" -t "^[^n]" lpn.nwk
