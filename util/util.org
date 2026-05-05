@@ -23,8 +23,8 @@
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func PrintInfo(program string) {
-	  author := "Bernhard Haubold"
-	  email := "haubold@evolbio.mpg.de"
+	  author := "Evolbioinf"
+	  email := "haubold|mourato@evolbio.mpg.de"
 	  license := "Gnu General Public License, " +
 		  "https://www.gnu.org/licenses/gpl.html"
 	  clio.PrintInfo(program, version, date,

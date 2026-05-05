@@ -41,9 +41,9 @@ where $s(v)$ returns the nodes in the subtree rooted on $v$, and
 $p(v)$ the parent of $v$. This set subtraction is implemented in the
 program \ty{neighbors}.
 
-The Neighbors package consists of the eleven programs listed in
+The Neighbors package consists of the twelve programs listed in
 Table~\ref{tab:pro}. Five of these programs are based on the taxonomy,
-four on a phylogeny, and one, \ty{outliers}, on numerical data.
+six on a phylogeny, and one, \ty{outliers}, on numerical data.
 
 \begin{table}
 \caption{The eleven programs of Neighbors}\label{tab:pro}
@@ -58,10 +58,11 @@ four on a phylogeny, and one, \ty{outliers}, on numerical data.
 5 & \ty{fintac} & phylogeny & find target clade\\
 6 & \ty{land} & phylogeny & label nodes\\
 7 & \ty{makeNeiDb} & taxonomy & make neighbors database\\
-8 & \ty{neighbors} & taxonomy & find neighbors (and targets)\\
-9 & \ty{outliers} & numbers & find outliers\\
-10 & \ty{pickle} & phylogeny & pick clades\\
-11 & \ty{taxi} & taxonomy & get taxon-ID for taxon name\\\hline
+8 & \ty{mrca} & phylogeny & find most recent common ancestor\\
+9 & \ty{neighbors} & taxonomy & find neighbors (and targets)\\
+10 & \ty{outliers} & numbers & find outliers\\
+11 & \ty{pickle} & phylogeny & pick clades\\
+12 & \ty{taxi} & taxonomy & get taxon-ID for taxon name\\\hline
 \end{tabular}
 \end{center}
 \end{table}
@@ -145,7 +146,8 @@ The phylogenies of targets and neighbors may comprise hundreds of
 taxa. To help analyze such large phylogenies, Neighbors
 contains \ty{land} for labeling nodes, \ty{pickle} for picking nodes,
 \ty{clusters} for finding clusters of closely related
-taxa, \ty{fintac} for finding the target clade, and \ty{climt} for
+taxa, \ty{mrca} for finding the most recent ancestor of a set of
+nodes, \ty{fintac} for finding the target clade, and \ty{climt} for
 climbing the phylogenetic tree.
 
 Even a clean set of phylogenetic targets might still contain genomes

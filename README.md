@@ -25,11 +25,19 @@ discovered with `neighbors`, the regions common to the targets that
 are absent form the neighbors are good marker candidates. The program
 [`fur`](https://github.com/evolbioinf/fur) is one example of a program
 for identifying such regions. Once found, the sensitivity and
-specificity of the marker candidates can quantified using, for
+specificity of the marker candidates can be quantified using, for
 example, the programs in [`prim`](https://github.com/evolbioinf/prim).
 
-## Author
-[Bernhard Haubold](http://guanine.evolbio.mpg.de/), `haubold@evolbio.mpg.de`
+The [`neighbors`](https://neighbors.evolbio.mpg.de) web site gives
+access to some of the facilities of this package.
+
+## Authors
+This software is written by the members of the Research Group
+Bioinformatics a the Max-Planck-Institute for Evolutionary Biology,
+Plön, Germany; contact [Bernhard
+Haubold](https://www.evolbio.mpg.de/mitarbeiter/12020/) `haubold@evolbio.mpg.de` or
+[Beatriz V. Mourato](https://beatrizvm.github.io/) `mourato@evolbio.mpg.de`
+
 ## Make the Programs
 If you are on a Ubuntu system like Ubuntu on
 [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) under
