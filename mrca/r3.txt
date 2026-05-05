@@ -1,2 +1,5 @@
-Start: a c e
-MRCA: 1
+MRCA 1
+#Type	n
+Start	3
+#CA	n
+2	2

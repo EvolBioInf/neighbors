@@ -1,2 +1,3 @@
-Start: e f
-MRCA: 5
+MRCA 5
+#Type	n
+Start	2

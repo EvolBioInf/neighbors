@@ -18,6 +18,8 @@ func TestMrca(t *testing.T) {
 	tests = append(tests, test)
 	test = exec.Command(p, "a|c|e", f)
 	tests = append(tests, test)
+	test = exec.Command(p, "-l", "a|c|e", f)
+	tests = append(tests, test)
 	f = "../data/eco7k.nwk"
 	test = exec.Command(p, "941322", f)
 	tests = append(tests, test)
