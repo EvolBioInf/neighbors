@@ -7,9 +7,7 @@ import (
 	"github.com/evolbioinf/clio"
 	"github.com/evolbioinf/neighbors/util"
 	"io"
-	"math"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -26,29 +24,16 @@ func scan(r io.Reader, args ...interface{}) {
 			data = append(data, d)
 		}
 	}
+	var q *util.Quart
 	if len(data) >= 4 {
-		sort.Float64s(data)
-		n := len(data)
-		m := (n + 1) / 2
-		q2 := data[m-1]
-		if n%2 == 0 {
-			q2 = (q2 + data[m]) / 2.0
-		}
-		exactQ := float64(n+1) * 0.25
-		f := math.Floor(exactQ)
-		l := int(f)
-		x := math.Remainder(exactQ, f)
-		q1 := data[l-1] + (data[l]-data[l-1])*x
-		exactQ = float64(n+1) * 0.75
-		f = math.Floor(exactQ)
-		l = int(f)
-		x = math.Remainder(exactQ, f)
-		q3 := data[l-1] + (data[l]-data[l-1])*x
-		iq := q3 - q1
-		lif := q1 - 1.5*iq
-		uif := q3 + 1.5*iq
-		lof := q1 - 3.0*iq
-		uof := q3 + 3.0*iq
+		q = util.Quartiles(data)
+		lof := q.LowerOuterFence
+		lif := q.LowerInnerFence
+		q1 := q.LowerQuartile
+		q2 := q.Median
+		q3 := q.UpperQuartile
+		uif := q.UpperInnerFence
+		uof := q.UpperOuterFence
 		w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
 		msg := "#Lower_outer_fence\tLower_inner_fence\t" +
 			"Lower_quartile\tMedian\tUpper_quartile\t" +
@@ -73,8 +58,8 @@ func scan(r io.Reader, args ...interface{}) {
 		printOutliers(mouts, "mild")
 		printOutliers(eouts, "extreme")
 	} else {
-		m := "outliers - Need at least 4 data points " +
-			"for an outlier analysis"
+		m := "outliers - Need at least 4 data " +
+			"points for an outlier analysis"
 		fmt.Fprintf(os.Stderr, m)
 	}
 }

@@ -3,6 +3,10 @@
 ants/ants
 bin
 climt/climt
+clusters/clusters
+clusters/makeRes.sh
+clusters/phylonium*.nwk
+clusters/sim.sh
 data/*.db
 data/acc.txt
 data/assembly_summary_genbank.txt
@@ -32,12 +36,14 @@ doc/*.out
 doc/*.toc
 doc/ants.tex
 doc/climt.tex
+doc/clusters.tex
 doc/date.txt
 doc/db.ps
 doc/dree.tex
 doc/fintac.tex
 doc/land.tex
 doc/makeNeiDb.tex
+doc/mrca.tex
 doc/neighbors.tex
 doc/neighborsDoc.pdf
 doc/neighborsDoc.ps
@@ -55,6 +61,8 @@ fintac/fintac
 land/land
 makeNeiDb/makeNeiDb
 makeNeiDb/test.db
+mrca/mrca
+mrca/makeRes.sh
 neighbors/makeRes.sh
 neighbors/neighbors
 outliers/makeRes.sh
@@ -92,4 +100,5 @@ tutorial/tlen.dat
 dree/makeRes.sh
 edist/
 neighbors-docker
+notes
 tutorial/drawTrees.sh

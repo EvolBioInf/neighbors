@@ -49,7 +49,13 @@ func parse(r io.Reader, args ...interface{}) {
 				if clade.Parent == nil {
 					t = nil
 				} else {
-					clade.RemoveClade()
+					if *optT {
+						n := size(clade.Child, 0)
+						clade.Label = fmt.Sprintf("n=%d", n)
+						clade.Child = nil
+					} else {
+						clade.RemoveClade()
+					}
 				}
 			}
 			if *optT {
@@ -82,6 +88,17 @@ func tree2slice(v *nwk.Node, ns []*nwk.Node) []*nwk.Node {
 	ns = tree2slice(v.Sib, ns)
 	return ns
 }
+func size(v *nwk.Node, n int) int {
+	if v == nil {
+		return n
+	}
+	if v.Child == nil {
+		n++
+	}
+	n = size(v.Child, n)
+	n = size(v.Sib, n)
+	return n
+}
 func listLeaves(v *nwk.Node) {
 	if v == nil {
 		return
@@ -93,6 +110,7 @@ func listLeaves(v *nwk.Node) {
 	listLeaves(v.Sib)
 }
 func main() {
+	util.SetName("pickle")
 	u := "pickle <clade1,clade2...> [option]... [foo.nwk]..."
 	p := "Pick clades in Newick trees."
 	e := "pickle 3,5 foo.nwk"
@@ -106,7 +124,8 @@ func main() {
 	}
 	args := flag.Args()
 	if len(args) < 1 {
-		fmt.Fprintf(os.Stderr, "please enter a clade identifier\n")
+		m := "please enter a clade identifier"
+		fmt.Fprintf(os.Stderr, "%s\n", m)
 		os.Exit(-1)
 	}
 	labels := strings.Split(args[0], ",")

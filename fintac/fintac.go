@@ -134,6 +134,7 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 	}
 }
 func main() {
+	util.SetName("fintac")
 	u := "fintac [option]... [foo.nwk]..."
 	p := "Find target clade in Newick tree."
 	e := "fintac foo.nwk"

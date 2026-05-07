@@ -6,8 +6,20 @@ import (
 	"fmt"
 	"github.com/evolbioinf/clio"
 	"log"
+	"math"
 	"os"
+	"sort"
 )
+
+type Quart struct {
+	LowerOuterFence float64
+	LowerInnerFence float64
+	LowerQuartile   float64
+	Median          float64
+	UpperQuartile   float64
+	UpperInnerFence float64
+	UpperOuterFence float64
+}
 
 var version, date string
 var name string
@@ -16,6 +28,7 @@ var assemblyLevels = []string{"complete",
 	"scaffold",
 	"contig"}
 
+// PrintInfo prints program information and exits.
 func PrintInfo(program string) {
 	author := "Bernhard Haubold"
 	email := "haubold@evolbio.mpg.de"
@@ -25,6 +38,8 @@ func PrintInfo(program string) {
 		author, email, license)
 	os.Exit(0)
 }
+
+// Open opens a file with error checking.
 func Open(file string) *os.File {
 	f, err := os.Open(file)
 	if err != nil {
@@ -34,20 +49,28 @@ func Open(file string) *os.File {
 	}
 	return f
 }
+
+// Check checks an error and aborts if it isn't nil.
 func Check(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
 }
+
+// The function SetName sets the name of the program.
 func SetName(n string) {
 	name = n
 	s := fmt.Sprintf("%s: ", n)
 	log.SetPrefix(s)
 	log.SetFlags(0)
 }
+
+// The function Version prints the version and other information about the program and exits.
 func Version() {
 	PrintInfo(name)
 }
+
+// The function LevelMsg prints the user message for the option directing the assembly level.
 func LevelMsg() string {
 	levels := assemblyLevels
 	m := "assembly-level: comma-delimited combination " +
@@ -58,4 +81,32 @@ func LevelMsg() string {
 	m += ", or " + levels[len(levels)-1]
 	m += " (default any)"
 	return m
+}
+
+// The function Quartiles takes as argument a slice of floats and calculates the quartiles, including fences for outlier analysis.
+func Quartiles(data []float64) *Quart {
+	q := new(Quart)
+	sort.Float64s(data)
+	n := len(data)
+	m := (n + 1) / 2
+	q.Median = data[m-1]
+	if n%2 == 0 {
+		q.Median = (q.Median + data[m]) / 2.0
+	}
+	exactQ := float64(n+1) * 0.25
+	f := math.Floor(exactQ)
+	l := int(f)
+	x := math.Remainder(exactQ, f)
+	q.LowerQuartile = data[l-1] + (data[l]-data[l-1])*x
+	exactQ = float64(n+1) * 0.75
+	f = math.Floor(exactQ)
+	l = int(f)
+	x = math.Remainder(exactQ, f)
+	q.UpperQuartile = data[l-1] + (data[l]-data[l-1])*x
+	r := q.UpperQuartile - q.LowerQuartile
+	q.LowerInnerFence = q.LowerQuartile - 1.5*r
+	q.UpperInnerFence = q.UpperQuartile + 1.5*r
+	q.LowerOuterFence = q.LowerQuartile - 3.0*r
+	q.UpperOuterFence = q.UpperQuartile + 3.0*r
+	return q
 }

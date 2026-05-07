@@ -41,6 +41,7 @@ func labelTree(v *nwk.Node, c int, pr, su string,
 	return c
 }
 func main() {
+	util.SetName("land")
 	u := "land [option]... [treeFile]..."
 	p := "Label the internal nodes in Newick trees."
 	e := "land -p n foo.nwk"

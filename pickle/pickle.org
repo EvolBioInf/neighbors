@@ -1,10 +1,36 @@
 #+begin_src latex
   \section{\ty{pickle}}
-  In Newick trees with labeled clades, \ty{pickle} picks the clades
-  requested by the user and prints their leaf labels. It can also print
-  the requested clade as a Newick tree. The program also has a
-  ``complement'' option to get everything but the nodes in the
-  designated clade.
+  The program \ty{pickle} picks clades from trees. It reads a Newick
+  tree with labeled clades. It then picks the clades requested by the
+  user and prints their leaf labels. Alternatively, it prints the
+  requested clade as a Newick tree, which can be rendered with a
+  suitable tree drawing program. For example, we can use \ty{plotTree}
+  to draw clade 9 of the test tree to get Figure~\ref{fig:tree}A.
+  \begin{verbatim}
+  $ pickle -t 9 pickle/test.nwk | plotTree
+  \end{verbatim}
+
+  \begin{figure}
+    \begin{center}
+    \begin{tabular}{cc}
+      \textbf{A} & \textbf{B}\\
+      \includegraphics{../pickle/tree1.ps} & %% 5cm x 5cm
+      \includegraphics{../pickle/tree2.ps}   %% 5cm x 5cm
+    \end{tabular}
+    \end{center}
+    \caption{Full tree for testing the program \ty{pickle} (\textbf{A}),
+    and the same tree with clade 8 removed (\textbf{B}).}\label{fig:tree}
+  \end{figure}
+
+  The program \ty{pickle} also has a ``complement'' option to get
+  everything \emph{but} the nodes in the target clade. When used in tree
+  mode, the complement effectively removes the target clade, which gets
+  replaced by the number of leaves in its subtree. For example, we can
+  remove clade 8 from the tree in Figure~\ref{fig:tree}A, to get
+  Figure~\ref{fig:tree}B with $n=5$ where clade 8 used to be.
+  \begin{verbatim}
+  pickle -t -c 8 pickle/test.nwk | plotTree
+  \end{verbatim}
 
   \subsection*{Implementation}
   \ty{pickle} contains hooks for imports, functions, and the logic of the
@@ -22,14 +48,22 @@
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function we set the usage, declare the options, parse
-  the options, and parse the input files.
+  \epr In the main function we set the name of \ty{pickle} and its
+  usage, declare the options, parse the options, and parse the input
+  files.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:pic}>>=
+  util.SetName("pickle")
   //<<Set usage, Pr. \ref{pr:pic}>>
   //<<Declare options, Pr. \ref{pr:pic}>>
   //<<Parse options, Pr. \ref{pr:pic}>>
   //<<Parse input files, Pr. \ref{pr:pic}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:pic}>>=
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   The usage consists of three parts, the usage message proper, an
@@ -76,16 +110,16 @@
   }
   args := flag.Args()
   if len(args) < 1 {
-	  fmt.Fprintf(os.Stderr, "please enter a clade identifier\n")
+	  m := "please enter a clade identifier"
+	  fmt.Fprintf(os.Stderr, "%s\n", m)
 	  os.Exit(-1)
   }
   labels := strings.Split(args[0],",")
 #+end_src
 #+begin_src latex
-  We import \ty{util}, \ty{fmt}, \ty{os}, and \ty{strings}.
+  We import \ty{fmt}, \ty{os}, and \ty{strings}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:pic}>>=
-  "github.com/evolbioinf/neighbors/util"
   "fmt"
   "os"
   "strings"
@@ -222,7 +256,39 @@ matching label and note that we found it.
   if clade.Parent == nil {
 	  t = nil
   } else {
+	  //<<Remove clade, Pr. \ref{pr:pic}>>
+  }
+#+end_src
+#+begin_export latex
+If we print the tree, we'd like to have a visual marker of the removed
+clade. So we set the label of the removed clade to the size of the
+clade---that is, the number of leaves it contains---and set its child
+link to nil. Otherwise, we just remove the clade.
+#+end_export
+#+begin_src go <<Remove clade, Pr. \ref{pr:pic}>>=
+  if *optT {
+	  n := size(clade.Child, 0)
+	  clade.Label = fmt.Sprintf("n=%d", n)
+	  clade.Child = nil
+  } else {
 	  clade.RemoveClade()
+  }
+#+end_src
+#+begin_export latex
+The function \ty{size} traverses the incoming tree and counts its
+leaves.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:pic}>>=
+  func size(v *nwk.Node, n int) int {
+	  if v == nil {
+		  return n
+	  }
+	  if v.Child == nil {
+		  n++
+	  }
+	  n = size(v.Child, n)
+	  n = size(v.Sib, n)
+	  return n
   }
 #+end_src
 #+begin_src latex
@@ -311,16 +377,10 @@ matching label and note that we found it.
 #+end_src
 #+begin_src latex
   We begin with four basic tests, all based on the tree in
-  Figure~\ref{fig:tree} contained in the file \ty{test.nwk}. The first
+  Figure~\ref{fig:tree}A contained in the file \ty{test.nwk}. The first
   test picks clade 7, the second picks clades 7 and 3, the third picks
   clade 9, which is the root, and the fourth test picks clade 4, which,
   in contrast to clades 7 and 3, is not at the end of a sibling chain.
-  \begin{figure}
-    \begin{center}
-      \includegraphics{../pickle/tree}
-    \end{center}
-    \caption{Tree for testing the program \ty{pickle}.}\label{fig:tree}
-  \end{figure}
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
   f := "test.nwk"

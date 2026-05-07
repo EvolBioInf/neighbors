@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	util.SetName("dree")
 	u := "dree [-h] [option]... <taxon-ID> <db>"
 	p := "Get the taxonomy rooted on a specific taxon."
 	e := "dree -n -g 207598 neidb | dot -T x11"

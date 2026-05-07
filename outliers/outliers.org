@@ -21,7 +21,7 @@
   \begin{enumerate}
   \item the lower outer fence
   \item the inner outer fence
-  \item the first quartile
+  \item the lower quartile
   \item the median
   \item the upper quartile
   \item the upper inner fence
@@ -47,9 +47,8 @@
   }
 #+end_src
 #+begin_src latex
-\epr
-In the main function we set the program name and its usage, declare
-the options, parse the options, and parse the input files.
+  \epr In the main function, we set the program name and its usage,
+  declare the options, parse the options, and parse the input files.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:out}>>=
   util.SetName("outliers")
@@ -65,8 +64,8 @@ We import \ty{util}.
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
-The usage consists of three parts, the actual usage message, an
-explanation of the purpose of \ty{outliers} and an example command.
+  The usage consists of three parts, the actual usage message, an
+  explanation of the purpose of \ty{outliers}, and an example command.
 #+end_src
 #+begin_src go <<Set usage, Pr. \ref{pr:out}>>=
   u := "outliers [option]... [file]..."
@@ -111,32 +110,21 @@ applies to each file the function \ty{scan}.
   clio.ParseFiles(files, scan)
 #+end_src
 #+begin_src latex
-Inside \ty{scan} we read the data into a slice of floats. We need at
-least four data points for an outlier analysis. If we get four or more
-data points, we carry out the analysis and print the
-results. Otherwise, we skip the current data set with a friendly
-warning message.
+  Inside \ty{scan} we read the data into a slice of floats and then
+  analyze it.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:out}>>=
   func scan(r io.Reader, args ...interface{}) {
 	  data := make([]float64, 0)
 	  //<<Read data, Pr. \ref{pr:out}>>
-	  if len(data) >= 4 {
-		  //<<Analyse data, Pr. \ref{pr:out}>>
-		  //<<Print results, Pr. \ref{pr:out}>>
-	  } else {
-		  m := "outliers - Need at least 4 data points " +
-			  "for an outlier analysis"
-		  fmt.Fprintf(os.Stderr, m)
-	  }
+	  //<<Analyze data, Pr. \ref{pr:out}>>
   }
 #+end_src
 #+begin_src latex
-We import \ty{io} and \ty{os}.
+We import \ty{io}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:out}>>=
   "io"
-  "os"
 #+end_src
 #+begin_src latex
 We scan the lines of the input file, convert each one into a number,
@@ -161,93 +149,53 @@ We import \ty{bufio}, \ty{strings}, and \ty{strconv}.
   "strings"
   "strconv"
 #+end_src
-#+begin_src latex
-We begin the data analysis by sorting the data. Then we determine the
-median, the lower quartile, the upper quartile, the interquartile
-range, the inner fences, and the outer fences.
-#+end_src
-#+begin_src go <<Analyse data, Pr. \ref{pr:out}>>=
-  sort.Float64s(data)
-  //<<Determine median, Pr. \ref{pr:out}>>
-  //<<Determine lower quartile, Pr. \ref{pr:out}>>
-  //<<Determin upper quartile, Pr. \ref{pr:out}>>
-  //<<Determine interquartile range, Pr. \ref{pr:out}>>
-  //<<Determine inner fences, Pr. \ref{pr:out}>>
-  //<<Determine outer fences, Pr. \ref{pr:out}>>
-#+end_src
-#+begin_src latex
-We import \ty{sort}.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:out}>>=
-  "sort"
-#+end_src
-#+begin_src latex
-The median is the value of the midpoint of the data range. I think of
-it as the second quartile.
-#+end_src
-#+begin_src go <<Determine median, Pr. \ref{pr:out}>>=
-  n := len(data)
-  m := (n+1) / 2
-  q2 := data[m-1]
-  if n % 2 == 0 {
-	  q2 = (q2 + data[m]) / 2.0
+#+begin_export latex
+We need at least four data points for an outlier analysis. If we get
+four or more data points, we carry out the outlier analysis by calling
+the function \ty{Out\-lier\-Sta\-tis\-tics} and print the
+results. Otherwise, we skip the current data set with a friendly
+warning message.
+#+end_export
+#+begin_src go <<Analyze data, Pr. \ref{pr:out}>>=
+  var q *util.Quart
+  if len(data) >= 4 {
+	  q = util.Quartiles(data)
+	  //<<Print results, Pr. \ref{pr:out}>>
+  } else {
+	  m := "outliers - Need at least 4 data " +
+		  "points for an outlier analysis"
+	  fmt.Fprintf(os.Stderr, m)
   }
 #+end_src
-#+begin_src latex
-We calculate the lower, or first, quartile.
-#+end_src
-#+begin_src go <<Determine lower quartile, Pr. \ref{pr:out}>>=
-  exactQ := float64(n+1) * 0.25
-  f := math.Floor(exactQ)
-  l := int(f)
-  x := math.Remainder(exactQ, f)
-  q1 := data[l-1] + (data[l]-data[l-1]) * x
-#+end_src
-#+begin_src latex
-We import \ty{math}.
-#+end_src
+#+begin_export latex
+We import \ty{os}.
+#+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:out}>>=
-  "math"
+  "os"
 #+end_src
 #+begin_src latex
-We calculate the upper, or third, quartile.
-#+end_src
-#+begin_src go <<Determin upper quartile, Pr. \ref{pr:out}>>=
-  exactQ = float64(n+1) * 0.75
-  f = math.Floor(exactQ)
-  l = int(f)
-  x = math.Remainder(exactQ, f)
-  q3 := data[l-1] + (data[l]-data[l-1]) * x
-#+end_src
-#+begin_src latex
-The interquartile range is the difference between the upper and lower
-quartile.
-#+end_src
-#+begin_src go <<Determine interquartile range, Pr. \ref{pr:out}>>=
-  iq := q3 - q1
-#+end_src
-#+begin_src latex
-We determine the lower and the upper inner fence.
-#+end_src
-#+begin_src go <<Determine inner fences, Pr. \ref{pr:out}>>=
-  lif := q1 - 1.5 * iq
-  uif := q3 + 1.5 * iq
-#+end_src
-#+begin_src latex
-We determine the lower and upper outer fence.
-#+end_src
-#+begin_src go <<Determine outer fences, Pr. \ref{pr:out}>>=
-  lof := q1 - 3.0 * iq
-  uof := q3 + 3.0 * iq
-#+end_src
-#+begin_src latex
-We print the results in three steps; we print the quartiles and
-fences, collect the outliers, and print them.
+  We print the results in four steps. First, we rename the variables for
+  convenient handling. Then we print the quartiles and fences, and
+  collect the outliers to print them, too.
 #+end_src
 #+begin_src go <<Print results, Pr. \ref{pr:out}>>=
+  //<<Rename variables, Pr. \ref{pr:out}>>
   //<<Print quartiles and fences, Pr. \ref{pr:out}>>
   //<<Collect outliers, Pr. \ref{pr:out}>>
   //<<Print outliers, Pr. \ref{pr:out}>>
+#+end_src
+#+begin_export latex
+We give succinct names to the seven variables returned by the outlier
+analysis.
+#+end_export
+#+begin_src go <<Rename variables, Pr. \ref{pr:out}>>=
+  lof := q.LowerOuterFence
+  lif := q.LowerInnerFence
+  q1 := q.LowerQuartile
+  q2 := q.Median
+  q3 := q.UpperQuartile
+  uif := q.UpperInnerFence
+  uof := q.UpperOuterFence
 #+end_src
 #+begin_src latex
 We print the quartiles and outliers in a table that we format with a
@@ -379,11 +327,11 @@ We import \ty{exec}.
   "os/exec"
 #+end_src
 #+begin_src latex
-We run five tests, which are only distinguished by their input
-data. File \ty{test2.txt} was taken from the web page by the American
-National Institute of Standards and Technology already
-mentioned\footnote{\ty{https://www.itl.nist.gov/div898/handbook/prc/section1/prc16.htm}}. The
-other data sets are variations.
+  We run five tests, which are only distinguished by their input
+  data. File \ty{test2.txt} was taken from the web page by the American
+  National Institute of Standards and Technology already
+  mentioned\footnote{\ty{https://www.itl.nist.gov/div898/handbook/prc/section1/prc16.htm}}. The
+  other data sets are variations of it.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:out}>>=
   for i := 1; i <= 5; i++ {
@@ -399,8 +347,8 @@ We import \ty{strconv}.
   "strconv"
 #+end_src
 #+begin_src latex
-When running a test, we compare the result we get with the result we
-want, which is stored in files \ty{r1.txt}, \ty{r2.txt}, and so on.
+  When running a test, we compare the results we get with the results we
+  want, which are stored in files \ty{r1.txt}, \ty{r2.txt}, and so on.
 #+end_src
 #+begin_src go <<Run test, Pr. \ref{pr:out}>>=
   get, err := test.Output()

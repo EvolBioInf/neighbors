@@ -22,6 +22,7 @@ type taxon struct {
 	numChildren         int
 	raw                 map[string]int
 	rec                 map[string]int
+	score               float64
 }
 type genome struct {
 	taxid            int
@@ -666,6 +667,22 @@ func NewTaxonomyDB(nof, naf, mef,
 	}
 	tx.Commit()
 	stmt.Close()
+	for _, taxon := range taxa {
+		for _, count := range taxon.rec {
+			taxon.score += float64(count)
+		}
+	}
+	max := 0.0
+	for _, taxon := range taxa {
+		if taxon.score > max {
+			max = taxon.score
+		}
+	}
+	for _, taxon := range taxa {
+		if taxon.comName != "" {
+			taxon.score += max
+		}
+	}
 	tx, err = db.Begin()
 	util.Check(err)
 	sqlStmt = `update taxon
@@ -674,11 +691,7 @@ func NewTaxonomyDB(nof, naf, mef,
 	stmt, err = tx.Prepare(sqlStmt)
 	util.Check(err)
 	for _, taxon := range taxa {
-		sum := 0
-		for _, count := range taxon.rec {
-			sum += count
-		}
-		_, err := stmt.Exec(sum, taxon.taxid)
+		_, err := stmt.Exec(taxon.score, taxon.taxid)
 		util.Check(err)
 	}
 	tx.Commit()

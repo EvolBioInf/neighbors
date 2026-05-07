@@ -44,15 +44,23 @@
   }
 #+end_src
 #+begin_src latex
-\epr Inside the main function we set the usage, declare the options,
-parse them, and respond to them. Then we parse the input files.
+  \epr Inside the main function we set the name of \ty{fintac} and its
+  usage, declare the options, parse them, and respond to them. Then we
+  parse the input files.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:fit}>>=
+  util.SetName("fintac")
   //<<Set usage, Pr. \ref{pr:fit}>>
   //<<Declare options, Pr. \ref{pr:fit}>>
   //<<Parse options, Pr. \ref{pr:fit}>>
   //<<Respond to options, Pr. \ref{pr:fit}>>
   //<<Parse input files, Pr. \ref{pr:fit}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
 The usage consists of three parts, the actual usage message, an
@@ -113,12 +121,6 @@ We respond to the version, the target, and the neighbor option.
   if *optV {
 	  util.PrintInfo("fintac")
   }
-#+end_src
-#+begin_src latex
-  We import \ty{util}.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
-  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   We compile the target regex and check the error returned.

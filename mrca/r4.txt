@@ -1,0 +1,5 @@
+MRCA 1
+#Type	n	Labels
+Start	3	a c e
+#CA	n	Labels
+2	2	c e

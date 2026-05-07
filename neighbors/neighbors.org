@@ -24,17 +24,24 @@
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function we set the usage, declare the options, parse
-  the options, and respond to them. Then we open the database connection
-  and parse the input files.
+  \epr In the main function we set the name of \ty{neighbors} and its
+  usage, declare the options, parse the options, and respond to
+  them. Then we open the database connection and parse the input files.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:neig}>>=
+  util.SetName("neighbors")
   //<<Set usage, Pr. \ref{pr:neig}>>
   //<<Declare options, Pr. \ref{pr:neig}>>
   //<<Parse options, Pr. \ref{pr:neig}>>
   //<<Respond to options, Pr. \ref{pr:neig}>>
   //<<Open database connection, Pr. \ref{pr:neig}>>
   //<<Parse input files, Pr. \ref{pr:neig}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
+  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
@@ -84,11 +91,10 @@
   optO := flag.Bool("o", false, "output only targets")
 #+end_src
 #+begin_src latex
-  We import \ty{flag} and \ty{util}.
+  We import \ty{flag}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:neig}>>=
   "flag"
-  "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
   We parse the options.

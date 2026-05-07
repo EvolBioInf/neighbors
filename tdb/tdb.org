@@ -236,15 +236,18 @@ individually. \ty{taxid} and \ty{image\_id} are also foreign keys into
   here, though. The score of a taxon can only be determined once the
   genome counts have been determined. These in turn depend on the
   entries in table \ty{genome}. Hence we load \ty{genomes} after
-  \ty{taxon}, followed by \ty{genome\_count}. Then we return to table
-  \ty{taxon} and load the score. We end by loading the two tables dealing
-  with images, \ty{image} and \ty{tax2ima}. Since \ty{tax2ima} refers to
-  \ty{image}, we start with \ty{image}.
+  \ty{taxon}, followed by \ty{genome\_count}. Then we return to the
+  scores, which we calculate, adjust, and enter into the table
+  \ty{taxon}. We end by loading the two tables dealing with images,
+  \ty{image} and \ty{tax2ima}. Since \ty{tax2ima} refers to \ty{image},
+  we start with \ty{image}.
 #+end_src
 #+begin_src go <<Load tables, Pa. \ref{pa:tdb}>>=
   //<<Load table \ty{taxon}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{genome}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{genome\_count}, Pa. \ref{pa:tdb}>>
+  //<<Calculate scores, Pa. \ref{pa:tdb}>>
+  //<<Adjust scores, Pa. \ref{pa:tdb}>>
   //<<Enter score in table \ty{taxon}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{image}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{tax2ima}, Pa. \ref{pa:tdb}>>
@@ -252,7 +255,7 @@ individually. \ty{taxid} and \ty{image\_id} are also foreign keys into
 #+begin_src latex 
   To load \ty{taxon}, we simulate a join of \ty{nodes.dmp} and
   \ty{names.dmp} on taxon-ID. For this we create the type \ty{taxon}
-  with the same five fields as the five attributes in
+  with the same six fields as the six attributes in
   Figure~\ref{fig:db}. In addition, we keep a counter of the node's
   children, and note its raw and recursive genome counts per level.
 #+end_src
@@ -263,6 +266,7 @@ individually. \ty{taxid} and \ty{image\_id} are also foreign keys into
 	  numChildren int
 	  raw map[string]int
 	  rec map[string]int
+	  score float64
   }
 #+end_src
 #+begin_src latex
@@ -822,8 +826,49 @@ We store the four possible assembly levels in the global variable
 	  "contig"}
 #+end_src
 #+begin_export latex
-We update the scores using a transaction that we prepare, before doing
-the actual updating. Then we commit the transaction and close it again.
+We calculate the initial scores of teach taxon as the sum of its
+recursive genome counts.
+#+end_export
+#+begin_src go <<Calculate scores, Pa. \ref{pa:tdb}>>=
+  for _, taxon := range taxa {
+	  for _, count := range taxon.rec {
+		  taxon.score += float64(count)
+	  }
+  }
+#+end_src
+#+begin_export latex
+To adjust the scores, we first find their maximum, then we add that to
+the taxa with common names.
+#+end_export
+#+begin_src go <<Adjust scores, Pa. \ref{pa:tdb}>>=
+  //<<Calculate maximum score, Pa. \ref{pa:tdb}>>
+  //<<Add maximum score to commoners, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+We iterate over the taxa to find their maximum score.
+#+end_export
+#+begin_src go <<Calculate maximum score, Pa. \ref{pa:tdb}>>=
+  max := 0.0
+  for _, taxon := range taxa {
+	  if taxon.score > max {
+		  max = taxon.score
+	  }
+  }
+#+end_src
+#+begin_export latex
+If a taxon has a common name, we increment its scores by the maximum.
+#+end_export
+#+begin_src go <<Add maximum score to commoners, Pa. \ref{pa:tdb}>>=
+  for _, taxon := range taxa {
+	  if taxon.comName != "" {
+		  taxon.score += max
+	  }
+  }
+#+end_src
+#+begin_export latex
+We enter the scores using a transaction that we prepare, before doing
+the actual updating of the table \ty{taxon}. Then we commit the
+transaction and close it again.
 #+end_export
 #+begin_src go <<Enter score in table \ty{taxon}, Pa. \ref{pa:tdb}>>=
   tx, err = db.Begin()
@@ -838,17 +883,11 @@ the actual updating. Then we commit the transaction and close it again.
   stmt.Close()
 #+end_src
 #+begin_export latex
-We iterate over the taxa. For each taxon we calculate the score as the
-sum of the recursive genome counts across the assembly levels. This
-value is then used to update the database entry.
+We iterate over the taxa to update the score in their database entry.
 #+end_export
 #+begin_src go <<Update score, Pa. \ref{pa:tdb}>>=
   for _, taxon := range taxa {
-	  sum := 0
-	  for _, count := range taxon.rec {
-		  sum += count
-	  }
-	  _, err := stmt.Exec(sum, taxon.taxid)
+	  _, err := stmt.Exec(taxon.score, taxon.taxid)
 	  util.Check(err)
   }
 #+end_src
@@ -1598,9 +1637,10 @@ slice is initialized to the taxon-IDs supplied.
   }
 #+end_src
 #+begin_src latex
-  For each parent we reach, we check whether the number of its
-  descendants is greater or equal to the number of taxa submitted. If
-  yes, we've found the MRCA and return it.
+  For each parent we reach, we increment its descendants count by that
+  of its children and check whether the number of its descendants is
+  greater or equal to the number of taxa submitted. If yes, we've found
+  the MRCA and return it.
 #+end_src
 #+begin_src go <<Climb to parents, Pa. \ref{pa:tdb}>>=
   for _, child := range children {
@@ -1618,7 +1658,7 @@ slice is initialized to the taxon-IDs supplied.
 #+end_src
 #+begin_src latex
 If the MRCA hasn't been found yet, we replace the children by the
-parent and reset the parent slice to empty.
+parents and reset the parent slice to empty.
 #+end_src
 #+begin_src go <<Replace parents by children, Pa. \ref{pa:tdb}>>=
   if mrca == -1 {
