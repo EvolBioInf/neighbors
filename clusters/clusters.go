@@ -20,7 +20,7 @@ type Cluster struct {
 }
 
 func parse(r io.Reader, args ...interface{}) {
-	optM := args[0].(*bool)
+	optF := args[0].(*float64)
 	optB := args[1].(*string)
 	optTT := args[2].(*bool)
 	optT := args[3].(*bool)
@@ -52,10 +52,8 @@ func parse(r io.Reader, args ...interface{}) {
 			}
 			if len(bl) > 3 && nodes[i].Parent != nil {
 				q := util.Quartiles(bl)
-				t := q.UpperOuterFence
-				if *optM {
-					t = q.UpperInnerFence
-				}
+				r := q.UpperQuartile - q.LowerQuartile
+				t := q.UpperQuartile + r**optF
 				if nodes[i].Length > t {
 					cluster := &Cluster{Id: i}
 					clusters[i] = cluster
@@ -201,8 +199,8 @@ func main() {
 	e := "clusters -t myTree.nwk"
 	clio.Usage(u, p, e)
 	optV := flag.Bool("v", false, "version")
-	m := "include mild clusters (default extreme)"
-	optM := flag.Bool("m", false, m)
+	m := "parental branch length threshold is q_3 + f x iqr"
+	optF := flag.Float64("f", 3.0, m)
 	m = "print branch lengths of given node (default clusters)"
 	optB := flag.String("b", "", m)
 	m = "terminal clusters only"
@@ -218,6 +216,6 @@ func main() {
 		util.PrintInfo("clusters")
 	}
 	files := flag.Args()
-	clio.ParseFiles(files, parse, optM, optB,
+	clio.ParseFiles(files, parse, optF, optB,
 		optTT, optT, optS, optC)
 }

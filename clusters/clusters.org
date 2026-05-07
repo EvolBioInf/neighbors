@@ -3,7 +3,7 @@
 \subsection*{Introduction}
 The program \ty{clusters} reads a phylogeny in Newick format and
 determines for each of its nodes whether it forms a cluster or not. We
-call a node, $v$, is a \emph{cluster} if it has a long parental branch
+call a node, $v$, a \emph{cluster} if it has a long parental branch
 compared to the branch lengths among its descendants, the branch
 lengths \emph{inside} $v$. For example, Figure~\ref{fig:o111} shows
 the cluster of \emph{Escherichia coli} O111:H8 genomes. The branch to
@@ -20,44 +20,36 @@ the parent of O111:H8 is among the longest found inside O111:H8.
     accession.}\label{fig:o111}
 \end{figure}
 
-To make this notion precise~Figure~\ref{fig:bl} shows the branch
-lengths in cluster O111:H8. notice the heavy tail at the right of the
-distribution. The plot also shows the length of the parental branch,
-which is longer than any of the branches within O111:H8. To arrive at
-a criterion fro calling a parental branch ``long'', we take the
-interquartile range, $r$, and extend it to the right by the usual
-definition of ``mild'' outliers, $1.5r$. This gives the inner whiskers
-in Figure~\ref{fig:bl}. We also plot outer whiskers at $3r$, a common
-definition of extreme outliers. Given that the distribution of branch
-lengths is skewed to the right, clusters by default uses the extreme
-outlier criterion, but the user can opt for mild outliers instead,
-\ty{-m}.
+To make this notion precise, let $\ell$ be the length of the parental
+branch of some node $v$. Let further $q_1$ and $q_3$ be the first and
+third quartile of the distribution of branch lengths inside $v$. Then
+we define the interquartile range $r=q_3-q_1$ and call $v$ a cluster
+if $\ell>q_3+fr$, where $f$ is some factor. A value of $f=1.5$
+corresponds to the classical definition of outliers, while $f=3$ is
+commonly used for extreme outliers.
 
-To make this notion more precise, a ``long'' branch is an extreme
-outlier among the branch lengths inside $v$. Outliers are defined with
-respect to the interquartile range of a distribution, $r$. Classical,
-or ``mild'' outliers are removed $1.5r$ from the nearest quartile,
-extreme outliers $3r$. By default, \ty{clusters} applies the extreme
-outlier criterion, but users can opt for mild outliers with
-\ty{-m}. Figure~\ref{fig:bl} shows the branch lengths in cluster
-O111:H8. The box covers $r$, the whiskers are removed $3r$ from the
-nearest quartile. The filled dot shows the length of the parental
-branch. It is an extreme outlier, though not the only one due to the
-long tail of the distribution of branch lengths. This is the reason
-why by default we look for extreme rather than mild outliers. To make
-the outlier analysis of \ty{clusters} transparent, the user can opt to
-print the branch lengths of a node identified by its label.
+Figure~\ref{fig:bl} shows the branch lengths inside cluster O111:H8,
+complete with quartiles and whiskers. Notice the heavy tail at the
+right of the distribution. The plot also shows the length of the
+parental branch as the dot on the right, which is longer than any of
+the branches within O111:H8. The inner whiskers in Figure~\ref{fig:bl}
+are at $q_3+1.5r$, the outer whiskers at $3r$. Given that the
+distribution of branch lengths is skewed to the right, \ty{clusters}
+by default uses the extreme outlier criterion with $f=3$, but the user
+can set another value, \ty{-f}.
 
 \begin{figure}
   \begin{center}
     \psfrag{rr}{\Large$r$}
+    \psfrag{q1}{\Large$q_1$}
+    \psfrag{q2}{\Large$q_2$}
     \rotatebox{-90}{\scalebox{0.6}{\includegraphics{../clusters/bl}}}
   \end{center}
   \caption{The distribution of branch lengths among the descendants of
     node O111:H8 in Figure~\ref{fig:o111} compared to the length of
     the branch to the parent; the box represents the interquartile
-    range, $r$, the whiskers have distance $1.5r$ and $3r$ from the
-    nearest quartile.}\label{fig:bl}
+    range, $r=q_3-q_1$, the whiskers have distance $1.5r$ and $3r$ from the
+    nearest quartile, $q_1$ or $q_3$.}\label{fig:bl}
 \end{figure}
 
 Apart from a long parental branch, a node needs to contain at
@@ -74,13 +66,13 @@ this quantity the cluster score,
 Clusters often contain other clusters, in which case they are
 \emph{nested}. We call clusters that do not contain further clusters
 \emph{terminal}. By default, the program \ty{clusters} prints nested
-clusters, but the user can restrict this to just the terminal
+clusters, but the user can restrict the output to the terminal
 clusters, \ty{-T}.
 
 The clusters are printed in a table consisting of four columns,
 cluster, parent, cluster size, and $C$. The table is ordered by
-descending cluster size, unless the user opts for descending
-$C$. \ty{-c}.
+descending cluster size, unless the user opts for descending $C$,
+\ty{-c}.
 
 Instead of clusters, the user can also opt to print the input tree
 with marked clusters (\ty{-t}). We mark a cluster by appending
@@ -118,7 +110,7 @@ functions, and the logic of the main function. \bpr{clusters}{pr:clu}
 #+end_src
 #+begin_export latex
 \epr We begin by declaring the type \ty{Cluster} for storing one
-cluster. As described in the Introduction, a cluster has a size, may
+cluster. As described in the Introduction, a cluster has a size, can
 be terminal, and has a score, $C$. In addition, it also has an
 identifier.
 #+end_export
@@ -168,7 +160,7 @@ We import \ty{clui}.
 Apart from the obligatory version, \ty{-v}, we declare the six
 options already described in the introduction:
 \begin{enumerate}
-\item \ty{-m} include mild clusters
+\item \ty{-f} set parental branch length threshold to $q_3+fr$
 \item \ty{-b} print branch lengths of given node
 \item \ty{-T} print terminal clusters only
 \item \ty{-t} print the input tree with marked clusters
@@ -178,7 +170,7 @@ options already described in the introduction:
 #+end_export
 #+begin_src go <<Declare options, Pr. \ref{pr:clu}>>=
   optV := flag.Bool("v", false, "version")
-  //<<Declare \ty{-m}, Pr. \ref{pr:clu}>>
+  //<<Declare \ty{-f}, Pr. \ref{pr:clu}>>
   //<<Declare \ty{-b}, Pr. \ref{pr:clu}>>
   //<<Declare \ty{-T}, Pr. \ref{pr:clu}>>
   //<<Declare \ty{-t}, Pr. \ref{pr:clu}>>
@@ -192,11 +184,12 @@ We import \ty{flag}.
   "flag"
 #+end_src
 #+begin_export latex
-We allow the user to include mild outliers.
+The user can set the parental branch length threshold as a function of
+the interquartile range, $r$.
 #+end_export
-#+begin_src go <<Declare \ty{-m}, Pr. \ref{pr:clu}>>=
-  m := "include mild clusters (default extreme)"
-  optM := flag.Bool("m", false, m)
+#+begin_src go <<Declare \ty{-f}, Pr. \ref{pr:clu}>>=
+  m := "parental branch length threshold is q_3 + f x iqr"
+  optF := flag.Float64("f", 3.0, m)
 #+end_src
 #+begin_export latex
 The user can opt to print the branch lengths of a particular node.
@@ -247,13 +240,13 @@ info, if requested to do so.
 #+begin_export latex
 The remaining tokens on the command line are interpreted as file
 names. We pass them to the function \ty{ParseFiles}, which applies the
-function \ty{parse} to each one of them. Parse, in turn, takes the
-six main options mild, branch lengths, terminal, tree, size, and $C$ as
-arguments.
+function \ty{parse} to each one of them. Parse, in turn, takes the six
+main options factor for interquartile range, branch lengths, terminal,
+tree, size, and $C$ as arguments.
 #+end_export
 #+begin_src go <<Parse input files, Pr. \ref{pr:clu}>>=
   files := flag.Args()
-  clio.ParseFiles(files, parse, optM, optB,
+  clio.ParseFiles(files, parse, optF, optB,
 	  optTT, optT, optS, optC)
 #+end_src
 #+begin_export latex
@@ -279,11 +272,11 @@ We import \ty{io} and \ty{nwk}.
   "github.com/evolbioinf/nwk"
 #+end_src
 #+begin_export latex
-We retrieve the six options we just passed, mild, branches, nested,
-tree, size, and $C$.
+We retrieve the six options we just passed, factor for interquartile
+range, branches, nested, tree, size, and $C$.
 #+end_export
 #+begin_src go <<Retrieve options, Pr. \ref{pr:clu}>>=
-  optM := args[0].(*bool)
+  optF := args[0].(*float64)
   optB := args[1].(*string)
   optTT := args[2].(*bool)
   optT := args[3].(*bool)
@@ -291,16 +284,16 @@ tree, size, and $C$.
   optC := args[5].(*bool)
 #+end_src
 #+begin_export latex
-As already sketched at the beginning of the Implementation, to analyze
-a given tree, we first store its nodes in a slice of nodes using a
-post order traversal. Then we store the branch lengths in a map of
-slices. Based on the branch lengths, we detect the clusters. Having
-detected the nodes that are clusters, we calculate their size and
-score. Clusters smaller than the minimum size get removed, and from
-the remaining clusters we remove those that are not terminal, if
-requested. Note that it is important we remove the small clusters
-first, otherwise terminal clusters that contain a small cluster are
-inadvertently excluded from the output.
+As already described at the beginning of the implementation, to
+analyze a given tree, we first store its nodes in a slice of nodes
+using a post order traversal. Then we store the branch lengths in a
+map of slices. Based on the branch lengths, we detect the
+clusters. Having detected the nodes that are clusters, we calculate
+their size and score. Clusters smaller than the minimum size get
+removed, and from the remaining clusters we remove those that are not
+terminal, if requested. Note that it is important we remove the small
+clusters first, otherwise terminal clusters that contain a small
+cluster are inadvertently excluded from the output.
 #+end_export
 #+begin_src go <<Analyze tree, Pr. \ref{pr:clu}>>=
   var nodes []*nwk.Node
@@ -366,11 +359,11 @@ branch---to the existing slice of parental branch lengths.
 #+begin_export latex
 We iterate over the branch lengths to detect clusters by asking
 whether the parental branch length is an outlier among the node's
-branch lengths. Outlier analysis depends on the four quarters of a
-distribution. So we require a minimum sample size of four, and for a
-given node check that it has at least four branch lengths and isn't
-the root. If that is the case, we run the outlier analysis on its
-branch lengths.
+branch lengths. As explained in the introduction, outlier analysis
+depends on the four quarters of a distribution. So we require a
+minimum sample size of four, and for a given node check that it has at
+least four branch lengths and isn't the root. If that is the case, we
+run the outlier analysis on its branch lengths.
 #+end_export
 #+begin_src go <<Detect clusters, Pr. \ref{pr:clu}>>=
   for i, bl := range branchLengths {
@@ -385,27 +378,24 @@ branch lengths.
 #+begin_export latex
 For the outlier analysis, we calculate the quartiles of the
 distribution of the current node's branch lengths. If the parental
-branch length is either an extreme outlier, or, if requested by the
-user, a mild outlier, we store the new cluster with the node index as
-ID.
+branch length is an outlier, we store the new cluster with the node
+index as ID.
 #+end_export
 #+begin_src go <<Run outlier analysis, Pr. \ref{pr:clu}>>=
   q := util.Quartiles(bl)
-  t := q.UpperOuterFence
-  if *optM {
-	  t = q.UpperInnerFence
-  }
+  r := q.UpperQuartile - q.LowerQuartile
+  t := q.UpperQuartile + r * *optF
   if nodes[i].Length > t {
 	  cluster := &Cluster{Id:i}
 	  clusters[i] = cluster
   }
 #+end_src
 #+begin_export latex
-We iterate over the clusters and for a given node, $v$, calculate its
-size by calling the recursive function \ty{size} on the tree rooted on
-$v$. Then we calculate $C$ as the ratio of the parental branch length,
-$\ell$, and the interquartile range, $r$, as introduced in
-equation~(\ref{eq:c}).
+We iterate over the clusters and for a given node, $v$, and calculate
+its size by calling the recursive function \ty{size} on the tree
+rooted on $v$. Then we calculate $C$ as the ratio of the parental
+branch length, $\ell$, and the interquartile range, $r$, as introduced
+in equation~(\ref{eq:c}).
 #+end_export
 #+begin_src go <<Calculate clusters' size and $C$, Pr. \ref{pr:clu}>>=
   for _, cluster := range clusters {
@@ -702,12 +692,13 @@ We import \ty{exec}.
   \end{center}
   \caption{Tree used for testing \ty{clusters}.}\label{fig:testCl}
 \end{figure}
-We run all tests on the same tree, \ty{text.nwk}, which is shown in
+We run all tests on the same tree, \ty{test.nwk}, which is shown in
 Figure~\ref{fig:testCl}. The first test is without options. For the
 remaining tests we go through the main options alphabetically: print
 branch lengths for a particular node, \ty{-b}, sort by $C$, \ty{-c},
-include mild outliers, \ty{-m}, set cluster size, \ty{-s}, print tree,
-\ty{-t}, and print terminal clusters only \ty{-T}
+adjust factor for calculating outlier threshold, \ty{-f}, set cluster
+size, \ty{-s}, print tree, \ty{-t}, and print terminal clusters only
+\ty{-T}
 #+end_export
 #+begin_src go <<Construct tests, Pr. \ref{pr:clu}>>=
   f := "test.nwk"
@@ -715,7 +706,7 @@ include mild outliers, \ty{-m}, set cluster size, \ty{-s}, print tree,
   tests = append(tests, test)
   //<<Test \ty{-b}, Pr. \ref{pr:clu}>>
   //<<Test \ty{-c}, Pr. \ref{pr:clu}>>
-  //<<Test \ty{-m}, Pr. \ref{pr:clu}>>
+  //<<Test \ty{-f}, Pr. \ref{pr:clu}>>
   //<<Test \ty{-s}, Pr. \ref{pr:clu}>>
   //<<Test \ty{-t}, Pr. \ref{pr:clu}>>
   //<<Test \ty{-T}, Pr. \ref{pr:clu}>>
@@ -735,10 +726,10 @@ We test sorting by $C$, \ty{-c}.
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
-We test inclusion of mild outliers, \ty{-m}.
+We test inclusion of mild outliers, \ty{-f}.
 #+end_export
-#+begin_src go <<Test \ty{-m}, Pr. \ref{pr:clu}>>=
-  test = exec.Command("./clusters", "-m", f)
+#+begin_src go <<Test \ty{-f}, Pr. \ref{pr:clu}>>=
+  test = exec.Command("./clusters", "-f", "1.5", f)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex

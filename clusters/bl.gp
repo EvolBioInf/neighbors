@@ -1,6 +1,8 @@
 set terminal postscript monochrome size 20cm,7cm
 set output "bl.ps"
 set object rectangle from 1.4575e-5,-0.04 to 7.38e-5,0.04
+set label "q1" at 1.4575e-5,-0.06 center
+set label "q2" at 7.38e-5,-0.06 center
 set label "rr" at 4.41875e-05,0.065 center
 set arrow from 3.41875e-5,0.065,1.4575e-5 to 1.4575e-5,0.065
 set arrow from 5.41875e-05,0.065 to 7.38e-5,0.065
