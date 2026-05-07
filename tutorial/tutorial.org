@@ -520,11 +520,13 @@ mrca '^t' lpn.nwk
 #+end_src
 #+begin_export latex
 \begin{verbatim}
-Start: tGCF_003004155.1_ASM300415v1_genomic.fna...
-CA: 19 tGCF_003004155.1_ASM300415v1_genomic.fna...
-CA: 21 tGCF_022870105.1_ASM2287010v1_genomic.fna...
+MRCA 16c
+#Type   n
+Start   23
+#CA     n
+19      4
 ...
-MRCA: 16c
+36      8
 \end{verbatim}
 You might be wondering why nodes 8 and 3 were not identified as
 clusters. They certainly look like clusters with their long parental
@@ -876,11 +878,13 @@ mrca '^t' lpn.nwk
 #+end_src
 #+begin_src latex
   \begin{verbatim}
-  Start: tGCF_001766335.1_ASM176633v1_genomic.fna...
-  CA: 28 tGCF_001766335.1_ASM176633v1_genomic.fna...
-  CA: 29 tGCF_001766315.1_ASM176631v1_genomic.fna...
+  MRCA 25c
+  #Type   n
+  Start   23
+  #CA     n
+  28      3
   ...
-  MRCA: 25c
+  108c    6
   \end{verbatim}
   We can also look for the node that maximizes the split between targets
   and neighbors using \ty{fintac}. We specify prefix \ty{n} as the
