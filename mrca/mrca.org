@@ -9,15 +9,16 @@ leaves, or taxa, are labeled $a, b,...,f$, and the five internal nodes
 are numbered $1,2,...,5$. Let the three boxed taxa $a$, $b$, and $c$
 be the starting nodes. Their MRCA happens to be the root, node 1.
 
-\begin{figure}  \begin{center}
+\begin{figure}
+  \begin{center}
     \input{../mrca/labels}
     \includegraphics{../mrca/test}
     \input{../mrca/arrows}
   \end{center}
   \caption{An example tree for finding the most recent common ancestor
     between taxa $a$, $c$, and $e$ (boxed); the walk towards their
-    most recent common ancestor, node 1, proceeds in four phases,
-    black, blue, orange, and red, in that order; the descendants lists
+    most recent common ancestor, node 1, proceeds in three phases,
+    black, blue, and orange, in that order; the descendants lists
     calculated during this walk are in square brackets, with
     descendants taking the color of the arrow that delivered them;
     nodes other than the MRCA where lines of descent coalesce are
@@ -34,10 +35,9 @@ descendants list of node 1, $c$ to the descendants list of node 3, and
 $e$ to the descendants list of node 5. The second climb is shown in
 blue arrows, which adds $c$ to the descendants list of 2 and $e$ to
 the descendants list of 4. The third climb is shown in orange. It adds
-$c$ to the descendant list of node 1 and $e$ to the descendants list
-of node 2. The fourth and last climb is shown in red, which adds $e$
-to the descendants list of node 1, making it the MRCA of the three
-starting nodes.
+$e$ to the descendant list of node 2 and $(e,c)$ to the descendants list
+of node 1. Node 1 now has all starting nodes in its descendants list,
+which makes it the MRCA.
 
 The individual coalescence events apart from the MRCA are found in a
 second tree traversal. In our example there is just one, the circled
