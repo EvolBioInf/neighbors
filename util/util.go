@@ -30,8 +30,8 @@ var assemblyLevels = []string{"complete",
 
 // PrintInfo prints program information and exits.
 func PrintInfo(program string) {
-	author := "Bernhard Haubold"
-	email := "haubold@evolbio.mpg.de"
+	author := "EvolBioInf"
+	email := "haubold|mourato@evolbio.mpg.de"
 	license := "Gnu General Public License, " +
 		"https://www.gnu.org/licenses/gpl.html"
 	clio.PrintInfo(program, version, date,

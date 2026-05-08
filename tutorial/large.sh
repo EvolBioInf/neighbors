@@ -1,7 +1,7 @@
 mkdir large
 cd large
-neighbors -t 446 -l -L complete,chromosome ../neidb |
-    grep '^t' |
+neighbors -t 446 -l -L complete,chromosome -o ../neidb |
+    tail -n +2 |
     awk '{print $2}' > uacc.txt
 wc -l uacc.txt
 grep -v -f ../small/tacc.txt uacc.txt > tmp.txt
@@ -26,6 +26,9 @@ done
 ls all | wc -l
 phylonium all/*.fna > lpn.dist
 nj lpn.dist | midRoot | land | clusters -t > lpn.nwk
+sed -E 's/([ntu])[^f]*.fna/\1/g' lpn.nwk |
+    plotTree
+mrca '^t' lpn.nwk
 fintac -n "^n" -t "^[^n]" lpn.nwk
 pickle 25c lpn.nwk |
     grep -c '^u'

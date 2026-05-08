@@ -37,11 +37,12 @@ phylonium all/* > lpn.dist
 nj lpn.dist |
     midRoot |
     land > lpn.nwk
+sed -E 's/([nt])[^f]*fna/\1/g' lpn.nwk |
+    plotTree
 clusters lpn.nwk
 clusters -t lpn.nwk > tmp
 mv tmp lpn.nwk
-sed -E 's/([nt])[^f]*fna/\1/g' lpn.nwk |
-    plotTree
+mrca '^t' lpn.nwk
 clusters -s 5 lpn.nwk
 clusters -s 5 -t lpn.nwk |
     plotTree
