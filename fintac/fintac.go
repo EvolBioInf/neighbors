@@ -31,16 +31,15 @@ func parse(r io.Reader, args ...interface{}) {
 		tree := sc.Tree()
 		counts := make(map[int]*Count)
 		traverseTree(tree, counts, tregex, nregex, uregex)
-		nt := counts[tree.Id].vt
-		nn := counts[tree.Id].vn
+		nt := float64(counts[tree.Id].vt)
+		nn := float64(counts[tree.Id].vn)
+		nu := float64(counts[tree.Id].vu)
 		for _, count := range counts {
-			van := nn - count.vn
-			count.sv = float64(count.vt+van)/
-				float64(nt+nn)*100 -
-				math.Log(float64(count.vu+1))
-			if count.sv < 0 {
-				count.sv = 0
-			}
+			van := nn - float64(count.vn)
+			vau := nu - float64(count.vu)
+			vt := float64(count.vt)
+			count.sv = (vt + van + math.Log(vau+1.0)) /
+				(nt + nn + math.Log(nu+1.0)) * 100.0
 		}
 		cs := make([]*Count, 0)
 		for _, count := range counts {

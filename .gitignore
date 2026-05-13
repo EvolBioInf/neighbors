@@ -23,6 +23,7 @@ data/merged.dmp
 data/names.dmp
 data/neidb
 data/nodes.dmp
+data/phyl_cleaned.nwk
 data/prokaryotes.txt
 data/readme.txt
 data/taxdump.tar.gz
@@ -99,6 +100,7 @@ tutorial/tlen.dat
 # Misc
 dree/makeRes.sh
 edist/
+fintac/examples.sh
 neighbors-docker
 notes
 tutorial/drawTrees.sh
