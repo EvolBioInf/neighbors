@@ -8,63 +8,63 @@ import (
 	"github.com/evolbioinf/nwk"
 	"io"
 	"log"
+	"math"
 	"os"
 	"regexp"
-	"sort"
+	"slices"
 	"text/tabwriter"
 )
 
 type Count struct {
 	label, parent string
-	vn, vt        int
+	vn, vt, vu    int
 	sv, dp        float64
 }
-type countsSlice []*Count
 
-func (c countsSlice) Len() int {
-	return len(c)
-}
-func (c countsSlice) Less(i, j int) bool {
-	if c[i].sv == c[j].sv {
-		return c[i].label < c[j].label
-	}
-	return c[i].sv > c[j].sv
-}
-func (c countsSlice) Swap(i, j int) {
-	c[i], c[j] = c[j], c[i]
-}
 func parse(r io.Reader, args ...interface{}) {
 	optA := args[0].(*bool)
 	tregex := args[1].(*regexp.Regexp)
 	nregex := args[2].(*regexp.Regexp)
+	uregex := args[3].(*regexp.Regexp)
 	sc := nwk.NewScanner(r)
 	for sc.Scan() {
 		tree := sc.Tree()
 		counts := make(map[int]*Count)
-		traverseTree(tree, counts, tregex, nregex)
+		traverseTree(tree, counts, tregex, nregex, uregex)
 		nt := counts[tree.Id].vt
 		nn := counts[tree.Id].vn
 		for _, count := range counts {
 			van := nn - count.vn
-			count.sv = float64(count.vt+van) /
-				float64(nt+nn) * 100
+			count.sv = float64(count.vt+van)/
+				float64(nt+nn)*100 -
+				math.Log(float64(count.vu+1))
+			if count.sv < 0 {
+				count.sv = 0
+			}
 		}
 		cs := make([]*Count, 0)
 		for _, count := range counts {
 			cs = append(cs, count)
 		}
-		sort.Sort(countsSlice(cs))
+		slices.SortFunc(cs, func(a, b *Count) int {
+			if a.sv < b.sv {
+				return 1
+			} else if a.sv > b.sv {
+				return -1
+			}
+			return 0
+		})
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-		fmt.Fprint(w, "#Clade\tTargets\tNeighbors\tSplit (%)\t"+
-			"Parent\tDist(Parent)\n")
+		fmt.Fprint(w, "#Clade\tTargets\tNeighbors\tUnknowns\t"+
+			"Split (%)\tParent\tDist(Parent)\n")
 		i := 0
 		for ; i < len(cs) && cs[0].sv == cs[i].sv; i++ {
 			pl := cs[i].parent
 			if pl == "" {
 				pl = "-"
 			}
-			fmt.Fprintf(w, "%s\t%d\t%d\t%.2f\t%s\t%g\n",
-				cs[i].label, cs[i].vt, cs[i].vn,
+			fmt.Fprintf(w, "%s\t%d\t%d\t%d\t%.2f\t%s\t%g\n",
+				cs[i].label, cs[i].vt, cs[i].vn, cs[i].vu,
 				cs[i].sv, pl, cs[i].dp)
 		}
 		if *optA {
@@ -73,8 +73,8 @@ func parse(r io.Reader, args ...interface{}) {
 				if pl == "" {
 					pl = "-"
 				}
-				fmt.Fprintf(w, "%s\t%d\t%d\t%.2f\t%s\t%g\n",
-					cs[i].label, cs[i].vt, cs[i].vn,
+				fmt.Fprintf(w, "%s\t%d\t%d\t%d\t%.2f\t%s\t%g\n",
+					cs[i].label, cs[i].vt, cs[i].vn, cs[i].vu,
 					cs[i].sv, pl, cs[i].dp)
 			}
 		}
@@ -82,7 +82,7 @@ func parse(r io.Reader, args ...interface{}) {
 	}
 }
 func traverseTree(v *nwk.Node, counts map[int]*Count,
-	tregex, nregex *regexp.Regexp) {
+	tregex, nregex, uregex *regexp.Regexp) {
 	if v == nil {
 		return
 	}
@@ -93,34 +93,51 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 		count.parent = v.Parent.Label
 	}
 	counts[v.Id] = count
-	traverseTree(v.Child, counts, tregex, nregex)
-	traverseTree(v.Sib, counts, tregex, nregex)
+	traverseTree(v.Child, counts, tregex, nregex, uregex)
+	traverseTree(v.Sib, counts, tregex, nregex, uregex)
 	if v.Child == nil {
 		isTar := false
+		isUnk := false
 		isNei := false
 		if tregex.MatchString(v.Label) {
 			isTar = true
 		}
+		if uregex != nil && uregex.MatchString(v.Label) {
+			isUnk = true
+		}
 		if nregex == nil {
-			if !isTar {
+			if !isTar && !isUnk {
 				isNei = true
 			}
 		} else if nregex.MatchString(v.Label) {
 			isNei = true
 		}
-		if !isTar && !isNei {
+		dc := 0
+		if isTar {
+			dc++
+		}
+		if isUnk {
+			dc++
+		}
+		if isNei {
+			dc++
+		}
+		if dc == 0 {
 			fmt.Fprintf(os.Stderr, "WARNING[fintac]: %q "+
-				"is neither target nor neighbor\n",
+				"is neither target, neighbor, nor "+
+				"unknown\n",
 				v.Label)
 		}
-		if isTar && isNei {
-			log.Fatalf("%q is target and neighbor",
-				v.Label)
+		if dc > 1 {
+			log.Fatalf("%q is ambiguous: t %t, n %t, u %t",
+				v.Label, isTar, isNei, isUnk)
 		}
 		if isTar {
 			counts[v.Id].vt = 1
 		} else if isNei {
 			counts[v.Id].vn = 1
+		} else if isUnk {
+			counts[v.Id].vu = 1
 		}
 	} else {
 		if v.Label == "" {
@@ -131,6 +148,7 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 	if v.Parent != nil {
 		counts[v.Parent.Id].vt += counts[v.Id].vt
 		counts[v.Parent.Id].vn += counts[v.Id].vn
+		counts[v.Parent.Id].vu += counts[v.Id].vu
 	}
 }
 func main() {
@@ -142,8 +160,9 @@ func main() {
 	optV := flag.Bool("v", false, "version")
 	optA := flag.Bool("a", false, "all splits (default maximal)")
 	optT := flag.String("t", "^t", "target regex")
+	optU := flag.String("u", "", "unknown regex")
 	optN := flag.String("n", "", "neighbor regex "+
-		"(default complement of -t)")
+		"(default complement of -t and -u)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("fintac")
@@ -155,6 +174,11 @@ func main() {
 		nregex, err = regexp.Compile(*optN)
 		util.Check(err)
 	}
+	var uregex *regexp.Regexp
+	if *optU != "" {
+		uregex, err = regexp.Compile(*optU)
+		util.Check(err)
+	}
 	files := flag.Args()
-	clio.ParseFiles(files, parse, optA, tregex, nregex)
+	clio.ParseFiles(files, parse, optA, tregex, nregex, uregex)
 }

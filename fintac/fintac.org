@@ -2,33 +2,49 @@
   \section{\ty{fintac}}
   The program \ty{fintac} takes as input a Newick tree and finds the
   target clade. In the input tree the leaf labels need to distinguish
-  taxonomic targets from taxonomic neighbors. In addition, the internal
-  nodes of the input tree have unique labels. The program then looks for
-  the node that maximizes the split between targets and neighbors.
+  taxonomic targets from taxonomic neighbors and nodes whose status is
+  unknown. In addition, the internal nodes of the input tree have unique
+  labels. The program then looks for the node that maximizes the split
+  between targets and neighbors.
 
   To find this node, let $n_{\rm t}$ and $n_{\rm n}$ be the number of
-  taxonomic targets and neighbors. We further call $v_{\rm t}$ and
-  $v_{\rm n}$ the number of targets and neighbors in the clade rooted on
-  $v$. If the taxonomy always agreed with the phylogeny, we could just
-  look for the node that contains all targets and no neighbors, $v_{\rm
-    t}=n_{\rm t}$ and $v_{\rm n}=0$. But if taxonomies and phylogenies
-  always agreed, we could restrict our search for targets and neighbors
-  to the output of \ty{neighbors}.
+  taxonomic targets and neighbors. We further call $v_{\rm t}$, $v_{\rm
+    n}$, and $v_{\rm u}$ the number of targets, neighbors, and unknowns
+  in the clade rooted on $v$. If the taxonomy always agreed with the
+  phylogeny, we could just look for the node that contains all targets
+  and no neighbors or unknowns, $v_{\rm t}=n_{\rm t}$ and $v_{\rm
+    n}=v_{\rm u}=0$. But if taxonomies and phylogenies always agreed, we
+  could restrict our search for targets and neighbors to the output of
+  \ty{neighbors}.
 
   As is well-known, there is often no phylogenetic node that splits the
   sample into pure taxonomic targets and neighbors. So we define one
   last quantity, $v^{\ast}_{\rm n}$, the number of neighbors in $v$'s
   neighborhood, that is, the number of neighbors \emph{outside} of
   $v$. Now we can look for the node that maximizes the percent split
-  between targets and neighbors,
+  between targets and neighbors, while also discounting for the presence
+  of unknowns. 
+
+  To quantify the contribution of unknowns, we note that positive
+  identification---even if wrong---is data, while no identification
+  simply isn't. At the same time, when presented with two nodes with the
+  same number of targets but differing numbers of unknowns, we prefer
+  the node with fewer unknowns. So we discount for the presence of
+  unknowns with the logarithm of $v_{\rm u}$ to make it much slower than
+  growth due to targets inside and neighbors outside.
   \begin{equation}\label{eq:spl}
-  s(v)=\frac{v_{\rm t} + v^{\ast}_{\rm n}}{n_{\rm n} + n_{\rm t}}\times 100.
+    s(v)=\mbox{max}\left\{\begin{array}{l}
+	\frac{v_{\rm t} + v^{\ast}_{\rm n}}{n_{\rm n} + n_{\rm t}}\times 100 - \log(v_{\rm u}+1)\\
+	0
+      \end{array}
+  \right .
   \end{equation}
   This quantity ranges from 0, if $v$ contains no targets and all
-  neighbors, to 100, if $v$ contains all targets and no neighbors.
+  neighbors, to 100, if $v$ contains all targets and no neighbors or
+  unknowns.
   \subsection*{Implementation}
-  The outline of \ty{fintac} has hooks for imports, types, methods,
-  functions, and the logic of the main function.  \bpr{fintac}{pr:fit}
+  The outline of \ty{fintac} has hooks for imports, types, functions,
+  and the logic of the main function.  \bpr{fintac}{pr:fit}
 #+end_src
 #+begin_src go <<fintac.go>>=
   package main
@@ -37,7 +53,6 @@
 	  //<<Imports, Pr. \ref{pr:fit}>>
   )
   //<<Types, Pr. \ref{pr:fit}>>
-  //<<Methods, Pr. \ref{pr:fit}>>
   //<<Functions, Pr. \ref{pr:fit}>>
   func main() {
 	  //<<Main function, Pr. \ref{pr:fit}>>
@@ -45,7 +60,7 @@
 #+end_src
 #+begin_src latex
   \epr Inside the main function we set the name of \ty{fintac} and its
-  usage, declare the options, parse them, and respond to them. Then we
+  usage, declare its options, parse them, and respond to them. Then we
   parse the input files.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:fit}>>=
@@ -79,19 +94,21 @@ We import \ty{clio}.
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-Apart from the obligatory version option (\ty{-v}), we declare an
-option for listing all splits, instead of the default maximal
-splits. We also declare an option each for the target and neighbor
-regular expression. The target regular expression is initialized to
-prefix \ty{t}. The neighbor regular expression is initialized to
-nothing, which we interpret as anything that isn't a target.
+  Apart from the obligatory version, \ty{-v}, we declare an option for
+  listing all splits, instead of only the default maximal splits. We
+  also declare an option each for the target, neighbor, and unknown
+  regular expressions. The target regular expression is initialized to
+  prefix \ty{t}. The neighbor regular expression is initialized to
+  nothing, which we interpret as anything that is neither a target nor
+  unknown.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:fit}>>=
   optV := flag.Bool("v", false, "version")
   optA := flag.Bool("a", false, "all splits (default maximal)")
   optT := flag.String("t", "^t", "target regex")
+  optU := flag.String("u", "", "unknown regex")
   optN := flag.String("n", "", "neighbor regex " +
-	  "(default complement of -t)")
+	  "(default complement of -t and -u)")
 #+end_src
 #+begin_src latex
 We import \ty{flag}.
@@ -106,12 +123,13 @@ We parse the options.
   flag.Parse()
 #+end_src
 #+begin_src latex
-We respond to the version, the target, and the neighbor option.
+  We respond to the version, target, neighbor, and unknown options.
 #+end_src
 #+begin_src go <<Respond to options, Pr. \ref{pr:fit}>>=
   //<<Respond to \ty{-v}, Pr. \ref{pr:fit}>>
   //<<Respond to \ty{-t}, Pr. \ref{pr:fit}>>
   //<<Respond to \ty{-n}, Pr. \ref{pr:fit}>>
+  //<<Respond to \ty{-u}. Pr. \ref{pr:fit}>>
 #+end_src
 #+begin_src latex
   If the user asked for the version, we print it as part of the program
@@ -145,26 +163,34 @@ We respond to the version, the target, and the neighbor option.
 	  util.Check(err)
   }
 #+end_src
+#+begin_export latex
+Similarly, the unknown regex is \ty{nil} unless set by the user.
+#+end_export
+#+begin_src go <<Respond to \ty{-u}. Pr. \ref{pr:fit}>>=
+  var uregex *regexp.Regexp
+  if *optU != "" {
+	  uregex, err = regexp.Compile(*optU)
+	  util.Check(err)
+  }
+#+end_src
 #+begin_src latex
-The remaining tokens on the command line are interpreted as the names
-of input files. These are passed to the function \ty{ParseFiles},
-which applies the function \ty{parse} to each file. The function
-\ty{parse}, in turn, takes the option \ty{-a}, and the target and
-neighbor regular expressions.
+  The remaining tokens on the command line are interpreted as the names
+  of input files. These are passed to the function \ty{ParseFiles},
+  which applies the function \ty{parse} to each file. The function
+  \ty{parse}, in turn, takes as arguments the option \ty{-a}, and the
+  target, neighbor, and unknown regular expressions.
 #+end_src
 #+begin_src go <<Parse input files, Pr. \ref{pr:fit}>>=
   files := flag.Args()
-  clio.ParseFiles(files, parse, optA, tregex, nregex)
+  clio.ParseFiles(files, parse, optA, tregex, nregex, uregex)
 #+end_src
 #+begin_src latex
-Inside \ty{parse}, we retrieve the options, iterate over the trees
-inside the current file, and analyze each tree.
+  Inside \ty{parse}, we retrieve its arguments, iterate over the trees
+  inside the current file, and analyze each tree.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:fit}>>=
   func parse(r io.Reader, args ...interface{}) {
-	  optA := args[0].(*bool)
-	  tregex := args[1].(*regexp.Regexp)
-	  nregex := args[2].(*regexp.Regexp)
+	  //<<Retrieve arguments, Pr. \ref{pr:fit}>>
 	  sc := nwk.NewScanner(r)
 	  for sc.Scan() {
 		  tree := sc.Tree()
@@ -179,6 +205,16 @@ We import \ty{io} and \ty{nwk}.
   "io"
   "github.com/evolbioinf/nwk"
 #+end_src
+#+begin_export latex
+We retrieve the four arguments we passed, printing all, and the three
+regular expressions.
+#+end_export
+#+begin_src go <<Retrieve arguments, Pr. \ref{pr:fit}>>=
+  optA := args[0].(*bool)
+  tregex := args[1].(*regexp.Regexp)
+  nregex := args[2].(*regexp.Regexp)
+  uregex := args[3].(*regexp.Regexp)
+#+end_src
 #+begin_src latex
 To analyze a tree, we count nodes, process the counts, and print
 them.
@@ -189,40 +225,41 @@ them.
   //<<Print counts, Pr. \ref{pr:fit}>>
 #+end_src
 #+begin_src latex
-We traverse the tree by calling the function \ty{traverseTree}, which
-takes as arguments a map, the neighbor regex, and the target regex.
+  We traverse the tree by calling the function \ty{traverseTree}, which
+  takes as arguments a map, and the target, neighbor, and unknown
+  regular expressions.
 #+end_src
 #+begin_src go <<Count nodes, Pr. \ref{pr:fit}>>=
   counts := make(map[int]*Count)
-  traverseTree(tree, counts, tregex, nregex)
+  traverseTree(tree, counts, tregex, nregex, uregex)
 #+end_src
 #+begin_src latex
-A count is understood per node; so it consists of the node label, the
-label of its parent, the number of neighbors and targets in its
-subtree, its split as defined in equation~(\ref{eq:spl}), and its
-distance to the parent.
+  A count is understood per node; so it consists of the node label, the
+  label of its parent, the number of neighbors, targets, and unknowns in
+  its subtree, its split as defined in equation~(\ref{eq:spl}), and its
+  distance to the parent.
 #+end_src
 #+begin_src go <<Types, Pr. \ref{pr:fit}>>=
   type Count struct {
 	  label, parent string
-	  vn, vt int
+	  vn, vt, vu int
 	  sv, dp float64
   }
 #+end_src
 #+begin_src latex
   The function \ty{traverseTree} recursively traverses the tree rooted
-  on its input node. For each node it adds a count pre order and
-  analyzes the node post order.
+  on its input node. For each node it adds a count preorder and analyzes
+  the node postorder.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:fit}>>=
   func traverseTree(v *nwk.Node, counts map[int]*Count,
-	  tregex, nregex *regexp.Regexp) {
+	  tregex, nregex, uregex *regexp.Regexp) {
 	  if v == nil {
 		  return
 	  }
 	  //<<Add count, Pr. \ref{pr:fit}>>
-	  traverseTree(v.Child, counts, tregex, nregex)
-	  traverseTree(v.Sib, counts, tregex, nregex)
+	  traverseTree(v.Child, counts, tregex, nregex, uregex)
+	  traverseTree(v.Sib, counts, tregex, nregex, uregex)
 	  //<<Analyze $v$, Pr. \ref{pr:fit}>>
   }
 #+end_src
@@ -242,10 +279,10 @@ its parent and the distance to it.
 #+end_src
 #+begin_src latex
   If the current node is a leaf, we check its label, to make sure it is
-  either a target or a neighbor. If the current node is not a leaf, it
-  is an internal node. In that case we also check its label to make sure
-  it actually has one. In either case we count the targets and
-  neighbors.
+  either a target, a neighbor, or an unknown. If the current node is not
+  a leaf, it is an internal node. In that case we also check its label
+  to make sure it actually has one. In either case we count the targets,
+  neighbors, and unknowns.
 #+end_src
 #+begin_src go <<Analyze $v$, Pr. \ref{pr:fit}>>=
   if v.Child == nil {
@@ -256,23 +293,25 @@ its parent and the distance to it.
   //<<Count targets and neighbors, Pr. \ref{pr:fit}>>
 #+end_src
 #+begin_src latex
-When checking the leaf label, we first determine its type, target or
-neighbor. Then we ensure we are dealing either with a target or a
-neighbor, and finally count the leaf type.
+  When checking the leaf label, we first determine its type, target,
+  neighbor, or unknown. Then we ensure we are dealing either with a
+  target, a neighbor, or an unknown, and finally count the leaf type.
 #+end_src
 #+begin_src go <<Check leaf label, Pr. \ref{pr:fit}>>=
   //<<Determine leaf type, Pr. \ref{pr:fit}>>
-  //<<Ensure either target or neighbor, Pr. \ref{pr:fit}>>
+  //<<Ensure either target, neighbor, or unknown, Pr. \ref{pr:fit}>>
   //<<Count leaf type, Pr. \ref{pr:fit}>>
 #+end_src
 #+begin_src latex
-  We declare two indicator variables for the leaf type and determine
-  whether the leaf is a target or a neighbor.
+  We declare three indicator variables for the leaf type and determine
+  whether the leaf is a target, an unknown, or a neighbor.
 #+end_src
 #+begin_src go <<Determine leaf type, Pr. \ref{pr:fit}>>=
   isTar := false
+  isUnk := false
   isNei := false
   //<<Is the leaf a target? Pr. \ref{pr:fit}>>
+  //<<Is the leaf an unknown? Pr. \ref{pr:fit}>>
   //<<Is the leaf a neighbor? Pr. \ref{pr:fit}>>
 #+end_src
 #+begin_src latex
@@ -283,14 +322,24 @@ neighbor, and finally count the leaf type.
 	  isTar = true
   }
 #+end_src
+#+begin_export latex
+Similarly, if the leaf matches the unknown regex, it is a complete
+unknown.
+#+end_export
+#+begin_src go <<Is the leaf an unknown? Pr. \ref{pr:fit}>>=
+  if uregex != nil && uregex.MatchString(v.Label) {
+	  isUnk = true
+  }
+#+end_src
 #+begin_src latex
   If the user didn't set a neighbor regex, the rule is that anything
-  that isn't a target is a neighbor. If, however, the user \emph{did}
-  set a neighbor regex, a match to it makes the leaf a neighbor.
+  that isn't a target or an unknown, is a neighbor. If, however, the
+  user \emph{did} set a neighbor regex, a match to it makes the leaf a
+  neighbor.
 #+end_src
 #+begin_src go <<Is the leaf a neighbor? Pr. \ref{pr:fit}>>=
   if nregex == nil {
-	  if !isTar {
+	  if !isTar && !isUnk {
 		  isNei = true
 	  }
   } else if nregex.MatchString(v.Label) {
@@ -298,19 +347,45 @@ neighbor, and finally count the leaf type.
   }
 #+end_src
 #+begin_src latex
-  At this point our leaf might be any combination of leaf and
-  neighbor. We want to ensure it is either one; if it is neither, we
-  warn the user, and if it is both, we bail with a friendly message.
+  At this point our leaf might be any combination of target, neighbors,
+  and unknown. We want to ensure it is exactly one of the three. So we
+  count the designations and then respond to the count.
 #+end_src
-#+begin_src go <<Ensure either target or neighbor, Pr. \ref{pr:fit}>>=
-  if !isTar && !isNei {
+#+begin_src go <<Ensure either target, neighbor, or unknown, Pr. \ref{pr:fit}>>=
+  //<<Count designations, Pr. \ref{pr:fit}>>
+  //<<Respond to designation count, Pr. \ref{pr:fit}>>
+#+end_src
+#+begin_export latex
+We count the designations of the current leaf by going over the
+indicator variables for target, neighbor, and unknown.
+#+end_export
+#+begin_src go <<Count designations, Pr. \ref{pr:fit}>>=
+  dc := 0
+  if isTar {
+	  dc++
+  }
+  if isUnk {
+	  dc++
+  }
+  if isNei {
+	  dc++
+  }
+#+end_src
+#+begin_export latex
+If the leaf has zero designations, we warn the user. If it has more
+than one designation, something has gone wrong, and we exit with a
+friendly message.
+#+end_export
+#+begin_src go <<Respond to designation count, Pr. \ref{pr:fit}>>=
+  if dc == 0 {
 	  fmt.Fprintf(os.Stderr, "WARNING[fintac]: %q " +
-		  "is neither target nor neighbor\n",
+		  "is neither target, neighbor, nor " +
+		  "unknown\n",
 		  v.Label)
   }
-  if isTar && isNei {
-	  log.Fatalf("%q is target and neighbor",
-		  v.Label)
+  if dc > 1 {
+	  log.Fatalf("%q is ambiguous: t %t, n %t, u %t",
+		  v. Label, isTar, isNei, isUnk)
   }
 #+end_src
 #+begin_src latex
@@ -330,6 +405,8 @@ neighbor, and finally count the leaf type.
 	  counts[v.Id].vt = 1
   } else if isNei {
 	  counts[v.Id].vn = 1
+  } else if isUnk {
+	  counts[v.Id].vu = 1
   }
 #+end_src
 #+begin_src latex
@@ -342,13 +419,14 @@ We make sure all internal nodes are labeled.
   }
 #+end_src
 #+begin_src latex
-We count the targets and neighbors by incrementing the corresponding
-counter in the parent---unless we're a the root.
+  We count the targets, neighbors, and unknowns by incrementing the
+  corresponding counter in the parent---unless we're a the root.
 #+end_src
 #+begin_src go <<Count targets and neighbors, Pr. \ref{pr:fit}>>=
   if v.Parent != nil {
 	  counts[v.Parent.Id].vt += counts[v.Id].vt
 	  counts[v.Parent.Id].vn += counts[v.Id].vn
+	  counts[v.Parent.Id].vu += counts[v.Id].vu
   }
 #+end_src
 #+begin_src latex
@@ -381,56 +459,47 @@ Then we apply equation~(\ref{eq:spl}) to compute the split percentage.
   for _, count := range counts {
 	  van := nn - count.vn
 	  count.sv = float64(count.vt + van) /
-		  float64(nt + nn) * 100
+		  float64(nt + nn) * 100 -
+		  math.Log(float64(count.vu + 1))
+	  if count.sv < 0 {
+		  count.sv = 0
+	  }
   }
 #+end_src
+#+begin_export latex
+We import \ty{math}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
+  "math"
+#+end_src
 #+begin_src latex
-We sort the counts by converting them to a slice and casting that to
-the sortable type \ty{countsSlice}, which we still have to define.
+  We sort the counts by converting them to a slice and sorting that by
+  the split score.
 #+end_src
 #+begin_src go <<Sort counts, Pr. \ref{pr:fit}>>=
   cs := make([]*Count, 0)
   for _, count := range counts {
 	  cs = append(cs, count)
   }
-  sort.Sort(countsSlice(cs))
+  slices.SortFunc(cs, func(a, b *Count) int {
+	  if a.sv < b.sv {
+		  return 1
+	  } else if a.sv > b.sv {
+		  return -1
+	  }
+	  return 0
+  })
 #+end_src
 #+begin_src latex
-We import \ty{sort}.
+We import \ty{slices}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
-  "sort"
+  "slices"
 #+end_src
 #+begin_src latex
-We declare the type \ty{countsSlice}.
-#+end_src
-#+begin_src go <<Types, Pr. \ref{pr:fit}>>=
-  type countsSlice []*Count
-#+end_src
-#+begin_src latex
-We implement the three methods of the sort interface, \ty{Len},
-\ty{Less}, and \ty{Swap}. In \ty{Less} we sort in descending order by
-split. The order of nodes with the same split is stabilized by sorting
-in ascending order by label.
-#+end_src
-#+begin_src go <<Methods, Pr. \ref{pr:fit}>>=
-  func (c countsSlice) Len() int {
-	  return len(c)
-  }
-  func (c countsSlice) Less(i, j int) bool {
-	  if c[i].sv == c[j].sv {
-		  return c[i].label < c[j].label
-	  }
-	  return c[i].sv > c[j].sv
-  }
-  func (c countsSlice) Swap(i, j int) {
-	  c[i], c[j] = c[j], c[i]
-  }
-#+end_src
-#+begin_src latex
-We print the counts, or rather, the maximal splits in a table, which
-we construct using a tab writer. If the user asked for all splits we
-also print the rest.
+  We print the counts, or rather, the maximal splits, in a table, which
+  we construct using a tab writer. If the user asked for all splits, we
+  also print the rest.
 #+end_src
 #+begin_src go <<Print counts, Pr. \ref{pr:fit}>>=
   w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
@@ -447,23 +516,23 @@ We import \ty{tabwriter}.
   "text/tabwriter"
 #+end_src
 #+begin_src latex
-We print the splits in six columns, clade, targets, neighbors, parent,
-distance to parent, and split. We print the headers for these three
-columns and then the maximal splits. These all have the same split
-percentage as the top scorer. The root has no parent, so we replace
-the root's parent label with a hyphen.
+  We print the splits in seven columns, clade, targets, neighbors,
+  unknowns, parent, distance to parent, and split. We print the headers
+  for these seven columns and then the maximal splits. These all have
+  the same split percentage as the top scorer. The root has no parent,
+  so we replace the root's parent label with a hyphen.
 #+end_src
 #+begin_src go <<Print maximal splits, Pr. \ref{pr:fit}>>=
-  fmt.Fprint(w, "#Clade\tTargets\tNeighbors\tSplit (%)\t" +
-	  "Parent\tDist(Parent)\n")
+  fmt.Fprint(w, "#Clade\tTargets\tNeighbors\tUnknowns\t" +
+	  "Split (%)\tParent\tDist(Parent)\n")
   i := 0
   for ; i < len(cs) && cs[0].sv == cs[i].sv; i++ {
 	  pl := cs[i].parent
 	  if pl == "" {
 		  pl = "-"
 	  }
-	  fmt.Fprintf(w, "%s\t%d\t%d\t%.2f\t%s\t%g\n",
-		  cs[i].label, cs[i].vt, cs[i].vn,
+	  fmt.Fprintf(w, "%s\t%d\t%d\t%d\t%.2f\t%s\t%g\n",
+		  cs[i].label, cs[i].vt, cs[i].vn, cs[i].vu,
 		  cs[i].sv, pl, cs[i].dp)
   }
 #+end_src
@@ -476,8 +545,8 @@ We print the remaining splits.
 	  if pl == "" {
 		  pl = "-"
 	  }
-	  fmt.Fprintf(w, "%s\t%d\t%d\t%.2f\t%s\t%g\n",
-		  cs[i].label, cs[i].vt, cs[i].vn,
+	  fmt.Fprintf(w, "%s\t%d\t%d\t%d\t%.2f\t%s\t%g\n",
+		  cs[i].label, cs[i].vt, cs[i].vn, cs[i].vu,
 		  cs[i].sv, pl, cs[i].dp)
   }
 #+end_src
