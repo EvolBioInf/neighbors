@@ -10,9 +10,17 @@ import (
 
 func TestFintac(t *testing.T) {
 	var tests []*exec.Cmd
-	test := exec.Command("./fintac", "test.nwk")
+	f := "./test.nwk"
+	p := "./fintac"
+	test := exec.Command(p, f)
 	tests = append(tests, test)
-	test = exec.Command("./fintac", "-a", "test.nwk")
+	test = exec.Command(p, "-a", f)
+	tests = append(tests, test)
+	test = exec.Command(p, "-t", "^tGC[AF]", f)
+	tests = append(tests, test)
+	test = exec.Command(p, "-n", "^nGC[AF]", f)
+	tests = append(tests, test)
+	test = exec.Command(p, "-u", "^n", f)
 	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()
