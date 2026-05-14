@@ -12,6 +12,7 @@ import (
 	"os"
 	"regexp"
 	"slices"
+	"strings"
 	"text/tabwriter"
 )
 
@@ -51,7 +52,7 @@ func parse(r io.Reader, args ...interface{}) {
 			} else if a.sv > b.sv {
 				return -1
 			}
-			return 0
+			return strings.Compare(a.label, b.label)
 		})
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 		fmt.Fprint(w, "#Clade\tTargets\tNeighbors\tUnknowns\t"+

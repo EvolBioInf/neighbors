@@ -469,7 +469,8 @@ We import \ty{math}.
 #+end_src
 #+begin_src latex
   We sort the counts by converting them to a slice and sorting that by
-  the split score.
+  the split score. If the split scores are equal, we disambiguate by the
+  label.
 #+end_src
 #+begin_src go <<Sort counts, Pr. \ref{pr:fit}>>=
   cs := make([]*Count, 0)
@@ -482,14 +483,15 @@ We import \ty{math}.
 	  } else if a.sv > b.sv {
 		  return -1
 	  }
-	  return 0
+	  return strings.Compare(a.label, b.label)
   })
 #+end_src
 #+begin_src latex
-We import \ty{slices}.
+  We import \ty{slices} and \ty{strings}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
   "slices"
+  "strings"
 #+end_src
 #+begin_src latex
   We print the counts, or rather, the maximal splits, in a table, which
