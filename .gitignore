@@ -100,7 +100,6 @@ tutorial/tlen.dat
 # Misc
 dree/makeRes.sh
 edist/
-fintac/examples.sh
 neighbors-docker
 notes
 tutorial/drawTrees.sh
