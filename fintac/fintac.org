@@ -32,11 +32,16 @@
   split score,
   \begin{equation}\label{eq:spl}
     s(v)=\frac{v_{\rm t} + v^{\ast}_{\rm n} +\log(v^{\ast}_{\rm
-	u}+1)}{n_{\rm n} + n_{\rm t} + \log(n_{\rm u}+1)}\times 100.
+	u}+1)}{n_{\rm t} + n_{\rm n} + \log(n_{\rm u}+1)}\times 100.
   \end{equation}
-  This quantity ranges from 0, if $v$ contains no targets and all
-  neighbors and unknowns, to 100, if $v$ contains all targets and no
-  neighbors or unknowns.
+  In the worst case, the focal node contains no targets and all
+  neighbors and unknowns. In that case the three terms in the numerator
+  are zero, so the split score is also zero. In the best case, the focal
+  node contains all targets an no neighbors or unknowns. In that case
+  the three terms in the numerator are all equal to their corresponding
+  term in the denominator, so the split score is 100. In other words,
+  the split score ranges from 0 to 100, $0\le s(v)\le 100$.
+
   \subsection*{Implementation}
   The outline of \ty{fintac} has hooks for imports, types, functions,
   and the logic of the main function.  \bpr{fintac}{pr:fit}
@@ -78,8 +83,9 @@ explanation of the purpose of \ty{fintac}, and an example command.
 #+end_src
 #+begin_src go <<Set usage, Pr. \ref{pr:fit}>>=
   u := "fintac [option]... [foo.nwk]..."
-  p := "Find target clade in Newick tree."
-  e := "fintac foo.nwk"
+  p := "Find target clade for taxa identified by " +
+	  "regular expressions in Newick tree."
+  e := "fintac -t \"^991910\" -u \"^562\" eco7k.nwk"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -90,19 +96,22 @@ We import \ty{clio}.
 #+end_src
 #+begin_src latex
   Apart from the obligatory version, \ty{-v}, we declare an option for
-  listing all splits, instead of only the default maximal splits. We
-  also declare an option each for the target, neighbor, and unknown
-  regular expressions. The target regular expression is initialized to
-  prefix \ty{t}. The neighbor regular expression is initialized to
-  nothing, which we interpret as anything that is neither a target nor
-  unknown.
+  listing all splits, instead of only the default maximal splits,
+  \ty{-a}. We also declare an option each for the target, unknown, and
+  neighbor regular expressions. The target regular expression is
+  initialized to prefix \ty{t}. The unknown regular expression is
+  initialized to nothing, which corresponds to an analysis where all
+  taxa are either targets or neighbors. The neighbor regular expression
+  is also initialized to nothing, which we interpret as anything that is
+  neither a target nor unknown.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:fit}>>=
   optV := flag.Bool("v", false, "version")
   optA := flag.Bool("a", false, "all splits (default maximal)")
-  optT := flag.String("t", "^t", "target regex")
-  optU := flag.String("u", "", "unknown regex")
-  optN := flag.String("n", "", "neighbor regex " +
+  optT := flag.String("t", "^t", "target")
+  optU := flag.String("u", "", "unknown: either target " +
+	  "or neighbor")
+  optN := flag.String("n", "", "neighbor " +
 	  "(default complement of -t and -u)")
 #+end_src
 #+begin_src latex

@@ -154,14 +154,16 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 func main() {
 	util.SetName("fintac")
 	u := "fintac [option]... [foo.nwk]..."
-	p := "Find target clade in Newick tree."
-	e := "fintac foo.nwk"
+	p := "Find target clade for taxa identified by " +
+		"regular expressions in Newick tree."
+	e := "fintac -t \"^991910\" -u \"^562\" eco7k.nwk"
 	clio.Usage(u, p, e)
 	optV := flag.Bool("v", false, "version")
 	optA := flag.Bool("a", false, "all splits (default maximal)")
-	optT := flag.String("t", "^t", "target regex")
-	optU := flag.String("u", "", "unknown regex")
-	optN := flag.String("n", "", "neighbor regex "+
+	optT := flag.String("t", "^t", "target")
+	optU := flag.String("u", "", "unknown: either target "+
+		"or neighbor")
+	optN := flag.String("n", "", "neighbor "+
 		"(default complement of -t and -u)")
 	flag.Parse()
 	if *optV {
