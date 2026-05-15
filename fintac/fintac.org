@@ -469,7 +469,8 @@ We import \ty{math}.
 #+end_src
 #+begin_src latex
   We sort the counts by converting them to a slice and sorting that by
-  the split score.
+  the split score. If the split scores are equal, we disambiguate by the
+  label.
 #+end_src
 #+begin_src go <<Sort counts, Pr. \ref{pr:fit}>>=
   cs := make([]*Count, 0)
@@ -482,14 +483,15 @@ We import \ty{math}.
 	  } else if a.sv > b.sv {
 		  return -1
 	  }
-	  return 0
+	  return strings.Compare(a.label, b.label)
   })
 #+end_src
 #+begin_src latex
-We import \ty{slices}.
+  We import \ty{slices} and \ty{strings}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
   "slices"
+  "strings"
 #+end_src
 #+begin_src latex
   We print the counts, or rather, the maximal splits, in a table, which
@@ -580,17 +582,41 @@ We import \ty{exec}.
   "os/exec"
 #+end_src
 #+begin_src latex
-Our first test runs on the test tree with no options set.
+  We run all our tests on the same tree, \ty{test.nwk}. Our first test
+  analyzes this tree with no options set.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:fit}>>=
-  test := exec.Command("./fintac", "test.nwk")
+  f := "./test.nwk"
+  p := "./fintac"
+  test := exec.Command(p, f)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
 In our second and last test we request that all splits be printed.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:fit}>>=
-  test = exec.Command("./fintac", "-a", "test.nwk")
+  test = exec.Command(p, "-a", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test the target regex.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:fit}>>=
+  test = exec.Command(p, "-t", "^tGC[AF]", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test the neighbors regex.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:fit}>>=
+  test = exec.Command(p, "-n", "^nGC[AF]", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test the ``unknown'' option by calling all neighbors ``unknowns''.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:fit}>>=
+  test = exec.Command(p, "-u", "^n", f)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
