@@ -1,6 +1,6 @@
 SRC1 = ants.tex climt.tex clusters.tex dree.tex fintac.tex land.tex makeNeiDb.tex mrca.tex \
 neighbors.tex outliers.tex pickle.tex taxi.tex tdb.tex tutorial.tex util.tex
-SRC2 =   header.tex introduction.tex neighborsDoc.tex labels.tex
+SRC2 =   header.tex introduction.tex neighborsDoc.tex labels.tex covTree.tex
 
 date = $(shell git log | grep -m 1 Date | sed -r 's/Date: +[A-Z][a-z]+ ([A-Z][a-z]+) ([0-9]+) [^ ]+ ([0-9]+) .+/\2_\1_\3/')
 version = $(shell git describe)

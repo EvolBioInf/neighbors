@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{\ty{outliers}}
+  \section*{Introduction}
   Given a set of measurements, outliers are values far removed from the
   data's center. The following description of outliers is taken from the
   handbook of the American National Institute of Standards and
@@ -29,7 +29,7 @@
   \end{enumerate}
 
   It also lists mild and extreme outliers.
-  \subsection*{Implementation}
+  \section*{Implementation}
   Our outline of \ty{outliers} contains hooks for imports, functions,
   and the logic of the main function.
   \bpr{outlines}{pr:out}
@@ -294,7 +294,7 @@ The actual outlier values are printed in a single row.
 #+end_src
 #+begin_src latex
 We're finished writing \ty{outliers}, let's test it.
-\subsection*{Testing}
+\section*{Testing}
 The outline of our testing code contains hooks for imports and the
 testing logic.
 #+end_src

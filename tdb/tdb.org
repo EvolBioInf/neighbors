@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{\ty{tdb}}
+  \section{Introduction}
   ! Package tdb constructs and queries the taxonomy database.
 
   Figure~\ref{fig:db} shows the ER diagram of the taxonomy database,
@@ -40,7 +40,7 @@
   _ "github.com/mattn/go-sqlite3"
 #+end_src
 #+begin_src latex
-  \subsection{\ty{NewTaxonomyDB}}
+  \section{\ty{NewTaxonomyDB}}
   ! The function \ty{NewTaxonomyDB} takes as parameters the names of the
   ! six input files from which we construct the database, and the name
   ! of the database. The six input files are nodes, names, merged,
@@ -1033,7 +1033,7 @@ associated taxids to create the image/taxid pairs we insert into
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{OpenTaxonomyDB}}
+  \section{\ty{OpenTaxonomyDB}}
   ! The function \ty{OpenTaxonomyDB} opens an existing taxonomy database
   ! and returns a pointer to it.
 #+end_src
@@ -1049,7 +1049,7 @@ associated taxids to create the image/taxid pairs we insert into
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Close}}
+  \section{\ty{Close}}
   ! The method \ty{Close} closes a taxonomy database.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
@@ -1058,7 +1058,7 @@ associated taxids to create the image/taxid pairs we insert into
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Accessions}}
+  \section{\ty{Accessions}}
   !The method \ty{Accessions} takes as parameter a taxon-ID and returns
   !a slice accessions of genome assemblies belonging to that taxon and
   !an error.
@@ -1110,7 +1110,7 @@ and check the error returned by the database.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Name}}
+  \section{\ty{Name}}
   ! The method \ty{Name} takes as argument a taxon-ID and returns the
   ! taxon's name and an error.
 
@@ -1162,7 +1162,7 @@ and check the error returned by the database.
 #+end_src
 
 #+begin_src latex
-  \subsection{\ty{CommonName}}
+  \section{\ty{CommonName}}
   ! The method \ty{CommonName} takes as argument a taxon-ID and returns the
   ! taxon's common name and an error.
 
@@ -1214,7 +1214,7 @@ and check the error returned by the database.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Rank}}
+  \section{\ty{Rank}}
   !The method \ty{Rank} takes as argument a taxon-ID and returns the
   !taxon's rank and an error.
 
@@ -1265,7 +1265,7 @@ and check the error returned by the database.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Parent}}
+  \section{\ty{Parent}}
   ! The method \ty{Parent} takes as argument a taxon-ID and returns the
   ! taxon-ID of its parent and an error.
 
@@ -1317,7 +1317,7 @@ and check the error returned by the database.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Children}}
+  \section{\ty{Children}}
   ! The method \ty{Children} takes as argument a taxon-ID and returns its
   ! children and an error.
 
@@ -1371,7 +1371,7 @@ and check the error returned by the database.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Subtree}}
+  \section{\ty{Subtree}}
   ! The method \ty{Subtree} returns all taxa in a subtree, including its
   ! root, and an error.
 
@@ -1420,7 +1420,7 @@ infinite loop.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Taxids}}
+  \section{\ty{Taxids}}
   ! \ty{Taxids} takes as arguments a taxon name, a limit on the number
   ! of names returned, and an offset into the list of matching names. It
   ! matches the taxon name, to the scientific names in the database,
@@ -1484,7 +1484,7 @@ infinite loop.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{CommonTaxids}}
+  \section{\ty{CommonTaxids}}
   ! \ty{CommonTaxids} takes as arguments a taxon name, a limit on the
   ! number of names returned, and an offset into the list of matching
   ! names. It matches the taxon name to the scientific and common names,
@@ -1549,7 +1549,7 @@ infinite loop.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{MRCA}}
+  \section{\ty{MRCA}}
   !The method \ty{MRCA} takes as input a slice of taxon-IDs and returns
   !their most recent common ancestor and an error.
 
@@ -1672,7 +1672,7 @@ parents and reset the parent slice to empty.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Level}}
+  \section{\ty{Level}}
   ! The method \ty{Level} takes as argument a genome accession and
   ! returns the assembly level and an eror.
 
@@ -1723,7 +1723,7 @@ parents and reset the parent slice to empty.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{FilterAccessions}}
+  \section{\ty{FilterAccessions}}
   ! \ty{FilterAccessions} takes as input a slice of genome accessions
   ! and a list of desired assembly levels. It then removes any accession
   ! that doesn't conform to one of the levels supplied and returns the
@@ -1757,7 +1757,7 @@ parents and reset the parent slice to empty.
   }
 #+end_src
 #+begin_export latex
-\subsection{\ty{NumTaxa}}
+\section{\ty{NumTaxa}}
 ! The method \ty{NumTaxa} returns the number of taxa in the database
 ! and an error.
 
@@ -1802,7 +1802,7 @@ We extract the number of taxa from the table row and check the error.
   }
 #+end_src
 #+begin_export latex
-\subsection{\ty{NumGenomes}}
+\section{\ty{NumGenomes}}
 !The method \ty{NumGenomes} takes as argument a taxon-ID and an
 !assembly level and returns the raw number of genomes associated with
 !this taxon assembled to that level and an error.
@@ -1856,7 +1856,7 @@ error.
   }
 #+end_src
 #+begin_export latex
-\subsection{\ty{NumGenomesRec}}
+\section{\ty{NumGenomesRec}}
 !The method \ty{NumGenomesRec} takes as argument a taxon-ID and an
 !assembly level. It returns the number of genomes assembled to that
 !level contained in the subtree rooted on the taxon-ID and an error.
@@ -1908,7 +1908,7 @@ the query. And keep checking the error.
   }
 #+end_src
 #+begin_export latex
-\subsection{\ty{AssemblyLevels}}
+\section{\ty{AssemblyLevels}}
 !The function \ty{AssemblyLevels} returns the slice of possible
 !assembly levels.
 #+end_export
@@ -1918,7 +1918,7 @@ the query. And keep checking the error.
   }
 #+end_src
 #+begin_export latex
-\subsection{\ty{IsLeaf}}
+\section{\ty{IsLeaf}}
 !The method \ty{IsLeaf} takes as argument a taxon-ID and returns true
 !if the taxon has no children, i. e. is a leaf, false otherwise. It
 !also returns an error.
@@ -1970,7 +1970,7 @@ We extract the number of children and bail if there was an error.
   }
 #+end_src
 #+begin_export latex
-\subsection{\ty{Images}}
+\section{\ty{Images}}
 !The method \ty{Images} takes as argument a taxon-ID and returns all
 !images associated with the taxon. It also returns an error.
 #+end_export
@@ -2023,7 +2023,7 @@ an image.
   }
 #+end_src
 #+begin_src latex
-  \subsection{Testing}
+  \section{Testing}
   We test on the \emph{Homininae} subfamily shown in
   Figure~\ref{fig:hom}.
   \begin{figure}

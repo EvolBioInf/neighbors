@@ -1,10 +1,11 @@
 #+begin_src latex
-  \section{\ty{makeNeiDb}}
+  \section*{Introduction}
   Neigbor genomes are discovered by querying a database that combines
   taxonomy and genome information. The program \ty{makeNeiDb} constructs
-  this database. The outline of \ty{makeNeiDb} contains hooks for
-  imports, types, and the logic of the main function.
-  \bpr{makeNeiDb}{pr:db}
+  this database.
+  \section*{Implementation}
+  The outline of \ty{makeNeiDb} contains hooks for imports, types, and
+  the logic of the main function.  \bpr{makeNeiDb}{pr:db}
 #+end_src
 #+begin_src go <<makeNeiDb.go>>=
   package main
@@ -106,7 +107,7 @@ We import \ty{util}.
 #+begin_src latex
   We are done with \ty{makeNeiDb}, time to test it.
 
-  \subsection*{Testing}
+  \section*{Testing}
   The outline for testing \ty{makeNeiDb} has hooks for imports and the
   testing logic.
 #+end_src

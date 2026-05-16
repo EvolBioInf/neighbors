@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{\ty{neighbors}}
+  \section*{Introduction}
   The program \ty{neighbors} takes as input a set of target
   taxon-IDs. It finds their most recent common ancestor, and from there
   calculates two new sets of taxon-IDs, the complete set of targets,
@@ -7,7 +7,7 @@
   taxon in these two sets it also returns the accessions of the
   corresponding genome sequences.
 
-  \subsection*{Implementation}
+  \section*{Implementation}
   The outline of \ty{neighbors} contains hooks for imports, functions,
   and the logic of the main function.
   \bpr{neighbors}{pr:neig}
@@ -620,7 +620,7 @@ taxon-ID, name, and genomes.
 #+begin_src latex
   We've written \ty{neighbors}, time to test it. 
 
-  \subsection*{Testing}
+  \section*{Testing}
   The outline for testing \ty{neighbors} has hooks for imports and the
   testing logic.
 #+end_src

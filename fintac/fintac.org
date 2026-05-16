@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{\ty{fintac}}
+  \section*{Introduction}
   The program \ty{fintac} takes as input a Newick tree and finds the
   target clade. In the input tree the leaf labels need to distinguish
   taxonomic targets from taxonomic neighbors and nodes whose status is
@@ -42,7 +42,7 @@
   term in the denominator, so the split score is 100. In other words,
   the split score ranges from 0 to 100, $0\le s(v)\le 100$.
 
-  \subsection*{Implementation}
+  \section*{Implementation}
   The outline of \ty{fintac} has hooks for imports, types, functions,
   and the logic of the main function.  \bpr{fintac}{pr:fit}
 #+end_src
@@ -558,7 +558,7 @@ We print the remaining splits.
 #+end_src
 #+begin_src latex
 We have finished writing \ty{fintac}, so let's test it.
-\subsection*{Testing}
+\section*{Testing}
 Our code for testing \ty{fintac} contains hooks for imports and the
 testing logic.
 #+end_src

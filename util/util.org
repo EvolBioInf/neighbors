@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{\ty{util}}
+  \section{Introduction}
   The package \ty{util} collects utility functions. Its outline provides
   hooks for imports, types, variables, and functions.
   \bpa{util}{pa:util}
@@ -18,7 +18,7 @@
 #+end_src
 #+begin_src latex
   \epa
-  \subsection{\ty{PrintInfo}}
+  \section{\ty{PrintInfo}}
   !\ty{PrintInfo} prints program information and exits.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
@@ -47,7 +47,7 @@
   "os"
 #+end_src
 #+begin_src latex
-  \subsection{\ty{Open}}
+  \section{\ty{Open}}
   !\ty{Open} opens a file with error checking.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
@@ -69,7 +69,7 @@
   "os"
 #+end_src
 #+begin_export latex
-\subsection{\ty{Check}}
+\section{\ty{Check}}
 !\ty{Check} checks an error and aborts if it isn't nil.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
@@ -86,7 +86,7 @@ We import \ty{log}.
   "log"
 #+end_src
 #+begin_export latex
-\subsection{\ty{SetName}}
+\section{\ty{SetName}}
 !The function \ty{SetName} sets the name of the program.
 It stores the name in a global variable and prepares the \ty{log}
 package to print that name in the event of an error message.
@@ -106,7 +106,7 @@ We declare the global string variable \ty{name}.
   var name string
 #+end_src
 #+begin_export latex
-\subsection{\ty{Version}}
+\section{\ty{Version}}
 !The function \ty{Version} prints the version and other information
 !about the program and exits.
 \ty{Version} simply wraps a call to \ty{PrintInfo}.
@@ -117,7 +117,7 @@ We declare the global string variable \ty{name}.
   }
 #+end_src
 #+begin_src latex
-  \subsection{\ty{LevelMsg}}
+  \section{\ty{LevelMsg}}
   !The function \ty{LevelMsg} prints the user message for the
   !option directing the assembly level.
 
@@ -148,7 +148,7 @@ levels.
 	  "contig"}
 #+end_src
 #+begin_export latex
-\subsection{\ty{Quartiles}}
+\section{\ty{Quartiles}}
   !The function \ty{Quartiles} takes as argument a slice of floats and
   !calculates the quartiles, including fences for outlier
   !analysis.
@@ -266,7 +266,7 @@ We import \ty{math}.
 #+end_src
 #+begin_src latex
   We are done with writing the \ty{util} package, time to test it.
-  \subsection{Testing}
+  \section{Testing}
   Our testing code for \ty{util} contains hooks for imports and the
   logic of the testing function.
 #+end_src

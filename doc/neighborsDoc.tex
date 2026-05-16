@@ -1,32 +1,45 @@
-\documentclass[a4paper]{report}
+\documentclass[a4paper]{book}
 \input{header}
 \begin{document}
-\pagestyle{noweb}
 
-\title{\ty{Neighbors}: Finding the Genomes of Targets and Neighbors}
+\title{\ty{Neighbors}: Find the Genomes of Targets and Neighbors}
 \author{EvolBioInf}
-\date{\input{date.txt}\!\!, \input{version.txt}}
+\date{\input{date.txt}\!\!, \input{version.txt}\\\vspace{2cm}\resizebox{\textwidth}{!}{\input{covTree}}}
 \maketitle
 \tableofcontents
+\part{Programs}
 \chapter{Introduction}
 \input{introduction}
-\chapter{Programs}
+\chapter{\ty{ants}: Ancestors from Taxonomy}
 \input{ants}
+\chapter{\ty{climt}: Climb Phylogenetic Tree}
 \input{climt}
+\chapter{\ty{clusters}: Find Clusters in Phylogeny}
 \input{clusters}
+\chapter{\ty{dree}: Draw Taxonomic Tree}
 \input{dree}
+\chapter{\ty{fintac}: Find Target Clade in Phylogeny}
 \input{fintac}
+\chapter{\ty{land}: Label Nodes in Phylogeny}
 \input{land}
+\chapter{\ty{makeNeiDb}: Make Neighbors Database}
 \input{makeNeiDb}
+\chapter{\ty{mrca}: Find Most Recent Common Ancestor in Phylogeny}
 \input{mrca}
+\chapter{\ty{neighbors}: Find Taxonomic Targets \& Neighbors}
 \input{neighbors}
-\input{outliers}\label{sec:out}
+\chapter{\ty{outliers}: Find Outliers in Data}\label{sec:out}
+\input{outliers}
+\chapter{\ty{pickle}: Pick Clades from Phylogeny}
 \input{pickle}
+\chapter{\ty{taxi}: Find Taxon-ID in Taxonomy}
 \input{taxi}
-\chapter{Packages}
+\part{Packages}
+\chapter{\ty{tdb}: Taxonomy Database}
 \input{tdb}
+\chapter{\ty{util}: Utility Functions}
 \input{util}
-\chapter{Tutorial}
+\part{Tutorial}
 \input{tutorial}
 
 %\chapter{List of code chunks}

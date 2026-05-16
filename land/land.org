@@ -1,11 +1,11 @@
 #+begin_src latex
-  \section{\ty{land}}
+  \section*{Introduction}
   The program \ty{land} labels the internal nodes of a Newick tree. This
   makes it easy to subsequently pick individual clades in the tree with
   \ty{pickle}. The program can also remove labels from the internal
   nodes of a labeled tree.
 
-  \subsection*{Implementation}
+  \section*{Implementation}
   \ty{land} contains hooks for imports, functions, and the logic of the
   main function.  \bpr{land}{pr:lan}
 #+end_src
@@ -174,7 +174,7 @@ labels for internal nodes.
 #+begin_src latex
   We're done writing \ty{land}, let's test it.
 
-  \subsection*{Testing}
+  \section*{Testing}
   The code for testing \ty{land} has hooks for imports and the testing
   logic.
 #+end_src

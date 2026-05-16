@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{\ty{pickle}}
+  \section*{Introduction}
   The program \ty{pickle} picks clades from trees. It reads a Newick
   tree with labeled clades. It then picks the clades requested by the
   user and prints their leaf labels. Alternatively, it prints the
@@ -32,7 +32,7 @@
   pickle -t -c 8 pickle/test.nwk | plotTree
   \end{verbatim}
 
-  \subsection*{Implementation}
+  \section*{Implementation}
   \ty{pickle} contains hooks for imports, functions, and the logic of the
   main function.  \bpr{pickle}{pr:pic}
 #+end_src
@@ -349,7 +349,7 @@ leaves.
 #+begin_src latex
   We've finished \ty{pickle}, so let's test it.
 
-  \subsection*{Testing}
+  \section*{Testing}
   Our program for testing \ty{pickle} contains hooks for imports and the
   testing logic.
 #+end_src

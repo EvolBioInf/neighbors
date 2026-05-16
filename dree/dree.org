@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{\ty{dree}} 
+  \section*{Introduction} 
     The program \ty{dree} takes as input a taxon-ID and the name of the
     Neighbors database. It returns the subtree rooted on the focal
     taxon. The subtree is written in the dot language ready for
@@ -40,7 +40,7 @@
 	colored.}\label{fig:homininaeG}
     \end{figure}
 
-    \subsection*{Implementation}
+    \section*{Implementation}
     The outline of \ty{dree} has hooks for imports and the logic of the
     main function.  \bpr{dree}{pr:dr}
 
@@ -438,7 +438,7 @@ rank, and number of genomes.
 #+begin_src latex
   We've finished writing \ty{dree}, now we test it.
 
-  \subsection*{Testing}
+  \section*{Testing}
   Our outline for testing \ty{dree} contains hooks for imports and the
   testing logic.
 #+end_src

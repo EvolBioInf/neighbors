@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{\ty{climt}}
+  \section*{Introduction}
   The program \ty{climt} climbs a tree. It takes as input a phylogenetic
   tree and a node label and returns the node's chain of ancestors up to
   the root. For each node it also prints the length of the branch to the
@@ -37,7 +37,7 @@
   By default, node labels are searched for by exact matching, but the
   user can opt for matching as regular expression.
 
-  \subsection*{Implementation}
+  \section*{Implementation}
   The outline of \ty{climt} has hooks for imports, functions, and the
   logic of the main function.\bpr{climt}{pr:cli}
 #+end_src
@@ -391,7 +391,7 @@ length.
 #+end_src
 #+begin_src latex
 We're done writing \ty{climt}, so let's test it.
-\subsection*{Testing}
+\section*{Testing}
 The outline of our testing code for \ty{climt} has hooks for imports
 and the logic of the main function.
 #+end_src

@@ -1,6 +1,5 @@
 #+begin_export latex
-\section{\ty{clusters}}
-\subsection*{Introduction}
+\section*{Introduction}
 The program \ty{clusters} reads a phylogeny in Newick format and
 determines for each of its nodes whether it forms a cluster or not. We
 call a node, $v$, a \emph{cluster} if it has a long parental branch
@@ -78,7 +77,7 @@ Instead of clusters, the user can also opt to print the input tree
 with marked clusters (\ty{-t}). We mark a cluster by appending
 $\ty{c}$ to its label.
 
-\subsection*{Implementation}
+\section*{Implementation}
 To find clusters, we need convenient access to three things, the nodes
 of the tree, the branch lengths per node, and the clusters
 themselves. Since both branch lengths and clusters refer to specific
@@ -655,7 +654,7 @@ To print the table body, we iterate over the clusters.
 #+begin_export latex
 We have finished \ty{clusters}, let's test it.
 
-\subsection*{Testing}
+\section*{Testing}
 Our testing code has hooks for imports and the testing logic.
 #+end_export
 #+begin_src go <<clusters_test.go>>=

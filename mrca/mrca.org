@@ -1,6 +1,5 @@
 #+begin_export latex
-\section{\ty{mrca}}
-\subsection*{Introduction}
+\section*{Introduction}
 The program \ty{mrca} reads a set of starting nodes in a phylogeny and
 finds their most recent common ancestor, the MRCA. It also prints the
 labels of nodes where lines of descent of the starting nodes
@@ -69,7 +68,7 @@ coalescence events apart from the MRCA. For $n$ starting nodes, this
 table has $n-2$ entries, one in our example. Since the labels can be
 rather verbose, \ty{mrca} only prints them upon request.
 
-\subsection*{Implementation}
+\section*{Implementation}
 The central idea of the implementation of \ty{mrca} is to identify
 nodes by their IDs. Node IDs are integers, which we also use as keys
 to a map that references the original nodes.
@@ -603,7 +602,7 @@ requested, the labels of its descendants, again in fixed order.
 #+end_src
 #+begin_export latex
 We have finished writing \ty{mrca}, time to test it.
-\subsection*{Testing}
+\section*{Testing}
 Our code for testing \ty{mrca} has hooks for imports and the testing
 logic.
 #+end_export

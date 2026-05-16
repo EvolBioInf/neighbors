@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section{taxi}
+  \section*{Introduction}
   The \ty{neighbors} module is based on taxon-IDs. These are difficult
   to remember, so the program \ty{taxi} takes the user from the name of
   an organism to its taxon-ID. The input to \ty{taxi} is a scientific
@@ -30,7 +30,7 @@
   paged data retrieval, the user can set a limit on the number of names
   returned and an offset into the results list.
 
-  \subsection*{Implementation}
+  \section*{Implementation}
   The program \ty{taxi} has hooks for imports and the logic of the main
   function.\bpr{taxi}{pr:tax}
 #+end_src
@@ -186,7 +186,7 @@ We import \ty{util}.
 #+begin_src latex
   We're done writing \ty{taxi}, time to test it.
 
-  \subsection*{Testing}
+  \section*{Testing}
   Our testing code for \ty{taxi} contains hooks for imports and the
   testing logic.
 #+end_src
