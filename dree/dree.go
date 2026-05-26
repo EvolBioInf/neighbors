@@ -7,6 +7,7 @@ import (
 	"github.com/evolbioinf/neighbors/tdb"
 	"github.com/evolbioinf/neighbors/util"
 	"log"
+	"math"
 	"os"
 	"sort"
 	"strconv"
@@ -27,6 +28,7 @@ func main() {
 		"only taxa with genome sequences")
 	optL := flag.Bool("l", false, "list taxa")
 	optLL := flag.String("L", "", util.LevelMsg())
+	optM := flag.Int("m", -1, "maximum tree level")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("dree")
@@ -51,6 +53,9 @@ func main() {
 	} else {
 		levels = knowns
 	}
+	if *optM < 0 {
+		*optM = math.MaxInt
+	}
 	tokens := flag.Args()
 	if len(tokens) != 2 {
 		fmt.Fprintf(os.Stderr,
@@ -63,7 +68,7 @@ func main() {
 	}
 	dbname := tokens[1]
 	neidb := tdb.OpenTaxonomyDB(dbname)
-	subtree, err := neidb.Subtree(tid)
+	subtree, err := neidb.SubtreeLevel(tid, *optM)
 	util.Check(err)
 	hasGenome := make(map[int]bool)
 	hasGsub := make(map[int]bool)
@@ -128,6 +133,8 @@ func main() {
 			if !*optG || (*optG && hasGsub[v]) {
 				if hasGenome[v] {
 					fmt.Printf(t1, v)
+				} else {
+					fmt.Printf(t2, v, strconv.Itoa(v))
 				}
 				if *optN {
 					name, err := neidb.Name(v)

@@ -2,12 +2,17 @@
   \section*{Introduction} 
     The program \ty{dree} takes as input a taxon-ID and the name of the
     Neighbors database. It returns the subtree rooted on the focal
-    taxon. The subtree is written in the dot language ready for
-    rendering with \ty{dot}, which is part of the graphviz package. For
-    example, we can draw the tree for the \emph{Homininae}, taxon-ID
-    207598, which include human, chimp, and gorilla. By default,
-    \ty{dree} labels taxa with their IDs, but with \ty{-n} we get names
-    instead. Taxa with sequenced genomes are colored.
+    taxon. If the focal taxon is close to the root, the subtree might be
+    very large, so the user can set the maximum level considered. The
+    root of the subtree has level zero, its children level one, and so
+    on.
+
+  The subtree is written in the dot language ready for rendering with
+  \ty{dot}, which is part of the graphviz package. For example, we can
+  draw the tree for the \emph{Homininae}, taxon-ID 207598, which include
+  human, chimp, and gorilla. By default, \ty{dree} labels taxa with
+  their IDs, but with \ty{-n} we get names instead. Taxa with sequenced
+  genomes are colored.
 #+end_src
 #+begin_src sh <<dree.sh>>=
   ./dree -n 207598 neidb | dot -T x11
@@ -94,12 +99,14 @@ We import \ty{util}.
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  Apart from the version, we declare four options:
+  Apart from the version, we declare five options:
   \begin{itemize}
   \item \ty{-n}: print \emph{names} instead of taxon-IDs
   \item \ty{-g}: print only taxa with \emph{genomes}
   \item \ty{-l}: \emph{list} taxa
-  \item \ty{-L}: only consider genomes with a particular assembly \emph{level}
+  \item \ty{-L}: only consider genomes with a particular assembly
+    \emph{level}
+  \item \ty{-m}: maximum tree level
   \end{itemize}
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:dr}>>=
@@ -110,6 +117,7 @@ We import \ty{util}.
 	  "only taxa with genome sequences")
   optL := flag.Bool("l", false, "list taxa")
   optLL := flag.String("L", "", util.LevelMsg())
+  optM := flag.Int("m", -1, "maximum tree level")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -118,14 +126,16 @@ We import \ty{util}.
   "flag"
 #+end_src
 #+begin_src latex
-  We parse the options and respond to the version option, \ty{-v}, and
-  the levels option, \ty{-L}. Then we get the taxon-ID and the database
-  name. Using the database name, we open the database connection.
+  We parse the options and respond to the version option, \ty{-v}, the
+  assembly levels option, \ty{-L}, and the maximum tree levels option,
+  \ty{-m}. Then we get the taxon-ID and the database name. Using the
+  database name, we open the database connection.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:dr}>>=
   flag.Parse()
   //<<Respond to \ty{-v}, Pr. \ref{pr:dr}>>
   //<<Respond to \ty{-L}, Pr. \ref{pr:dr}>>
+  //<<Respond to \ty{-m}, Pr. \ref{pr:dr}>>
   //<<Get taxon-ID, Pr. \ref{pr:dr}>>
   //<<Get database name, Pr. \ref{pr:dr}>>
   //<<Open database connection, Pr. \ref{pr:dr}>>
@@ -195,6 +205,21 @@ and we bail with a message.
 	  }
   }
 #+end_src
+#+begin_export latex
+If the maximum tree level is less than zero, we return all levels by
+setting the option to the largest integer.
+#+end_export
+#+begin_src go <<Respond to \ty{-m}, Pr. \ref{pr:dr}>>=
+  if *optM < 0 {
+	  *optM = math.MaxInt
+  }
+#+end_src
+#+begin_export latex
+We import \ty{math}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
+  "math"
+#+end_src
 #+begin_src latex
   The remaining tokens on the command line are interpreted as taxon-ID
   and database, in that order. If we don't have two tokens, we bail with
@@ -237,7 +262,7 @@ and we bail with a message.
   We get the subtree we're looking for.
 #+end_src
 #+begin_src go <<Get subtree, Pr. \ref{pr:dr}>>=
-  subtree, err := neidb.Subtree(tid)
+  subtree, err := neidb.SubtreeLevel(tid, *optM)
   util.Check(err)
 #+end_src
 #+begin_src latex
@@ -422,12 +447,15 @@ rank, and number of genomes.
   }
 #+end_src
 #+begin_src latex
-  If the node has a genome attached, or the user asked for names, we
-  print an attribute line for $v$. 
+  If the current node has a genome attached, we print a colored node,
+  otherwise we print a black-and-white node. If the user asked for
+  names, we also add a name attribute.
 #+end_src
 #+begin_src go <<Print $v$, Pr. \ref{pr:dr}>>=
   if hasGenome[v] {
 	  fmt.Printf(t1, v)
+  } else {
+	  fmt.Printf(t2, v, strconv.Itoa(v))
   }
   if *optN {
 	  name, err := neidb.Name(v)
@@ -473,8 +501,8 @@ rank, and number of genomes.
 #+begin_src latex
   In our tests, we draw the \emph{Homininae} which have taxon-ID
   207598. First with no options, then we test our four options names
-  (\ty{-n}), genomes (\ty{-g}), list \ty{-l}, and assembly level
-  (\ty{-L}).
+  (\ty{-n}), genomes (\ty{-g}), list \ty{-l}, assembly level
+  (\ty{-L}), and tree level, \ty{-m}.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:dr}>>=
   n := "207598"
@@ -484,6 +512,7 @@ rank, and number of genomes.
   //<<Test \ty{-g}, Pr. \ref{pr:dr}>>
   //<<Test \ty{-l}, Pr. \ref{pr:dr}>>
   //<<Test \ty{-L}, Pr. \ref{pr:dr}>>
+  //<<Test \ty{-m}, Pr. \ref{pr:dr}>>
 #+end_src
 #+begin_export latex
 We construct our first test without any options and store it.
@@ -528,6 +557,20 @@ We test \ty{-L}, first with level \emph{complete}, then with levels
   test = exec.Command("./dree", "-L", "complete", n, d)
   tests = append(tests, test)
   test = exec.Command("./dree", "-L", "complete,chromosome", n, d)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test \ty{-m} with a negative maximum level, ordinary levels 0 and
+2, and the very large level 200.
+#+end_export
+#+begin_src go <<Test \ty{-m}, Pr. \ref{pr:dr}>>=
+  test = exec.Command("./dree", "-m", "-2", n, d)
+  tests = append(tests, test)
+  test = exec.Command("./dree", "-m", "0", n, d)
+  tests = append(tests, test)
+  test = exec.Command("./dree", "-m", "2", n, d)
+  tests = append(tests, test)
+  test = exec.Command("./dree", "-m", "200", n, d)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

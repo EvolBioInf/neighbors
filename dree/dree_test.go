@@ -30,6 +30,14 @@ func TestDree(t *testing.T) {
 	tests = append(tests, test)
 	test = exec.Command("./dree", "-L", "complete,chromosome", n, d)
 	tests = append(tests, test)
+	test = exec.Command("./dree", "-m", "-2", n, d)
+	tests = append(tests, test)
+	test = exec.Command("./dree", "-m", "0", n, d)
+	tests = append(tests, test)
+	test = exec.Command("./dree", "-m", "2", n, d)
+	tests = append(tests, test)
+	test = exec.Command("./dree", "-m", "200", n, d)
+	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()
 		if err != nil {
