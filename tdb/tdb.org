@@ -1091,10 +1091,10 @@ and check the error returned by the database.
 #+begin_src go <<Query for accessions, Pa. \ref{pa:tdb}>>=
   q := fmt.Sprintf(accessionT, taxon)
   rows, err := t.db.Query(q)
-  defer rows.Close()
   if err != nil {
 	  return nil, err
   }
+  defer rows.Close()
 #+end_src
 #+begin_src latex
   We append each accession to our slice of accessions.
@@ -1144,10 +1144,10 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Execute name query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  defer rows.Close()
   if err != nil {
 	  return "", err
   }
+  defer rows.Close()
 #+end_src
 #+begin_src latex
   Our results table contains only the requested single name. We scan
@@ -1197,10 +1197,10 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Execute common name query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  defer rows.Close()
   if err != nil {
 	  return "", err
   }
+  defer rows.Close()
 #+end_src
 #+begin_src latex
   Our results table contains only the requested single name. We scan
@@ -1248,10 +1248,10 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Execute rank query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  defer rows.Close()
   if err != nil {
 	  return "", err
   }
+  defer rows.Close()
 #+end_src
 #+begin_src latex
   Our results table contains only the requested single rank. We scan
@@ -1300,10 +1300,10 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Execute parent query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  defer rows.Close()
   if err != nil {
 	  return 0, err
   }
+  defer rows.Close()
 #+end_src
 #+begin_src latex
   Our results table contains at most one row with one entry, the
@@ -1352,10 +1352,10 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Execute children query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  defer rows.Close()
   if err != nil {
 	  return nil, err
   }
+  defer rows.Close()
 #+end_src
 #+begin_src latex
   We copy the children into the slice we've prepared for this purpose.
@@ -1465,10 +1465,10 @@ infinite loop.
 #+end_src
 #+begin_src go <<Execute taxids query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  defer rows.Close()
   if err != nil {
 	  return nil, err
   }
+  defer rows.Close()
 #+end_src
 #+begin_src latex
   We extract and store the taxon-IDs.
@@ -1530,10 +1530,10 @@ infinite loop.
 #+end_src
 #+begin_src go <<Execute common taxids query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  defer rows.Close()
   if err != nil {
 	  return nil, err
   }
+  defer rows.Close()
 #+end_src
 #+begin_src latex
   We extract and store the taxon-IDs.
@@ -1707,10 +1707,10 @@ parents and reset the parent slice to empty.
 #+end_src
 #+begin_src go <<Execute level query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
-  defer rows.Close()
   if err != nil {
 	  return "", err
   }
+  defer rows.Close()
 #+end_src
 #+begin_src latex
   We scan the first row in the table and check the error returned.
@@ -1786,10 +1786,10 @@ error.
 #+end_export
 #+begin_src go <<Execute numtax query, Pa. \ref{pa:tdb}>>=
   row, err := d.db.Query(q)
-  defer row.Close()
   if err != nil {
 	  return 0, err
   }
+  defer row.Close()
 #+end_src
 #+begin_export latex
 We extract the number of taxa from the table row and check the error.
@@ -1839,10 +1839,10 @@ error.
 #+end_export
 #+begin_src go <<Execute numgen query, Pa. \ref{pa:tdb}>>=
   row, err := d.db.Query(q)
-  defer row.Close()
   if err != nil {
 	  return 0, err
   }
+  defer row.Close()
 #+end_src
 #+begin_export latex
 We extract the number of genomes from the table row and check the
@@ -1891,10 +1891,10 @@ error.
 #+end_export
 #+begin_src go <<Execute recursive numgen query, Pa. \ref{pa:tdb}>>=
   row, err := d.db.Query(q)
-  defer row.Close()
   if err != nil {
 	  return 0, err
   }
+  defer row.Close()
 #+end_src
 #+begin_export latex
 We extract the recursive number of genomes from the row returned by
@@ -1954,10 +1954,10 @@ We execute the leaf query and bail if there was an error.
 #+end_export
 #+begin_src go <<Execute leaf query, Pa. \ref{pa:tdb}>>=
   row, err := d.db.Query(q)
-  defer row.Close()
   if err != nil {
 	  return false, err
   }
+  defer row.Close()
 #+end_src
 #+begin_export latex
 We extract the number of children and bail if there was an error.
@@ -2001,10 +2001,10 @@ We execute the image query and check the error returned.
 #+end_export
 #+begin_src go <<Execute image query, Pa. \ref{pa:tdb}>>=
   rows, err := d.db.Query(q)
-  defer rows.Close()
   if err != nil {
 	  return images, err
   }
+  defer rows.Close()
 #+end_src
 #+begin_export latex
 We iterate over the rows returned by our query and for each row store

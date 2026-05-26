@@ -53,10 +53,10 @@ func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
 	accessions := make([]string, 0)
 	q := fmt.Sprintf(accessionT, taxon)
 	rows, err := t.db.Query(q)
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	accession := ""
 	for rows.Next() {
 		err := rows.Scan(&accession)
@@ -74,10 +74,10 @@ func (t *TaxonomyDB) Name(taxon int) (string, error) {
 	name := ""
 	q := fmt.Sprintf(nameT, taxon)
 	rows, err := t.db.Query(q)
-	defer rows.Close()
 	if err != nil {
 		return "", err
 	}
+	defer rows.Close()
 	rows.Next()
 	err = rows.Scan(&name)
 	if err != nil {
@@ -93,10 +93,10 @@ func (t *TaxonomyDB) CommonName(taxon int) (string, error) {
 	commonName := ""
 	q := fmt.Sprintf(commonNameT, taxon)
 	rows, err := t.db.Query(q)
-	defer rows.Close()
 	if err != nil {
 		return "", err
 	}
+	defer rows.Close()
 	rows.Next()
 	err = rows.Scan(&commonName)
 	if err != nil {
@@ -111,10 +111,10 @@ func (t *TaxonomyDB) Rank(taxon int) (string, error) {
 	rank := ""
 	q := fmt.Sprintf(rankT, taxon)
 	rows, err := t.db.Query(q)
-	defer rows.Close()
 	if err != nil {
 		return "", err
 	}
+	defer rows.Close()
 	rows.Next()
 	err = rows.Scan(&rank)
 	if err != nil {
@@ -129,10 +129,10 @@ func (t *TaxonomyDB) Parent(c int) (int, error) {
 	parent := 0
 	q := fmt.Sprintf(parentT, c)
 	rows, err := t.db.Query(q)
-	defer rows.Close()
 	if err != nil {
 		return 0, err
 	}
+	defer rows.Close()
 	rows.Next()
 	err = rows.Scan(&parent)
 	if err != nil {
@@ -147,10 +147,10 @@ func (t *TaxonomyDB) Children(p int) ([]int, error) {
 	children := make([]int, 0)
 	q := fmt.Sprintf(childrenT, p)
 	rows, err := t.db.Query(q)
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	child := 0
 	for rows.Next() {
 		err = rows.Scan(&child)
@@ -180,10 +180,10 @@ func (t *TaxonomyDB) Taxids(name string,
 	taxids := make([]int, 0)
 	q := fmt.Sprintf(taxidsT, name, limit, offset)
 	rows, err := t.db.Query(q)
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	taxid := 0
 	for rows.Next() {
 		err = rows.Scan(&taxid)
@@ -202,10 +202,10 @@ func (t *TaxonomyDB) CommonTaxids(name string,
 	commonTaxids := make([]int, 0)
 	q := fmt.Sprintf(commonTaxidsT, name, name, limit, offset)
 	rows, err := t.db.Query(q)
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	taxid := 0
 	for rows.Next() {
 		err = rows.Scan(&taxid)
@@ -268,10 +268,10 @@ func (t *TaxonomyDB) Level(acc string) (string, error) {
 	level := ""
 	q := fmt.Sprintf(levelT, acc)
 	rows, err := t.db.Query(q)
-	defer rows.Close()
 	if err != nil {
 		return "", err
 	}
+	defer rows.Close()
 	rows.Next()
 	err = rows.Scan(&level)
 	if err != nil {
@@ -303,10 +303,10 @@ func (d *TaxonomyDB) NumTaxa() (int, error) {
 	var err error
 	q := "select count(*) from taxon"
 	row, err := d.db.Query(q)
-	defer row.Close()
 	if err != nil {
 		return 0, err
 	}
+	defer row.Close()
 	row.Next()
 	err = row.Scan(&n)
 	if err != nil {
@@ -324,10 +324,10 @@ func (d *TaxonomyDB) NumGenomes(taxid int, level string) (int, error) {
 		"level like '%s'"
 	q = fmt.Sprintf(q, taxid, level)
 	row, err := d.db.Query(q)
-	defer row.Close()
 	if err != nil {
 		return 0, err
 	}
+	defer row.Close()
 	row.Next()
 	err = row.Scan(&n)
 	if err != nil {
@@ -346,10 +346,10 @@ func (d *TaxonomyDB) NumGenomesRec(taxid int,
 		"level like '%s'"
 	q = fmt.Sprintf(q, taxid, level)
 	row, err := d.db.Query(q)
-	defer row.Close()
 	if err != nil {
 		return 0, err
 	}
+	defer row.Close()
 	row.Next()
 	err = row.Scan(&n)
 	if err != nil {
@@ -366,10 +366,10 @@ func (d *TaxonomyDB) IsLeaf(taxid int) (bool, error) {
 		"where parent=%d"
 	q = fmt.Sprintf(q, taxid)
 	row, err := d.db.Query(q)
-	defer row.Close()
 	if err != nil {
 		return false, err
 	}
+	defer row.Close()
 	row.Next()
 	err = row.Scan(&numChildren)
 	if err != nil {
@@ -390,10 +390,10 @@ func (d *TaxonomyDB) Images(taxid int) ([]Image, error) {
 		"where taxid=%d"
 	q = fmt.Sprintf(q, taxid)
 	rows, err := d.db.Query(q)
-	defer rows.Close()
 	if err != nil {
 		return images, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		image := Image{}
 		err = rows.Scan(&image.Id,
