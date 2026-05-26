@@ -8,10 +8,11 @@
   between targets and neighbors.
 
   To find this node, let $n_{\rm t}$, $n_{\rm n}$, and $n_{\rm u}$ be
-  the number of taxonomic targets, neighbors, and unknowns. We further
-  call $v_{\rm t}$, $v_{\rm n}$, and $v_{\rm u}$ the number of targets,
-  neighbors, and unknowns in the clade rooted on $v$. If the taxonomy
-  always agreed with the phylogeny, we could just look for the node that
+  the number of taxonomic targets, neighbors, and unknowns in a tree of
+  $n=n_{\rm t}+n_{\rm n}+n_{\rm u}$ taxa. We further call $v_{\rm t}$,
+  $v_{\rm n}$, and $v_{\rm u}$ the number of targets, neighbors, and
+  unknowns in the clade rooted on some node $v$. If the taxonomy always
+  agreed with the phylogeny, we could just look for the node that
   contains all targets and no neighbors or unknowns, $v_{\rm t}=n_{\rm
     t}$ and $v_{\rm n}=v_{\rm u}=0$. But if taxonomies and phylogenies
   always agreed, we could restrict our search for targets and neighbors
