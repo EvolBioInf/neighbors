@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/evolbioinf/neighbors/util"
 	_ "github.com/mattn/go-sqlite3"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -166,7 +167,18 @@ func (t *TaxonomyDB) Children(p int) ([]int, error) {
 func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
 	var err error
 	taxa := make([]int, 0)
-	taxa, err = traverseSubtree(t, r, taxa)
+	taxa, err = traverseSubtree(t, r, taxa, math.MaxInt, 0)
+	if err != nil {
+		return nil, err
+	}
+	return taxa, err
+}
+
+// The method SubtreeLevel returns all taxa in a subtree up to a  maximum level, including its root, and an error.
+func (t *TaxonomyDB) SubtreeLevel(r, m int) ([]int, error) {
+	var err error
+	taxa := make([]int, 0)
+	taxa, err = traverseSubtree(t, r, taxa, m, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -778,17 +790,22 @@ func OpenTaxonomyDB(name string) *TaxonomyDB {
 	util.Check(err)
 	return db
 }
-func traverseSubtree(t *TaxonomyDB, v int, taxa []int) ([]int, error) {
+func traverseSubtree(t *TaxonomyDB, v int, taxa []int,
+	m, l int) ([]int, error) {
+	var err error
 	taxa = append(taxa, v)
-	children, err := t.Children(v)
-	if err != nil {
-		return nil, err
-	}
-	for _, child := range children {
-		if child != v {
-			taxa, err = traverseSubtree(t, child, taxa)
-			if err != nil {
-				return nil, err
+	l++
+	if l <= m {
+		children, err := t.Children(v)
+		if err != nil {
+			return nil, err
+		}
+		for _, child := range children {
+			if child != v {
+				taxa, err = traverseSubtree(t, child, taxa, m, l)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}

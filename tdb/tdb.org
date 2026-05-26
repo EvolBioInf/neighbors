@@ -1382,26 +1382,44 @@ and check the error returned by the database.
   func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
 	  var err error
 	  taxa := make([]int, 0)
-	  taxa, err = traverseSubtree(t, r, taxa)
+	  taxa, err = traverseSubtree(t, r, taxa, math.MaxInt, 0)
 	  if err != nil {
 		  return nil, err
 	  }
 	  return taxa, err
   }
 #+end_src
+#+begin_export latex
+We import \ty{math}.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
+  "math"
+#+end_src
 #+begin_src latex
-  In \ty{traverseSubtree} we append the incoming node to the slice
-  of taxa and iterate over the node's children.
+  In \ty{traverseSubtree} we append the incoming node to the slice of
+  taxa and increment the level. If the current level isn't greater than
+  the maximum level, we get the node's children and iterate over them.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
-  func traverseSubtree(t *TaxonomyDB, v int, taxa []int) ([]int, error) {
+  func traverseSubtree(t *TaxonomyDB, v int, taxa []int,
+	  m, l int) ([]int, error) {
+	  var err error
 	  taxa = append(taxa, v)
-	  children, err := t.Children(v)
-	  if err != nil {
-		  return nil, err
+	  l++
+	  if l <= m {
+		  //<<Get children, Pa. \ref{pa:tdb}>>
+		  //<<Iterate over children, Pa. \ref{pa:tdb}>>
 	  }
-	  //<<Iterate over children, Pa. \ref{pa:tdb}>>
 	  return taxa, err
+  }
+#+end_src
+#+begin_export latex
+We the children of the current node and check the error.
+#+end_export
+#+begin_src go <<Get children, Pa. \ref{pa:tdb}>>=
+  children, err := t.Children(v)
+  if err != nil {
+	  return nil, err
   }
 #+end_src
 #+begin_export latex
@@ -1412,11 +1430,30 @@ infinite loop.
 #+begin_src go <<Iterate over children, Pa. \ref{pa:tdb}>>=
   for _, child := range children {
 	  if child != v {
-		  taxa, err = traverseSubtree(t, child, taxa)
+		  taxa, err = traverseSubtree(t, child, taxa, m, l)
 		  if err != nil {
 			  return nil, err
 		  }
 	  }
+  }
+#+end_src
+#+begin_src latex
+  \section{\ty{SubtreeLevel}}
+  ! The method \ty{SubtreeLevel} returns all taxa in a subtree up to a
+  ! maximum level, including its root, and an error.
+
+  It looks up the taxa in the subtree by calling the private function
+  \ty{traverseSubtree}.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) SubtreeLevel(r, m int) ([]int, error) {
+	  var err error
+	  taxa := make([]int, 0)
+	  taxa, err = traverseSubtree(t, r, taxa, m, 0)
+	  if err != nil {
+		  return nil, err
+	  }
+	  return taxa, err
   }
 #+end_src
 #+begin_src latex
@@ -2112,10 +2149,10 @@ lots, depending on which table to access, \ty{genome}, \ty{accession},
   //<<Test access to \ty{image}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_export latex
-We test the eleven methods that access \ty{taxon}, \ty{Name},
+We test the twelve methods that access \ty{taxon}, \ty{Name},
 \ty{CommonName}, \ty{Rank}, \ty{Parent}, \ty{Children}, \ty{Subtree},
-\ty{MRCA}, and \ty{NumTaxa}, \ty{Taxids}, \ty{CommonTaxids}, and
-\ty{IsLeaf}.
+\ty{SubtreeLevel}, \ty{MRCA}, and \ty{NumTaxa}, \ty{Taxids},
+\ty{CommonTaxids}, and \ty{IsLeaf}.
 #+end_export
 #+begin_src go <<Test access to \ty{taxon}, Pa. \ref{pa:tdb}>>=
   //<<Test \ty{Name}, Pa. \ref{pa:tdb}>>
@@ -2124,6 +2161,7 @@ We test the eleven methods that access \ty{taxon}, \ty{Name},
   //<<Test \ty{Parent}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Children}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Subtree}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{SubtreeLevel}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{MRCA}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{NumTaxa}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>
@@ -2192,6 +2230,17 @@ The rank of \emph{Homo sapiens} is ``species''.
   taxa, _ := taxdb.Subtree(tid)
   g = len(taxa)
   w = 26
+  if g != w {
+	  t.Errorf("get %d nodes in subtree; want %d", g, w)
+  }
+#+end_src
+#+begin_export latex
+The \emph{Hominidae} subtree up to level 2 contains 12 nodes.
+#+end_export
+#+begin_src go <<Test \ty{SubtreeLevel}, Pa. \ref{pa:tdb}>>=
+  taxa, _ = taxdb.SubtreeLevel(tid, 2)
+  g = len(taxa)
+  w = 12
   if g != w {
 	  t.Errorf("get %d nodes in subtree; want %d", g, w)
   }

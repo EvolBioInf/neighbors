@@ -61,6 +61,12 @@ func TestTdb(t *testing.T) {
 	if g != w {
 		t.Errorf("get %d nodes in subtree; want %d", g, w)
 	}
+	taxa, _ = taxdb.SubtreeLevel(tid, 2)
+	g = len(taxa)
+	w = 12
+	if g != w {
+		t.Errorf("get %d nodes in subtree; want %d", g, w)
+	}
 	targets := make([][]int, 0)
 	var res []int
 	targets = append(targets, []int{46359})
