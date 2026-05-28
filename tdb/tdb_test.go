@@ -165,6 +165,12 @@ func TestTdb(t *testing.T) {
 				filteredAcc[i])
 		}
 	}
+	acc = "GCF_001465235.1"
+	g, _ = taxdb.AccessionTaxid(acc)
+	w = 730
+	if g != w {
+		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
+	}
 	tid = 9606
 	g, _ = taxdb.NumGenomes(tid, "complete")
 	w = 58

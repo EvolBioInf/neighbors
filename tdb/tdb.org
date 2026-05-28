@@ -1043,6 +1043,8 @@ associated taxids to create the image/taxid pairs we insert into
 	  var err error
 	  db.db, err = sql.Open("sqlite3", name)
 	  util.Check(err)
+	  err = db.db.Ping()
+	  util.Check(err)
 	  _, err = db.db.Exec("PRAGMA foreign_keys = ON;")
 	  util.Check(err)
 	  return db
@@ -2060,6 +2062,57 @@ an image.
   }
 #+end_src
 #+begin_src latex
+  \section{\ty{AccessionTaxid}}
+  !The method \ty{AccessionTaxid} takes as argument a genome accession
+  !and returns the corresponding taxon-ID and an error.
+
+  We construct the query for the taxon-ID, execute it, and extract the
+  taxon-ID before we return it.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) AccessionTaxid(acc string) (int, error) {
+	  var err error
+	  taxid := 0
+	  //<<Construct taxid query, Pa. \ref{pa:tdb}>>
+	  //<<Execute taxid query, Pa. \ref{pa:tdb}>>
+	  //<<Extract taxid, Pa. \ref{pa:tdb}>>
+	  return taxid, err
+  }
+#+end_src
+#+begin_src latex
+  We define a template for the taxid query.
+#+end_src
+#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
+  var taxidT = "select taxid from genome where accession='%s'"
+#+end_src
+#+begin_src latex
+  We construct the taxid query from its template.
+#+end_src
+#+begin_src go <<Construct taxid query, Pa. \ref{pa:tdb}>>=
+  q := fmt.Sprintf(taxidT, acc)
+#+end_src
+#+begin_src latex
+  We execute the taxid query, check the error, and make sure the result
+  stream we just opened is eventually closed again.
+#+end_src
+#+begin_src go <<Execute taxid query, Pa. \ref{pa:tdb}>>=
+  rows, err := t.db.Query(q)
+  if err != nil {
+	  return 0, err
+  }
+  defer rows.Close()
+#+end_src
+#+begin_src latex
+  We scan the first row in the table and check the error returned.
+#+end_src
+#+begin_src go <<Extract taxid, Pa. \ref{pa:tdb}>>=
+  rows.Next()
+  err = rows.Scan(&taxid)
+  if err != nil {
+	  return 0, err
+  }
+#+end_src
+#+begin_src latex
   \section{Testing}
   We test on the \emph{Homininae} subfamily shown in
   Figure~\ref{fig:hom}.
@@ -2341,13 +2394,14 @@ is not a leaf.
   }
 #+end_src
 #+begin_export latex
-We test four Methods that access \ty{genome}, \ty{Accessions},
-\ty{Level}, and \ty{FilterAccessions}.
+We test the four Methods that access \ty{genome}, \ty{Accessions},
+\ty{Level}, \ty{FilterAccessions}, and \ty{AccessionTaxid}.
 #+end_export
 #+begin_src go <<Test access to \ty{genome}, Pa. \ref{pa:tdb}>>=
   //<<Test \ty{Accessions}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{Level}, Pa. \ref{pa:tdb}>>
   //<<Test \ty{FilterAccessions}, Pa. \ref{pa:tdb}>>
+  //<<Test \ty{AccessionTaxid}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_export latex
 \emph{Homo sapiens} has 1851 accessions in the database, so we check
@@ -2448,6 +2502,18 @@ whether \ty{Accessions} returns this number of accessions.
 			  accession,
 			  filteredAcc[i])
 	  }
+  }
+#+end_src
+#+begin_export latex
+To test the \ty{AccessionTaxid}, we make sure we get taxid 730 for
+accession \ty{GCF\_001465235.1}.
+#+end_export
+#+begin_src go <<Test \ty{AccessionTaxid}, Pa. \ref{pa:tdb}>>=
+  acc = "GCF_001465235.1"
+  g, _ = taxdb.AccessionTaxid(acc)
+  w = 730
+  if g != w {
+	  t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
   }
 #+end_src
 #+begin_export latex

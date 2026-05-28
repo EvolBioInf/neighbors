@@ -419,6 +419,24 @@ func (d *TaxonomyDB) Images(taxid int) ([]Image, error) {
 	return images, err
 }
 
+// The method AccessionTaxid takes as argument a genome accession and returns the corresponding taxon-ID and an error.
+func (t *TaxonomyDB) AccessionTaxid(acc string) (int, error) {
+	var err error
+	taxid := 0
+	q := fmt.Sprintf(taxidT, acc)
+	rows, err := t.db.Query(q)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+	rows.Next()
+	err = rows.Scan(&taxid)
+	if err != nil {
+		return 0, err
+	}
+	return taxid, err
+}
+
 // The function NewTaxonomyDB takes as parameters the names of the  six input files from which we construct the database, and the name  of the database. The six input files are nodes, names, merged,  images, genbank accessions, and refseq accessions. The function  opens these files, opens a new database, and constructs the  database.
 func NewTaxonomyDB(nof, naf, mef,
 	imf, gef, ref, dbName string) {
@@ -786,6 +804,8 @@ func OpenTaxonomyDB(name string) *TaxonomyDB {
 	var err error
 	db.db, err = sql.Open("sqlite3", name)
 	util.Check(err)
+	err = db.db.Ping()
+	util.Check(err)
 	_, err = db.db.Exec("PRAGMA foreign_keys = ON;")
 	util.Check(err)
 	return db
@@ -838,3 +858,4 @@ var commonTaxidsT = "select taxid from taxon " +
 	"limit %d " +
 	"offset %d"
 var levelT = "select level from genome where accession='%s'"
+var taxidT = "select taxid from genome where accession='%s'"
