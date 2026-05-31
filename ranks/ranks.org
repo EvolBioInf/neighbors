@@ -1,0 +1,756 @@
+#+begin_export latex
+\section*{Introduction}
+Bacteria whose genomes have an average nucleotide identity, ANI, of 96
+or greater are commonly classified as belonging to the same
+species~\cite{ciu18:usi}. In contrast to this clear-cut criterion for
+species-rank classification, there is little consensus on how to
+classify bacteria below the species rank. As a result, most bacterial
+genomes stored in Genbank are classified only at the species
+level. For example, on 26$^{\mbox{th}}$ May 2026 there were 401,772 genomes of
+\emph{Escherichia coli} in Genbank. Figure~\ref{fig:ranks} shows their
+distribution among the various ranks at or below ``species''. The vast
+majority of genomes, 97.7\,\%, are classified at the species rank,
+leaving a mere 2.3\,\% for the remaining ranks.
+
+\begin{figure}
+  \begin{center}
+    \resizebox{\textwidth}{!}{\includegraphics{../ranks/ranks}}
+  \end{center}
+  \caption{The distribution of genomes among the taxonomic ranks of
+    \emph{E. coli}.}\label{fig:ranks}
+\end{figure}
+
+The program \ty{ranks} is a tool for exploring the distribution of
+genomes among taxonomic ranks. It takes as input a taxon-ID and the
+Neighbors database, and calculates the nested ranks found in the
+taxonomy rooted on the incoming taxon-ID, the ``ranks tree''. By
+default, the ranks tree is output in dot notation, which can be
+rendered with the program \ty{dot} to give, for example,
+Figure~\ref{fig:ranks}.
+
+Instead of a tree, \ty{ranks} can also generate a tabular output
+(\ty{-t}) to give Table~\ref{tab:ranks}. The table consists of four
+columns, rank path, genome count, genome percent, and genomes. The
+path elements are delimited by colons, the genomes by blanks. Since
+the number of genomes is often large, printing them can flood the
+screen. So by default \ty{ranks} only prints the first three columns
+of Table~\ref{tab:ranks}, and the genomes are listed by using \ty{-l}.
+
+\begin{table}
+  \caption{The distribution of genomes among the taxonomic ranks of
+    \emph{E. coli} calculated with \ty{ranks}.}\label{tab:ranks}
+  \begin{center}
+    \begin{tabular}{lrrl}
+      \hline
+      Path & Count & \% & Genomes\\\hline
+      \input{../ranks/ranks}\\\hline
+    \end{tabular}
+    \end{center}
+\end{table}
+
+By default, \ty{ranks} looks up the genomes underlying its output, and
+the user can restrict that lookup to genomes of a particular assembly
+level (\ty{-L}). However, genomes are often filtered by criteria
+beyond assembly level, and such custom genome lists can also be read
+by \ty{ranks} (\ty{-g}).
+
+\section*{Implementation}
+The central idea of \ty{ranks} is that we distribute a set of genomes
+on a tree of the taxonomic ranks they belong to. So we need a list of
+genomes and a data structure for constructing their ranks tree. The
+list of genomes is the first thing we declare in the \ty{main}
+function of our outline of \ty{ranks}, while we deal with the nodes
+when we are ready to construct the tree. The outline also has hooks
+for imports, variables, types, functions, and the remaining logic of
+the main function.  \bpr{ranks}{pr:ran}
+#+end_export
+#+begin_src go <<ranks.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr. \ref{pr:ran}>>
+  )
+  //<<Variables, Pr. \ref{pr:ran}>>
+  //<<Types, Pr. \ref{pr:ran}>>
+  //<<Functions, Pr. \ref{pr:ran}>>
+  func main() {
+	  genomes := []string{}
+	  //<<Main function, Pr. \ref{pr:ran}>>
+  }
+#+end_src
+#+begin_export latex
+\epr
+Inside the main function we set the name of \ty{ranks}, set its usage,
+declare its option, parse the options, respond to them, calculate the
+ranks tree, and print it.
+#+end_export
+#+begin_src go <<Main function, Pr. \ref{pr:ran}>>=
+  util.SetName("ranks")
+  //<<Set usage, Pr. \ref{pr:ran}>>
+  //<<Declare options, Pr. \ref{pr:ran}>>
+  //<<Parse options, Pr. \ref{pr:ran}>>
+  //<<Respond to options, Pr. \ref{pr:ran}>>
+  //<<Calculate ranks tree, Pr. \ref{pr:ran}>>
+  //<<Print ranks tree, Pr. \ref{pr:ran}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:ran}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_export latex
+The usage consists of the actual usage message, an explanation of the
+purpose of \ty{ranks}, and an example command.
+#+end_export
+#+begin_src go <<Set usage, Pr. \ref{pr:ran}>>=
+  u := "ranks [option]... <taxon-ID> <db>"
+  p := "Calculate distribution of genomes " +
+	  "among taxonomic ranks."
+  e := "ranks -g myGenomes.txt 562 neidb"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_export latex
+We import \ty{clio}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:ran}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_export latex
+Apart from the version (\ty{-v}), we declare four options, list
+genomes (\ty{-l}), pick assembly level (\ty{-L}), print tabular output
+(\ty{-t}), and read genome accessions from file (\ty{-g}). The list
+option implies textual output.
+#+end_export
+#+begin_src go <<Declare options, Pr. \ref{pr:ran}>>=
+  optV := flag.Bool("v", false, "version")
+  optL := flag.Bool("l", false, "list genomes (implies -t)")
+  optLL := flag.String("L", "", util.LevelMsg())
+  optT := flag.Bool("t", false, "tabular output (default tree)")
+  optG := flag.String("g", "", "read genome accessions " +
+	  "from file")
+#+end_src
+#+begin_export latex
+We import \ty{flag}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:ran}>>=
+  "flag"
+#+end_src
+#+begin_export latex
+We parse the options. At this point we expect two more arguments on
+the command line, the root of the ranks tree and the Neighbors
+database. If we don't get these two tokens, we exit with a friendly
+message. Otherwise, we get the root and the database.
+#+end_export
+#+begin_src go <<Parse options, Pr. \ref{pr:ran}>>=
+  flag.Parse()
+  args := flag.Args()
+  if len(args) < 2 && (len(args) < 1 && *optG == "") {
+	  m := "please enter the root taxon-ID " +
+		  "and the Neighbors database"
+	  log.Fatal(m)
+  }
+  root, err := strconv.Atoi(args[0])
+  util.Check(err)
+  neidb := tdb.OpenTaxonomyDBcheck(args[1])
+#+end_src
+#+begin_export latex
+We import \ty{log}, \ty{strconv}, and \ty{tdb}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:ran}>>=
+  "log"
+  "strconv"
+  "github.com/evolbioinf/neighbors/tdb"
+#+end_src
+#+begin_export latex
+We respond to the version, the level, and the genomes file.
+#+end_export
+#+begin_src go <<Respond to options, Pr. \ref{pr:ran}>>=
+  //<<Respond to \ty{-v}, Pr. \ref{pr:ran}>>
+  //<<Respond to \ty{-L}, Pr. \ref{pr:ran}>>
+  //<<Respond to \ty{-g}, Pr. \ref{pr:ran}>>
+#+end_src
+#+begin_export latex
+If the user requested the version, we print the program info, which
+contains the version.
+#+end_export
+#+begin_src go <<Respond to \ty{-v}, Pr. \ref{pr:ran}>>=
+  if *optV {
+	  util.PrintInfo("ranks")
+  }
+#+end_src
+#+begin_export latex
+If the user set levels, we need to extract and check them. For this we
+declare a map of requested levels. Then we split the string of
+requested levels at the comma and compare the known and requested
+levels. If the user didn't set any levels, we just store all known
+levels.
+#+end_export
+#+begin_src go <<Respond to \ty{-L}, Pr. \ref{pr:ran}>>=
+  levels := make(map[string]bool)
+  knowns := tdb.AssemblyLevels()
+  if *optLL != "" {
+	  requests := strings.Split(*optLL, ",")
+	  //<<Compare requested and known levels, Pr. \ref{pr:ran}>>
+  } else {
+	  //<<Store known levels, Pr. \ref{pr:ran}>>
+  }
+#+end_src
+#+begin_export latex
+We iterate over the requested levels and store them, unless we find an
+unknown level. In that case we exit with a friendly message.
+#+end_export
+#+begin_src go <<Compare requested and known levels, Pr. \ref{pr:ran}>>=
+  slices.Sort(knowns)
+  for _, request := range requests {
+	  _, found := slices.BinarySearch(knowns, request)
+	  if !found {
+		  log.Fatalf("unknown level %q", request)
+	  }
+	  levels[request] = true
+  }
+#+end_src
+#+begin_export latex
+We import \ty{slices}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:ran}>>=
+  "slices"
+#+end_src
+#+begin_export latex
+We store all known levels.
+#+end_export
+#+begin_src go <<Store known levels, Pr. \ref{pr:ran}>>=
+  for _, known := range knowns {
+	  levels[known] = true
+  }
+#+end_src
+#+begin_export latex
+If the user set a genomes file, we read the genomes from
+that. Otherwise we look them up from the Neighbors database. Once
+we've got the genomes, we filter them by assembly level.
+#+end_export
+#+begin_src go <<Respond to \ty{-g}, Pr. \ref{pr:ran}>>=
+  if *optG != "" {
+	  //<<Read genomes from file, Pr. \ref{pr:ran}>>
+  } else {
+	  //<<Read genomes from database, Pr. \ref{pr:ran}>>
+  }
+  genomes, err = neidb.FilterAccessions(genomes, levels)
+  util.Check(err)
+#+end_src
+#+begin_export latex
+To read the genomes from file, we open the file, store the accessions
+it contains, and close it again.
+#+end_export
+#+begin_src go <<Read genomes from file, Pr. \ref{pr:ran}>>=
+  f, err := os.Open(*optG)
+  util.Check(err)
+  sc := bufio.NewScanner(f)
+  for sc.Scan() {
+	  genomes = append(genomes, sc.Text())
+  }
+  f.Close()
+#+end_src
+#+begin_export latex
+We import \ty{os} and \ty{bufio}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:ran}>>=
+  "os"
+  "bufio"
+#+end_src
+#+begin_export latex
+To read the genomes from the database, we get the taxa in the focal
+subtree and store the genomes attached to each taxon.
+#+end_export
+#+begin_src go <<Read genomes from database, Pr. \ref{pr:ran}>>=
+  taxa, err := neidb.Subtree(root)
+  util.Check(err)
+  for _, taxon := range taxa {
+	  accessions, err := neidb.Accessions(taxon)
+	  util.Check(err)
+	  for _, accession := range accessions {
+		  genomes = append(genomes, accession)
+	  }
+  }
+#+end_src
+#+begin_export latex
+In the warning we tell the user which genome we couldn't find in the
+database.
+#+end_export
+#+begin_src go <<Print warning, Pr. \ref{pr:ran}>>=
+  m := "Warning[ranks]: couldn't find %q in db\n"
+  fmt.Fprintf(os.Stderr, m, genome)
+#+end_src
+#+begin_export latex
+The ranks tree consists of a map between tree paths and genome
+accessions. To calculate this version of the tree, we iterate over the
+genomes. For each genome we determine the ranks found while climbing
+from the starting taxon to the root. We convert this collection of
+ranks to a path and store the corresponding genome.
+#+end_export
+#+begin_src go <<Calculate ranks tree, Pr. \ref{pr:ran}>>=
+  tree := make(map[string][]string)
+  ranks := []string{}
+  for _, genome := range genomes {
+	  path := ""
+	  ranks = ranks[:0]
+	  //<<Determine ranks, Pr. \ref{pr:ran}>>
+	  //<<Convert ranks to path, Pr. \ref{pr:ran}>>
+	  tree[path] = append(tree[path], genome)
+  }
+#+end_src
+#+begin_export latex
+We walk from the current taxon to the root of our subtree and store
+the ranks we find on the way.
+#+end_export
+#+begin_src go <<Determine ranks, Pr. \ref{pr:ran}>>=
+  currTaxid, err := neidb.AccessionTaxid(genome)
+  if err != nil {
+	  util.Check(err)
+  }
+  //<<Store rank, Pr. \ref{pr:ran}>>
+  for currTaxid != root {
+	  currTaxid, err = neidb.Parent(currTaxid)
+	  util.Check(err)
+	  //<<Store rank, Pr. \ref{pr:ran}>>
+  }
+#+end_src
+#+begin_export latex
+To store a rank, we look it up and append it to the slice of ranks.
+#+end_export
+#+begin_src go <<Store rank, Pr. \ref{pr:ran}>>=
+  rank, err := neidb.Rank(currTaxid)
+  util.Check(err)
+  ranks = append(ranks, rank)
+#+end_src
+#+begin_export latex
+The desired path is made up of the reverse of the ranks list we have
+just constructed. So we reverse the ranks and join them at colon to
+create our path.
+#+end_export
+#+begin_src go <<Convert ranks to path, Pr. \ref{pr:ran}>>=
+  slices.Reverse(ranks)
+  path = strings.Join(ranks, ":")
+#+end_src
+#+begin_export latex
+We import \ty{slices} and \ty{strings}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:ran}>>=
+  "slices"
+  "strings"
+#+end_src
+#+begin_export latex
+We print the ranks tree either in dot notation or in tabular
+notation. Since the ranks is close to its tabular representation,
+printing it can be done in one step. In contrast, to print the dot
+tree, we first need to construct it. For both the tabular and the dot
+tree we need a sorted list of paths, so we construct that first.
+#+end_export
+#+begin_src go <<Print ranks tree, Pr. \ref{pr:ran}>>=
+  //<<Sort paths, Pr. \ref{pr:ran}>>
+  if *optT || *optL {
+	  //<<Print tabular tree, Pr. \ref{pr:ran}>>
+  } else {
+	  //<<Construct dot tree, Pr. \ref{pr:ran}>>
+	  //<<Print dot tree, Pr. \ref{pr:ran}>>
+  }
+#+end_src
+#+begin_export latex
+To sort the paths, we store them in a slice.
+#+end_export
+#+begin_src go <<Sort paths, Pr. \ref{pr:ran}>>=
+  paths := []string{}
+  for path, _ := range tree {
+	  paths = append(paths, path)
+  }
+  slices.Sort(paths)
+#+end_src
+#+begin_export latex
+We print the tabular tree using a tab writer with which we print the
+table header and the table body.
+#+end_export
+#+begin_src go <<Print tabular tree, Pr. \ref{pr:ran}>>=
+  w := tabwriter.NewWriter(os.Stdout, 1, 1, 2, ' ', 0)
+  //<<Print table header, Pr. \ref{pr:ran}>>
+  //<<Print table body, Pr. \ref{pr:ran}>>
+  w.Flush()
+#+end_src
+#+begin_export latex
+We import \ty{tabwriter}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:ran}>>=
+  "text/tabwriter"
+#+end_src
+#+begin_export latex
+The table header consists of the column labels ``Path'', ``Count'',
+``\%'', and---if desired---''Genomes''.
+#+end_export
+#+begin_src go <<Print table header, Pr. \ref{pr:ran}>>=
+  fmt.Fprintf(w, "#%s\t%s\t%s",
+	  "Path",
+	  "Count",
+	  "%")
+  if *optL {
+	  fmt.Fprintf(w, "\tGenomes")
+  }
+  fmt.Fprintf(w, "\n")
+#+end_src
+#+begin_export latex
+We import \ty{fmt}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:ran}>>=
+  "fmt"
+#+end_src
+#+begin_export latex
+For the table body we iterate over the sorted paths. We print each
+path, its genome count, and the genome percentage. If the user asked
+for the genomes, we print them, too.
+#+end_export
+#+begin_src go <<Print table body, Pr. \ref{pr:ran}>>=
+  n := float64(len(genomes))
+  for _, path := range paths {
+	  //<<Print path, count and percentage, Pr. \ref{pr:ran}>>
+	  if *optL {
+		  //<<Print genomes, Pr. \ref{pr:ran}>>
+	  }
+	  fmt.Fprintf(w, "\n")
+  }
+#+end_src
+#+begin_export latex
+We get the number of genomes for the current path, and compute the
+percentage from that. For better legibility, we replace the blanks in
+the paths with underscores.
+#+end_export
+#+begin_src go <<Print path, count and percentage, Pr. \ref{pr:ran}>>=
+  c := float64(len(tree[path]))
+  p := c / n * 100
+  ps := strings.Replace(path, " ", "_", -1)
+  fmt.Fprintf(w, "%s\t%.0f\t%.4f", ps, c, p)
+#+end_src
+#+begin_export latex
+We join the genomes on blank into a single string and print it.
+#+end_export
+#+begin_src go <<Print genomes, Pr. \ref{pr:ran}>>=
+  gs := strings.Join(tree[path], " ")
+  fmt.Fprintf(w, "\t%s", gs)
+#+end_src
+#+begin_export latex
+Like any tree, the ranks tree shown in Figure~\ref{fig:ranks} consists
+of nodes and edges. We describe the nodes in a dedicated type that
+implies the edges. The type \ty{Node} is a struct that holds an
+identifier, a genome count, a genome percent, a label, a parent, and
+children.
+#+end_export
+#+begin_src go <<Types, Pr. \ref{pr:ran}>>=
+  type Node struct {
+	  Id int
+	  N int
+	  Percent float64
+	  Label string
+	  Parent *Node
+	  Children map[string]*Node
+  }
+#+end_src
+#+begin_export latex
+To construct the tree, we make a start node using the function
+\ty{newNode}, which we write in a moment. Then we iterate over the
+paths, and for each path we move in the tree along its elements. The
+last path element reached carries the full path's genome count and
+percentage.
+#+end_export
+#+begin_src go <<Construct dot tree, Pr. \ref{pr:ran}>>=
+  start := newNode("start", 0, 1, nil)
+  for _, path := range paths {
+	  v := start
+	  n := len(tree[path])
+	  pathElements := strings.Split(path, ":")
+	  for _, pathElement := range pathElements {
+		  //<<Move to path element, Pr. \ref{pr:ran}>>
+	  }
+	  v.N = n
+	  v.Percent = float64(n) / float64(len(genomes)) * 100.0
+  }
+#+end_src
+#+begin_export latex
+The function \ty{newNode} takes as argument the node label, its genome
+count, and its parent. It constructs the node and returns it complete
+with space for its children and an identifier. The identifier is taken
+from the global variable \ty{Id}, which we define in a moment.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:ran}>>=
+  func newNode(label string, count, total int,
+	  parent *Node) *Node {
+	  v := new(Node)
+	  v.Label = label
+	  v.N = count
+	  v.Percent = float64(count) / float64(total) * 100.0
+	  v.Parent = parent
+	  v.Children  = make(map[string]*Node)
+	  v.Id = Id
+	  Id++
+	  return v
+  }
+#+end_src
+#+begin_export latex
+The global variable \ty{Id} is initialized to 1, which means the nodes
+are numbered 1, 2, and so on.
+#+end_export
+#+begin_src go <<Variables, Pr. \ref{pr:ran}>>=
+  var Id int = 0
+#+end_src
+#+begin_export latex
+A path element is either an existing child of the current node, $v$,
+or becomes a new child of $v$. In both cases we move $v$ to the child.
+#+end_export
+#+begin_src go <<Move to path element, Pr. \ref{pr:ran}>>=
+  parent := v
+  child := v.Children[pathElement]
+  if child == nil {
+	  child = newNode(pathElement, 0, 1, parent)
+	  v.Children[pathElement] = child
+  }
+  v = child
+#+end_src
+#+begin_export latex
+To print the dot tree, we first need to find its root. The we print
+the header, the body, and the footer.
+#+end_export
+#+begin_src go <<Print dot tree, Pr. \ref{pr:ran}>>=
+  //<<Extract root, Pr. \ref{pr:ran}>>
+  //<<Print header, Pr. \ref{pr:ran}>>
+  //<<Print body, Pr. \ref{pr:ran}>>
+  //<<Print footer, Pr. \ref{pr:ran}>>
+#+end_src
+#+begin_export latex
+The root should be the only child of the start node. If that node does
+not have exactly one child, something is wrong and we exit. If it does
+have one child, that becomes the root of our dot tree, which we mark
+by setting its parent to nil.
+#+end_export
+#+begin_src go <<Extract root, Pr. \ref{pr:ran}>>=
+  children := []*Node{}
+  for _, k := range start.Children {
+	  children = append(children, k)
+  }
+  if len(children) != 1 {
+	  log.Fatalf("start has %d children",
+		  len(children))
+  }
+  root := children[0]
+  root.Parent = nil
+#+end_src
+#+begin_export latex
+The header of the dot tree consists of the declaration of the
+graph. In addition we specify that the tree grows left to right, which
+makes it easier to fit on the page.
+#+end_export
+#+begin_src go <<Print header, Pr. \ref{pr:ran}>>=
+  fmt.Println("digraph g {")
+  fmt.Println("\trankdir=LR")
+#+end_src
+#+begin_export latex
+The body of the dot tree consists of two parts, the nodes and the
+edges. We delegate printing these two elements to two functions that
+traverse the tree, \ty{printNodes} and \ty{printEdges}.
+#+end_export
+#+begin_src go <<Print body, Pr. \ref{pr:ran}>>=
+  printNodes(root)
+  printEdges(root)
+#+end_src
+#+begin_export latex
+Inside \ty{printNode} we print the current node and its children.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:ran}>>=
+  func printNodes(v *Node) {
+	  //<<Print node, Pr. \ref{pr:ran}>>
+	  //<<Print node children, Pr. \ref{pr:ran}>>
+  }
+#+end_src
+#+begin_export latex
+We print the current node like the nodes in Figure~\ref{fig:ranks}.
+#+end_export
+#+begin_src go <<Print node, Pr. \ref{pr:ran}>>=
+  fmt.Printf("\t%d [label=\"%s\\n%d (",
+	  v.Id, v.Label, v.N)
+  if v.Percent >= 0.1 {
+	  fmt.Printf("%.1f%%", v.Percent)
+  } else {
+	  fmt.Printf("< 0.1%%")
+  }
+  fmt.Printf(")\"]\n")
+#+end_src
+#+begin_export latex
+To make the output of \ty{ranks} easily reproducible, we apply
+\ty{printNodes} to the children in alphabetical order.
+#+end_export
+#+begin_src go <<Print node children, Pr. \ref{pr:ran}>>=
+  keys := []string{}
+  for key, _ := range v.Children {
+	  keys = append(keys, key)
+  }
+  slices.Sort(keys)
+  for _, key := range keys {
+	  printNodes(v.Children[key])
+  }
+#+end_src
+#+begin_export latex
+Inside \ty{printEdges} we again print an individual edge and then
+print the edges of the children.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:ran}>>=
+  func printEdges(v *Node) {
+	  //<<Print edge, Pr. \ref{pr:ran}>>
+	  //<<Print edge children, Pr. \ref{pr:ran}>>
+  }
+#+end_src
+#+begin_export latex
+If $v$ is not the root, we print an edge from the parent of $v$ to
+$v$.
+#+end_export
+#+begin_src go <<Print edge, Pr. \ref{pr:ran}>>=
+  if v.Parent != nil {
+	  fmt.Printf("\t%d -> %d\n", v.Parent.Id, v.Id)
+  }
+#+end_src
+#+begin_export latex
+As we did when printing the nodes, when printing the edges we visit
+the children in alphabetical order.
+#+end_export
+#+begin_src go <<Print edge children, Pr. \ref{pr:ran}>>=
+  keys := []string{}
+  for key, _ := range v.Children {
+	  keys = append(keys, key)
+  }
+  slices.Sort(keys)
+  for _, key := range keys {
+	  printEdges(v.Children[key])
+  }
+#+end_src
+#+begin_export latex
+The footer of the dot tree just consists of the closing curly bracket.
+#+end_export
+#+begin_src go <<Print footer, Pr. \ref{pr:ran}>>=
+  fmt.Println("}")
+#+end_src
+#+begin_export latex
+We have finished \ty{ranks}, time to test it.
+\section*{Testing}
+The outline of our testing program has hooks for imports and the
+testing logic.
+#+end_export
+#+begin_src go <<ranks_test.go>>=
+  package main
+
+  import (
+	  "testing"
+	  //<<Testing imports, Pr. \ref{pr:ran}>>
+  )
+
+  func TestRanks(t *testing.T) {
+	  //<<Testing, Pr. \ref{pr:ran}>>
+  }
+#+end_src
+#+begin_export latex
+We construct a set of tests and run them.
+#+end_export
+#+begin_src go <<Testing, Pr. \ref{pr:ran}>>=
+  tests := make([]*exec.Cmd, 0)
+  //<<Construct tests, Pr. \ref{pr:ran}>>
+  for i, test := range tests {
+	  //<<Run test, Pr. \ref{pr:ran}>>
+  }
+#+end_src
+#+begin_export latex
+We import \ty{exec}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:ran}>>=
+  "os/exec"
+#+end_src
+#+begin_export latex
+We first prepare the tests, then we test without options, then with options.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:ran}>>=
+  //<<Prepare tests, Pr. \ref{pr:ran}>>
+  //<<Test without options, Pr. \ref{pr:ran}>>
+  //<<Test with options, Pr. \ref{pr:ran}>>
+#+end_src
+#+begin_export latex
+To prepare the tests, we set three variables used in all tests, the
+program name, the root taxon, and the database.
+#+end_export
+#+begin_src go <<Prepare tests, Pr. \ref{pr:ran}>>=
+  pr := "./ranks"
+  ta := "207598"
+  db := "../data/test.db"
+#+end_src
+#+begin_export latex
+We construct and store the test without options.
+#+end_export
+#+begin_src go <<Test without options, Pr. \ref{pr:ran}>>=
+  test := exec.Command(pr, ta, db)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test the four options genome file (\ty{-g}), genome list (\ty{-l}),
+accession level (\ty{-L}), and tabular output (\ty{-t}).
+#+end_export
+#+begin_src go <<Test with options, Pr. \ref{pr:ran}>>=
+  <<Test \ty{-g}, Pr. \ref{pr:ran}>>
+  <<Test \ty{-l}, Pr. \ref{pr:ran}>>
+  <<Test \ty{-L}, Pr. \ref{pr:ran}>>
+  <<Test \ty{-t}, Pr. \ref{pr:ran}>>
+#+end_src
+#+begin_export latex
+The genomes list is contained in file \ty{genomes.txt}.
+#+end_export
+#+begin_src go <<Test \ty{-g}, Pr. \ref{pr:ran}>>=
+test = exec.Command(pr, "-g", "genomes.txt", ta, db)
+tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We list the genomes.
+#+end_export
+#+begin_src go <<Test \ty{-l}, Pr. \ref{pr:ran}>>=
+  test = exec.Command(pr, "-l", ta, db)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We restrict the search to complete genomes.
+#+end_export
+#+begin_src go <<Test \ty{-L}, Pr. \ref{pr:ran}>>=
+  test = exec.Command(pr, "-L", "complete", ta, db)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test tabular output.
+#+end_export
+#+begin_src go <<Test \ty{-t}, Pr. \ref{pr:ran}>>=
+  test = exec.Command(pr, "-t", ta, db)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+When we run a test, we compare the output we get to the output we
+want, which is contained in files \ty{r1.txt}, \ty{r2.txt}, and so on.
+#+end_export
+#+begin_src go <<Run test, Pr. \ref{pr:ran}>>=
+  get, err := test.Output()
+  if err != nil {
+	  t.Error(err)
+  }
+  f := "r" + strconv.Itoa(i+1) + ".txt"
+  want, err := os.ReadFile(f)
+  if err != nil {
+	  t.Error(err)
+  }
+  if !bytes.Equal(get, want) {
+	  t.Errorf("%s - get:\n%s\nwant:\n%s\n", f, get, want)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strconv}, \ty{os}, and \ty{bytes}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:ran}>>=
+  "strconv"
+  "os"
+  "bytes"
+#+end_src

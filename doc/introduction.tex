@@ -41,8 +41,8 @@ where $s(v)$ returns the nodes in the subtree rooted on $v$, and
 $p(v)$ the parent of $v$. This set subtraction is implemented in the
 program \ty{neighbors}.
 
-The Neighbors package consists of the twelve programs listed in
-Table~\ref{tab:pro}. Five of these programs are based on the taxonomy,
+The Neighbors package consists of the 13 programs listed in
+Table~\ref{tab:pro}. Six of these programs are based on the taxonomy,
 six on a phylogeny, and one, \ty{outliers}, on numerical data.
 
 \begin{table}
@@ -62,7 +62,8 @@ six on a phylogeny, and one, \ty{outliers}, on numerical data.
 9 & \ty{neighbors} & taxonomy & find neighbors (and targets)\\
 10 & \ty{outliers} & numbers & find outliers\\
 11 & \ty{pickle} & phylogeny & pick clades\\
-12 & \ty{taxi} & taxonomy & get taxon-ID for taxon name\\\hline
+12 & \ty{ranks} & taxonomy & distribute genomes among taxonomic ranks\\
+13 & \ty{taxi} & taxonomy & get taxon-ID for taxon name\\\hline
 \end{tabular}
 \end{center}
 \end{table}
@@ -142,12 +143,15 @@ the phylogeny. So we compute a phylogeny from our target and neighbor
 genomes. A program for doing this efficiently
 is \ty{phylonium}~\cite{klo20:phy}.
 
-The phylogenies of targets and neighbors may comprise hundreds of
-taxa. To help analyze such large phylogenies, Neighbors
-contains \ty{land} for labeling nodes, \ty{pickle} for picking nodes,
+The phylogenies of targets and neighbors may comprise hundreds of taxa
+of various taxonomic ranks such as ``species'', ``subspecies'', and
+``strain''. The program \ty{ranks} shows the distribution of genomes
+among the taxonomic ranks of the descendants of a target taxon. To
+directly help analyze large phylogenies, Neighbors contains \ty{land}
+for labeling nodes, \ty{pickle} for picking nodes,
 \ty{clusters} for finding clusters of closely related
-taxa, \ty{mrca} for finding the most recent ancestor of a set of
-nodes, \ty{fintac} for finding the target clade, and \ty{climt} for
+taxa, \ty{mrca} for finding the most recent common ancestor of a set
+of nodes, \ty{fintac} for finding the target clade, and \ty{climt} for
 climbing the phylogenetic tree.
 
 Even a clean set of phylogenetic targets might still contain genomes

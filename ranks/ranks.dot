@@ -1,0 +1,30 @@
+digraph g {
+	rankdir=LR
+	1 [label="species\n392594 (97.7%)"]
+	2 [label="no rank\n4503 (1.1%)"]
+	3 [label="no rank\n17 (< 0.1%)"]
+	4 [label="strain\n422 (0.1%)"]
+	5 [label="no rank\n2 (< 0.1%)"]
+	6 [label="serogroup\n1646 (0.4%)"]
+	7 [label="no rank\n15 (< 0.1%)"]
+	8 [label="serotype\n6 (< 0.1%)"]
+	9 [label="strain\n1 (< 0.1%)"]
+	10 [label="strain\n12 (< 0.1%)"]
+	11 [label="serotype\n30 (< 0.1%)"]
+	12 [label="strain\n1 (< 0.1%)"]
+	13 [label="strain\n2438 (0.6%)"]
+	14 [label="no rank\n85 (< 0.1%)"]
+	1 -> 2
+	2 -> 3
+	2 -> 4
+	4 -> 5
+	1 -> 6
+	6 -> 7
+	6 -> 8
+	8 -> 9
+	6 -> 10
+	1 -> 11
+	11 -> 12
+	1 -> 13
+	13 -> 14
+}

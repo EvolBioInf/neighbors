@@ -1,0 +1,3 @@
+#Path                               Count  %
+subfamily:genus:species             1873   99.2055
+subfamily:genus:species:subspecies  15     0.7945
