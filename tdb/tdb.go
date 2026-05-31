@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/evolbioinf/neighbors/util"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
 	"math"
 	"os"
 	"strconv"
@@ -55,7 +56,9 @@ func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
 	q := fmt.Sprintf(accessionT, taxon)
 	rows, err := t.db.Query(q)
 	if err != nil {
-		return nil, err
+		m := "couldn't find genome accessions for taxon %d"
+		m = fmt.Sprintf(m, taxon)
+		return nil, errors.New(m)
 	}
 	defer rows.Close()
 	accession := ""
@@ -113,13 +116,17 @@ func (t *TaxonomyDB) Rank(taxon int) (string, error) {
 	q := fmt.Sprintf(rankT, taxon)
 	rows, err := t.db.Query(q)
 	if err != nil {
-		return "", err
+		m := "couldn't find the rank of taxon %d"
+		m = fmt.Sprintf(m, taxon)
+		return "", errors.New(m)
 	}
 	defer rows.Close()
 	rows.Next()
 	err = rows.Scan(&rank)
 	if err != nil {
-		return "", err
+		m := "couldn't find the rank of taxon %d"
+		m = fmt.Sprintf(m, taxon)
+		return "", errors.New(m)
 	}
 	return rank, err
 }
@@ -131,7 +138,9 @@ func (t *TaxonomyDB) Parent(c int) (int, error) {
 	q := fmt.Sprintf(parentT, c)
 	rows, err := t.db.Query(q)
 	if err != nil {
-		return 0, err
+		m := "couldn't find the parent of taxon %d"
+		m = fmt.Sprintf(m, c)
+		return 0, errors.New(m)
 	}
 	defer rows.Close()
 	rows.Next()
@@ -169,7 +178,9 @@ func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
 	taxa := make([]int, 0)
 	taxa, err = traverseSubtree(t, r, taxa, math.MaxInt, 0)
 	if err != nil {
-		return nil, err
+		m := "couldn't find subtree rooted on taxon %d"
+		m = fmt.Sprintf(m, r)
+		return nil, errors.New(m)
 	}
 	return taxa, err
 }
@@ -281,7 +292,10 @@ func (t *TaxonomyDB) Level(acc string) (string, error) {
 	q := fmt.Sprintf(levelT, acc)
 	rows, err := t.db.Query(q)
 	if err != nil {
-		return "", err
+		m := "couldn't find assembly level " +
+			"for genome %d"
+		m = fmt.Sprintf(m, acc)
+		return "", errors.New(m)
 	}
 	defer rows.Close()
 	rows.Next()
@@ -300,7 +314,9 @@ func (d *TaxonomyDB) FilterAccessions(acc []string,
 	for _, a := range acc {
 		level, err := d.Level(a)
 		if err != nil {
-			return nil, err
+			m := "couldn't find assembly level for genome %s"
+			m = fmt.Sprintf(m, a)
+			return nil, errors.New(m)
 		}
 		if levels[level] {
 			newAcc = append(newAcc, a)
@@ -316,13 +332,17 @@ func (d *TaxonomyDB) NumTaxa() (int, error) {
 	q := "select count(*) from taxon"
 	row, err := d.db.Query(q)
 	if err != nil {
-		return 0, err
+		m := "couldn't calculate the number " +
+			"of taxa in the database"
+		return 0, errors.New(m)
 	}
 	defer row.Close()
 	row.Next()
 	err = row.Scan(&n)
 	if err != nil {
-		return 0, err
+		m := "couldn't calculate the number " +
+			"of taxa in the database"
+		return 0, errors.New(m)
 	}
 	return n, err
 }
@@ -426,13 +446,19 @@ func (t *TaxonomyDB) AccessionTaxid(acc string) (int, error) {
 	q := fmt.Sprintf(taxidT, acc)
 	rows, err := t.db.Query(q)
 	if err != nil {
-		return 0, err
+		m := "couldn't find the taxon of " +
+			"genome %s"
+		m = fmt.Sprintf(acc)
+		return 0, errors.New(m)
 	}
 	defer rows.Close()
 	rows.Next()
 	err = rows.Scan(&taxid)
 	if err != nil {
-		return 0, err
+		m := "couldn't find the taxon of " +
+			"genome %s"
+		m = fmt.Sprintf(acc)
+		return 0, errors.New(m)
 	}
 	return taxid, err
 }
@@ -808,6 +834,17 @@ func OpenTaxonomyDB(name string) *TaxonomyDB {
 	util.Check(err)
 	_, err = db.db.Exec("PRAGMA foreign_keys = ON;")
 	util.Check(err)
+	return db
+}
+
+// OpenTaxonomyDBcheck takes the name of a database and returns a connection to that database. If the database does not exist, OpenTaxonomyDB exits with an error message.
+func OpenTaxonomyDBcheck(dbName string) *TaxonomyDB {
+	f, err := os.Open(dbName)
+	if err != nil {
+		log.Fatalf("couldn't open database %q", dbName)
+	}
+	f.Close()
+	db := OpenTaxonomyDB(dbName)
 	return db
 }
 func traverseSubtree(t *TaxonomyDB, v int, taxa []int,

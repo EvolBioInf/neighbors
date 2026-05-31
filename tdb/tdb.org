@@ -1050,6 +1050,32 @@ associated taxids to create the image/taxid pairs we insert into
 	  return db
   }
 #+end_src
+#+begin_export latex
+\section{\ty{OpenTaxonomyDBcheck}}
+!\ty{OpenTaxonomyDBcheck} takes the name of a database and returns a
+!connection to that database. If the database does not exist,
+!\ty{OpenTaxonomyDB} exits with an error message.
+
+We implement \ty{OpenTaxonomyDBcheck} by checking for the existence of
+the database file, before we open and return the database.
+#+end_export
+#+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
+  func OpenTaxonomyDBcheck(dbName string) *TaxonomyDB {
+	  f, err := os.Open(dbName)
+	  if err != nil {
+		  log.Fatalf("couldn't open database %q", dbName)
+	  }
+	  f.Close()
+	  db := OpenTaxonomyDB(dbName)
+	  return db
+  }
+#+end_src
+#+begin_export latex
+We import \ty{log}.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
+  "log"
+#+end_src
 #+begin_src latex
   \section{\ty{Close}}
   ! The method \ty{Close} closes a taxonomy database.
@@ -1094,9 +1120,17 @@ and check the error returned by the database.
   q := fmt.Sprintf(accessionT, taxon)
   rows, err := t.db.Query(q)
   if err != nil {
-	  return nil, err
+	  m := "couldn't find genome accessions for taxon %d"
+	  m = fmt.Sprintf(m, taxon)
+	  return nil, errors.New(m)
   }
   defer rows.Close()
+#+end_src
+#+begin_export latex
+We import \ty{errors}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pa:tdb}>>=
+  "errors"
 #+end_src
 #+begin_src latex
   We append each accession to our slice of accessions.
@@ -1251,7 +1285,9 @@ and check the error returned by the database.
 #+begin_src go <<Execute rank query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
   if err != nil {
-	  return "", err
+	  m := "couldn't find the rank of taxon %d"
+	  m = fmt.Sprintf(m, taxon)
+	  return "", errors.New(m)
   }
   defer rows.Close()
 #+end_src
@@ -1263,7 +1299,9 @@ and check the error returned by the database.
   rows.Next()
   err = rows.Scan(&rank)
   if err != nil {
-	  return "", err
+	  m := "couldn't find the rank of taxon %d"
+	  m = fmt.Sprintf(m, taxon)
+	  return "", errors.New(m)
   }
 #+end_src
 #+begin_src latex
@@ -1303,7 +1341,9 @@ and check the error returned by the database.
 #+begin_src go <<Execute parent query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
   if err != nil {
-	  return 0, err
+	  m := "couldn't find the parent of taxon %d"
+	  m = fmt.Sprintf(m, c)
+	  return 0, errors.New(m)
   }
   defer rows.Close()
 #+end_src
@@ -1386,7 +1426,9 @@ and check the error returned by the database.
 	  taxa := make([]int, 0)
 	  taxa, err = traverseSubtree(t, r, taxa, math.MaxInt, 0)
 	  if err != nil {
-		  return nil, err
+		  m := "couldn't find subtree rooted on taxon %d"
+		  m = fmt.Sprintf(m, r)
+		  return nil, errors.New(m)
 	  }
 	  return taxa, err
   }
@@ -1747,7 +1789,10 @@ parents and reset the parent slice to empty.
 #+begin_src go <<Execute level query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
   if err != nil {
-	  return "", err
+	  m := "couldn't find assembly level " +
+		  "for genome %d"
+	  m = fmt.Sprintf(m, acc)
+	  return "", errors.New(m)
   }
   defer rows.Close()
 #+end_src
@@ -1788,7 +1833,9 @@ parents and reset the parent slice to empty.
   for _, a := range acc {
 	  level, err := d.Level(a)
 	  if err != nil {
-		  return nil, err
+		  m := "couldn't find assembly level for genome %s"
+		  m = fmt.Sprintf(m, a)
+		  return nil, errors.New(m)
 	  }
 	  if levels[level] {
 		  newAcc = append(newAcc, a)
@@ -1826,7 +1873,9 @@ error.
 #+begin_src go <<Execute numtax query, Pa. \ref{pa:tdb}>>=
   row, err := d.db.Query(q)
   if err != nil {
-	  return 0, err
+	  m := "couldn't calculate the number " +
+		  "of taxa in the database"
+	  return 0, errors.New(m)
   }
   defer row.Close()
 #+end_src
@@ -1837,7 +1886,9 @@ We extract the number of taxa from the table row and check the error.
   row.Next()
   err = row.Scan(&n)
   if err != nil {
-	  return 0, err
+	  m := "couldn't calculate the number " +
+		  "of taxa in the database"
+	  return 0, errors.New(m)
   }
 #+end_src
 #+begin_export latex
@@ -2098,7 +2149,10 @@ an image.
 #+begin_src go <<Execute taxid query, Pa. \ref{pa:tdb}>>=
   rows, err := t.db.Query(q)
   if err != nil {
-	  return 0, err
+	  m := "couldn't find the taxon of " +
+		  "genome %s"
+	  m = fmt.Sprintf(acc)
+	  return 0, errors.New(m)
   }
   defer rows.Close()
 #+end_src
@@ -2109,7 +2163,10 @@ an image.
   rows.Next()
   err = rows.Scan(&taxid)
   if err != nil {
-	  return 0, err
+	  m := "couldn't find the taxon of " +
+		  "genome %s"
+	  m = fmt.Sprintf(acc)
+	  return 0, errors.New(m)
   }
 #+end_src
 #+begin_src latex
@@ -2171,7 +2228,7 @@ There are two functions, \ty{NewTaxonomyDB} and \ty{AssemblyLevels}.
   26 entries.
 #+end_src
 #+begin_src go <<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>=
-  taxdb := OpenTaxonomyDB(db)
+  taxdb := OpenTaxonomyDBcheck(db)
   subtree, _ := taxdb.Subtree(207598)
   if len(subtree) != 26 {
 	  t.Errorf("get %d rows, want 26", len(subtree))
