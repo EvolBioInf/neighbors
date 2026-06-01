@@ -1666,18 +1666,18 @@ We import \ty{errors}.
   "errors"
 #+end_src
 #+begin_src latex
-There is a rich history of MRCA queries in computer
-science~\cite[ch. 3]{ohl13:bio}. However, instead of using the general
-solution to the problem, I construct a simpler solution that involves
-climbing to the common ancestor of a set of taxa. If these taxa are
-closely related, the climb is short.
+  There is a rich history of MRCA queries in computer
+  science~\cite[ch. 3]{ohl13:bio}. However, instead of using the general
+  solution to the problem, we construct a simpler solution that involves
+  climbing to the common ancestor of a set of taxa. If these taxa are
+  closely related, the climb is short.
 
-To be more precise, in each step of our climb, we increment a
-descendant counter for each node. If one of these counters is equal to
-the number of input taxa, the corresponding node is the
-MRCA. Otherwise, we climb to the parents and repeat. So we construct a
-variable to count descendants and variables for parents and
-children. Then we iterate over the parents.
+  To be more precise, in each step of our climb, we increment a
+  descendant counter for each node. If one of these counters is equal to
+  the number of input taxa, the corresponding node is the
+  MRCA. Otherwise, we climb to the parents and repeat. So we construct a
+  variable to count descendants and variables for parents and
+  children. Then we iterate over the parents.
 #+end_src
 #+begin_src go <<Search for MRCA, Pa. \ref{pa:tdb}>>=
   //<<Construct counter for descendants, Pa. \ref{pa:tdb}>>
