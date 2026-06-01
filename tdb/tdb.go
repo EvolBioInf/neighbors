@@ -259,13 +259,15 @@ func (t *TaxonomyDB) MRCA(ids []int) (int, error) {
 	for _, id := range ids {
 		children = append(children, id)
 	}
-	for len(children) > 1 {
+	for mrca == -1 {
 		for _, child := range children {
 			parent, err := t.Parent(child)
 			if err != nil {
 				return 0, err
 			}
-			desc[parent] += desc[child]
+			if parent != child {
+				desc[parent] += desc[child]
+			}
 			if desc[parent] >= len(ids) {
 				mrca = parent
 				break
@@ -278,8 +280,6 @@ func (t *TaxonomyDB) MRCA(ids []int) (int, error) {
 				children = append(children, parent)
 			}
 			parents = parents[:0]
-		} else {
-			break
 		}
 	}
 	return mrca, err

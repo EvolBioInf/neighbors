@@ -1696,8 +1696,8 @@ of descendants of the taxa supplied is one.
   }
 #+end_src
 #+begin_src latex
-We store the parent and child taxa as integer slices. The children
-slice is initialized to the taxon-IDs supplied.
+  We store the parents and children as integer slices. The children
+  slice is initialized to the taxon-IDs supplied.
 #+end_src
 #+begin_src go <<Construct variables for parents and children, Pa. \ref{pa:tdb}>>=
   parents := make([]int, 0)
@@ -1707,21 +1707,19 @@ slice is initialized to the taxon-IDs supplied.
   }
 #+end_src
 #+begin_src latex
-  As long as we have more than one child, i. e. haven't reached the root
-  yet, we climb to the next set of parents and replace the children by
-  the parents.
+  As long as we haven't found the MRCA yet, we climb to the next set of
+  parents and replace the children by the parents.
 #+end_src
 #+begin_src go <<Iterate over parents, Pa. \ref{pa:tdb}>>=
-  for len(children) > 1 {
+  for mrca == -1 {
 	  //<<Climb to parents, Pa. \ref{pa:tdb}>>
 	  //<<Replace parents by children, Pa. \ref{pa:tdb}>>
   }
 #+end_src
 #+begin_src latex
-  For each parent we reach, we increment its descendants count by that
-  of its children and check whether the number of its descendants is
-  greater or equal to the number of taxa submitted. If yes, we've found
-  the MRCA and return it.
+  We iterate over the children. For each child we look up the parent,
+  deal with the descendants, and climb to the parent by appending the
+  parent to the parents list.
 #+end_src
 #+begin_src go <<Climb to parents, Pa. \ref{pa:tdb}>>=
   for _, child := range children {
@@ -1729,12 +1727,27 @@ slice is initialized to the taxon-IDs supplied.
 	  if err != nil {
 		  return 0, err
 	  }
-	  desc[parent] += desc[child]
-	  if desc[parent] >= len(ids) {
-		  mrca = parent
-		  break
-	  }
+	  //<<Deal with descendants, Pa. \ref{pa:tdb}>>
 	  parents = append(parents, parent)
+  }
+#+end_src
+#+begin_export latex
+For a given child/parent pair, we increment the parents' descendants
+count by that of the child. The only exception to this behavior is
+when we have reached the root, in which case the child is equal to its
+parent. In that case we have to avoid idly incrementing the root's
+descendant count. Then we check whether the number of the parent's
+descendants is greater or equal to the number of taxa submitted. If
+yes, we've found the MRCA, store it, and break from the iteration over
+the children.
+#+end_export
+#+begin_src go <<Deal with descendants, Pa. \ref{pa:tdb}>>=
+  if parent != child {
+	  desc[parent] += desc[child]
+  }
+  if desc[parent] >= len(ids) {
+	  mrca = parent
+	  break
   }
 #+end_src
 #+begin_src latex
@@ -1748,8 +1761,6 @@ parents and reset the parent slice to empty.
 		  children = append(children, parent)
 	  }
 	  parents = parents[:0]
-  } else {
-	  break
   }
 #+end_src
 #+begin_src latex

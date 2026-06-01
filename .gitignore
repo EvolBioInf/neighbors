@@ -76,6 +76,7 @@ ranks/ranks
 taxi/extraTests.sh
 taxi/makeRes.sh
 taxi/taxi
+tdb/cmd
 tdb/fk
 test
 todo.org
