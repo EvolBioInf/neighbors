@@ -1054,27 +1054,29 @@ associated taxids to create the image/taxid pairs we insert into
 \section{\ty{OpenTaxonomyDBcheck}}
 !\ty{OpenTaxonomyDBcheck} takes the name of a database and returns a
 !connection to that database. If the database does not exist,
-!\ty{OpenTaxonomyDB} exits with an error message.
+!\ty{OpenTaxonomyDB} returns an error.
 
 We implement \ty{OpenTaxonomyDBcheck} by checking for the existence of
 the database file, before we open and return the database.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
-  func OpenTaxonomyDBcheck(dbName string) *TaxonomyDB {
+  func OpenTaxonomyDBcheck(dbName string) (*TaxonomyDB, error) {
 	  f, err := os.Open(dbName)
 	  if err != nil {
-		  log.Fatalf("couldn't open database %q", dbName)
+		  m := fmt.Sprintf("couldn't open database %s",
+			  dbName)
+		  return nil, errors.New(m)
 	  }
 	  f.Close()
 	  db := OpenTaxonomyDB(dbName)
-	  return db
+	  return db, nil
   }
 #+end_src
 #+begin_export latex
-We import \ty{log}.
+We import \ty{errors}.
 #+end_export
 #+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
-  "log"
+  "errors"
 #+end_src
 #+begin_src latex
   \section{\ty{Close}}
@@ -1125,12 +1127,6 @@ and check the error returned by the database.
 	  return nil, errors.New(m)
   }
   defer rows.Close()
-#+end_src
-#+begin_export latex
-We import \ty{errors}.
-#+end_export
-#+begin_src go <<Imports, Pr. \ref{pa:tdb}>>=
-  "errors"
 #+end_src
 #+begin_src latex
   We append each accession to our slice of accessions.
@@ -2239,7 +2235,7 @@ There are two functions, \ty{NewTaxonomyDB} and \ty{AssemblyLevels}.
   26 entries.
 #+end_src
 #+begin_src go <<Test \ty{NewTaxonomyDB}, Pa. \ref{pa:tdb}>>=
-  taxdb := OpenTaxonomyDBcheck(db)
+  taxdb, _ := OpenTaxonomyDBcheck(db)
   subtree, _ := taxdb.Subtree(207598)
   if len(subtree) != 26 {
 	  t.Errorf("get %d rows, want 26", len(subtree))

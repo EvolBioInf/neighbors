@@ -14,7 +14,7 @@ func TestTdb(t *testing.T) {
 	rs := p + "rsTest.txt"
 	db := p + "taxSmall.db"
 	NewTaxonomyDB(no, na, me, im, gb, rs, db)
-	taxdb := OpenTaxonomyDBcheck(db)
+	taxdb, _ := OpenTaxonomyDBcheck(db)
 	subtree, _ := taxdb.Subtree(207598)
 	if len(subtree) != 26 {
 		t.Errorf("get %d rows, want 26", len(subtree))

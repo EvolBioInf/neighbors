@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/evolbioinf/neighbors/util"
 	_ "github.com/mattn/go-sqlite3"
-	"log"
 	"math"
 	"os"
 	"strconv"
@@ -837,15 +836,17 @@ func OpenTaxonomyDB(name string) *TaxonomyDB {
 	return db
 }
 
-// OpenTaxonomyDBcheck takes the name of a database and returns a connection to that database. If the database does not exist, OpenTaxonomyDB exits with an error message.
-func OpenTaxonomyDBcheck(dbName string) *TaxonomyDB {
+// OpenTaxonomyDBcheck takes the name of a database and returns a connection to that database. If the database does not exist, OpenTaxonomyDB returns an error.
+func OpenTaxonomyDBcheck(dbName string) (*TaxonomyDB, error) {
 	f, err := os.Open(dbName)
 	if err != nil {
-		log.Fatalf("couldn't open database %q", dbName)
+		m := fmt.Sprintf("couldn't open database %s",
+			dbName)
+		return nil, errors.New(m)
 	}
 	f.Close()
 	db := OpenTaxonomyDB(dbName)
-	return db
+	return db, nil
 }
 func traverseSubtree(t *TaxonomyDB, v int, taxa []int,
 	m, l int) ([]int, error) {

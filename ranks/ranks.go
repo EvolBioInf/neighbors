@@ -92,7 +92,8 @@ func main() {
 	}
 	root, err := strconv.Atoi(args[0])
 	util.Check(err)
-	neidb := tdb.OpenTaxonomyDBcheck(args[1])
+	neidb, err := tdb.OpenTaxonomyDBcheck(args[1])
+	util.Check(err)
 	if *optV {
 		util.PrintInfo("ranks")
 	}

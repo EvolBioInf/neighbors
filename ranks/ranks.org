@@ -152,7 +152,8 @@ message. Otherwise, we get the root and the database.
   }
   root, err := strconv.Atoi(args[0])
   util.Check(err)
-  neidb := tdb.OpenTaxonomyDBcheck(args[1])
+  neidb, err := tdb.OpenTaxonomyDBcheck(args[1])
+  util.Check(err)
 #+end_src
 #+begin_export latex
 We import \ty{log}, \ty{strconv}, and \ty{tdb}.
