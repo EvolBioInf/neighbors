@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/evolbioinf/clio"
+	"github.com/evolbioinf/neighbors/tdb"
 	"github.com/evolbioinf/neighbors/util"
 	"github.com/evolbioinf/nwk"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 )
@@ -27,11 +29,12 @@ func parse(r io.Reader, args ...interface{}) {
 	tregex := args[1].(*regexp.Regexp)
 	nregex := args[2].(*regexp.Regexp)
 	uregex := args[3].(*regexp.Regexp)
+	neidb := args[4].(*tdb.TaxonomyDB)
 	sc := nwk.NewScanner(r)
 	for sc.Scan() {
 		tree := sc.Tree()
 		counts := make(map[int]*Count)
-		traverseTree(tree, counts, tregex, nregex, uregex)
+		traverseTree(tree, counts, tregex, nregex, uregex, neidb)
 		nt := float64(counts[tree.Id].vt)
 		nn := float64(counts[tree.Id].vn)
 		nu := float64(counts[tree.Id].vu)
@@ -82,7 +85,8 @@ func parse(r io.Reader, args ...interface{}) {
 	}
 }
 func traverseTree(v *nwk.Node, counts map[int]*Count,
-	tregex, nregex, uregex *regexp.Regexp) {
+	tregex, nregex, uregex *regexp.Regexp,
+	neidb *tdb.TaxonomyDB) {
 	if v == nil {
 		return
 	}
@@ -93,15 +97,17 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 		count.parent = v.Parent.Label
 	}
 	counts[v.Id] = count
-	traverseTree(v.Child, counts, tregex, nregex, uregex)
-	traverseTree(v.Sib, counts, tregex, nregex, uregex)
+	traverseTree(v.Child, counts, tregex, nregex, uregex,
+		neidb)
+	traverseTree(v.Sib, counts, tregex, nregex, uregex,
+		neidb)
 	if v.Child == nil {
 		isTar := false
 		isUnk := false
 		isNei := false
-		if tregex.MatchString(v.Label) {
-			isTar = true
-		}
+		var err error
+		isTar, err = hatch(tregex, v.Label, neidb)
+		util.Check(err)
 		if uregex != nil && uregex.MatchString(v.Label) {
 			isUnk = true
 		}
@@ -109,8 +115,9 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 			if !isTar && !isUnk {
 				isNei = true
 			}
-		} else if nregex.MatchString(v.Label) {
-			isNei = true
+		} else {
+			isNei, err = hatch(nregex, v.Label, neidb)
+			util.Check(err)
 		}
 		dc := 0
 		if isTar {
@@ -151,6 +158,31 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 		counts[v.Parent.Id].vu += counts[v.Id].vu
 	}
 }
+func hatch(regex *regexp.Regexp, label string,
+	neidb *tdb.TaxonomyDB) (bool, error) {
+	isMatch := regex.MatchString(label)
+	if !isMatch && neidb != nil {
+		taxid := -1
+		str := strings.Split(label, "_")[0]
+		taxid, err := strconv.Atoi(str)
+		if err != nil {
+			return false, err
+		}
+		for taxid != 1 {
+			parent, err := neidb.Parent(taxid)
+			if err != nil {
+				return false, err
+			}
+			taxid = parent
+			str := strconv.Itoa(taxid) + "_"
+			isMatch = regex.MatchString(str)
+			if isMatch {
+				break
+			}
+		}
+	}
+	return isMatch, nil
+}
 func main() {
 	util.SetName("fintac")
 	u := "fintac [option]... [foo.nwk]..."
@@ -165,6 +197,8 @@ func main() {
 		"or neighbor")
 	optN := flag.String("n", "", "neighbor "+
 		"(default complement of -t and -u)")
+	optNN := flag.String("N", "", "neighbors datbase to activate "+
+		"hierarchical matching for targets and neighbors")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("fintac")
@@ -181,6 +215,12 @@ func main() {
 		uregex, err = regexp.Compile(*optU)
 		util.Check(err)
 	}
+	var neidb *tdb.TaxonomyDB
+	if *optNN != "" {
+		neidb, err = tdb.OpenTaxonomyDBcheck(*optNN)
+		util.Check(err)
+	}
 	files := flag.Args()
-	clio.ParseFiles(files, parse, optA, tregex, nregex, uregex)
+	clio.ParseFiles(files, parse, optA, tregex, nregex, uregex,
+		neidb)
 }

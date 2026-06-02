@@ -43,6 +43,27 @@
   term in the denominator, so the split score is 100. In other words,
   the split score ranges from 0 to 100, $0\le s(v)\le 100$.
 
+  The program \ty{fintac} allows targets, neighbors, and unknowns to be
+  specified as regular expressions. As usual, such regular expressions
+  may refer to any part of a leaf label, and by default we make no
+  assumptions about the format of the leaf labels. However, we often
+  follow the convention that a leaf consists of a prefix taxon-ID that
+  is separated from the rest of the label by an underscore. In that case
+  a taxon might be in the taxonomic subtree rooted on a target taxon,
+  which should count as a match.
+
+  Consider as example target \emph{Escherichia coli} O157:H7, which has
+  taxon-ID 83334. Any leaf with prefix ``83334\_'' is now a match. In
+  addition, leaves with prefix ``155864\_'' should also match, as this
+  is the taxon-ID of the O157:H7 strain EDL933. There are over 130
+  O157:H7 substrains with their own taxon-IDs. In other words, the
+  problem of ``hierarchical matching'' is wide-spread. The user can
+  activate hierarchical matching for targets and neighbors by running
+  \ty{fintac} with the Neighbors database in addition to the
+  phylogeny. For unknowns herarchical matching is not appropriate, as
+  they are often high in the taxonomic tree, e. g. at species rank,
+  which would make every taxon below that rank an unknown.
+
   \section*{Implementation}
   The outline of \ty{fintac} has hooks for imports, types, functions,
   and the logic of the main function.  \bpr{fintac}{pr:fit}
@@ -104,7 +125,8 @@ We import \ty{clio}.
   initialized to nothing, which corresponds to an analysis where all
   taxa are either targets or neighbors. The neighbor regular expression
   is also initialized to nothing, which we interpret as anything that is
-  neither a target nor unknown.
+  neither a target nor unknown. The last option is for the Neighbors
+  database, which activates hierarchical matching.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:fit}>>=
   optV := flag.Bool("v", false, "version")
@@ -114,6 +136,8 @@ We import \ty{clio}.
 	  "or neighbor")
   optN := flag.String("n", "", "neighbor " +
 	  "(default complement of -t and -u)")
+  optNN := flag.String("N", "", "neighbors datbase to activate " +
+	  "hierarchical matching for targets and neighbors")
 #+end_src
 #+begin_src latex
 We import \ty{flag}.
@@ -128,13 +152,15 @@ We parse the options.
   flag.Parse()
 #+end_src
 #+begin_src latex
-  We respond to the version, target, neighbor, and unknown options.
+  We respond to the version, target, neighbor, unknown, and Neighbors
+  database options.
 #+end_src
 #+begin_src go <<Respond to options, Pr. \ref{pr:fit}>>=
   //<<Respond to \ty{-v}, Pr. \ref{pr:fit}>>
   //<<Respond to \ty{-t}, Pr. \ref{pr:fit}>>
   //<<Respond to \ty{-n}, Pr. \ref{pr:fit}>>
-  //<<Respond to \ty{-u}. Pr. \ref{pr:fit}>>
+  //<<Respond to \ty{-u}, Pr. \ref{pr:fit}>>
+  //<<Respond to \ty{-N}, Pr. \ref{pr:fit}>>
 #+end_src
 #+begin_src latex
   If the user asked for the version, we print it as part of the program
@@ -171,23 +197,43 @@ We parse the options.
 #+begin_export latex
 Similarly, the unknown regex is \ty{nil} unless set by the user.
 #+end_export
-#+begin_src go <<Respond to \ty{-u}. Pr. \ref{pr:fit}>>=
+#+begin_src go <<Respond to \ty{-u}, Pr. \ref{pr:fit}>>=
   var uregex *regexp.Regexp
   if *optU != "" {
 	  uregex, err = regexp.Compile(*optU)
 	  util.Check(err)
   }
 #+end_src
+#+begin_export latex
+We declare a variable to hold the Neighbors database. If the user set
+the Neighbors database, we open it, otherwise that variable remains
+\ty{nil}.
+#+end_export
+#+begin_src go <<Respond to \ty{-N}, Pr. \ref{pr:fit}>>=
+  var neidb *tdb.TaxonomyDB
+  if *optNN != "" {
+	  neidb, err = tdb.OpenTaxonomyDBcheck(*optNN)
+	  util.Check(err)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{tdb}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
+  "github.com/evolbioinf/neighbors/tdb"
+#+end_src
 #+begin_src latex
   The remaining tokens on the command line are interpreted as the names
   of input files. These are passed to the function \ty{ParseFiles},
   which applies the function \ty{parse} to each file. The function
-  \ty{parse}, in turn, takes as arguments the option \ty{-a}, and the
-  target, neighbor, and unknown regular expressions.
+  \ty{parse}, in turn, takes as arguments the option \ty{-a}, the
+  target, neighbor, and unknown regular expressions, and the Neighbors
+  database.
 #+end_src
 #+begin_src go <<Parse input files, Pr. \ref{pr:fit}>>=
   files := flag.Args()
-  clio.ParseFiles(files, parse, optA, tregex, nregex, uregex)
+  clio.ParseFiles(files, parse, optA, tregex, nregex, uregex,
+	  neidb)
 #+end_src
 #+begin_src latex
   Inside \ty{parse}, we retrieve its arguments, iterate over the trees
@@ -211,14 +257,15 @@ We import \ty{io} and \ty{nwk}.
   "github.com/evolbioinf/nwk"
 #+end_src
 #+begin_export latex
-We retrieve the four arguments we passed, printing all, and the three
-regular expressions.
+We retrieve the five arguments we passed, printing all, the three
+regular expressions, and the neighbors database.
 #+end_export
 #+begin_src go <<Retrieve arguments, Pr. \ref{pr:fit}>>=
   optA := args[0].(*bool)
   tregex := args[1].(*regexp.Regexp)
   nregex := args[2].(*regexp.Regexp)
   uregex := args[3].(*regexp.Regexp)
+  neidb := args[4].(*tdb.TaxonomyDB)
 #+end_src
 #+begin_src latex
 To analyze a tree, we count nodes, process the counts, and print
@@ -231,12 +278,12 @@ them.
 #+end_src
 #+begin_src latex
   We traverse the tree by calling the function \ty{traverseTree}, which
-  takes as arguments a map, and the target, neighbor, and unknown
-  regular expressions.
+  takes as arguments a map, the target, neighbor, and unknown
+  regular expressions, and the Neighbors database.
 #+end_src
 #+begin_src go <<Count nodes, Pr. \ref{pr:fit}>>=
   counts := make(map[int]*Count)
-  traverseTree(tree, counts, tregex, nregex, uregex)
+  traverseTree(tree, counts, tregex, nregex, uregex, neidb)
 #+end_src
 #+begin_src latex
   A count is understood per node; so it consists of the node label, the
@@ -253,20 +300,30 @@ them.
 #+end_src
 #+begin_src latex
   The function \ty{traverseTree} recursively traverses the tree rooted
-  on its input node. For each node it adds a count preorder and analyzes
-  the node postorder.
+  on its input node. For each node it adds a count preorder, traverses
+  the tree, and analyzes the node postorder.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:fit}>>=
   func traverseTree(v *nwk.Node, counts map[int]*Count,
-	  tregex, nregex, uregex *regexp.Regexp) {
+	  tregex, nregex, uregex *regexp.Regexp,
+	  neidb *tdb.TaxonomyDB) {
 	  if v == nil {
 		  return
 	  }
 	  //<<Add count, Pr. \ref{pr:fit}>>
-	  traverseTree(v.Child, counts, tregex, nregex, uregex)
-	  traverseTree(v.Sib, counts, tregex, nregex, uregex)
+	  //<<Traverse tree, Pr. \ref{pr:fit}>>
 	  //<<Analyze $v$, Pr. \ref{pr:fit}>>
   }
+#+end_src
+#+begin_export latex
+When traversing the tree, we move first to the child, then to the
+sibling of the current node.
+#+end_export
+#+begin_src go <<Traverse tree, Pr. \ref{pr:fit}>>=
+  traverseTree(v.Child, counts, tregex, nregex, uregex,
+	  neidb)
+  traverseTree(v.Sib, counts, tregex, nregex, uregex,
+	  neidb)
 #+end_src
 #+begin_src latex
 We create and store a count for each node. In the count we
@@ -295,7 +352,7 @@ its parent and the distance to it.
   } else {
 	  //<<Check internal node label, Pr. \ref{pr:fit}>>
   }
-  //<<Count targets and neighbors, Pr. \ref{pr:fit}>>
+  //<<Count targets, neighbors, and unknowns, Pr. \ref{pr:fit}>>
 #+end_src
 #+begin_src latex
   When checking the leaf label, we first determine its type, target,
@@ -319,20 +376,86 @@ its parent and the distance to it.
   //<<Is the leaf an unknown? Pr. \ref{pr:fit}>>
   //<<Is the leaf a neighbor? Pr. \ref{pr:fit}>>
 #+end_src
-#+begin_src latex
-  If the leaf label matches the target regex, it is a target.
-#+end_src
-#+begin_src go <<Is the leaf a target? Pr. \ref{pr:fit}>>=
-  if tregex.MatchString(v.Label) {
-	  isTar = true
+#+begin_export latex
+We come to matching the leaf label to the regular expressions for
+targets, neighbors, and unknowns. For matching targets and neighbors
+we use hierarchical matching, which we implement in the function
+\ty{hatch}. This takes as argument a regular expression, a label, and
+a taxonomy database. It determines whether the label matches the
+regular expression. If there is no match and the user asked for
+hierarchical matching, we do that. Then we return the matching status
+and an error.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:fit}>>=
+  func hatch(regex *regexp.Regexp, label string,
+	  neidb *tdb.TaxonomyDB) (bool, error) {
+	  isMatch := regex.MatchString(label)
+	  if !isMatch && neidb != nil {
+		  //<<Hierarchical matching, Pr. \ref{pr:fit}>>
+	  }
+	  return isMatch, nil
   }
 #+end_src
 #+begin_export latex
-Similarly, if the leaf matches the unknown regex, it is a complete
-unknown.
+For hierarchical matching, we extract the taxon-ID from the leaf label
+and climb the taxonomy. The climb ends at the latest at the root,
+
+#+end_export
+#+begin_src go <<Hierarchical matching, Pr. \ref{pr:fit}>>=
+  taxid := -1
+  //<<Extract taxon-ID from label, Pr. \ref{pr:fit}>>
+  for taxid != 1 {
+	  //<<Climb tree, Pr. \ref{pr:fit}>>
+  }
+#+end_src
+#+begin_export latex
+The leaf label may contain a taxon-ID, which is an integer. If it
+doesn't, we return with error.
+#+end_export
+#+begin_src go <<Extract taxon-ID from label, Pr. \ref{pr:fit}>>=
+  str := strings.Split(label, "_")[0]
+  taxid, err := strconv.Atoi(str)
+  if err != nil {
+	  return false, err
+  }
+#+end_src
+#+begin_export latex
+We import \ty{strconv}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
+  "strconv"
+#+end_src
+#+begin_export latex
+While climbing the tree, we convert the current taxon-ID to its
+equivalent leaf label before we do the matching. Such a ``pseudo''
+leaf label consists of string representation of the taxon-ID, appended
+with an underscore.
+#+end_export
+#+begin_src go <<Climb tree, Pr. \ref{pr:fit}>>=
+  parent, err := neidb.Parent(taxid)
+  if err != nil {
+	  return false, err
+  }
+  taxid = parent
+  str := strconv.Itoa(taxid) + "_"
+  isMatch = regex.MatchString(str)
+  if isMatch {
+	  break
+  }
+#+end_src
+#+begin_src latex
+  We use \ty{hatch} to determine whether the leaf is a target.
+#+end_src
+#+begin_src go <<Is the leaf a target? Pr. \ref{pr:fit}>>=
+  var err error
+  isTar, err = hatch(tregex, v.Label, neidb)
+  util.Check(err)
+#+end_src
+#+begin_export latex
+If the leaf matches the unknown regex, it is a complete unknown.
 #+end_export
 #+begin_src go <<Is the leaf an unknown? Pr. \ref{pr:fit}>>=
-  if uregex != nil && uregex.MatchString(v.Label) {
+  if uregex != nil  && uregex.MatchString(v.Label) {
 	  isUnk = true
   }
 #+end_src
@@ -347,8 +470,9 @@ unknown.
 	  if !isTar && !isUnk {
 		  isNei = true
 	  }
-  } else if nregex.MatchString(v.Label) {
-	  isNei = true
+  } else {
+	  isNei, err = hatch(nregex, v.Label, neidb)
+	  util.Check(err)
   }
 #+end_src
 #+begin_src latex
@@ -427,7 +551,7 @@ We make sure all internal nodes are labeled.
   We count the targets, neighbors, and unknowns by incrementing the
   corresponding counter in the parent---unless we're a the root.
 #+end_src
-#+begin_src go <<Count targets and neighbors, Pr. \ref{pr:fit}>>=
+#+begin_src go <<Count targets, neighbors, and unknowns, Pr. \ref{pr:fit}>>=
   if v.Parent != nil {
 	  counts[v.Parent.Id].vt += counts[v.Id].vt
 	  counts[v.Parent.Id].vn += counts[v.Id].vn
