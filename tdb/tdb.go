@@ -52,8 +52,7 @@ func (t *TaxonomyDB) Close() {
 func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
 	var err error
 	accessions := make([]string, 0)
-	q := fmt.Sprintf(accessionT, taxon)
-	rows, err := t.db.Query(q)
+	rows, err := t.db.Query(accessionT, taxon)
 	if err != nil {
 		m := "couldn't find genome accessions for taxon %d"
 		m = fmt.Sprintf(m, taxon)
@@ -75,8 +74,7 @@ func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
 func (t *TaxonomyDB) Name(taxon int) (string, error) {
 	var err error
 	name := ""
-	q := fmt.Sprintf(nameT, taxon)
-	rows, err := t.db.Query(q)
+	rows, err := t.db.Query(nameT, taxon)
 	if err != nil {
 		return "", err
 	}
@@ -94,8 +92,7 @@ func (t *TaxonomyDB) Name(taxon int) (string, error) {
 func (t *TaxonomyDB) CommonName(taxon int) (string, error) {
 	var err error
 	commonName := ""
-	q := fmt.Sprintf(commonNameT, taxon)
-	rows, err := t.db.Query(q)
+	rows, err := t.db.Query(commonNameT, taxon)
 	if err != nil {
 		return "", err
 	}
@@ -112,8 +109,7 @@ func (t *TaxonomyDB) CommonName(taxon int) (string, error) {
 func (t *TaxonomyDB) Rank(taxon int) (string, error) {
 	var err error
 	rank := ""
-	q := fmt.Sprintf(rankT, taxon)
-	rows, err := t.db.Query(q)
+	rows, err := t.db.Query(rankT, taxon)
 	if err != nil {
 		m := "couldn't find the rank of taxon %d"
 		m = fmt.Sprintf(m, taxon)
@@ -134,8 +130,7 @@ func (t *TaxonomyDB) Rank(taxon int) (string, error) {
 func (t *TaxonomyDB) Parent(c int) (int, error) {
 	var err error
 	parent := 0
-	q := fmt.Sprintf(parentT, c)
-	rows, err := t.db.Query(q)
+	rows, err := t.db.Query(parentT, c)
 	if err != nil {
 		m := "couldn't find the parent of taxon %d"
 		m = fmt.Sprintf(m, c)
@@ -154,8 +149,7 @@ func (t *TaxonomyDB) Parent(c int) (int, error) {
 func (t *TaxonomyDB) Children(p int) ([]int, error) {
 	var err error
 	children := make([]int, 0)
-	q := fmt.Sprintf(childrenT, p)
-	rows, err := t.db.Query(q)
+	rows, err := t.db.Query(childrenT, p)
 	if err != nil {
 		return nil, err
 	}
@@ -200,8 +194,7 @@ func (t *TaxonomyDB) Taxids(name string,
 	limit, offset int) ([]int, error) {
 	var err error
 	taxids := make([]int, 0)
-	q := fmt.Sprintf(taxidsT, name, limit, offset)
-	rows, err := t.db.Query(q)
+	rows, err := t.db.Query(taxidsT, name, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -222,8 +215,7 @@ func (t *TaxonomyDB) CommonTaxids(name string,
 	limit, offset int) ([]int, error) {
 	var err error
 	commonTaxids := make([]int, 0)
-	q := fmt.Sprintf(commonTaxidsT, name, name, limit, offset)
-	rows, err := t.db.Query(q)
+	rows, err := t.db.Query(commonTaxidsT, name, name, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -288,8 +280,7 @@ func (t *TaxonomyDB) MRCA(ids []int) (int, error) {
 func (t *TaxonomyDB) Level(acc string) (string, error) {
 	var err error
 	level := ""
-	q := fmt.Sprintf(levelT, acc)
-	rows, err := t.db.Query(q)
+	rows, err := t.db.Query(levelT, acc)
 	if err != nil {
 		m := "couldn't find assembly level " +
 			"for genome %d"
@@ -351,10 +342,9 @@ func (d *TaxonomyDB) NumGenomes(taxid int, level string) (int, error) {
 	n := 0
 	var err error
 	q := "select raw from genome_count " +
-		"where taxid=%d and " +
-		"level like '%s'"
-	q = fmt.Sprintf(q, taxid, level)
-	row, err := d.db.Query(q)
+		"where taxid=? and " +
+		"level like ?"
+	row, err := d.db.Query(q, taxid, level)
 	if err != nil {
 		return 0, err
 	}
@@ -373,10 +363,9 @@ func (d *TaxonomyDB) NumGenomesRec(taxid int,
 	n := 0
 	var err error
 	q := "select recursive from genome_count " +
-		"where taxid=%d and " +
-		"level like '%s'"
-	q = fmt.Sprintf(q, taxid, level)
-	row, err := d.db.Query(q)
+		"where taxid=? and " +
+		"level like ?"
+	row, err := d.db.Query(q, taxid, level)
 	if err != nil {
 		return 0, err
 	}
@@ -394,9 +383,8 @@ func (d *TaxonomyDB) IsLeaf(taxid int) (bool, error) {
 	numChildren := 0
 	var err error
 	q := "select count(taxid) from taxon " +
-		"where parent=%d"
-	q = fmt.Sprintf(q, taxid)
-	row, err := d.db.Query(q)
+		"where parent=?"
+	row, err := d.db.Query(q, taxid)
 	if err != nil {
 		return false, err
 	}
@@ -418,9 +406,8 @@ func (d *TaxonomyDB) Images(taxid int) ([]Image, error) {
 	var err error
 	q := "select image_id, url, attribution " +
 		"from image natural join tax2ima " +
-		"where taxid=%d"
-	q = fmt.Sprintf(q, taxid)
-	rows, err := d.db.Query(q)
+		"where taxid=?"
+	rows, err := d.db.Query(q, taxid)
 	if err != nil {
 		return images, err
 	}
@@ -442,8 +429,7 @@ func (d *TaxonomyDB) Images(taxid int) ([]Image, error) {
 func (t *TaxonomyDB) AccessionTaxid(acc string) (int, error) {
 	var err error
 	taxid := 0
-	q := fmt.Sprintf(taxidT, acc)
-	rows, err := t.db.Query(q)
+	rows, err := t.db.Query(taxidT, acc)
 	if err != nil {
 		m := "couldn't find the taxon of " +
 			"genome %s"
@@ -877,23 +863,23 @@ func AssemblyLevels() []string {
 
 var accessionT = "select accession " +
 	"from genome " +
-	"where taxid=%d"
-var nameT = "select name from taxon where taxid=%d"
+	"where taxid=?"
+var nameT = "select name from taxon where taxid=?"
 var commonNameT = "select common_name " +
-	"from taxon where taxid=%d"
-var rankT = "select rank from taxon where taxid=%d"
-var parentT = "select parent from taxon where taxid=%d"
-var childrenT = "select taxid from taxon where parent=%d"
+	"from taxon where taxid=?"
+var rankT = "select rank from taxon where taxid=?"
+var parentT = "select parent from taxon where taxid=?"
+var childrenT = "select taxid from taxon where parent=?"
 var taxidsT = "select taxid from taxon " +
-	"where name like '%s' " +
+	"where name like ? " +
 	"order by score desc, name " +
-	"limit %d " +
-	"offset %d"
+	"limit ? " +
+	"offset ?"
 var commonTaxidsT = "select taxid from taxon " +
-	"where name like '%s' " +
-	"or common_name like '%s' " +
+	"where name like ? " +
+	"or common_name like ? " +
 	"order by score desc, name " +
-	"limit %d " +
-	"offset %d"
-var levelT = "select level from genome where accession='%s'"
-var taxidT = "select taxid from genome where accession='%s'"
+	"limit ? " +
+	"offset ?"
+var levelT = "select level from genome where accession=?"
+var taxidT = "select taxid from genome where accession=?"
