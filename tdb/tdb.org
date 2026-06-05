@@ -1111,7 +1111,7 @@ We import \ty{errors}.
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>= 
   var accessionT = "select accession " +
 	  "from genome " +
-	  "where taxid=%d"
+	  "where taxid=?"
 #+end_src
 #+begin_export latex
 We construct the query for accessions from our template and run it. We
@@ -1119,8 +1119,7 @@ make sure that the input stream returned is eventually closed again
 and check the error returned by the database.
 #+end_export
 #+begin_src go <<Query for accessions, Pa. \ref{pa:tdb}>>=
-  q := fmt.Sprintf(accessionT, taxon)
-  rows, err := t.db.Query(q)
+  rows, err := t.db.Query(accessionT, taxon)
   if err != nil {
 	  m := "couldn't find genome accessions for taxon %d"
 	  m = fmt.Sprintf(m, taxon)
@@ -1152,7 +1151,6 @@ and check the error returned by the database.
   func (t *TaxonomyDB) Name(taxon int) (string, error) {
 	  var err error
 	  name := ""
-	  //<<Construct name query, Pa. \ref{pa:tdb}>>
 	  //<<Execute name query, Pa. \ref{pa:tdb}>>
 	  //<<Extract name, Pa. \ref{pa:tdb}>>
 	  return name, err
@@ -1162,20 +1160,14 @@ and check the error returned by the database.
   To construct the name query, we define a template.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
-  var nameT = "select name from taxon where taxid=%d"
-#+end_src
-#+begin_src latex
-  We construct the query from our new template.
-#+end_src
-#+begin_src go <<Construct name query, Pa. \ref{pa:tdb}>>=
-  q := fmt.Sprintf(nameT, taxon)
+  var nameT = "select name from taxon where taxid=?"
 #+end_src
 #+begin_src latex
   We execute the query, which might throw an error. We also close the
   results table once we're done with it.
 #+end_src
 #+begin_src go <<Execute name query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(q)
+  rows, err := t.db.Query(nameT, taxon)
   if err != nil {
 	  return "", err
   }
@@ -1204,7 +1196,6 @@ and check the error returned by the database.
   func (t *TaxonomyDB) CommonName(taxon int) (string, error) {
 	  var err error
 	  commonName := ""
-	  //<<Construct common name query, Pa. \ref{pa:tdb}>>
 	  //<<Execute common name query, Pa. \ref{pa:tdb}>>
 	  //<<Extract common name, Pa. \ref{pa:tdb}>>
 	  return commonName, err
@@ -1215,20 +1206,14 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
   var commonNameT = "select common_name " +
-	  "from taxon where taxid=%d"
-#+end_src
-#+begin_src latex
-  We construct the common name query from our new template.
-#+end_src
-#+begin_src go <<Construct common name query, Pa. \ref{pa:tdb}>>=
-  q := fmt.Sprintf(commonNameT, taxon)
+	  "from taxon where taxid=?"
 #+end_src
 #+begin_src latex
   We execute the common name query, which might throw an error. We also
   close the results table once we're done with it.
 #+end_src
 #+begin_src go <<Execute common name query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(q)
+  rows, err := t.db.Query(commonNameT, taxon)
   if err != nil {
 	  return "", err
   }
@@ -1256,7 +1241,6 @@ and check the error returned by the database.
   func (t *TaxonomyDB) Rank(taxon int) (string, error) {
 	  var err error
 	  rank := ""
-	  //<<Construct rank query, Pa. \ref{pa:tdb}>>
 	  //<<Execute rank query, Pa. \ref{pa:tdb}>>
 	  //<<Extract rank, Pa. \ref{pa:tdb}>>
 	  return rank, err
@@ -1266,20 +1250,14 @@ and check the error returned by the database.
   To construct the rank query, we first define a template.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
-  var rankT = "select rank from taxon where taxid=%d"
-#+end_src
-#+begin_src latex
-  We construct the rank query from its template.
-#+end_src
-#+begin_src go <<Construct rank query, Pa. \ref{pa:tdb}>>=
-  q := fmt.Sprintf(rankT, taxon)
+  var rankT = "select rank from taxon where taxid=?"
 #+end_src
 #+begin_src latex
   We execute the rank query, which might throw an error. We also close
   the results table once we're done with it.
 #+end_src
 #+begin_src go <<Execute rank query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(q)
+  rows, err := t.db.Query(rankT, taxon)
   if err != nil {
 	  m := "couldn't find the rank of taxon %d"
 	  m = fmt.Sprintf(m, taxon)
@@ -1311,7 +1289,6 @@ and check the error returned by the database.
   func (t *TaxonomyDB) Parent(c int) (int, error) {
 	  var err error
 	  parent := 0
-	  //<<Construct parent query, Pa. \ref{pa:tdb}>>
 	  //<<Execute parent query, Pa. \ref{pa:tdb}>>
 	  //<<Extract parent, Pa. \ref{pa:tdb}>>
 	  return parent, err
@@ -1321,13 +1298,7 @@ and check the error returned by the database.
   We define the template for the parent query.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
-  var parentT = "select parent from taxon where taxid=%d"
-#+end_src
-#+begin_src latex
-  We construct the parent query from its query.
-#+end_src
-#+begin_src go <<Construct parent query, Pa. \ref{pa:tdb}>>=
-  q := fmt.Sprintf(parentT, c)
+  var parentT = "select parent from taxon where taxid=?"
 #+end_src
 #+begin_src latex
   We execute the query to get the results table. Query execution might
@@ -1335,7 +1306,7 @@ and check the error returned by the database.
   eventually closed again.
 #+end_src
 #+begin_src go <<Execute parent query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(q)
+  rows, err := t.db.Query(parentT, c)
   if err != nil {
 	  m := "couldn't find the parent of taxon %d"
 	  m = fmt.Sprintf(m, c)
@@ -1359,13 +1330,12 @@ and check the error returned by the database.
   ! The method \ty{Children} takes as argument a taxon-ID and returns its
   ! children and an error.
 
-  We construct the children query, execute it, and extract the children.
+  We define the children query, execute it, and extract the children.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Children(p int) ([]int, error) {
 	  var err error
 	  children := make([]int, 0)
-	  //<<Construct children query, Pa. \ref{pa:tdb}>>
 	  //<<Execute children query, Pa. \ref{pa:tdb}>>
 	  //<<Extract children, Pa. \ref{pa:tdb}>>
 	  return children, err
@@ -1375,21 +1345,14 @@ and check the error returned by the database.
   We define a template for the children query.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
-  var childrenT = "select taxid from taxon where parent=%d"
-#+end_src
-#+begin_src latex
-  We construct the children query from its template and the parent
-  passed.
-#+end_src
-#+begin_src go <<Construct children query, Pa. \ref{pa:tdb}>>=
-  q := fmt.Sprintf(childrenT, p)
+  var childrenT = "select taxid from taxon where parent=?"
 #+end_src
 #+begin_src latex
   We execute the children query to get the results table, catch errors,
   and eventually close the results table again.
 #+end_src
 #+begin_src go <<Execute children query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(q)
+  rows, err := t.db.Query(childrenT, p)
   if err != nil {
 	  return nil, err
   }
@@ -1504,7 +1467,7 @@ infinite loop.
   ! orders the hits by their score, imposes the limit and offset, and
   ! returns the corresponding taxon-IDs and an error.
 
-  We construct and execute the query for taxon-IDs, extract the IDs, and
+  We declare and execute the query for taxon-IDs, extract the IDs, and
   return them.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
@@ -1512,7 +1475,6 @@ infinite loop.
 	  limit, offset int) ([]int, error) {
 	  var err error
 	  taxids := make([]int, 0)
-	  //<<Construct taxids query, Pa. \ref{pa:tdb}>>
 	  //<<Execute taxids query, Pa. \ref{pa:tdb}>>
 	  //<<Extract taxids, Pa. \ref{pa:tdb}>>
 	  return taxids, err
@@ -1525,23 +1487,17 @@ infinite loop.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
   var taxidsT = "select taxid from taxon " +
-	  "where name like '%s' " +
+	  "where name like ? " +
 	  "order by score desc, name " +
-	  "limit %d " +
-	  "offset %d"
-#+end_src
-#+begin_src latex
-  We construct the query for taxon-IDs from its template.
-#+end_src
-#+begin_src go <<Construct taxids query, Pa. \ref{pa:tdb}>>=
-  q := fmt.Sprintf(taxidsT, name, limit, offset)
+	  "limit ? " +
+	  "offset ?"
 #+end_src
 #+begin_src latex
   We execute the query for taxon-IDs and catch potential errors. We also
   make sure the result table is eventually closed again.
 #+end_src
 #+begin_src go <<Execute taxids query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(q)
+  rows, err := t.db.Query(taxidsT, name, limit, offset)
   if err != nil {
 	  return nil, err
   }
@@ -1568,7 +1524,7 @@ infinite loop.
   ! orders the hits by their score, imposes the limit and offset, and
   ! returns the corresponding taxon-IDs and an error.
 
-  We construct and execute the query for taxon-IDs from common and
+  We declare and execute the query for taxon-IDs from common and
   scientific names, extract the IDs, and return them.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
@@ -1576,7 +1532,6 @@ infinite loop.
 	  limit, offset int) ([]int, error) {
 	  var err error
 	  commonTaxids := make([]int, 0)
-	  //<<Construct common taxids query, Pa. \ref{pa:tdb}>>
 	  //<<Execute common taxids query, Pa. \ref{pa:tdb}>>
 	  //<<Extract common taxids, Pa. \ref{pa:tdb}>>
 	  return commonTaxids, err
@@ -1589,24 +1544,18 @@ infinite loop.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
   var commonTaxidsT = "select taxid from taxon " +
-	  "where name like '%s' " +
-	  "or common_name like '%s' " +
+	  "where name like ? " +
+	  "or common_name like ? " +
 	  "order by score desc, name " +
-	  "limit %d " +
-	  "offset %d"
-#+end_src
-#+begin_src latex
-  We construct the query for taxon-IDs from its template.
-#+end_src
-#+begin_src go <<Construct common taxids query, Pa. \ref{pa:tdb}>>=
-  q := fmt.Sprintf(commonTaxidsT, name, name, limit, offset)
+	  "limit ? " +
+	  "offset ?"
 #+end_src
 #+begin_src latex
   We execute the query for taxon-IDs and catch potential errors. We also
   make sure the result table is eventually closed again.
 #+end_src
 #+begin_src go <<Execute common taxids query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(q)
+  rows, err := t.db.Query(commonTaxidsT, name, name, limit, offset)
   if err != nil {
 	  return nil, err
   }
@@ -1764,14 +1713,13 @@ parents and reset the parent slice to empty.
   ! The method \ty{Level} takes as argument a genome accession and
   ! returns the assembly level and an eror.
 
-  We construct the level query, execute it, and extract the level before
+  We define the level query, execute it, and extract the level before
   we return it.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Level(acc string) (string, error) {
 	  var err error
 	  level := ""
-	  //<<Construct level query, Pa. \ref{pa:tdb}>>
 	  //<<Execute level query, Pa. \ref{pa:tdb}>>
 	  //<<Extract level, Pa. \ref{pa:tdb}>>
 	  return level, err
@@ -1781,20 +1729,14 @@ parents and reset the parent slice to empty.
   We define a template for the level query.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
-  var levelT = "select level from genome where accession='%s'"
-#+end_src
-#+begin_src latex
-  We construct the level query from its template.
-#+end_src
-#+begin_src go <<Construct level query, Pa. \ref{pa:tdb}>>=
-  q := fmt.Sprintf(levelT, acc)
+  var levelT = "select level from genome where accession=?"
 #+end_src
 #+begin_src latex
   We execute the level query, check the error, and make sure the result
   stream we just opened is eventually closed again.
 #+end_src
 #+begin_src go <<Execute level query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(q)
+  rows, err := t.db.Query(levelT, acc)
   if err != nil {
 	  m := "couldn't find assembly level " +
 		  "for genome %d"
@@ -1926,16 +1868,15 @@ We look up the desired number of genomes in the table
 #+end_export
 #+begin_src go <<Construct numgen query, Pa. \ref{pa:tdb}>>=
   q := "select raw from genome_count " +
-	  "where taxid=%d and " +
-	  "level like '%s'"
-  q = fmt.Sprintf(q, taxid, level)
+	  "where taxid=? and " +
+	  "level like ?"
 #+end_src
 #+begin_export latex
 We execute the query, store the table row returned, and check the
 error.
 #+end_export
 #+begin_src go <<Execute numgen query, Pa. \ref{pa:tdb}>>=
-  row, err := d.db.Query(q)
+  row, err := d.db.Query(q, taxid, level)
   if err != nil {
 	  return 0, err
   }
@@ -1978,16 +1919,15 @@ assembled to the desired level in table \ty{genome\_count}.
 #+end_export
 #+begin_src go <<Construct recursive numgen query, Pa. \ref{pa:tdb}>>=
   q := "select recursive from genome_count " +
-	  "where taxid=%d and " +
-	  "level like '%s'"
-  q = fmt.Sprintf(q, taxid, level)
+	  "where taxid=? and " +
+	  "level like ?"
 #+end_src
 #+begin_export latex
 We execute the query for the recursive number of genomes and check the
 error.
 #+end_export
 #+begin_src go <<Execute recursive numgen query, Pa. \ref{pa:tdb}>>=
-  row, err := d.db.Query(q)
+  row, err := d.db.Query(q, taxid, level)
   if err != nil {
 	  return 0, err
   }
@@ -2043,14 +1983,13 @@ taxon-ID.
 #+end_export
 #+begin_src go <<Construct leaf query, Pa. \ref{pa:tdb}>>=
   q := "select count(taxid) from taxon " +
-	  "where parent=%d"
-  q = fmt.Sprintf(q, taxid)
+	  "where parent=?"
 #+end_src
 #+begin_export latex
 We execute the leaf query and bail if there was an error.
 #+end_export
 #+begin_src go <<Execute leaf query, Pa. \ref{pa:tdb}>>=
-  row, err := d.db.Query(q)
+  row, err := d.db.Query(q, taxid)
   if err != nil {
 	  return false, err
   }
@@ -2090,14 +2029,13 @@ incoming taxid.
 #+begin_src go <<Construct image query, Pa. \ref{pa:tdb}>>=
   q := "select image_id, url, attribution " +
 	  "from image natural join tax2ima " +
-	  "where taxid=%d"
-  q = fmt.Sprintf(q, taxid)
+	  "where taxid=?"
 #+end_src
 #+begin_export latex
 We execute the image query and check the error returned.
 #+end_export
 #+begin_src go <<Execute image query, Pa. \ref{pa:tdb}>>=
-  rows, err := d.db.Query(q)
+  rows, err := d.db.Query(q, taxid)
   if err != nil {
 	  return images, err
   }
@@ -2124,14 +2062,13 @@ an image.
   !The method \ty{AccessionTaxid} takes as argument a genome accession
   !and returns the corresponding taxon-ID and an error.
 
-  We construct the query for the taxon-ID, execute it, and extract the
+  We define the query for the taxon-ID, execute it, and extract the
   taxon-ID before we return it.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) AccessionTaxid(acc string) (int, error) {
 	  var err error
 	  taxid := 0
-	  //<<Construct taxid query, Pa. \ref{pa:tdb}>>
 	  //<<Execute taxid query, Pa. \ref{pa:tdb}>>
 	  //<<Extract taxid, Pa. \ref{pa:tdb}>>
 	  return taxid, err
@@ -2141,20 +2078,14 @@ an image.
   We define a template for the taxid query.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
-  var taxidT = "select taxid from genome where accession='%s'"
-#+end_src
-#+begin_src latex
-  We construct the taxid query from its template.
-#+end_src
-#+begin_src go <<Construct taxid query, Pa. \ref{pa:tdb}>>=
-  q := fmt.Sprintf(taxidT, acc)
+  var taxidT = "select taxid from genome where accession=?"
 #+end_src
 #+begin_src latex
   We execute the taxid query, check the error, and make sure the result
   stream we just opened is eventually closed again.
 #+end_src
 #+begin_src go <<Execute taxid query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(q)
+  rows, err := t.db.Query(taxidT, acc)
   if err != nil {
 	  m := "couldn't find the taxon of " +
 		  "genome %s"
@@ -2655,5 +2586,243 @@ returned should be zero.
   w = 0
   if g != w {
 	  t.Errorf("get:\n%dwant:\n%d\n", g, w)
+  }
+#+end_src
+#+begin_export latex
+As a next step we test for injection safety. This really only works
+for methods that execute queries and take strings as arguments.
+Given this constraint we to test these methods: 
+\ty{Taxids}
+\ty{CommonTaxids}
+\ty{Level}
+\ty{NumGenomes}
+\ty{NumGenomesRec}
+\ty{AccessionTaxid}
+#+end_export
+#+begin_src go <<Test methods, Pa. \ref{pa:tdb}>>=
+//<<Test injection \ty{Taxids}, Pa. \ref{pa:tdb}>>
+//<<Test injection \ty{CommonTaxids}, Pa. \ref{pa:tdb}>>
+//<<Test injection \ty{Level}, Pa. \ref{pa:tdb}>>
+//<<Test injection \ty{NumGenomes}, Pa. \ref{pa:tdb}>>
+//<<Test injection \ty{NumGenomesRec}, Pa. \ref{pa:tdb}>>
+//<<Test injection \ty{AccessionTaxid}, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+We begin with \ty{Taxids}. \ty{Taxids} uses the string argument to
+filter names with the like operator. In order to check for injectability
+we need to define a string that, somewhat, escapes the flow of the query, 
+execute it and check the results.
+#+end_export
+#+begin_src go <<Test injection \ty{Taxids}, Pa. \ref{pa:tdb}>>=
+  //<<Define injection string, Pa. \ref{pa:tdb}>>
+  //<<Execute injection query \ty{Taxids}, Pa. \ref{pa:tdb}>>
+  //<<Check injection results \ty{Taxids}, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+Our goal is to escape the filtering done by like and return everything instead. 
+We use two test strings one for string enclosed names and one for non enclosed one.
+The non enclosed one could be something like '' or 1=1. Here '' catches the like 
+operator and allows us to set another condition which 
+always evaluates to true.
+The enclosed one looks similar and might be something like this: ' or 1=1 or '
+where the first apostrophe breaks us out of literal and the last reenters to 
+make a valid statement
+#+end_export
+#+begin_src go <<Define injection string, Pa. \ref{pa:tdb}>>=
+  strNE := "'' or 1=1"
+  strE := "' or 1=1 or '"
+#+end_src
+#+begin_export latex
+Now we execute the queries by calling \ty{Taxids}.
+#+end_export
+#+begin_src go <<Execute injection query \ty{Taxids}, Pa. \ref{pa:tdb}>>=
+  taxids1, _ := taxdb.Taxids(strNE, 10, 0)
+  taxids2, _ := taxdb.Taxids(strE, 10, 0)
+#+end_src
+#+begin_export latex
+We expect that \ty{Taxids} is injection safe meaning both queries find
+no results.
+#+end_export
+#+begin_src go <<Check injection results \ty{Taxids}, Pa. \ref{pa:tdb}>>=
+  g = len(taxids1)
+  w = 0
+  if g != w {
+	  t.Errorf("\nget:%d\nwant:%d\n", g, w)
+  }
+
+  g = len(taxids2)
+  w = 0
+  if g != w {
+	  t.Errorf("\nget:%d\nwant:%d\n", g, w)
+  }
+#+end_src
+#+begin_export latex
+\ty{CommonTaxids} works just like \ty{CommonTaxids}, so we proceed as we did before.
+#+end_export
+#+begin_src go <<Test injection \ty{CommonTaxids}, Pa. \ref{pa:tdb}>>=
+//<<Execute injection query \ty{CommonTaxids}, Pa. \ref{pa:tdb}>>
+//<<Check injection results \ty{CommonTaxids}, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+Now we execute the queries by calling \ty{Taxids}.
+#+end_export
+#+begin_src go <<Execute injection query \ty{CommonTaxids}, Pa. \ref{pa:tdb}>>=
+  ctaxids1, _ := taxdb.CommonTaxids(strNE, 10, 0)
+  ctaxids2, _ := taxdb.CommonTaxids(strE, 10, 0)
+#+end_src
+#+begin_export latex
+We expect that \ty{CommonTaxids} is injection safe meaning both queries find
+no results.
+#+end_export
+#+begin_src go <<Check injection results \ty{CommonTaxids}, Pa. \ref{pa:tdb}>>=
+  g = len(ctaxids1)
+  w = 0
+  if g != w {
+	  t.Errorf("\nget:%d\nwant:%d\n", g, w)
+  }
+
+  g = len(ctaxids2)
+  w = 0
+  if g != w {
+	  t.Errorf("\nget:%d\nwant:%d\n", g, w)
+  }
+#+end_src
+#+begin_export latex
+\ty{Level} does not return a list of elements, so we need to think of a new
+injection. Here we could escape the query to create a new return and return something
+totally different.
+#+end_export
+#+begin_src go <<Test injection \ty{Level}, Pa. \ref{pa:tdb}>>=
+//<<Define injection string \ty{Level}, Pa. \ref{pa:tdb}>>
+//<<Execute injection query \ty{Level}, Pa. \ref{pa:tdb}>>
+//<<Check injection results \ty{Level}, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+  We do an enclosed and a non enclosed version again.
+#+end_export
+#+begin_src go <<Define injection string \ty{Level}, Pa. \ref{pa:tdb}>>=
+  strNE = "1;select 'injected'"
+  strE = "';select 'injected' where '1"
+#+end_src
+#+begin_export latex
+We execute the queries by calling \ty{Level}.
+#+end_export
+#+begin_src go <<Execute injection query \ty{Level}, Pa. \ref{pa:tdb}>>=
+  level1, _ := taxdb.Level(strNE)
+  level2, _ := taxdb.Level(strE)
+#+end_src
+#+begin_export latex
+We expect that \ty{Level} is injection safe meaning both queries find
+no results.
+#+end_export
+#+begin_src go <<Check injection results \ty{Level}, Pa. \ref{pa:tdb}>>=
+  wStr := ""
+  if level1 != wStr {
+	  t.Errorf("\nget:%s\nwant:%s\n", level1, wStr)
+  }
+
+  wStr = ""
+  if level2 != wStr {
+	  t.Errorf("\nget:%s\nwant:%s\n", level2, wStr)
+  }
+#+end_src
+#+begin_export latex
+\ty{NumGenomes} works again similar to \ty{Level}, in the context of injections.
+In this case we need to return an int, so we again escape the query
+and return -1.
+#+end_export
+#+begin_src go <<Test injection \ty{NumGenomes}, Pa. \ref{pa:tdb}>>=
+//<<Define injection string \ty{NumGenomes}, Pa. \ref{pa:tdb}>>
+//<<Execute injection query \ty{NumGenomes}, Pa. \ref{pa:tdb}>>
+//<<Check injection results \ty{NumGenomes}, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+  We do an enclosed and a non enclosed version again.
+#+end_export
+#+begin_src go <<Define injection string \ty{NumGenomes}, Pa. \ref{pa:tdb}>>=
+  strNE = ";select -1"
+  strE = "';select -1 where '1"
+#+end_src
+#+begin_export latex
+We execute the queries by calling \ty{NumGenomes}.
+#+end_export
+#+begin_src go <<Execute injection query \ty{NumGenomes}, Pa. \ref{pa:tdb}>>=
+  ng1, _ := taxdb.NumGenomes(-1, strNE)
+  ng2, _ := taxdb.NumGenomes(-1, strE)
+#+end_src
+#+begin_export latex
+We expect that \ty{NumGenomes} is injection safe meaning both queries find
+a zero as there is neither a taxon with id -1 nor a level with that cryptic
+name we defined above.
+#+end_export
+#+begin_src go <<Check injection results \ty{NumGenomes}, Pa. \ref{pa:tdb}>>=
+  wi := 0
+  if ng1 != wi {
+	  t.Errorf("\nget:%d\nwant:%d\n", ng1, wi)
+  }
+
+  wi = 0
+  if ng2 != wi {
+	  t.Errorf("\nget:%d\nwant:%d\n", ng2, wi)
+  }
+#+end_src
+#+begin_export latex
+We can use the exact same method and string for \ty{NumGenomesRec}.
+#+end_export
+#+begin_src go <<Test injection \ty{NumGenomesRec}, Pa. \ref{pa:tdb}>>=
+//<<Execute injection query \ty{NumGenomesRec}, Pa. \ref{pa:tdb}>>
+//<<Check injection results \ty{NumGenomesRec}, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+We execute the queries by calling \ty{NumGenomesRec}.
+#+end_export
+#+begin_src go <<Execute injection query \ty{NumGenomesRec}, Pa. \ref{pa:tdb}>>=
+  ng1, _ = taxdb.NumGenomesRec(-1, strNE)
+  ng2, _ = taxdb.NumGenomesRec(-1, strE)
+#+end_src
+#+begin_export latex
+We expect that \ty{NumGenomesRec} is injection safe meaning both queries find
+a zero as there is neither a taxon with id -1 nor a level with that cryptic
+name we defined above.
+#+end_export
+#+begin_src go <<Check injection results \ty{NumGenomesRec}, Pa. \ref{pa:tdb}>>=
+  wi = 0
+  if ng1 != wi {
+	  t.Errorf("\nget:%d\nwant:%d\n", ng1, wi)
+  }
+
+  wi = 0
+  if ng2 != wi {
+	  t.Errorf("\nget:%d\nwant:%d\n", ng2, wi)
+  }
+#+end_src
+#+begin_export latex
+Lastly we check for injections \ty{AccessionTaxid}. We use the same schema as we 
+did with the last two checks. We can reuse the injection strings as well.
+#+end_export
+#+begin_src go <<Test injection \ty{AccessionTaxid}, Pa. \ref{pa:tdb}>>=
+//<<Execute injection query \ty{AccessionTaxid}, Pa. \ref{pa:tdb}>>
+//<<Check injection results \ty{AccessionTaxid}, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+We execute the queries by calling \ty{AccessionTaxid}.
+#+end_export
+#+begin_src go <<Execute injection query \ty{AccessionTaxid}, Pa. \ref{pa:tdb}>>=
+  at1, _ := taxdb.AccessionTaxid(strNE)
+  at2, _ := taxdb.AccessionTaxid(strE)
+#+end_src
+#+begin_export latex
+We expect that \ty{AccessionTaxid} is injection safe meaning both queries find
+a zero as there is no taxon with the cryptic name defined above.
+#+end_export
+#+begin_src go <<Check injection results \ty{AccessionTaxid}, Pa. \ref{pa:tdb}>>=
+  wi = 0
+  if at1 != wi {
+	  t.Errorf("\nget:%d\nwant:%d\n", at1, wi)
+  }
+
+  wi = 0
+  if at2 != wi {
+	  t.Errorf("\nget:%d\nwant:%d\n", at2, wi)
   }
 #+end_src

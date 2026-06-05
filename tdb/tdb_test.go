@@ -206,4 +206,80 @@ func TestTdb(t *testing.T) {
 	if g != w {
 		t.Errorf("get:\n%dwant:\n%d\n", g, w)
 	}
+	strNE := "'' or 1=1"
+	strE := "' or 1=1 or '"
+	taxids1, _ := taxdb.Taxids(strNE, 10, 0)
+	taxids2, _ := taxdb.Taxids(strE, 10, 0)
+	g = len(taxids1)
+	w = 0
+	if g != w {
+		t.Errorf("\nget:%d\nwant:%d\n", g, w)
+	}
+
+	g = len(taxids2)
+	w = 0
+	if g != w {
+		t.Errorf("\nget:%d\nwant:%d\n", g, w)
+	}
+	ctaxids1, _ := taxdb.CommonTaxids(strNE, 10, 0)
+	ctaxids2, _ := taxdb.CommonTaxids(strE, 10, 0)
+	g = len(ctaxids1)
+	w = 0
+	if g != w {
+		t.Errorf("\nget:%d\nwant:%d\n", g, w)
+	}
+
+	g = len(ctaxids2)
+	w = 0
+	if g != w {
+		t.Errorf("\nget:%d\nwant:%d\n", g, w)
+	}
+	strNE = "1;select 'injected'"
+	strE = "';select 'injected' where '1"
+	level1, _ := taxdb.Level(strNE)
+	level2, _ := taxdb.Level(strE)
+	wStr := ""
+	if level1 != wStr {
+		t.Errorf("\nget:%s\nwant:%s\n", level1, wStr)
+	}
+
+	wStr = ""
+	if level2 != wStr {
+		t.Errorf("\nget:%s\nwant:%s\n", level2, wStr)
+	}
+	strNE = ";select -1"
+	strE = "';select -1 where '1"
+	ng1, _ := taxdb.NumGenomes(-1, strNE)
+	ng2, _ := taxdb.NumGenomes(-1, strE)
+	wi := 0
+	if ng1 != wi {
+		t.Errorf("\nget:%d\nwant:%d\n", ng1, wi)
+	}
+
+	wi = 0
+	if ng2 != wi {
+		t.Errorf("\nget:%d\nwant:%d\n", ng2, wi)
+	}
+	ng1, _ = taxdb.NumGenomesRec(-1, strNE)
+	ng2, _ = taxdb.NumGenomesRec(-1, strE)
+	wi = 0
+	if ng1 != wi {
+		t.Errorf("\nget:%d\nwant:%d\n", ng1, wi)
+	}
+
+	wi = 0
+	if ng2 != wi {
+		t.Errorf("\nget:%d\nwant:%d\n", ng2, wi)
+	}
+	at1, _ := taxdb.AccessionTaxid(strNE)
+	at2, _ := taxdb.AccessionTaxid(strE)
+	wi = 0
+	if at1 != wi {
+		t.Errorf("\nget:%d\nwant:%d\n", at1, wi)
+	}
+
+	wi = 0
+	if at2 != wi {
+		t.Errorf("\nget:%d\nwant:%d\n", at2, wi)
+	}
 }
