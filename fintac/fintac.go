@@ -21,7 +21,7 @@ import (
 type Count struct {
 	label, parent string
 	vn, vt, vu    int
-	sv, dp        float64
+	sv, dp, tl    float64
 }
 
 func parse(r io.Reader, args ...interface{}) {
@@ -35,6 +35,7 @@ func parse(r io.Reader, args ...interface{}) {
 		tree := sc.Tree()
 		counts := make(map[int]*Count)
 		traverseTree(tree, counts, tregex, nregex, uregex, neidb)
+		//tl := counts[tree.Id].tl
 		nt := float64(counts[tree.Id].vt)
 		nn := float64(counts[tree.Id].vn)
 		nu := float64(counts[tree.Id].vu)
@@ -42,6 +43,9 @@ func parse(r io.Reader, args ...interface{}) {
 			van := nn - float64(count.vn)
 			vau := nu - float64(count.vu)
 			vt := float64(count.vt)
+			//    x := 1.0 - count.tl * vt / nn / nu / nt * tl
+			x := 1.0
+			vt *= x
 			count.sv = (vt + van + math.Log(vau+1.0)) /
 				(nt + nn + math.Log(nu+1.0)) * 100.0
 		}
@@ -156,6 +160,7 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 		counts[v.Parent.Id].vt += counts[v.Id].vt
 		counts[v.Parent.Id].vn += counts[v.Id].vn
 		counts[v.Parent.Id].vu += counts[v.Id].vu
+		counts[v.Parent.Id].tl += counts[v.Id].dp + counts[v.Id].tl
 	}
 }
 func hatch(regex *regexp.Regexp, label string,

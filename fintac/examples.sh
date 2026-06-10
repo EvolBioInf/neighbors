@@ -7,3 +7,6 @@
 # O157:H7
 ./fintac -t 83334 ../data/phyl_cleaned.nwk
 ./fintac -t 83334_ -u 562_ ../data/phyl_cleaned.nwk
+# O25
+./fintac -t 941322_ ../data/phyl_cleaned.nwk
+./fintac -t 941322_ -u 562_ ../data/phyl_cleaned.nwk

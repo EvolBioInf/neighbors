@@ -288,14 +288,14 @@ them.
 #+begin_src latex
   A count is understood per node; so it consists of the node label, the
   label of its parent, the number of neighbors, targets, and unknowns in
-  its subtree, its split as defined in equation~(\ref{eq:spl}), and its
-  distance to the parent.
+  its subtree, its split as defined in equation~(\ref{eq:spl}), its
+  distance to the parent, and the length of its subtree.
 #+end_src
 #+begin_src go <<Types, Pr. \ref{pr:fit}>>=
   type Count struct {
 	  label, parent string
 	  vn, vt, vu int
-	  sv, dp float64
+	  sv, dp, tl float64
   }
 #+end_src
 #+begin_src latex
@@ -549,13 +549,15 @@ We make sure all internal nodes are labeled.
 #+end_src
 #+begin_src latex
   We count the targets, neighbors, and unknowns by incrementing the
-  corresponding counter in the parent---unless we're a the root.
+  corresponding counter in the parent---unless we're a the root. We also
+  increment the tree length.
 #+end_src
 #+begin_src go <<Count targets, neighbors, and unknowns, Pr. \ref{pr:fit}>>=
   if v.Parent != nil {
 	  counts[v.Parent.Id].vt += counts[v.Id].vt
 	  counts[v.Parent.Id].vn += counts[v.Id].vn
 	  counts[v.Parent.Id].vu += counts[v.Id].vu
+	  counts[v.Parent.Id].tl += counts[v.Id].dp + counts[v.Id].tl
   }
 #+end_src
 #+begin_src latex
@@ -573,6 +575,7 @@ and sort the counts.
   targets, neighbors, and unknowns for the root.
 #+end_src
 #+begin_src go <<Calculate splits, Pr. \ref{pr:fit}>>=
+  //tl := counts[tree.Id].tl
   nt := float64(counts[tree.Id].vt)
   nn := float64(counts[tree.Id].vn)
   nu := float64(counts[tree.Id].vu)
@@ -591,6 +594,9 @@ and sort the counts.
 	  van := nn - float64(count.vn)
 	  vau := nu - float64(count.vu)
 	  vt := float64(count.vt)
+	  //	x := 1.0 - count.tl * vt / nn / nu / nt * tl
+	  x := 1.0
+	  vt *= x
 	  count.sv = (vt + van + math.Log(vau+1.0)) /
 		  (nt + nn + math.Log(nu+1.0)) * 100.0
   }
