@@ -2591,12 +2591,12 @@ returned should be zero.
 #+begin_export latex
 As a next step we test for injection safety. This really only works
 for methods that execute queries and take strings as arguments.
-Given this constraint we to test these methods: 
-\ty{Taxids}
-\ty{CommonTaxids}
-\ty{Level}
-\ty{NumGenomes}
-\ty{NumGenomesRec}
+Given this constraint we test these six methods:
+\ty{Taxids},
+\ty{CommonTaxids},
+\ty{Level},
+\ty{NumGenomes},
+\ty{NumGenomesRec} and
 \ty{AccessionTaxid}
 #+end_export
 #+begin_src go <<Test methods, Pa. \ref{pa:tdb}>>=
@@ -2609,8 +2609,8 @@ Given this constraint we to test these methods:
 #+end_src
 #+begin_export latex
 We begin with \ty{Taxids}. \ty{Taxids} uses the string argument to
-filter names with the like operator. In order to check for injectability
-we need to define a string that, somewhat, escapes the flow of the query, 
+filter names with the \ty{like} operator. In order to check for injectability
+we need to define a string that, somewhat, escapes the flow of the query,
 execute it and check the results.
 #+end_export
 #+begin_src go <<Test injection \ty{Taxids}, Pa. \ref{pa:tdb}>>=
@@ -2619,14 +2619,15 @@ execute it and check the results.
   //<<Check injection results \ty{Taxids}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_export latex
-Our goal is to escape the filtering done by like and return everything instead. 
-We use two test strings one for string enclosed names and one for non enclosed one.
-The non enclosed one could be something like '' or 1=1. Here '' catches the like 
-operator and allows us to set another condition which 
-always evaluates to true.
-The enclosed one looks similar and might be something like this: ' or 1=1 or '
-where the first apostrophe breaks us out of literal and the last reenters to 
-make a valid statement
+Our goal is to escape the filtering done by the \ty{like} operator and return
+an unfiltered result instead.
+We use two test strings, one for queries where the token is string-enclosed and one for non-enclosed tokens.
+The non-enclosed token could be something along the lines of \ty{'' or 1=1}. Here \ty{''} catches the \ty{like}
+operator. This allows us to add another condition, via the \ty{or} operator, which
+always evaluates to \ty{true}. Thus we get an unfiltered result. The enclosed token looks similar and
+might be something like this: \ty{' or 1=1 or '}. Here the first apostrophe breaks us out of the string
+literal. This again allows adding new conditions. The second apostrophe binds with the enclosing
+character of the original query, making the injected query a valid statement.
 #+end_export
 #+begin_src go <<Define injection string, Pa. \ref{pa:tdb}>>=
   strNE := "'' or 1=1"
@@ -2649,7 +2650,6 @@ no results.
   if g != w {
 	  t.Errorf("\nget:%d\nwant:%d\n", g, w)
   }
-
   g = len(taxids2)
   w = 0
   if g != w {
@@ -2680,7 +2680,6 @@ no results.
   if g != w {
 	  t.Errorf("\nget:%d\nwant:%d\n", g, w)
   }
-
   g = len(ctaxids2)
   w = 0
   if g != w {
@@ -2689,8 +2688,8 @@ no results.
 #+end_src
 #+begin_export latex
 \ty{Level} does not return a list of elements, so we need to think of a new
-injection. Here we could escape the query to create a new return and return something
-totally different.
+injection. Here we could try to escape the query to create an unintended return value.
+This value is going to be the string literal \ty{'injected'}.
 #+end_export
 #+begin_src go <<Test injection \ty{Level}, Pa. \ref{pa:tdb}>>=
 //<<Define injection string \ty{Level}, Pa. \ref{pa:tdb}>>
@@ -2698,7 +2697,7 @@ totally different.
 //<<Check injection results \ty{Level}, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_export latex
-  We do an enclosed and a non enclosed version again.
+We do an enclosed and a non enclosed version again.
 #+end_export
 #+begin_src go <<Define injection string \ty{Level}, Pa. \ref{pa:tdb}>>=
   strNE = "1;select 'injected'"
@@ -2712,7 +2711,7 @@ We execute the queries by calling \ty{Level}.
   level2, _ := taxdb.Level(strE)
 #+end_src
 #+begin_export latex
-We expect that \ty{Level} is injection safe meaning both queries find
+We expect that \ty{Level} is injection safe, meaning both queries find
 no results.
 #+end_export
 #+begin_src go <<Check injection results \ty{Level}, Pa. \ref{pa:tdb}>>=
@@ -2720,7 +2719,6 @@ no results.
   if level1 != wStr {
 	  t.Errorf("\nget:%s\nwant:%s\n", level1, wStr)
   }
-
   wStr = ""
   if level2 != wStr {
 	  t.Errorf("\nget:%s\nwant:%s\n", level2, wStr)
@@ -2728,8 +2726,8 @@ no results.
 #+end_src
 #+begin_export latex
 \ty{NumGenomes} works again similar to \ty{Level}, in the context of injections.
-In this case we need to return an int, so we again escape the query
-and return -1.
+In this case we need to return an integer, so we again escape the query
+and return \ty{-1}.
 #+end_export
 #+begin_src go <<Test injection \ty{NumGenomes}, Pa. \ref{pa:tdb}>>=
 //<<Define injection string \ty{NumGenomes}, Pa. \ref{pa:tdb}>>
@@ -2751,8 +2749,8 @@ We execute the queries by calling \ty{NumGenomes}.
   ng2, _ := taxdb.NumGenomes(-1, strE)
 #+end_src
 #+begin_export latex
-We expect that \ty{NumGenomes} is injection safe meaning both queries find
-a zero as there is neither a taxon with id -1 nor a level with that cryptic
+We expect that \ty{NumGenomes} is injection safe, meaning both queries return
+\ty{0} as there is neither a taxon with id \ty{-1} nor a level with that cryptic
 name we defined above.
 #+end_export
 #+begin_src go <<Check injection results \ty{NumGenomes}, Pa. \ref{pa:tdb}>>=
@@ -2760,7 +2758,6 @@ name we defined above.
   if ng1 != wi {
 	  t.Errorf("\nget:%d\nwant:%d\n", ng1, wi)
   }
-
   wi = 0
   if ng2 != wi {
 	  t.Errorf("\nget:%d\nwant:%d\n", ng2, wi)
@@ -2781,8 +2778,8 @@ We execute the queries by calling \ty{NumGenomesRec}.
   ng2, _ = taxdb.NumGenomesRec(-1, strE)
 #+end_src
 #+begin_export latex
-We expect that \ty{NumGenomesRec} is injection safe meaning both queries find
-a zero as there is neither a taxon with id -1 nor a level with that cryptic
+We expect that \ty{NumGenomesRec} is injection safe, meaning both queries return
+\ty{0} as there is neither a taxon with id \ty{-1} nor a level with that cryptic
 name we defined above.
 #+end_export
 #+begin_src go <<Check injection results \ty{NumGenomesRec}, Pa. \ref{pa:tdb}>>=
@@ -2790,15 +2787,14 @@ name we defined above.
   if ng1 != wi {
 	  t.Errorf("\nget:%d\nwant:%d\n", ng1, wi)
   }
-
   wi = 0
   if ng2 != wi {
 	  t.Errorf("\nget:%d\nwant:%d\n", ng2, wi)
   }
 #+end_src
 #+begin_export latex
-Lastly we check for injections \ty{AccessionTaxid}. We use the same schema as we 
-did with the last two checks. We can reuse the injection strings as well.
+Lastly we check for injections in \ty{AccessionTaxid}. We use the same schema as we
+did with the previous two checks. We can reuse the injection strings as well.
 #+end_export
 #+begin_src go <<Test injection \ty{AccessionTaxid}, Pa. \ref{pa:tdb}>>=
 //<<Execute injection query \ty{AccessionTaxid}, Pa. \ref{pa:tdb}>>
@@ -2812,15 +2808,14 @@ We execute the queries by calling \ty{AccessionTaxid}.
   at2, _ := taxdb.AccessionTaxid(strE)
 #+end_src
 #+begin_export latex
-We expect that \ty{AccessionTaxid} is injection safe meaning both queries find
-a zero as there is no taxon with the cryptic name defined above.
+We expect that \ty{AccessionTaxid} is injection safe, meaning both queries return
+\ty{0} as there is no taxon with the cryptic name defined above.
 #+end_export
 #+begin_src go <<Check injection results \ty{AccessionTaxid}, Pa. \ref{pa:tdb}>>=
   wi = 0
   if at1 != wi {
 	  t.Errorf("\nget:%d\nwant:%d\n", at1, wi)
   }
-
   wi = 0
   if at2 != wi {
 	  t.Errorf("\nget:%d\nwant:%d\n", at2, wi)
