@@ -19,9 +19,9 @@ import (
 )
 
 type Count struct {
-	label, parent string
-	vn, vt, vu    int
-	sv, dp, tl    float64
+	label, parent  string
+	id, vn, vt, vu int
+	sv, dp, tl     float64
 }
 
 func parse(r io.Reader, args ...interface{}) {
@@ -30,23 +30,34 @@ func parse(r io.Reader, args ...interface{}) {
 	nregex := args[2].(*regexp.Regexp)
 	uregex := args[3].(*regexp.Regexp)
 	neidb := args[4].(*tdb.TaxonomyDB)
+	w := args[5].(float64)
 	sc := nwk.NewScanner(r)
 	for sc.Scan() {
 		tree := sc.Tree()
+		nodes := make(map[int]*nwk.Node)
+		storeNodes(tree, nodes)
+		root := tree
+		epl := pathLength(tree, root, 0.0)
 		counts := make(map[int]*Count)
 		traverseTree(tree, counts, tregex, nregex, uregex, neidb)
-		//tl := counts[tree.Id].tl
 		nt := float64(counts[tree.Id].vt)
 		nn := float64(counts[tree.Id].vn)
 		nu := float64(counts[tree.Id].vu)
+		n := nt + nn + nu
+		tl := epl / n
 		for _, count := range counts {
 			van := nn - float64(count.vn)
 			vau := nu - float64(count.vu)
 			vt := float64(count.vt)
-			//    x := 1.0 - count.tl * vt / nn / nu / nt * tl
-			x := 1.0
-			vt *= x
-			count.sv = (vt + van + math.Log(vau+1.0)) /
+			f := 1.0
+			pl := 0.0
+			v := nodes[count.id]
+			if v.Child != nil {
+				pl = pathLength(v.Child, v, 0.0)
+			}
+			vl := pl / float64(count.vt+count.vn+count.vu)
+			f = 1.0 - w*vl/tl
+			count.sv = (vt*f + van + math.Log(vau+1.0)) /
 				(nt + nn + math.Log(nu+1.0)) * 100.0
 		}
 		cs := make([]*Count, 0)
@@ -88,6 +99,25 @@ func parse(r io.Reader, args ...interface{}) {
 		w.Flush()
 	}
 }
+func storeNodes(v *nwk.Node, nodes map[int]*nwk.Node) {
+	if v == nil {
+		return
+	}
+	nodes[v.Id] = v
+	storeNodes(v.Child, nodes)
+	storeNodes(v.Sib, nodes)
+}
+func pathLength(v, root *nwk.Node, pl float64) float64 {
+	if v == nil {
+		return pl
+	}
+	if v.Child == nil {
+		pl += v.UpDistance(root)
+	}
+	pl = pathLength(v.Child, root, pl)
+	pl = pathLength(v.Sib, root, pl)
+	return pl
+}
 func traverseTree(v *nwk.Node, counts map[int]*Count,
 	tregex, nregex, uregex *regexp.Regexp,
 	neidb *tdb.TaxonomyDB) {
@@ -96,6 +126,7 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 	}
 	count := new(Count)
 	count.label = v.Label
+	count.id = v.Id
 	if v.Parent != nil {
 		count.dp = v.Length
 		count.parent = v.Parent.Label
@@ -160,7 +191,6 @@ func traverseTree(v *nwk.Node, counts map[int]*Count,
 		counts[v.Parent.Id].vt += counts[v.Id].vt
 		counts[v.Parent.Id].vn += counts[v.Id].vn
 		counts[v.Parent.Id].vu += counts[v.Id].vu
-		counts[v.Parent.Id].tl += counts[v.Id].dp + counts[v.Id].tl
 	}
 }
 func hatch(regex *regexp.Regexp, label string,
@@ -193,7 +223,7 @@ func main() {
 	u := "fintac [option]... [foo.nwk]..."
 	p := "Find target clade for taxa identified by " +
 		"regular expressions in Newick tree."
-	e := "fintac -t \"^991910\" -u \"^562\" eco7k.nwk"
+	e := "fintac -t 991910_ -u 562_ eco7k.nwk"
 	clio.Usage(u, p, e)
 	optV := flag.Bool("v", false, "version")
 	optA := flag.Bool("a", false, "all splits (default maximal)")
@@ -202,8 +232,10 @@ func main() {
 		"or neighbor")
 	optN := flag.String("n", "", "neighbor "+
 		"(default complement of -t and -u)")
-	optNN := flag.String("N", "", "neighbors datbase to activate "+
-		"hierarchical matching for targets and neighbors")
+	optNN := flag.String("N", "", "neighbors datbase to "+
+		"activate hierarchical matching for targets "+
+		"and neighbors")
+	optW := flag.Float64("w", 2.0, "branch weight")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("fintac")
@@ -227,5 +259,5 @@ func main() {
 	}
 	files := flag.Args()
 	clio.ParseFiles(files, parse, optA, tregex, nregex, uregex,
-		neidb)
+		neidb, *optW)
 }
