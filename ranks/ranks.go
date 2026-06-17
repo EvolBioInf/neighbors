@@ -75,7 +75,7 @@ func main() {
 	u := "ranks [option]... <taxon-ID> <db>"
 	p := "Calculate distribution of genomes " +
 		"among taxonomic ranks."
-	e := "ranks -g myGenomes.txt 562 neidb"
+	e := "ranks -g myGenomeList.txt 562 neidb"
 	clio.Usage(u, p, e)
 	optV := flag.Bool("v", false, "version")
 	optL := flag.Bool("l", false, "list genomes (implies -t)")
@@ -84,8 +84,11 @@ func main() {
 	optG := flag.String("g", "", "read genome accessions "+
 		"from file")
 	flag.Parse()
+	if *optV {
+		util.PrintInfo("ranks")
+	}
 	args := flag.Args()
-	if len(args) < 2 && (len(args) < 1 && *optG == "") {
+	if len(args) < 2 {
 		m := "please enter the root taxon-ID " +
 			"and the Neighbors database"
 		log.Fatal(m)
@@ -94,9 +97,6 @@ func main() {
 	util.Check(err)
 	neidb, err := tdb.OpenTaxonomyDBcheck(args[1])
 	util.Check(err)
-	if *optV {
-		util.PrintInfo("ranks")
-	}
 	levels := make(map[string]bool)
 	knowns := tdb.AssemblyLevels()
 	if *optLL != "" {

@@ -107,7 +107,7 @@ purpose of \ty{ranks}, and an example command.
   u := "ranks [option]... <taxon-ID> <db>"
   p := "Calculate distribution of genomes " +
 	  "among taxonomic ranks."
-  e := "ranks -g myGenomes.txt 562 neidb"
+  e := "ranks -g myGenomeList.txt 562 neidb"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_export latex
@@ -139,13 +139,24 @@ We import \ty{flag}.
 #+begin_export latex
 We parse the options. At this point we expect two more arguments on
 the command line, the root of the ranks tree and the Neighbors
-database. If we don't get these two tokens, we exit with a friendly
-message. Otherwise, we get the root and the database.
+database. However, before we get these, we check whether the user
+asked for the version, as printing the version terminates the program.
 #+end_export
 #+begin_src go <<Parse options, Pr. \ref{pr:ran}>>=
   flag.Parse()
+  if *optV {
+	  util.PrintInfo("ranks")
+  } 
+  //<<Get root and \ty{neidb}, Pr. \ref{pr:ran}>>
+#+end_src
+#+begin_export latex
+There should now be two more arguments on the command line. If not, we
+exit with a friendly message. Otherwise, we get the root and the
+Neighbors database, \ty{neidb}.
+#+end_export
+#+begin_src go <<Get root and \ty{neidb}, Pr. \ref{pr:ran}>>=
   args := flag.Args()
-  if len(args) < 2 && (len(args) < 1 && *optG == "") {
+  if len(args) < 2 {
 	  m := "please enter the root taxon-ID " +
 		  "and the Neighbors database"
 	  log.Fatal(m)
@@ -164,21 +175,11 @@ We import \ty{log}, \ty{strconv}, and \ty{tdb}.
   "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_export latex
-We respond to the version, the level, and the genomes file.
+We respond to the remaining two options, level and the genomes file.
 #+end_export
 #+begin_src go <<Respond to options, Pr. \ref{pr:ran}>>=
-  //<<Respond to \ty{-v}, Pr. \ref{pr:ran}>>
   //<<Respond to \ty{-L}, Pr. \ref{pr:ran}>>
   //<<Respond to \ty{-g}, Pr. \ref{pr:ran}>>
-#+end_src
-#+begin_export latex
-If the user requested the version, we print the program info, which
-contains the version.
-#+end_export
-#+begin_src go <<Respond to \ty{-v}, Pr. \ref{pr:ran}>>=
-  if *optV {
-	  util.PrintInfo("ranks")
-  }
 #+end_src
 #+begin_export latex
 If the user set levels, we need to extract and check them. For this we
