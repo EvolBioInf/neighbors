@@ -41,7 +41,7 @@
   f = 1-w\times v_{\rm\ell}/r_{\rm\ell},
   \]
   where $w$ weighs the contribution of the branch lengths, $w=0$ would
-  be none. Through trial and error we have settled on $w=2$, but the
+  be none. Through trial and error we have settled on $w=3$, but the
   user can experiment with other values. Our draft split score now
   decreases the target count according to the height of $v$,
   \[
@@ -170,7 +170,7 @@ We import \ty{clio}.
   optNN := flag.String("N", "", "neighbors datbase to " +
 	  "activate hierarchical matching for targets " +
 	  "and neighbors")
-  optW := flag.Float64("w", 2.0, "branch weight")
+  optW := flag.Float64("w", 3.0, "branch weight")
 #+end_src
 #+begin_src latex
 We import \ty{flag}.
