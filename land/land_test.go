@@ -10,15 +10,17 @@ import (
 
 func TestLand(t *testing.T) {
 	var tests []*exec.Cmd
-	f1 := "test1.nwk"
-	f2 := "test2.nwk"
-	test := exec.Command("./land", f1)
+	f := "test1.nwk"
+	test := exec.Command("./land", f)
 	tests = append(tests, test)
-	test = exec.Command("./land", "-p", "p", f1)
+	test = exec.Command("./land", "-p", "p", f)
 	tests = append(tests, test)
-	test = exec.Command("./land", "-s", "s", f1)
+	test = exec.Command("./land", "-s", "s", f)
 	tests = append(tests, test)
-	test = exec.Command("./land", "-r", f2)
+	test = exec.Command("./land", "-l", f)
+	tests = append(tests, test)
+	f = "test2.nwk"
+	test = exec.Command("./land", "-r", f)
 	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()
