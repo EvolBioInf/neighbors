@@ -215,7 +215,6 @@ func TestTdb(t *testing.T) {
 	if g != w {
 		t.Errorf("\nget:%d\nwant:%d\n", g, w)
 	}
-
 	g = len(taxids2)
 	w = 0
 	if g != w {
@@ -228,7 +227,6 @@ func TestTdb(t *testing.T) {
 	if g != w {
 		t.Errorf("\nget:%d\nwant:%d\n", g, w)
 	}
-
 	g = len(ctaxids2)
 	w = 0
 	if g != w {
@@ -242,7 +240,6 @@ func TestTdb(t *testing.T) {
 	if level1 != wStr {
 		t.Errorf("\nget:%s\nwant:%s\n", level1, wStr)
 	}
-
 	wStr = ""
 	if level2 != wStr {
 		t.Errorf("\nget:%s\nwant:%s\n", level2, wStr)
@@ -255,7 +252,6 @@ func TestTdb(t *testing.T) {
 	if ng1 != wi {
 		t.Errorf("\nget:%d\nwant:%d\n", ng1, wi)
 	}
-
 	wi = 0
 	if ng2 != wi {
 		t.Errorf("\nget:%d\nwant:%d\n", ng2, wi)
@@ -266,7 +262,6 @@ func TestTdb(t *testing.T) {
 	if ng1 != wi {
 		t.Errorf("\nget:%d\nwant:%d\n", ng1, wi)
 	}
-
 	wi = 0
 	if ng2 != wi {
 		t.Errorf("\nget:%d\nwant:%d\n", ng2, wi)
@@ -277,7 +272,6 @@ func TestTdb(t *testing.T) {
 	if at1 != wi {
 		t.Errorf("\nget:%d\nwant:%d\n", at1, wi)
 	}
-
 	wi = 0
 	if at2 != wi {
 		t.Errorf("\nget:%d\nwant:%d\n", at2, wi)
