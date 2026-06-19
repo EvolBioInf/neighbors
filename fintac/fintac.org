@@ -27,6 +27,14 @@
   s_{\rm d}(v)=v_{\rm t} + v^{\ast}_{\rm n} + v^{\ast}_{\rm u}.
   \]
 
+  In the above draft we treat unknowns like targets and neighbors by
+  entering them linearly. However, positive identification as target or
+  neighbor is much stronger information than ``unknown''. So we enter
+  the unknowns outside logarithmically,
+  \[
+  s_{\rm d}(v)=v_{\rm t}f + v^{\ast}_{\rm n} + \log(v^{\ast}_{\rm u} + 1).
+  \]
+
   To further develop the split score, we note that the target clade
   ought to be as compact as possible. To make this precise, we call
   $v_{\rm\ell}$ the average distance between the leaves in the subtree
@@ -40,24 +48,16 @@
   \[
   f = 1-w\times v_{\rm\ell}/r_{\rm\ell},
   \]
-  where $w$ weighs the contribution of the branch lengths, $w=0$ would
-  be none. Through trial and error we have settled on $w=3$, but the
-  user can experiment with other values. Our draft split score now
-  decreases the target count according to the height of $v$,
+  where $w$ weighs the contribution of the branch lengths, $w=0$ is
+  none, which is the default for this still rather experimental
+  feature. Still, the user now has the option to decrease the target
+  count according to the height of $v$,
   \[
   s_{\rm d}(v)=v_{\rm t}f + v^{\ast}_{\rm n} + v^{\ast}_{\rm u}.
   \]
 
-  Currently, we treat unknowns like targets and neighbors by entering
-  them linearly. However, positive identification as target or neighbor
-  is much stronger information than ``unknown''. So we enter the
-  unknowns outside logarithmically,
-  \[
-  s_{\rm d}(v)=v_{\rm t}f + v^{\ast}_{\rm n} + \log(v^{\ast}_{\rm u} + 1).
-  \]
-
-  We can now normalize our draft split score by its maximum and multiply
-  it by 100 to get our final version,
+  Finally, we can normalize our draft split score by its maximum and
+  multiply it by 100 to get,
   \begin{equation}\label{eq:spl}
     s(v)=\frac{v_{\rm t}f + v^{\ast}_{\rm n} +\log(v^{\ast}_{\rm
 	u}+1)}{n_{\rm t} + n_{\rm n} + \log(n_{\rm u}+1)}\times 100,
@@ -170,7 +170,7 @@ We import \ty{clio}.
   optNN := flag.String("N", "", "neighbors datbase to " +
 	  "activate hierarchical matching for targets " +
 	  "and neighbors")
-  optW := flag.Float64("w", 3.0, "branch weight")
+  optW := flag.Float64("w", 0.0, "branch weight")
 #+end_src
 #+begin_src latex
 We import \ty{flag}.
@@ -860,10 +860,10 @@ We test the ``unknown'' option by calling all neighbors ``unknowns''.
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
-We test the weight by setting it to 0.
+We test the weight by setting it to 3.
 #+end_export
 #+begin_src go <<Construct tests, Pr. \ref{pr:fit}>>=
-  test = exec.Command(p, "-w", "0", f)
+  test = exec.Command(p, "-w", "3", f)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

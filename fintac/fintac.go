@@ -235,7 +235,7 @@ func main() {
 	optNN := flag.String("N", "", "neighbors datbase to "+
 		"activate hierarchical matching for targets "+
 		"and neighbors")
-	optW := flag.Float64("w", 3.0, "branch weight")
+	optW := flag.Float64("w", 0.0, "branch weight")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("fintac")

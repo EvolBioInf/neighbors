@@ -22,7 +22,7 @@ func TestFintac(t *testing.T) {
 	tests = append(tests, test)
 	test = exec.Command(p, "-u", "^n", f)
 	tests = append(tests, test)
-	test = exec.Command(p, "-w", "0", f)
+	test = exec.Command(p, "-w", "3", f)
 	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()
