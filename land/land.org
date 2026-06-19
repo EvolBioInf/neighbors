@@ -3,7 +3,7 @@
   The program \ty{land} labels the internal nodes of a Newick tree. This
   makes it easy to subsequently pick individual clades in the tree with
   \ty{pickle}. The program can also remove labels from the internal
-  nodes of a labeled tree.
+  nodes of a labeled tree and/or from the leaves.
 
   \section*{Implementation}
   \ty{land} contains hooks for imports, functions, and the logic of the
@@ -62,7 +62,9 @@ We import \ty{util}.
   var optV = flag.Bool("v", false, "version")
   var optP = flag.String("p", "", "prefix")
   var optS = flag.String("s", "", "suffix")
-  var optR = flag.Bool("r", false, "remove labels")
+  var optR = flag.Bool("r", false, "remove labels " +
+	  "from internal nodes")
+  var optL = flag.Bool("l", false, "remove leaf labels")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -85,11 +87,11 @@ We import \ty{util}.
   of input files. These are the argument of the function
   \ty{ParseFiles}. In addition, \ty{ParseFiles} takes as argument the
   function \ty{parse}, which in turn takes as arguments the prefix, 
-  the suffix, and the remove option.
+  the suffix, and the two remove options.
 #+end_src
 #+begin_src go <<Parse input files, Pr. \ref{pr:lan}>>=
   files := flag.Args()
-  clio.ParseFiles(files, parse, *optP, *optS, *optR)
+  clio.ParseFiles(files, parse, *optP, *optS, *optR, *optL)
 #+end_src
 #+begin_src latex
   Inside \ty{parse}, we retrieve the arguments we just passed and
@@ -113,7 +115,8 @@ We import \ty{util}.
 #+begin_src go <<Retrieve arguments, Pr. \ref{pr:lan}>>=
   pr := args[0].(string)
   su := args[1].(string)
-  rm := args[2].(bool)
+  ri := args[2].(bool)
+  rl := args[3].(bool)
 #+end_src
 #+begin_src latex
   We scan the trees in the input. Each tree is labeled starting with 1
@@ -123,7 +126,7 @@ We import \ty{util}.
   sc := nwk.NewScanner(r)
   for sc.Scan() {
 	  tree := sc.Tree()
-	  labelTree(tree, 1, pr, su, rm)
+	  labelTree(tree, 1, pr, su, ri, rl)
 	  fmt.Println(tree)
   }
 #+end_src
@@ -139,29 +142,31 @@ Inside the function \ty{labelTree} we label the nodes in order.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:lan}>>=
   func labelTree(v *nwk.Node, c int, pr, su string,
-	  rm bool) int {
+	  ri, rl bool) int {
 	  if v == nil {
 		  return c
 	  }
 	  //<<Label node, Pr. \ref{pr:lan}>>
-	  c = labelTree(v.Child, c, pr, su, rm)
-	  c = labelTree(v.Sib, c, pr, su, rm)
+	  c = labelTree(v.Child, c, pr, su, ri, rl)
+	  c = labelTree(v.Sib, c, pr, su, ri, rl)
 	  return c
   }
 #+end_src
 #+begin_src latex
-When labeling a node, we leave leaf nodes unchanged, but construct new
-labels for internal nodes.
+  When labeling a node, construct new labels for internal nodes and
+  might remove labels from leaves.
 #+end_src
 #+begin_src go <<Label node, Pr. \ref{pr:lan}>>=
   l := v.Label
   if v.Child != nil {
-	  if rm {
+	  if ri {
 		  l = ""
 	  } else {
 		  l = pr + strconv.Itoa(c) + su
 		  c++
 	  }
+  } else if rl {
+	  l = ""
   }
   v.Label = l
 #+end_src
@@ -207,28 +212,43 @@ labels for internal nodes.
   "os/exec"
 #+end_src
 #+begin_src latex
-  We construct four tests, one with default options, one where we set a
-  prefix, one where we set a suffix, and one where we remove existing
-  labels. The first three tests work on the unlabeled tree contained in
-  \ty{test1.nwk}, the last on the labeled tree contained in
-  \ty{test2.nwk}.
+  We construct tests that run on plain trees and tests that run on
+  labeled trees.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:lan}>>=
-  f1 := "test1.nwk"
-  f2 := "test2.nwk"
-  test := exec.Command("./land", f1)
+  //<<Tests on plain trees, Pr. \ref{pr:lan}>>
+  //<<Tests on labeled trees, Pr. \ref{pr:lan}>>
+#+end_src
+#+begin_export latex
+The plain tree for testing is contained in file \ty{test1.nwk}. We
+construct four tests based on it, one with default options, one where
+we set a prefix, one where we set a suffix, and one where we remove
+the leaf labels.
+#+end_export
+#+begin_src go <<Tests on plain trees, Pr. \ref{pr:lan}>>=
+  f := "test1.nwk"
+  test := exec.Command("./land", f)
   tests = append(tests, test)
-  test = exec.Command("./land", "-p", "p", f1)
+  test = exec.Command("./land", "-p", "p", f)
   tests = append(tests, test)
-  test = exec.Command("./land", "-s", "s", f1)
+  test = exec.Command("./land", "-s", "s", f)
   tests = append(tests, test)
-  test = exec.Command("./land", "-r", f2)
+  test = exec.Command("./land", "-l", f)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+Our labeled tree is contained in \ty{test2.nwk} and we run a single
+test on it to remove the labels.
+#+end_export
+#+begin_src go <<Tests on labeled trees, Pr. \ref{pr:lan}>>=
+  f = "test2.nwk"
+  test = exec.Command("./land", "-r", f)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
   For a given tests, we compare the result we get with the result we
   want. The results we want are contained in files \ty{r1.txt},
-  \ty{r2.txt}, and \ty{r3.txt}.
+  \ty{r2.txt}, and so on.
 #+end_src
 #+begin_src go <<Run test, Pr. \ref{pr:lan}>>=
   get, err := test.Output()

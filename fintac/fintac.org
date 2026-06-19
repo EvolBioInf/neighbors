@@ -1,47 +1,76 @@
 #+begin_src latex
   \section*{Introduction}
-  The program \ty{fintac} takes as input a Newick tree and finds the
-  target clade. In the input tree the leaf labels need to distinguish
-  taxonomic targets from taxonomic neighbors and nodes whose status is
-  unknown. In addition, the internal nodes of the input tree have unique
-  labels. The program then looks for the node that maximizes the split
-  between targets and neighbors.
+  The program \ty{fintac} takes as input a phylogenetic tree and a
+  target taxon. It then finds the target clade in the tree. This relies
+  on three types of leaves being distinguishable, taxonomic targets,
+  neighbors, and unknowns. In addition, the internal nodes of the
+  phylogeny have unique labels. The program \ty{fintac} then looks for
+  the node that maximizes the split between targets on the one hand, and
+  neighbors and unknowns on the other.
 
   To find this node, let $n_{\rm t}$, $n_{\rm n}$, and $n_{\rm u}$ be
-  the number of taxonomic targets, neighbors, and unknowns in a tree of
-  $n=n_{\rm t}+n_{\rm n}+n_{\rm u}$ taxa. We further call $v_{\rm t}$,
-  $v_{\rm n}$, and $v_{\rm u}$ the number of targets, neighbors, and
-  unknowns in the clade rooted on some node $v$. If the taxonomy always
-  agreed with the phylogeny, we could just look for the node that
-  contains all targets and no neighbors or unknowns, $v_{\rm t}=n_{\rm
-    t}$ and $v_{\rm n}=v_{\rm u}=0$. But if taxonomies and phylogenies
-  always agreed, we could restrict our search for targets and neighbors
-  to the output of \ty{neighbors}.
-
-  As is well-known, there is often no phylogenetic node that splits the
-  sample into pure taxonomic targets and neighbors. So we further define
+  the number of taxonomic targets, neighbors, and unknowns in a
+  phylogeny with $n=n_{\rm t}+n_{\rm n}+n_{\rm u}$ leaves. We further
+  call $v_{\rm t}$, $v_{\rm n}$, and $v_{\rm u}$ the number of targets,
+  neighbors, and unknowns in the clade rooted on some node $v$. If the
+  taxonomy always agreed with the phylogeny, we could just look for the
+  node that contains all targets and no neighbors or unknowns, $v_{\rm
+    t}=n_{\rm t}$ and $v_{\rm n}=v_{\rm u}=0$. However, as is
+  well-known, there is often no phylogenetic node that splits the sample
+  into pure taxonomic targets and neighbors. So we further define
   $v^{\ast}_{\rm n}$ as the number of neighbors in $v$'s neighborhood,
   that is, the number of neighbors \emph{outside} of $v$. Similarly,
-  $v^{\ast}_{\rm u}$ is the number of unknowns outside of $v$. Now we
-  can look for the node that maximizes the percent split between targets
-  on the one hand, and neighbors and unknowns on the other.
+  $v^{\ast}_{\rm u}$ is the number of unknowns outside of $v$. Our idea
+  is to maximize the sum of targets inside and non-targets outside,
+  yielding our first draft split score,
+  \[
+  s_{\rm d}(v)=v_{\rm t} + v^{\ast}_{\rm n} + v^{\ast}_{\rm u}.
+  \]
 
-  To quantify the contribution of unknowns, we note that positive
-  identification as target or neighbor is much stronger information than
-  ``unknown''. So we enter the counts of targets and neighbors linearly,
-  while the counts of unknowns are entered logarithmically to get our
-  split score,
+  In the above draft we treat unknowns like targets and neighbors by
+  entering them linearly. However, positive identification as target or
+  neighbor is much stronger information than ``unknown''. So we enter
+  the unknowns outside logarithmically,
+  \[
+  s_{\rm d}(v)=v_{\rm t}f + v^{\ast}_{\rm n} + \log(v^{\ast}_{\rm u} + 1).
+  \]
+
+  To further develop the split score, we note that the target clade
+  ought to be as compact as possible. To make this precise, we call
+  $v_{\rm\ell}$ the average distance between the leaves in the subtree
+  rooted on $v$ and $v$ iself, or the average external \emph{path
+  length}~\cite[p. 399f]{knu97:ar1}. Similarly, $r_{\rm\ell}$ is the
+  root's average external path length. The ratio
+  $v_{\rm\ell}/r_{\rm\ell}$ now measures the fraction of the total
+  distance between leaves and root covered by $v$. This allows us to
+  write a factor, $f$, to depreciate the target count by the proportion
+  of the tree used to obtain it,
+  \[
+  f = 1-w\times v_{\rm\ell}/r_{\rm\ell},
+  \]
+  where $w$ weighs the contribution of the branch lengths, $w=0$ is
+  none, which is the default for this still rather experimental
+  feature. Still, the user now has the option to decrease the target
+  count according to the height of $v$,
+  \[
+  s_{\rm d}(v)=v_{\rm t}f + v^{\ast}_{\rm n} + v^{\ast}_{\rm u}.
+  \]
+
+  Finally, we can normalize our draft split score by its maximum and
+  multiply it by 100 to get,
   \begin{equation}\label{eq:spl}
-    s(v)=\frac{v_{\rm t} + v^{\ast}_{\rm n} +\log(v^{\ast}_{\rm
-	u}+1)}{n_{\rm t} + n_{\rm n} + \log(n_{\rm u}+1)}\times 100.
+    s(v)=\frac{v_{\rm t}f + v^{\ast}_{\rm n} +\log(v^{\ast}_{\rm
+	u}+1)}{n_{\rm t} + n_{\rm n} + \log(n_{\rm u}+1)}\times 100,
   \end{equation}
-  In the worst case, the focal node contains no targets and all
-  neighbors and unknowns. In that case the three terms in the numerator
-  are zero, so the split score is also zero. In the best case, the focal
-  node contains all targets an no neighbors or unknowns. In that case
-  the three terms in the numerator are all equal to their corresponding
-  term in the denominator, so the split score is 100. In other words,
-  the split score ranges from 0 to 100, $0\le s(v)\le 100$.
+
+  In the worst case, a focal node contains no targets and all neighbors
+  and unknowns. In that case the three terms in the numerator are zero,
+  so the split score is also zero. In the best case, the focal node
+  contains all targets in a vanishingly short tree and no neighbors or
+  unknowns. In that case $f\approx 1$ and the three terms in the
+  numerator are all equal to their corresponding term in the
+  denominator, so the split score is 100. In other words, the split
+  score ranges from 0 to 100, $0\le s(v)\le 100$.
 
   The program \ty{fintac} allows targets, neighbors, and unknowns to be
   specified as regular expressions. As usual, such regular expressions
@@ -56,13 +85,13 @@
   taxon-ID 83334. Any leaf with prefix ``83334\_'' is now a match. In
   addition, leaves with prefix ``155864\_'' should also match, as this
   is the taxon-ID of the O157:H7 strain EDL933. There are over 130
-  O157:H7 substrains with their own taxon-IDs. In other words, the
-  problem of ``hierarchical matching'' is wide-spread. The user can
-  activate hierarchical matching for targets and neighbors by running
-  \ty{fintac} with the Neighbors database in addition to the
-  phylogeny. For unknowns herarchical matching is not appropriate, as
-  they are often high in the taxonomic tree, e. g. at species rank,
-  which would make every taxon below that rank an unknown.
+  O157:H7 substrains with their own taxon-IDs. In other words, there is
+  wide-spread need for ``hierarchical matching''. The user can activate
+  hierarchical matching for targets and neighbors by running \ty{fintac}
+  with the Neighbors database in addition to the phylogeny. For unknowns
+  herarchical matching is not appropriate, as they are typically above
+  the targets in the taxonomic tree, e. g. at species rank, which would
+  make every taxon below that rank an unknown.
 
   \section*{Implementation}
   The outline of \ty{fintac} has hooks for imports, types, functions,
@@ -107,7 +136,7 @@ explanation of the purpose of \ty{fintac}, and an example command.
   u := "fintac [option]... [foo.nwk]..."
   p := "Find target clade for taxa identified by " +
 	  "regular expressions in Newick tree."
-  e := "fintac -t \"^991910\" -u \"^562\" eco7k.nwk"
+  e := "fintac -t 991910_ -u 562_ eco7k.nwk"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -119,14 +148,16 @@ We import \ty{clio}.
 #+begin_src latex
   Apart from the obligatory version, \ty{-v}, we declare an option for
   listing all splits, instead of only the default maximal splits,
-  \ty{-a}. We also declare an option each for the target, unknown, and
-  neighbor regular expressions. The target regular expression is
-  initialized to prefix \ty{t}. The unknown regular expression is
-  initialized to nothing, which corresponds to an analysis where all
-  taxa are either targets or neighbors. The neighbor regular expression
-  is also initialized to nothing, which we interpret as anything that is
-  neither a target nor unknown. The last option is for the Neighbors
-  database, which activates hierarchical matching.
+  \ty{-a}. We also declare an option each for the regular expressions of
+  targets, unknowns, and neighbors. The target regular expression,
+  \ty{-t}, is initialized to prefix \ty{t}. The unknown regular
+  expression, \ty{-u}, is initialized to nothing, which corresponds to
+  an analysis where all taxa are either targets or neighbors. The
+  neighbor regular expression, \ty{-n}, is also initialized to nothing,
+  which we interpret as anything that is neither a target nor
+  unknown. Hierarchical matching is activated by setting the Neighbors
+  database, \ty{-N}. The last option is the weight of the branch
+  lengths in equation~(\ref{eq:spl}), \ty{-w}.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:fit}>>=
   optV := flag.Bool("v", false, "version")
@@ -136,8 +167,10 @@ We import \ty{clio}.
 	  "or neighbor")
   optN := flag.String("n", "", "neighbor " +
 	  "(default complement of -t and -u)")
-  optNN := flag.String("N", "", "neighbors datbase to activate " +
-	  "hierarchical matching for targets and neighbors")
+  optNN := flag.String("N", "", "neighbors datbase to " +
+	  "activate hierarchical matching for targets " +
+	  "and neighbors")
+  optW := flag.Float64("w", 0.0, "branch weight")
 #+end_src
 #+begin_src latex
 We import \ty{flag}.
@@ -152,8 +185,8 @@ We parse the options.
   flag.Parse()
 #+end_src
 #+begin_src latex
-  We respond to the version, target, neighbor, unknown, and Neighbors
-  database options.
+  We respond to the options for version, target, neighbor, unknown, and
+  Neighbors database.
 #+end_src
 #+begin_src go <<Respond to options, Pr. \ref{pr:fit}>>=
   //<<Respond to \ty{-v}, Pr. \ref{pr:fit}>>
@@ -205,9 +238,8 @@ Similarly, the unknown regex is \ty{nil} unless set by the user.
   }
 #+end_src
 #+begin_export latex
-We declare a variable to hold the Neighbors database. If the user set
-the Neighbors database, we open it, otherwise that variable remains
-\ty{nil}.
+The Neighbors database is \ty{nil} unless the user set it, in which
+case we open the database connection and check the error returned.
 #+end_export
 #+begin_src go <<Respond to \ty{-N}, Pr. \ref{pr:fit}>>=
   var neidb *tdb.TaxonomyDB
@@ -227,13 +259,13 @@ We import \ty{tdb}.
   of input files. These are passed to the function \ty{ParseFiles},
   which applies the function \ty{parse} to each file. The function
   \ty{parse}, in turn, takes as arguments the option \ty{-a}, the
-  target, neighbor, and unknown regular expressions, and the Neighbors
-  database.
+  target, neighbor, and unknown regular expressions, the Neighbors
+  database, and the branch weight.
 #+end_src
 #+begin_src go <<Parse input files, Pr. \ref{pr:fit}>>=
   files := flag.Args()
   clio.ParseFiles(files, parse, optA, tregex, nregex, uregex,
-	  neidb)
+	  neidb, *optW)
 #+end_src
 #+begin_src latex
   Inside \ty{parse}, we retrieve its arguments, iterate over the trees
@@ -257,8 +289,8 @@ We import \ty{io} and \ty{nwk}.
   "github.com/evolbioinf/nwk"
 #+end_src
 #+begin_export latex
-We retrieve the five arguments we passed, printing all, the three
-regular expressions, and the neighbors database.
+We retrieve the six arguments we passed, printing all, the three
+regular expressions, the neighbors database and the branch weight.
 #+end_export
 #+begin_src go <<Retrieve arguments, Pr. \ref{pr:fit}>>=
   optA := args[0].(*bool)
@@ -266,20 +298,73 @@ regular expressions, and the neighbors database.
   nregex := args[2].(*regexp.Regexp)
   uregex := args[3].(*regexp.Regexp)
   neidb := args[4].(*tdb.TaxonomyDB)
+  w := args[5].(float64)
 #+end_src
 #+begin_src latex
-To analyze a tree, we count nodes, process the counts, and print
-them.
+  To analyze a tree, we store its nodes, calculate its external path
+  length, count its nodes, process the counts, and print the results.
 #+end_src
 #+begin_src go <<Analyze tree, Pr. \ref{pr:fit}>>=
+  //<<Store nodes, Pr. \ref{pr:fit}>>
+  //<<Calculate external path length, Pr. \ref{pr:fit}>>
   //<<Count nodes, Pr. \ref{pr:fit}>>
   //<<Process counts, Pr. \ref{pr:fit}>>
-  //<<Print counts, Pr. \ref{pr:fit}>>
+  //<<Print results, Pr. \ref{pr:fit}>>
+#+end_src
+#+begin_export latex
+The nodes are stored in a map between node-ID and the actual
+node. Storing is done by calling \ty{storeNodes}, which we write in a
+moment.
+#+end_export
+#+begin_src go <<Store nodes, Pr. \ref{pr:fit}>>=
+  nodes := make(map[int]*nwk.Node)
+  storeNodes(tree, nodes)
+#+end_src
+#+begin_export latex
+Inside \ty{storeNodes} we traverse the tree and store every node we
+encounter in the \ty{nodes} map.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:fit}>>=
+  func storeNodes(v *nwk.Node, nodes map[int]*nwk.Node) {
+	  if v == nil {
+		  return
+	  }
+	  nodes[v.Id] = v
+	  storeNodes(v.Child, nodes)
+	  storeNodes(v.Sib, nodes)
+  }
+#+end_src
+#+begin_export latex
+To calculate the external path length, we call the function
+\ty{pathLength}, which we write in a moment. It takes as argument a
+starting node, the root node, and the path length.
+#+end_export
+#+begin_src go <<Calculate external path length, Pr. \ref{pr:fit}>>=
+  root := tree
+  epl := pathLength(tree, root, 0.0)
+#+end_src
+#+begin_export latex
+Inside \ty{pathLength} we check whether the current node, $v$, is a
+leaf. If so, we increment the path length by the distance to the
+root. Then we call \ty{pathLength} on the child and the sibling.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:fit}>>=
+  func pathLength(v, root *nwk.Node, pl float64) float64 {
+	  if v == nil {
+		  return pl
+	  }
+	  if v.Child == nil {
+		  pl += v.UpDistance(root)
+	  }
+	  pl = pathLength(v.Child, root, pl)
+	  pl = pathLength(v.Sib, root, pl)
+	  return pl
+  }
 #+end_src
 #+begin_src latex
-  We traverse the tree by calling the function \ty{traverseTree}, which
-  takes as arguments a map, the target, neighbor, and unknown
-  regular expressions, and the Neighbors database.
+  To count the nodes, we traverse the tree by calling the function
+  \ty{traverseTree}, which takes as arguments a map, the target,
+  neighbor, and unknown regular expressions, and the Neighbors database.
 #+end_src
 #+begin_src go <<Count nodes, Pr. \ref{pr:fit}>>=
   counts := make(map[int]*Count)
@@ -287,15 +372,16 @@ them.
 #+end_src
 #+begin_src latex
   A count is understood per node; so it consists of the node label, the
-  label of its parent, the number of neighbors, targets, and unknowns in
-  its subtree, its split as defined in equation~(\ref{eq:spl}), and its
-  distance to the parent.
+  label of its parent, the node-ID, the number of neighbors, targets,
+  and unknowns in its subtree, its split as defined in
+  equation~(\ref{eq:spl}), its distance to the parent, and the length of
+  its subtree.
 #+end_src
 #+begin_src go <<Types, Pr. \ref{pr:fit}>>=
   type Count struct {
 	  label, parent string
-	  vn, vt, vu int
-	  sv, dp float64
+	  id, vn, vt, vu int
+	  sv, dp, tl float64
   }
 #+end_src
 #+begin_src latex
@@ -326,13 +412,14 @@ sibling of the current node.
 	  neidb)
 #+end_src
 #+begin_src latex
-We create and store a count for each node. In the count we
-store the label of $v$ and, if $v$ isn't the root, also the label of
-its parent and the distance to it.
+  We create and store a count for each node. In the count we store the
+  label and ID of $v$ and, if $v$ isn't the root, also the label of its
+  parent and the distance to it.
 #+end_src
 #+begin_src go <<Add count, Pr. \ref{pr:fit}>>=
   count := new(Count)
   count.label = v.Label
+  count.id = v.Id
   if v.Parent != nil {
 	  count.dp = v.Length
 	  count.parent = v.Parent.Label
@@ -340,10 +427,10 @@ its parent and the distance to it.
   counts[v.Id] = count
 #+end_src
 #+begin_src latex
-  If the current node is a leaf, we check its label, to make sure it is
-  either a target, a neighbor, or an unknown. If the current node is not
-  a leaf, it is an internal node. In that case we also check its label
-  to make sure it actually has one. In either case we count the targets,
+  If the current node, $v$, is a leaf, we check its label, to make sure
+  it is either a target, a neighbor, or an unknown. If $v$ is not a
+  leaf, it is an internal node. In that case we also check its label to
+  make sure it actually has one. In either case we count the targets,
   neighbors, and unknowns.
 #+end_src
 #+begin_src go <<Analyze $v$, Pr. \ref{pr:fit}>>=
@@ -398,14 +485,13 @@ and an error.
 #+end_src
 #+begin_export latex
 For hierarchical matching, we extract the taxon-ID from the leaf label
-and climb the taxonomy. The climb ends at the latest at the root,
-
+and climb the taxonomy. The climb ends at the latest at the root.
 #+end_export
 #+begin_src go <<Hierarchical matching, Pr. \ref{pr:fit}>>=
   taxid := -1
   //<<Extract taxon-ID from label, Pr. \ref{pr:fit}>>
   for taxid != 1 {
-	  //<<Climb tree, Pr. \ref{pr:fit}>>
+	  //<<Climb taxonomy, Pr. \ref{pr:fit}>>
   }
 #+end_src
 #+begin_export latex
@@ -426,12 +512,12 @@ We import \ty{strconv}.
   "strconv"
 #+end_src
 #+begin_export latex
-While climbing the tree, we convert the current taxon-ID to its
+While climbing the taxonomy, we convert the current taxon-ID to its
 equivalent leaf label before we do the matching. Such a ``pseudo''
 leaf label consists of string representation of the taxon-ID, appended
 with an underscore.
 #+end_export
-#+begin_src go <<Climb tree, Pr. \ref{pr:fit}>>=
+#+begin_src go <<Climb taxonomy, Pr. \ref{pr:fit}>>=
   parent, err := neidb.Parent(taxid)
   if err != nil {
 	  return false, err
@@ -476,7 +562,7 @@ If the leaf matches the unknown regex, it is a complete unknown.
   }
 #+end_src
 #+begin_src latex
-  At this point our leaf might be any combination of target, neighbors,
+  At this point our leaf might be any combination of target, neighbor,
   and unknown. We want to ensure it is exactly one of the three. So we
   count the designations and then respond to the count.
 #+end_src
@@ -549,7 +635,7 @@ We make sure all internal nodes are labeled.
 #+end_src
 #+begin_src latex
   We count the targets, neighbors, and unknowns by incrementing the
-  corresponding counter in the parent---unless we're a the root.
+  corresponding counter in the parent---unless we're at the root.
 #+end_src
 #+begin_src go <<Count targets, neighbors, and unknowns, Pr. \ref{pr:fit}>>=
   if v.Parent != nil {
@@ -559,23 +645,26 @@ We make sure all internal nodes are labeled.
   }
 #+end_src
 #+begin_src latex
-We now have the raw counts in hand. From these we calculate the splits
-and sort the counts.
+  We now have the raw counts in hand. From these we calculate the split
+  scores and sort the counts.
 #+end_src
 #+begin_src go <<Process counts, Pr. \ref{pr:fit}>>=
-  //<<Calculate splits, Pr. \ref{pr:fit}>>
+  //<<Calculate split scores, Pr. \ref{pr:fit}>>
   //<<Sort counts, Pr. \ref{pr:fit}>>
 #+end_src
 #+begin_src latex
-  We calculate splits according to equation~(\ref{eq:spl}). First, we
-  determine the total counts of targets, neighbors, and unknowns,
-  $n_{\rm t}$, $n_{\rm n}$, and $n_{\rm u}$. These are the counts of
-  targets, neighbors, and unknowns for the root.
+  We calculate the split scores according to
+  equation~(\ref{eq:spl}). First, we determine the total counts of
+  targets, neighbors, and unknowns, $n_{\rm t}$, $n_{\rm n}$, and
+  $n_{\rm u}$. These are the category counts for the root. We also
+  calculate the average external tree length, $\ell$.
 #+end_src
-#+begin_src go <<Calculate splits, Pr. \ref{pr:fit}>>=
+#+begin_src go <<Calculate split scores, Pr. \ref{pr:fit}>>=
   nt := float64(counts[tree.Id].vt)
   nn := float64(counts[tree.Id].vn)
   nu := float64(counts[tree.Id].vu)
+  n := nt + nn + nu
+  tl := epl / n
 #+end_src
 #+begin_src latex
   We iterate over the counts. For each count we calculate the
@@ -584,14 +673,17 @@ and sort the counts.
   v^{\ast}_{\rm n} & = & n_{\rm n} - v_{\rm n}\\
   v^{\ast}_{\rm u} & = & n_{\rm u} - v_{\rm u}
   \end{eqnarray*}
-  Then we apply equation~(\ref{eq:spl}) to compute the split percentage.
+  Then we calculate $f$ to compute the split score using
+  equation~(\ref{eq:spl}).
 #+end_src
-#+begin_src go <<Calculate splits, Pr. \ref{pr:fit}>>=
+#+begin_src go <<Calculate split scores, Pr. \ref{pr:fit}>>=
   for _, count := range counts {
 	  van := nn - float64(count.vn)
 	  vau := nu - float64(count.vu)
 	  vt := float64(count.vt)
-	  count.sv = (vt + van + math.Log(vau+1.0)) /
+	  f := 1.0
+	  //<<Calculate $f$, Pr. \ref{pr:fit}>>
+	  count.sv = (vt * f + van + math.Log(vau+1.0)) /
 		  (nt + nn + math.Log(nu+1.0)) * 100.0
   }
 #+end_src
@@ -601,10 +693,24 @@ We import \ty{math}.
 #+begin_src go <<Imports, Pr. \ref{pr:fit}>>=
   "math"
 #+end_src
+#+begin_export latex
+The factor $f$ is the complement of the weighed ratio between the
+average external path length of $v$ and the tree's average external
+path length.
+#+end_export
+#+begin_src go <<Calculate $f$, Pr. \ref{pr:fit}>>=
+  pl := 0.0
+  v := nodes[count.id]
+  if v.Child != nil {
+	  pl = pathLength(v.Child, v, 0.0)
+  }
+  vl := pl / float64(count.vt + count.vn + count.vu)
+  f = 1.0 - w * vl / tl
+#+end_src
 #+begin_src latex
   We sort the counts by converting them to a slice and sorting that by
-  the split score. If the split scores are equal, we disambiguate by the
-  label.
+  the split score. If the split scores are equal, we disambiguate them
+  by the label.
 #+end_src
 #+begin_src go <<Sort counts, Pr. \ref{pr:fit}>>=
   cs := make([]*Count, 0)
@@ -628,11 +734,11 @@ We import \ty{math}.
   "strings"
 #+end_src
 #+begin_src latex
-  We print the counts, or rather, the maximal splits, in a table, which
-  we construct using a tab writer. If the user asked for all splits, we
-  also print the rest.
+  We print the results, specifically the maximal splits, in a table,
+  which we construct using a tab writer. If the user asked for all
+  splits, we also print the rest.
 #+end_src
-#+begin_src go <<Print counts, Pr. \ref{pr:fit}>>=
+#+begin_src go <<Print results, Pr. \ref{pr:fit}>>=
   w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
   //<<Print maximal splits, Pr. \ref{pr:fit}>>
   if *optA {
@@ -648,9 +754,9 @@ We import \ty{tabwriter}.
 #+end_src
 #+begin_src latex
   We print the splits in seven columns, clade, targets, neighbors,
-  unknowns, parent, distance to parent, and split. We print the headers
-  for these seven columns and then the maximal splits. These all have
-  the same split percentage as the top scorer. The root has no parent,
+  unknowns, parent, distance to parent, and split score. We print the
+  headers for these seven columns and then the maximal splits. These all
+  have the same split score as the top scorer. The root has no parent,
   so we replace the root's parent label with a hyphen.
 #+end_src
 #+begin_src go <<Print maximal splits, Pr. \ref{pr:fit}>>=
@@ -753,9 +859,16 @@ We test the ``unknown'' option by calling all neighbors ``unknowns''.
   test = exec.Command(p, "-u", "^n", f)
   tests = append(tests, test)
 #+end_src
+#+begin_export latex
+We test the weight by setting it to 3.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:fit}>>=
+  test = exec.Command(p, "-w", "3", f)
+  tests = append(tests, test)
+#+end_src
 #+begin_src latex
-For a given test we compare the results we get with the results we
-want, which are stored in files \ty{r1.txt} and \ty{r2.txt}.
+  For a given test we compare the results we get with the results we
+  want, which are stored in files \ty{r1.txt} and \ty{r2.txt}.
 #+end_src
 #+begin_src go <<Run test, Pr. \ref{pr:fit}>>=
   get, err := test.Output()
