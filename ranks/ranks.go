@@ -180,6 +180,7 @@ func main() {
 			ps := strings.Replace(path, " ", "_", -1)
 			fmt.Fprintf(w, "%s\t%.0f\t%.4f", ps, c, p)
 			if *optL {
+				slices.Sort(tree[path])
 				gs := strings.Join(tree[path], " ")
 				fmt.Fprintf(w, "\t%s", gs)
 			}

@@ -430,9 +430,11 @@ the paths with underscores.
   fmt.Fprintf(w, "%s\t%.0f\t%.4f", ps, c, p)
 #+end_src
 #+begin_export latex
-We join the genomes on blank into a single string and print it.
+We sort the genomes for stability and then join them on blank into a
+single string that we print.
 #+end_export
 #+begin_src go <<Print genomes, Pr. \ref{pr:ran}>>=
+  slices.Sort(tree[path])
   gs := strings.Join(tree[path], " ")
   fmt.Fprintf(w, "\t%s", gs)
 #+end_src
