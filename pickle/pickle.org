@@ -12,24 +12,33 @@
 
   \begin{figure}
     \begin{center}
-    \begin{tabular}{cc}
-      \textbf{A} & \textbf{B}\\
-      \includegraphics{../pickle/tree1.ps} & %% 5cm x 5cm
-      \includegraphics{../pickle/tree2.ps}   %% 5cm x 5cm
-    \end{tabular}
+      \begin{tabular}{ccc}
+	\textbf{A} & \textbf{B} & \textbf{C}\\
+	\includegraphics{../pickle/tree1.ps} & %% 4cm x 4cm
+	\includegraphics{../pickle/tree2.ps} & %% 4cm x 4cm
+	\includegraphics{../pickle/tree3.ps}   %% 4cm x 4cm
+      \end{tabular}
     \end{center}
     \caption{Full tree for testing the program \ty{pickle} (\textbf{A}),
-    and the same tree with clade 8 removed (\textbf{B}).}\label{fig:tree}
+      the same tree with clade 8 removed (\textbf{B}), or with clade 8
+      collapsed (\textbf{C}).}\label{fig:tree}
   \end{figure}
 
   The program \ty{pickle} also has a ``complement'' option to get
-  everything \emph{but} the nodes in the target clade. When used in tree
-  mode, the complement effectively removes the target clade, which gets
-  replaced by the number of leaves in its subtree. For example, we can
-  remove clade 8 from the tree in Figure~\ref{fig:tree}A, to get
-  Figure~\ref{fig:tree}B with $n=5$ where clade 8 used to be.
+  everything \emph{but} the nodes in the target clade. For example, we
+  can remove clade 8 from the tree in Figure~\ref{fig:tree}A to get
+  Figure~\ref{fig:tree}B.
   \begin{verbatim}
-  pickle -t -c 8 pickle/test.nwk | plotTree
+  $ pickle -t -c 8 pickle/test.nwk | plotTree
+  \end{verbatim}
+
+  Instead of removing a node, we can collapse and replaced it by the
+  number of leaves in its subtree. For example, we can collapse clade 8
+  from the tree in Figure~\ref{fig:tree}A, to get Figure~\ref{fig:tree}C
+  with $n=5$ where clade 8 used to be. Collapsing a node implies tree
+  mode, \ty{-t}.
+  \begin{verbatim}
+  $ pickle -C 8 pickle/test.nwk | plotTree
   \end{verbatim}
 
   \section*{Implementation}
@@ -83,13 +92,14 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   Apart from the version option, \ty{-v}, we declare an option for
-  printing the tree picked, \ty{-t}, and an option for complementation,
-  \ty{-c}.
+  printing the tree picked, \ty{-t}, an option for complementation,
+  \ty{-c}, and an option for collapsing a tree node, \ty{-C}.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:pic}>>=
   optV := flag.Bool("v", false, "version")
   optT := flag.Bool("t", false, "print tree")
   optC := flag.Bool("c", false, "complement")
+  optCC := flag.Bool("C", false, "collapse (implies -t)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -99,15 +109,26 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   We parse the version option, \ty{-v}, and respond to it, as it would
-  terminate \ty{pickle}. The first entry in the argument array is the
-  labels string. If the user hasn't supplied one, we bail with a
-  friendly message. Otherwise we split the labels at commas.
+  terminate \ty{pickle}. If the user opted for collapsing the node
+  supplied, we set the implied tree option. Then we parse the remaining
+  command line arguments.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:pic}>>=
   flag.Parse()
   if *optV {
 	  util.PrintInfo("pickle")
   }
+  if *optCC {
+	  (*optT) = true
+  }
+  //<<Parse remaining arguments, Pr. \ref{pr:pic}>>
+#+end_src
+#+begin_export latex
+The first entry in the argument array is the labels string. If the
+user hasn't supplied one, we bail with a friendly message. Otherwise
+we split the labels at commas.
+#+end_export
+#+begin_src go <<Parse remaining arguments, Pr. \ref{pr:pic}>>=
   args := flag.Args()
   if len(args) < 1 {
 	  m := "please enter a clade identifier"
@@ -127,11 +148,12 @@ We import \ty{util}.
 #+begin_src latex
   The remaining command line arguments are taken as file names. The
   files are parsed with \ty{ParseFiles}, which calls \ty{parse} on every
-  input file. The function \ty{parse} in turn takes the slice of labels
-  the tree option, and the complement option as arguments.
+  input file. The function \ty{parse} in turn takes as arguments the
+  slice of labels the tree option, the complement option, and the
+  collapse option.
 #+end_src
 #+begin_src go <<Parse input files, Pr. \ref{pr:pic}>>=
-  clio.ParseFiles(args[1:], parse, labels, optT, optC)
+  clio.ParseFiles(args[1:], parse, labels, optT, optC, optCC)
 #+end_src
 #+begin_src latex
   Inside \ty{parse}, we retrieve the labels and options, iterate over
@@ -143,6 +165,7 @@ We import \ty{util}.
 	  labels := args[0].([]string)
 	  optT := args[1].(*bool)
 	  optC := args[2].(*bool)
+	  optCC := args[3].(*bool)
 	  sc := nwk.NewScanner(r)
 	  for sc.Scan() {
 		  origRoot := sc.Tree()
@@ -170,8 +193,8 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   For each label we get a pristine copy of the tree, write a header,
-  find the corresponding clade, complement it if requested, and print
-  it.
+  find the corresponding clade, complement or collapse it if requested,
+  and print it.
 #+end_src
 #+begin_src go <<Iterate over labels, Pr. \ref{pr:pic}>>=
   for _, label := range labels {
@@ -180,18 +203,23 @@ We import \ty{util}.
 	  //<<Find clade, Pr. \ref{pr:pic}>>
 	  if *optC {
 		  //<<Complement clade, Pr. \ref{pr:pic}>>
+	  } else if *optCC {
+		  //<<Collapse clade, Pr. \ref{pr:pic}>>
 	  }
 	  //<<Print clade, Pr. \ref{pr:pic}>>
   }
 #+end_src
 #+begin_src latex
-  The clade header starts with a double hash, followed by ``complement
-  of'', if appropriate, followed by the label of the focal node.
+  The clade header starts with a double hash, followed by ``Complement
+  of'' or ``Collapsed'', if appropriate, followed by the label of the
+  focal node.
 #+end_src
 #+begin_src go <<Write clade header, Pr. \ref{pr:pic}>>=
   fmt.Printf("## ")
   if *optC {
 	  fmt.Printf("Complement of ")
+  } else if *optCC {
+	  fmt.Printf("Collapsed ")
   }
   fmt.Printf("%s\n", label)
 #+end_src
@@ -250,29 +278,45 @@ matching label and note that we found it.
 #+end_src
 #+begin_src latex
   If the clade to be complemented is the root, we set the original tree
-  to nil. Otherwise we remove the clade from the tree.
+  to nil. Otherwise we remove the clade from the tree and check whether
+  this results in a parent with just one child, which we would remove.
 #+end_src
 #+begin_src go <<Complement clade, Pr. \ref{pr:pic}>>=
   if clade.Parent == nil {
 	  t = nil
   } else {
-	  //<<Remove clade, Pr. \ref{pr:pic}>>
+	  parent := clade.Parent
+	  clade.RemoveClade()
+	  if parent.Degree() == 1 {
+		  //<<Remove parent, Pr. \ref{pr:pic}>>
+	  }
   }
 #+end_src
 #+begin_export latex
-If we print the tree, we'd like to have a visual marker of the removed
-clade. So we set the label of the removed clade to the size of the
-clade---that is, the number of leaves it contains---and set its child
-link to nil. Otherwise, we just remove the clade.
+If the grandparent is not the root, we remove the parent from its
+children and add the child. Otherwise, we move the root to the child.
 #+end_export
-#+begin_src go <<Remove clade, Pr. \ref{pr:pic}>>=
-  if *optT {
-	  n := size(clade.Child, 0)
-	  clade.Label = fmt.Sprintf("n=%d", n)
-	  clade.Child = nil
+#+begin_src go <<Remove parent, Pr. \ref{pr:pic}>>=
+  child := parent.Child
+  gparent := parent.Parent
+  if gparent != nil {
+	  gparent.RemoveChild(parent)
+	  gparent.AddChild(child)
+	  child.Parent = gparent
   } else {
-	  clade.RemoveClade()
+	  t = child
+	  t.Parent = nil
   }
+#+end_src
+#+begin_export latex
+When collapsing a clade, we set the label of the removed clade to the
+size of the clade---that is, the number of leaves it contains---and
+set its child link to nil.
+#+end_export
+#+begin_src go <<Collapse clade, Pr. \ref{pr:pic}>>=
+  n := size(clade.Child, 0)
+  clade.Label = fmt.Sprintf("n=%d", n)
+  clade.Child = nil
 #+end_src
 #+begin_export latex
 The function \ty{size} traverses the incoming tree and counts its
@@ -309,7 +353,7 @@ leaves.
   parenthesis, the label, and the closing semicolon.
 #+end_src
 #+begin_src go <<Print tree, Pr. \ref{pr:pic}>>=
-  if *optC {
+  if *optC || *optCC {
 	  if t != nil {
 		  fmt.Printf("%s\n", t)
 	  }
@@ -425,6 +469,19 @@ tests = append(tests, test)
 test = exec.Command("./pickle", "-t", "9", f)
 tests = append(tests, test)
 test = exec.Command("./pickle", "-t", "4", f)
+tests = append(tests, test)
+#+end_src
+#+begin_src latex
+  We repeat our four basic tests with the collapse switch.
+#+end_src
+#+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
+test = exec.Command("./pickle", "-C", "7", f)
+tests = append(tests, test)
+test = exec.Command("./pickle", "-C", "7,3", f)
+tests = append(tests, test)
+test = exec.Command("./pickle", "-C", "9", f)
+tests = append(tests, test)
+test = exec.Command("./pickle", "-C", "4", f)
 tests = append(tests, test)
 #+end_src
 #+begin_src latex

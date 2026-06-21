@@ -69,7 +69,6 @@ neighbors/makeRes.sh
 neighbors/neighbors
 outliers/makeRes.sh
 outliers/outliers
-pickle/makeRes.sh
 pickle/pickle
 ranks/makeRes.sh
 ranks/ranks

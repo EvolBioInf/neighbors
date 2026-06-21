@@ -16,6 +16,7 @@ func parse(r io.Reader, args ...interface{}) {
 	labels := args[0].([]string)
 	optT := args[1].(*bool)
 	optC := args[2].(*bool)
+	optCC := args[3].(*bool)
 	sc := nwk.NewScanner(r)
 	for sc.Scan() {
 		origRoot := sc.Tree()
@@ -29,6 +30,8 @@ func parse(r io.Reader, args ...interface{}) {
 			fmt.Printf("## ")
 			if *optC {
 				fmt.Printf("Complement of ")
+			} else if *optCC {
+				fmt.Printf("Collapsed ")
 			}
 			fmt.Printf("%s\n", label)
 			var nodes []*nwk.Node
@@ -49,17 +52,28 @@ func parse(r io.Reader, args ...interface{}) {
 				if clade.Parent == nil {
 					t = nil
 				} else {
-					if *optT {
-						n := size(clade.Child, 0)
-						clade.Label = fmt.Sprintf("n=%d", n)
-						clade.Child = nil
-					} else {
-						clade.RemoveClade()
+					parent := clade.Parent
+					clade.RemoveClade()
+					if parent.Degree() == 1 {
+						child := parent.Child
+						gparent := parent.Parent
+						if gparent != nil {
+							gparent.RemoveChild(parent)
+							gparent.AddChild(child)
+							child.Parent = gparent
+						} else {
+							t = child
+							t.Parent = nil
+						}
 					}
 				}
+			} else if *optCC {
+				n := size(clade.Child, 0)
+				clade.Label = fmt.Sprintf("n=%d", n)
+				clade.Child = nil
 			}
 			if *optT {
-				if *optC {
+				if *optC || *optCC {
 					if t != nil {
 						fmt.Printf("%s\n", t)
 					}
@@ -118,9 +132,13 @@ func main() {
 	optV := flag.Bool("v", false, "version")
 	optT := flag.Bool("t", false, "print tree")
 	optC := flag.Bool("c", false, "complement")
+	optCC := flag.Bool("C", false, "collapse (implies -t)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("pickle")
+	}
+	if *optCC {
+		(*optT) = true
 	}
 	args := flag.Args()
 	if len(args) < 1 {
@@ -129,5 +147,5 @@ func main() {
 		os.Exit(-1)
 	}
 	labels := strings.Split(args[0], ",")
-	clio.ParseFiles(args[1:], parse, labels, optT, optC)
+	clio.ParseFiles(args[1:], parse, labels, optT, optC, optCC)
 }
