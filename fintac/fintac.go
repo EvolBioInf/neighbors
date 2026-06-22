@@ -232,9 +232,9 @@ func main() {
 		"or neighbor")
 	optN := flag.String("n", "", "neighbor "+
 		"(default complement of -t and -u)")
-	optNN := flag.String("N", "", "neighbors datbase to "+
-		"activate hierarchical matching for targets "+
-		"and neighbors")
+	optHH := flag.String("H", "", "hierarchical matching "+
+		"for targets and neighbors "+
+		"using a neighbors database")
 	optW := flag.Float64("w", 0.0, "branch weight")
 	flag.Parse()
 	if *optV {
@@ -253,8 +253,8 @@ func main() {
 		util.Check(err)
 	}
 	var neidb *tdb.TaxonomyDB
-	if *optNN != "" {
-		neidb, err = tdb.OpenTaxonomyDBcheck(*optNN)
+	if *optHH != "" {
+		neidb, err = tdb.OpenTaxonomyDBcheck(*optHH)
 		util.Check(err)
 	}
 	files := flag.Args()

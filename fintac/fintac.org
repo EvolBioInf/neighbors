@@ -155,9 +155,9 @@ We import \ty{clio}.
   an analysis where all taxa are either targets or neighbors. The
   neighbor regular expression, \ty{-n}, is also initialized to nothing,
   which we interpret as anything that is neither a target nor
-  unknown. Hierarchical matching is activated by setting the Neighbors
-  database, \ty{-N}. The last option is the weight of the branch
-  lengths in equation~(\ref{eq:spl}), \ty{-w}.
+  unknown. For hierarchical matching we supply a Neighbors database,
+  \ty{H}. The last option is the weight of the branch lengths in
+  equation~(\ref{eq:spl}), \ty{-w}.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:fit}>>=
   optV := flag.Bool("v", false, "version")
@@ -167,9 +167,9 @@ We import \ty{clio}.
 	  "or neighbor")
   optN := flag.String("n", "", "neighbor " +
 	  "(default complement of -t and -u)")
-  optNN := flag.String("N", "", "neighbors datbase to " +
-	  "activate hierarchical matching for targets " +
-	  "and neighbors")
+  optHH := flag.String("H", "", "hierarchical matching " +
+	  "for targets and neighbors " +
+	  "using a neighbors database")
   optW := flag.Float64("w", 0.0, "branch weight")
 #+end_src
 #+begin_src latex
@@ -243,8 +243,8 @@ case we open the database connection and check the error returned.
 #+end_export
 #+begin_src go <<Respond to \ty{-N}, Pr. \ref{pr:fit}>>=
   var neidb *tdb.TaxonomyDB
-  if *optNN != "" {
-	  neidb, err = tdb.OpenTaxonomyDBcheck(*optNN)
+  if *optHH != "" {
+	  neidb, err = tdb.OpenTaxonomyDBcheck(*optHH)
 	  util.Check(err)
   }
 #+end_src
