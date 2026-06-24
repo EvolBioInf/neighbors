@@ -74,27 +74,27 @@ nodes by their IDs. Node IDs are integers, which we also use as keys
 to a map that references the original nodes.
 
 Our outline of \ty{mrca} has hooks for imports, functions, and the
-logic of the main function.
+logic of the run function.
 \bpr{mrca}{pr:mrca}
 #+end_export
 #+begin_src go <<mrca.go>>=
-  package main
+  package mrca
 
   import (
 	  //<<Imports, Pr. \ref{pr:mrca}>>
   )
   //<<Functions, Pr. \ref{pr:mrca}>>
-  func main() {
-	  //<<Main function, Pr. \ref{pr:mrca}>>
+  func Run() {
+	  //<<Run function, Pr. \ref{pr:mrca}>>
   }
 #+end_src
 #+begin_export latex
-\epr In the main function we set the name of \ty{mrca}, set its usage,
+\epr In the run function we set the name of \ty{mrca}, set its usage,
 declare its options, and parse them. Then we compile the regex
 specifying the node names and parse the input files containing the
 phylogenies.
 #+end_export
-#+begin_src go <<Main function, Pr. \ref{pr:mrca}>>=
+#+begin_src go <<Run function, Pr. \ref{pr:mrca}>>=
   util.SetName("mrca")
   //<<Set usage, Pr. \ref{pr:mrca}>>
   //<<Declare options, Pr. \ref{pr:mrca}>>
@@ -607,7 +607,7 @@ Our code for testing \ty{mrca} has hooks for imports and the testing
 logic.
 #+end_export
 #+begin_src go <<mrca_test.go>>=
-  package main
+  package mrca
 
   import (
 	  //<<Testing imports, Pr. \ref{pr:mrca}>>
@@ -639,7 +639,7 @@ Figure~\ref{fig:mrca}. The first test has starting node $a$.
 #+end_export
 #+begin_src go <<Construct tests, Pr. \ref{pr:mrca}>>=
   f := "test.nwk"
-  p := "./mrca"
+  p := "./cmd/mrca"
   test := exec.Command(p, "a", f)
   tests = append(tests, test)
 #+end_src

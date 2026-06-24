@@ -5,26 +5,26 @@
 
   \section*{Implementation}
   The program \ty{ants} contains hooks for imports and the logic of the
-  main function.
+  run function.
   \bpr{ants}{pr:ant}
 #+end_src
 #+begin_src go <<ants.go>>=
-  package main
+  package ants
 
   import (
 	  //<<Imports, Pr. \ref{pr:ant}>>
   )
 
-  func main() {
-	  //<<Main function, Pr. \ref{pr:ant}>>
+  func Run() {
+	  //<<Run function, Pr. \ref{pr:ant}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function we set the program name and the usage,
+  \epr In the run function we set the program name and the usage,
   declare the options, parse the options, get the ancestors, and print
   them.
 #+end_src
-#+begin_src go <<Main function, Pr. \ref{pr:ant}>>=
+#+begin_src go <<Run function, Pr. \ref{pr:ant}>>=
   util.SetName("ants")
   //<<Set usage, Pr. \ref{pr:ant}>>
   //<<Declare options, Pr. \ref{pr:ant}>>
@@ -164,7 +164,7 @@ We import \ty{util}.
   testing logic.
 #+end_src
 #+begin_src go <<ants_test.go>>=
-  package main
+  package ants
 
   import (
 	  "testing"
@@ -198,7 +198,7 @@ We import \ty{util}.
 #+begin_src go <<Construct tests, Pr. \ref{pr:ant}>>=
   tid := "9606"
   db := "../data/test.db"
-  test := exec.Command("./ants", tid, db)
+  test := exec.Command("./cmd/ants", tid, db)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

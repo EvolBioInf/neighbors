@@ -1,4 +1,4 @@
-package main
+package mrca
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 func TestMrca(t *testing.T) {
 	var tests []*exec.Cmd
 	f := "test.nwk"
-	p := "./mrca"
+	p := "./cmd/mrca"
 	test := exec.Command(p, "a", f)
 	tests = append(tests, test)
 	test = exec.Command(p, "e|f", f)

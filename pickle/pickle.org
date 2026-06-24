@@ -43,25 +43,25 @@
 
   \section*{Implementation}
   \ty{pickle} contains hooks for imports, functions, and the logic of the
-  main function.  \bpr{pickle}{pr:pic}
+  run function.  \bpr{pickle}{pr:pic}
 #+end_src
 #+begin_src go <<pickle.go>>=
-  package main
+  package pickle
 
   import (
 	  //<<Imports, Pr. \ref{pr:pic}>>
   )
   //<<Functions, Pr. \ref{pr:pic}>>
-  func main() {
-	  //<<Main function, Pr. \ref{pr:pic}>>
+  func Run() {
+	  //<<Run function, Pr. \ref{pr:pic}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function we set the name of \ty{pickle} and its
+  \epr In the run function we set the name of \ty{pickle} and its
   usage, declare the options, parse the options, and parse the input
   files.
 #+end_src
-#+begin_src go <<Main function, Pr. \ref{pr:pic}>>=
+#+begin_src go <<Run function, Pr. \ref{pr:pic}>>=
   util.SetName("pickle")
   //<<Set usage, Pr. \ref{pr:pic}>>
   //<<Declare options, Pr. \ref{pr:pic}>>
@@ -398,7 +398,7 @@ leaves.
   testing logic.
 #+end_src
 #+begin_src go <<pickle_test.go>>=
-  package main
+  package pickle
 
   import (
 	  "testing"
@@ -428,13 +428,14 @@ leaves.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
   f := "test.nwk"
-  test := exec.Command("./pickle", "7", f)
+  p := "./cmd/pickle"
+  test := exec.Command(p, "7", f)
   tests = append(tests, test)
-  test = exec.Command("./pickle", "7,3", f)
+  test = exec.Command(p, "7,3", f)
   tests = append(tests, test)
-  test = exec.Command("./pickle", "9", f)
+  test = exec.Command(p, "9", f)
   tests = append(tests, test)
-  test = exec.Command("./pickle", "4", f)
+  test = exec.Command(p, "4", f)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -447,13 +448,13 @@ leaves.
   We repeat the basic tests with the complement switch.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
-test = exec.Command("./pickle", "-c", "7", f)
+test = exec.Command(p, "-c", "7", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-c", "7,3", f)
+test = exec.Command(p, "-c", "7,3", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-c", "9", f)
+test = exec.Command(p, "-c", "9", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-c", "4", f)
+test = exec.Command(p, "-c", "4", f)
 tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -462,26 +463,26 @@ tests = append(tests, test)
   We repeat the basic tests with the tree switch.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
-test = exec.Command("./pickle", "-t", "7", f)
+test = exec.Command(p, "-t", "7", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-t", "7,3", f)
+test = exec.Command(p, "-t", "7,3", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-t", "9", f)
+test = exec.Command(p, "-t", "9", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-t", "4", f)
+test = exec.Command(p, "-t", "4", f)
 tests = append(tests, test)
 #+end_src
 #+begin_src latex
   We repeat our four basic tests with the collapse switch.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
-test = exec.Command("./pickle", "-C", "7", f)
+test = exec.Command(p, "-C", "7", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-C", "7,3", f)
+test = exec.Command(p, "-C", "7,3", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-C", "9", f)
+test = exec.Command(p, "-C", "9", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-C", "4", f)
+test = exec.Command(p, "-C", "4", f)
 tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -489,13 +490,13 @@ tests = append(tests, test)
   and the tree switch.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
-test = exec.Command("./pickle", "-c", "-t", "7", f)
+test = exec.Command(p, "-c", "-t", "7", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-c", "-t", "7,3", f)
+test = exec.Command(p, "-c", "-t", "7,3", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-c", "-t", "9", f)
+test = exec.Command(p, "-c", "-t", "9", f)
 tests = append(tests, test)
-test = exec.Command("./pickle", "-c", "-t", "4", f)
+test = exec.Command(p, "-c", "-t", "4", f)
 tests = append(tests, test)
 #+end_src
 #+begin_src latex

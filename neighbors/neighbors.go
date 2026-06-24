@@ -1,4 +1,4 @@
-package main
+package neighbors
 
 import (
 	"bufio"
@@ -178,7 +178,7 @@ func parse(r io.Reader, args ...interface{}) {
 	}
 	calcTarNei(taxa, taxdb, optL, optG, optTT, levels, optO)
 }
-func main() {
+func Run() {
 	util.SetName("neighbors")
 	u := "neighbors [-h] [option]... <db> [targets.txt]..."
 	p := "Given a taxonomy database computed with makeNeiDb and " +

@@ -1,4 +1,4 @@
-package main
+package neighbors
 
 import (
 	"bytes"
@@ -11,32 +11,33 @@ import (
 func TestNeighbors(t *testing.T) {
 	var tests []*exec.Cmd
 	db := "../data/test.db"
+	p := "./cmd/neighbors"
 	for i := 1; i <= 4; i++ {
 		in := "tid" + strconv.Itoa(i) + ".txt"
-		test := exec.Command("./neighbors", db, in)
+		test := exec.Command(p, db, in)
 		tests = append(tests, test)
 	}
-	test := exec.Command("./neighbors", "-l", db, "tid4.txt")
+	test := exec.Command(p, "-l", db, "tid4.txt")
 	tests = append(tests, test)
-	test = exec.Command("./neighbors", "-g", db, "tid4.txt")
+	test = exec.Command(p, "-g", db, "tid4.txt")
 	tests = append(tests, test)
-	test = exec.Command("./neighbors", "-T", db, "tid4.txt")
+	test = exec.Command(p, "-T", db, "tid4.txt")
 	tests = append(tests, test)
-	test = exec.Command("./neighbors", "-t", "9606", db)
+	test = exec.Command(p, "-t", "9606", db)
 	tests = append(tests, test)
-	test = exec.Command("./neighbors", "-t",
+	test = exec.Command(p, "-t",
 		"9606,9605", db)
 	tests = append(tests, test)
-	test = exec.Command("./neighbors", "-t", "9606",
+	test = exec.Command(p, "-t", "9606",
 		"-L", "complete", db)
 	tests = append(tests, test)
-	test = exec.Command("./neighbors", "-t", "9606",
+	test = exec.Command(p, "-t", "9606",
 		"-L", "complete,chromosome", db)
 	tests = append(tests, test)
-	test = exec.Command("./neighbors",
+	test = exec.Command(p,
 		"-o", db, "tid4.txt")
 	tests = append(tests, test)
-	test = exec.Command("./neighbors",
+	test = exec.Command(p,
 		"-l", "-o", db, "tid4.txt")
 	tests = append(tests, test)
 	for i, test := range tests {

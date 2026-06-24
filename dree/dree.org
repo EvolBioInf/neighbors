@@ -47,27 +47,26 @@
 
     \section*{Implementation}
     The outline of \ty{dree} has hooks for imports and the logic of the
-    main function.  \bpr{dree}{pr:dr}
-
+    run function.  \bpr{dree}{pr:dr}
 #+end_src
 
 #+begin_src go <<dree.go>>=
-  package main
+  package dree
 
   import (
 	  //<<Imports, Pr. \ref{pr:dr}>>
   )
 
-  func main() {
-	  //<<Main function, Pr. \ref{pr:dr}>>
+  func Run() {
+	  //<<Run function, Pr. \ref{pr:dr}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function we set the name of \ty{dree} and its usage,
+  \epr In the run function we set the name of \ty{dree} and its usage,
   declare the options, and parse them. Then we get the subtree we're
   after, annotate it, and print it.
 #+end_src
-#+begin_src go <<Main function, Pr. \ref{pr:dr}>>=
+#+begin_src go <<Run function, Pr. \ref{pr:dr}>>=
   util.SetName("dree")
   //<<Set usage, Pr. \ref{pr:dr}>>
   //<<Declare options, Pr. \ref{pr:dr}>>
@@ -471,7 +470,7 @@ rank, and number of genomes.
   testing logic.
 #+end_src
 #+begin_src go <<dree_test.go>>=
-  package main
+  package dree
 
   import (
 	  "testing"
@@ -507,6 +506,7 @@ rank, and number of genomes.
 #+begin_src go <<Construct tests, Pr. \ref{pr:dr}>>=
   n := "207598"
   d := "../data/test.db"
+  p := "./cmd/dree"
   //<<Test without options, Pr. \ref{pr:dr}>>
   //<<Test \ty{-n}, Pr. \ref{pr:dr}>>
   //<<Test \ty{-g}, Pr. \ref{pr:dr}>>
@@ -518,21 +518,21 @@ rank, and number of genomes.
 We construct our first test without any options and store it.
 #+end_export
 #+begin_src go <<Test without options, Pr. \ref{pr:dr}>>=
-  test := exec.Command("./dree", n, d)
+  test := exec.Command(p, n, d)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We test the names option, \ty{-n}.
 #+end_export
 #+begin_src go <<Test \ty{-n}, Pr. \ref{pr:dr}>>=
-  test = exec.Command("./dree", "-n", n, d)
+  test = exec.Command(p, "-n", n, d)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We test the genomes option, \ty{-g}.
 #+end_export
 #+begin_src go <<Test \ty{-g}, Pr. \ref{pr:dr}>>=
-  test = exec.Command("./dree", "-g", n, d)
+  test = exec.Command(p, "-g", n, d)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -540,13 +540,13 @@ We test the list option, \ty{-l}, alone and in combination with genome
 and name.
 #+end_export
 #+begin_src go <<Test \ty{-l}, Pr. \ref{pr:dr}>>=
-  test = exec.Command("./dree", "-l", n, d)
+  test = exec.Command(p, "-l", n, d)
   tests = append(tests, test)
-  test = exec.Command("./dree", "-l", "-g", n, d)
+  test = exec.Command(p, "-l", "-g", n, d)
   tests = append(tests, test)
-  test = exec.Command("./dree", "-l", "-n", n, d)
+  test = exec.Command(p, "-l", "-n", n, d)
   tests = append(tests, test)
-  test = exec.Command("./dree", "-l", "-g", "-n", n, d)
+  test = exec.Command(p, "-l", "-g", "-n", n, d)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -554,9 +554,9 @@ We test \ty{-L}, first with level \emph{complete}, then with levels
 \emph{complete} and \emph{chromosome}.
 #+end_export
 #+begin_src go <<Test \ty{-L}, Pr. \ref{pr:dr}>>=
-  test = exec.Command("./dree", "-L", "complete", n, d)
+  test = exec.Command(p, "-L", "complete", n, d)
   tests = append(tests, test)
-  test = exec.Command("./dree", "-L", "complete,chromosome", n, d)
+  test = exec.Command(p, "-L", "complete,chromosome", n, d)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -564,13 +564,13 @@ We test \ty{-m} with a negative maximum level, ordinary levels 0 and
 2, and the very large level 200.
 #+end_export
 #+begin_src go <<Test \ty{-m}, Pr. \ref{pr:dr}>>=
-  test = exec.Command("./dree", "-m", "-2", n, d)
+  test = exec.Command(p, "-m", "-2", n, d)
   tests = append(tests, test)
-  test = exec.Command("./dree", "-m", "0", n, d)
+  test = exec.Command(p, "-m", "0", n, d)
   tests = append(tests, test)
-  test = exec.Command("./dree", "-m", "2", n, d)
+  test = exec.Command(p, "-m", "2", n, d)
   tests = append(tests, test)
-  test = exec.Command("./dree", "-m", "200", n, d)
+  test = exec.Command(p, "-m", "200", n, d)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

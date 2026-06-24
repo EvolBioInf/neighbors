@@ -93,18 +93,18 @@ of nodes. Given the branch lengths referencing the nodes, we can build
 the desired slice of clusters.
 
 The outline of \ty{clusters} contains hooks for imports, types,
-functions, and the logic of the main function. \bpr{clusters}{pr:clu}
+functions, and the logic of the run function. \bpr{clusters}{pr:clu}
 #+end_export
 #+begin_src go <<clusters.go>>=
-  package main
+  package clusters
 
   import (
       //<<Imports, Pr. \ref{pr:clu}>>
   )
   //<<Types, Pr. \ref{pr:clu}>>
   //<<Functions, Pr. \ref{pr:clu}>>
-  func main() {
-	  //<<Main function, Pr. \ref{pr:clu}>>
+  func Run() {
+	  //<<Run function, Pr. \ref{pr:clu}>>
   }
 #+end_src
 #+begin_export latex
@@ -122,10 +122,10 @@ identifier.
   }
 #+end_src
 #+begin_export latex
-Inside \ty{main}, we set the name of \ty{clusters} and its usage,
+Inside \ty{Run}, we set the name of \ty{clusters} and its usage,
 declare and parse the options, and parse the input files.
 #+end_export
-#+begin_src go <<Main function, Pr. \ref{pr:clu}>>=
+#+begin_src go <<Run function, Pr. \ref{pr:clu}>>=
   util.SetName("clusters")
   //<<Set usage, Pr. \ref{pr:clu}>>
   //<<Declare options, Pr. \ref{pr:clu}>>
@@ -658,7 +658,7 @@ We have finished \ty{clusters}, let's test it.
 Our testing code has hooks for imports and the testing logic.
 #+end_export
 #+begin_src go <<clusters_test.go>>=
-  package main
+  package clusters
 
   import (
 	  "testing"
@@ -701,7 +701,8 @@ size, \ty{-s}, print tree, \ty{-t}, and print terminal clusters only
 #+end_export
 #+begin_src go <<Construct tests, Pr. \ref{pr:clu}>>=
   f := "test.nwk"
-  test := exec.Command("./clusters", f)
+  p := "./cmd/clusters"
+  test := exec.Command(p, f)
   tests = append(tests, test)
   //<<Test \ty{-b}, Pr. \ref{pr:clu}>>
   //<<Test \ty{-c}, Pr. \ref{pr:clu}>>
@@ -714,42 +715,42 @@ size, \ty{-s}, print tree, \ty{-t}, and print terminal clusters only
 We test printing of branch lengths for node 3006, \ty{-b}.
 #+end_export
 #+begin_src go <<Test \ty{-b}, Pr. \ref{pr:clu}>>=
-  test = exec.Command("./clusters", "-b", "3090", f)
+  test = exec.Command(p, "-b", "3090", f)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We test sorting by $C$, \ty{-c}.
 #+end_export
 #+begin_src go <<Test \ty{-c}, Pr. \ref{pr:clu}>>=
-  test = exec.Command("./clusters", "-c", f)
+  test = exec.Command(p, "-c", f)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We test inclusion of mild outliers, \ty{-f}.
 #+end_export
 #+begin_src go <<Test \ty{-f}, Pr. \ref{pr:clu}>>=
-  test = exec.Command("./clusters", "-f", "1.5", f)
+  test = exec.Command(p, "-f", "1.5", f)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We test setting the minimum cluster size to 4.
 #+end_export
 #+begin_src go <<Test \ty{-s}, Pr. \ref{pr:clu}>>=
-  test = exec.Command("./clusters", "-s", "4", f)
+  test = exec.Command(p, "-s", "4", f)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We test tree printing, \ty{-t}.
 #+end_export
 #+begin_src go <<Test \ty{-t}, Pr. \ref{pr:clu}>>=
-  test = exec.Command("./clusters", "-t", f)
+  test = exec.Command(p, "-t", f)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We test restriction to terminal clusters, \ty{-T}.
 #+end_export
 #+begin_src go <<Test \ty{-T}, Pr. \ref{pr:clu}>>=
-  test = exec.Command("./clusters", "-T", f)
+  test = exec.Command(p, "-T", f)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex

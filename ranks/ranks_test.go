@@ -1,4 +1,4 @@
-package main
+package ranks
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 
 func TestRanks(t *testing.T) {
 	tests := make([]*exec.Cmd, 0)
-	pr := "./ranks"
+	pr := "./cmd/ranks"
 	ta := "207598"
 	db := "../data/test.db"
 	test := exec.Command(pr, ta, db)

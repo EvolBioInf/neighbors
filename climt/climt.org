@@ -39,26 +39,26 @@
 
   \section*{Implementation}
   The outline of \ty{climt} has hooks for imports, functions, and the
-  logic of the main function.\bpr{climt}{pr:cli}
+  logic of the run function.\bpr{climt}{pr:cli}
 #+end_src
 #+begin_src go <<climt.go>>=
-  package main
+  package climt
 
   import (
 	  //<<Imports, Pr. \ref{pr:cli}>>
   )
 
   //<<Functions, Pr. \ref{pr:cli}>>
-  func main() {
-	  //<<Main function, Pr. \ref{pr:cli}>>
+  func Run() {
+	  //<<Run function, Pr. \ref{pr:cli}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function we set the name of \ty{climt} and its usage,
+  \epr In the run function we set the name of \ty{climt} and its usage,
   declare the options, parse the options, get the name of the start
   node, and parse the input files.
 #+end_src
-#+begin_src go <<Main function, Pr. \ref{pr:cli}>>=
+#+begin_src go <<Run function, Pr. \ref{pr:cli}>>=
   util.SetName("climt")
   //<<Set usage, Pr. \ref{pr:cli}>>
   //<<Declare options, Pr. \ref{pr:cli}>>
@@ -396,7 +396,7 @@ The outline of our testing code for \ty{climt} has hooks for imports
 and the logic of the main function.
 #+end_src
 #+begin_src go <<climt_test.go>>=
-  package main
+  package climt
 
   import (
 	  "testing"
@@ -432,12 +432,13 @@ We import \ty{exec}.
 #+begin_src go <<Construct tests, Pr. \ref{pr:cli}>>=
   f := "test.nwk"
   s := "303"
-  test := exec.Command("./climt", s , f)
+  p := "./cmd/climt"
+  test := exec.Command(p, s , f)
   tests = append(tests, test)
-  test = exec.Command("./climt", "-d", s, f)
+  test = exec.Command(p, "-d", s, f)
   tests = append(tests, test)
   s = "^30[34]$"
-  test = exec.Command("./climt", "-r", s, f)
+  test = exec.Command(p, "-r", s, f)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

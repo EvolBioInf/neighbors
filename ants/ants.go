@@ -1,4 +1,4 @@
-package main
+package ants
 
 import (
 	"flag"
@@ -12,7 +12,7 @@ import (
 	"text/tabwriter"
 )
 
-func main() {
+func Run() {
 	util.SetName("ants")
 	u := "ants [option] <taxon-ID> <db>"
 	p := "Get a taxon's ancestors."

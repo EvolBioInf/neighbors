@@ -1,4 +1,4 @@
-package main
+package clusters
 
 import (
 	"bytes"
@@ -11,19 +11,20 @@ import (
 func TestClusters(t *testing.T) {
 	var tests []*exec.Cmd
 	f := "test.nwk"
-	test := exec.Command("./clusters", f)
+	p := "./cmd/clusters"
+	test := exec.Command(p, f)
 	tests = append(tests, test)
-	test = exec.Command("./clusters", "-b", "3090", f)
+	test = exec.Command(p, "-b", "3090", f)
 	tests = append(tests, test)
-	test = exec.Command("./clusters", "-c", f)
+	test = exec.Command(p, "-c", f)
 	tests = append(tests, test)
-	test = exec.Command("./clusters", "-f", "1.5", f)
+	test = exec.Command(p, "-f", "1.5", f)
 	tests = append(tests, test)
-	test = exec.Command("./clusters", "-s", "4", f)
+	test = exec.Command(p, "-s", "4", f)
 	tests = append(tests, test)
-	test = exec.Command("./clusters", "-t", f)
+	test = exec.Command(p, "-t", f)
 	tests = append(tests, test)
-	test = exec.Command("./clusters", "-T", f)
+	test = exec.Command(p, "-T", f)
 	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()

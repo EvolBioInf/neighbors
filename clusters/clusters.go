@@ -1,4 +1,4 @@
-package main
+package clusters
 
 import (
 	"flag"
@@ -191,7 +191,7 @@ func isTerminal(v *nwk.Node, clusters map[int]*Cluster,
 	}
 	return it
 }
-func main() {
+func Run() {
 	util.SetName("clusters")
 	u := "clusters [option]... [foo.nwk]..."
 	p := "Find nodes with long parental " +

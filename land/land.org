@@ -7,21 +7,21 @@
 
   \section*{Implementation}
   \ty{land} contains hooks for imports, functions, and the logic of the
-  main function.  \bpr{land}{pr:lan}
+  run function.  \bpr{land}{pr:lan}
 #+end_src
 #+begin_src go <<land.go>>=
-  package main
+  package land
 
   import (
 	  //<<Imports, Pr. \ref{pr:lan}>>
   )
   //<<Functions, Pr. \ref{pr:lan}>>
-  func main() {
+  func Run() {
 	  //<<Main function, Pr. \ref{pr:lan}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function of \ty{land} we set the name of \ty{land}
+  \epr In the run function of \ty{land} we set the name of \ty{land}
   and its usage, declare the options, parse the options, and parse the
   input files.
 #+end_src
@@ -184,7 +184,7 @@ Inside the function \ty{labelTree} we label the nodes in order.
   logic.
 #+end_src
 #+begin_src go <<land_test.go>>=
-  package main
+  package land
 
   import (
 	  "testing"
@@ -227,13 +227,14 @@ the leaf labels.
 #+end_export
 #+begin_src go <<Tests on plain trees, Pr. \ref{pr:lan}>>=
   f := "test1.nwk"
-  test := exec.Command("./land", f)
+  p := "./cmd/land"
+  test := exec.Command(p, f)
   tests = append(tests, test)
-  test = exec.Command("./land", "-p", "p", f)
+  test = exec.Command(p, "-p", "p", f)
   tests = append(tests, test)
-  test = exec.Command("./land", "-s", "s", f)
+  test = exec.Command(p, "-s", "s", f)
   tests = append(tests, test)
-  test = exec.Command("./land", "-l", f)
+  test = exec.Command(p, "-l", f)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -242,7 +243,7 @@ test on it to remove the labels.
 #+end_export
 #+begin_src go <<Tests on labeled trees, Pr. \ref{pr:lan}>>=
   f = "test2.nwk"
-  test = exec.Command("./land", "-r", f)
+  test = exec.Command(p, "-r", f)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

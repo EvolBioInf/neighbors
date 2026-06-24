@@ -1,4 +1,4 @@
-package main
+package climt
 
 import (
 	"bytes"
@@ -12,12 +12,13 @@ func TestClimt(t *testing.T) {
 	tests := make([]*exec.Cmd, 0)
 	f := "test.nwk"
 	s := "303"
-	test := exec.Command("./climt", s, f)
+	p := "./cmd/climt"
+	test := exec.Command(p, s, f)
 	tests = append(tests, test)
-	test = exec.Command("./climt", "-d", s, f)
+	test = exec.Command(p, "-d", s, f)
 	tests = append(tests, test)
 	s = "^30[34]$"
-	test = exec.Command("./climt", "-r", s, f)
+	test = exec.Command(p, "-r", s, f)
 	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()

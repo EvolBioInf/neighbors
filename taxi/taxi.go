@@ -1,4 +1,4 @@
-package main
+package taxi
 
 import (
 	"flag"
@@ -11,7 +11,7 @@ import (
 	"text/tabwriter"
 )
 
-func main() {
+func Run() {
 	util.SetName("taxi")
 	u := "taxi [option] <scientific-name> <db>"
 	p := "Take user from scientific name to taxon-ID."

@@ -1,4 +1,4 @@
-package main
+package outliers
 
 import (
 	"bytes"
@@ -10,9 +10,10 @@ import (
 
 func TestOutliers(t *testing.T) {
 	var tests []*exec.Cmd
+	p := "./cmd/outliers"
 	for i := 1; i <= 5; i++ {
 		f := "test" + strconv.Itoa(i) + ".txt"
-		test := exec.Command("./outliers", f)
+		test := exec.Command(p, f)
 		tests = append(tests, test)
 	}
 	for i, test := range tests {

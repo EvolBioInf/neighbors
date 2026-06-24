@@ -9,26 +9,26 @@
 
   \section*{Implementation}
   The outline of \ty{neighbors} contains hooks for imports, functions,
-  and the logic of the main function.
+  and the logic of the run function.
   \bpr{neighbors}{pr:neig}
 #+end_src
 #+begin_src go <<neighbors.go>>=
-  package main
+  package neighbors
 
   import (
 	  //<<Imports, Pr. \ref{pr:neig}>>
   )
   //<<Functions, Pr. \ref{pr:neig}>>
-  func main() {
-	  //<<Main function, Pr. \ref{pr:neig}>>
+  func Run() {
+	  //<<Run function, Pr. \ref{pr:neig}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function we set the name of \ty{neighbors} and its
+  \epr In the run function we set the name of \ty{neighbors} and its
   usage, declare the options, parse the options, and respond to
   them. Then we open the database connection and parse the input files.
 #+end_src
-#+begin_src go <<Main function, Pr. \ref{pr:neig}>>=
+#+begin_src go <<Run function, Pr. \ref{pr:neig}>>=
   util.SetName("neighbors")
   //<<Set usage, Pr. \ref{pr:neig}>>
   //<<Declare options, Pr. \ref{pr:neig}>>
@@ -625,7 +625,7 @@ taxon-ID, name, and genomes.
   testing logic.
 #+end_src
 #+begin_src go <<neighbors_test.go>>=
-  package main
+  package neighbors
 
   import (
 	  "testing"
@@ -660,9 +660,10 @@ taxon-ID, name, and genomes.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:neig}>>=
   db := "../data/test.db"
+  p := "./cmd/neighbors"
   for i := 1; i <= 4; i++ {
 	  in := "tid" + strconv.Itoa(i) + ".txt"
-	  test := exec.Command("./neighbors", db, in)
+	  test := exec.Command(p, db, in)
 	  tests = append(tests, test)
   }
   //<<Test options, Pr. \ref{pr:neig}>>
@@ -689,7 +690,7 @@ taxon-ID, name, and genomes.
 We test the list option, \ty{-l}, on \ty{tid4.txt}.
 #+end_src
 #+begin_src go <<Test \ty{-l}, Pr. \ref{pr:neig}>>=
-  test := exec.Command("./neighbors", "-l", db, "tid4.txt")
+  test := exec.Command(p, "-l", db, "tid4.txt")
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -697,14 +698,14 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   \ty{tid4.txt}.
 #+end_src
 #+begin_src go <<Test \ty{-g}, Pr. \ref{pr:neig}>>=
-  test = exec.Command("./neighbors", "-g", db, "tid4.txt")
+  test = exec.Command(p, "-g", db, "tid4.txt")
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
   We also run the tab option, \ty{-T} on \ty{tid4.txt}.
 #+end_src
 #+begin_src go <<Test \ty{-T}, Pr. \ref{pr:neig}>>=
-  test = exec.Command("./neighbors", "-T", db, "tid4.txt")
+  test = exec.Command(p, "-T", db, "tid4.txt")
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -712,9 +713,9 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   first on a single taxon-ID, and then on two.
 #+end_src
 #+begin_src go <<Test \ty{-t}, Pr. \ref{pr:neig}>>=
-  test = exec.Command("./neighbors", "-t", "9606", db)
+  test = exec.Command(p, "-t", "9606", db)
   tests = append(tests, test)
-  test = exec.Command("./neighbors", "-t",
+  test = exec.Command(p, "-t",
 	  "9606,9605", db)
   tests = append(tests, test)
 #+end_src
@@ -723,10 +724,10 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   and for complete or chromosome-level genomes.
 #+end_src
 #+begin_src go <<Test \ty{-L}, Pr. \ref{pr:neig}>>=
-  test = exec.Command("./neighbors", "-t", "9606",
+  test = exec.Command(p, "-t", "9606",
 	  "-L", "complete", db)
   tests = append(tests, test)
-  test = exec.Command("./neighbors", "-t", "9606",
+  test = exec.Command(p, "-t", "9606",
 	  "-L", "complete,chromosome", db)
   tests = append(tests, test)
 #+end_src
@@ -735,10 +736,10 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   output and the list output for \ty{tid4.txt} to the targets.
 #+end_src
 #+begin_src go <<Test \ty{-o}, Pr. \ref{pr:neig}>>=
-  test = exec.Command("./neighbors",
+  test = exec.Command(p,
 	  "-o", db, "tid4.txt")
   tests = append(tests, test)
-  test = exec.Command("./neighbors",
+  test = exec.Command(p,
 	  "-l", "-o", db, "tid4.txt")
   tests = append(tests, test)
 #+end_src

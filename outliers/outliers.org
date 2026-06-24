@@ -31,26 +31,26 @@
   It also lists mild and extreme outliers.
   \section*{Implementation}
   Our outline of \ty{outliers} contains hooks for imports, functions,
-  and the logic of the main function.
+  and the logic of the run function.
   \bpr{outlines}{pr:out}
 #+end_src
 #+begin_src go <<outliers.go>>=
-  package main
+  package outliers
 
   import (
 	  //<<Imports, Pr. \ref{pr:out}>>
   )
 
   //<<Functions, Pr. \ref{pr:out}>>
-  func main() {
-	  //<<Main function, Pr. \ref{pr:out}>>
+  func Run() {
+	  //<<Run function, Pr. \ref{pr:out}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function, we set the program name and its usage,
+  \epr In the run function, we set the program name and its usage,
   declare the options, parse the options, and parse the input files.
 #+end_src
-#+begin_src go <<Main function, Pr. \ref{pr:out}>>=
+#+begin_src go <<Run function, Pr. \ref{pr:out}>>=
   util.SetName("outliers")
   //<<Set usage, Pr. \ref{pr:out}>>
   //<<Declare options, Pr. \ref{pr:out}>>
@@ -299,7 +299,7 @@ The outline of our testing code contains hooks for imports and the
 testing logic.
 #+end_src
 #+begin_src go <<outliers_test.go>>=
-  package main
+  package outliers
 
   import (
 	  "testing"
@@ -334,9 +334,10 @@ We import \ty{exec}.
   other data sets are variations of it.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:out}>>=
+  p := "./cmd/outliers"
   for i := 1; i <= 5; i++ {
 	  f := "test" + strconv.Itoa(i) + ".txt"
-	  test := exec.Command("./outliers", f)
+	  test := exec.Command(p, f)
 	  tests = append(tests, test)
   }
 #+end_src

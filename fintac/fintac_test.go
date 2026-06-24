@@ -1,4 +1,4 @@
-package main
+package fintac
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 func TestFintac(t *testing.T) {
 	var tests []*exec.Cmd
 	f := "./test.nwk"
-	p := "./fintac"
+	p := "./cmd/fintac"
 	test := exec.Command(p, f)
 	tests = append(tests, test)
 	test = exec.Command(p, "-a", f)

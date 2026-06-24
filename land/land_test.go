@@ -1,4 +1,4 @@
-package main
+package land
 
 import (
 	"bytes"
@@ -11,16 +11,17 @@ import (
 func TestLand(t *testing.T) {
 	var tests []*exec.Cmd
 	f := "test1.nwk"
-	test := exec.Command("./land", f)
+	p := "./cmd/land"
+	test := exec.Command(p, f)
 	tests = append(tests, test)
-	test = exec.Command("./land", "-p", "p", f)
+	test = exec.Command(p, "-p", "p", f)
 	tests = append(tests, test)
-	test = exec.Command("./land", "-s", "s", f)
+	test = exec.Command(p, "-s", "s", f)
 	tests = append(tests, test)
-	test = exec.Command("./land", "-l", f)
+	test = exec.Command(p, "-l", f)
 	tests = append(tests, test)
 	f = "test2.nwk"
-	test = exec.Command("./land", "-r", f)
+	test = exec.Command(p, "-r", f)
 	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()

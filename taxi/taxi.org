@@ -31,26 +31,26 @@
   returned and an offset into the results list.
 
   \section*{Implementation}
-  The program \ty{taxi} has hooks for imports and the logic of the main
+  The program \ty{taxi} has hooks for imports and the logic of the run
   function.\bpr{taxi}{pr:tax}
 #+end_src
 #+begin_src go <<taxi.go>>=
-  package main
+  package taxi
 
   import (
 	  //<<Imports, Pr. \ref{pr:tax}>>
   )
 
-  func main() {
-	  //<<Main function, Pr. \ref{pr:tax}>>
+  func Run() {
+	  //<<Run function, Pr. \ref{pr:tax}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the \ty{main} function we set the name of \ty{taxi} and its
+  \epr In the \ty{Run} function we set the name of \ty{taxi} and its
   usage, declare the options, parse the options, get the taxon-IDs, and
   print them.
 #+end_src
-#+begin_src go <<Main function, Pr. \ref{pr:tax}>>=
+#+begin_src go <<Run function, Pr. \ref{pr:tax}>>=
   util.SetName("taxi")
   //<<Set usage, Pr. \ref{pr:tax}>>
   //<<Declare options, Pr. \ref{pr:tax}>>
@@ -191,7 +191,7 @@ We import \ty{util}.
   testing logic.
 #+end_src
 #+begin_src go <<taxi_test.go>>=
-  package main
+  package taxi
 
   import (
 	  "testing"
@@ -227,14 +227,15 @@ We import \ty{util}.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:tax}>>=
   db := "../data/test.db"
+  p := "./cmd/taxi"
   taxa := []string{"homo sapiens",
 	  "homo  sapiens",
 	  "haemophilus ducreyi",
 	  "pseudomonas fluorescens ATCC 17400"}
   for _, taxon := range taxa {
-	  test := exec.Command("./taxi", taxon, db)
+	  test := exec.Command(p, taxon, db)
 	  tests = append(tests, test)
-	  test = exec.Command("./taxi", "-e", taxon, db)
+	  test = exec.Command(p, "-e", taxon, db)
 	  tests = append(tests, test)
   }
 #+end_src

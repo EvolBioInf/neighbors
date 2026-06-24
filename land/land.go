@@ -1,4 +1,4 @@
-package main
+package land
 
 import (
 	"flag"
@@ -43,7 +43,7 @@ func labelTree(v *nwk.Node, c int, pr, su string,
 	c = labelTree(v.Sib, c, pr, su, ri, rl)
 	return c
 }
-func main() {
+func Run() {
 	util.SetName("land")
 	u := "land [option]... [treeFile]..."
 	p := "Label the internal nodes in Newick trees."

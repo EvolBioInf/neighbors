@@ -1,4 +1,4 @@
-package main
+package climt
 
 import (
 	"flag"
@@ -94,7 +94,7 @@ func findStart(root *nwk.Node, down bool, start *regexp.Regexp) {
 	findStart(root.Child, down, start)
 	findStart(root.Sib, down, start)
 }
-func main() {
+func Run() {
 	util.SetName("climt")
 	u := "climt [option]... v [inputFile]..."
 	p := "Climb a phylogenetic tree starting at v."

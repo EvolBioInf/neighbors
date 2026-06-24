@@ -1,4 +1,4 @@
-package main
+package fintac
 
 import (
 	"flag"
@@ -218,7 +218,7 @@ func hatch(regex *regexp.Regexp, label string,
 	}
 	return isMatch, nil
 }
-func main() {
+func Run() {
 	util.SetName("fintac")
 	u := "fintac [option]... [foo.nwk]..."
 	p := "Find target clade for taxa identified by " +

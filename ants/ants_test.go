@@ -1,4 +1,4 @@
-package main
+package ants
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ func TestAnts(t *testing.T) {
 	var tests []*exec.Cmd
 	tid := "9606"
 	db := "../data/test.db"
-	test := exec.Command("./ants", tid, db)
+	test := exec.Command("./cmd/ants", tid, db)
 	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()

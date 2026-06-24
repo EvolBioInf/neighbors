@@ -5,24 +5,24 @@
   this database.
   \section*{Implementation}
   The outline of \ty{makeNeiDb} contains hooks for imports, types, and
-  the logic of the main function.  \bpr{makeNeiDb}{pr:db}
+  the logic of the run function.  \bpr{makeNeiDb}{pr:db}
 #+end_src
 #+begin_src go <<makeNeiDb.go>>=
-  package main
+  package makeNeiDb
 
   import (
 	  //<<Imports, Pr. \ref{pr:db}>>
   )
-  func main() {
-	  //<<Main function, Pr. \ref{pr:db}>>
+  func Run() {
+	  //<<Run function, Pr. \ref{pr:db}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the main function, we declare the name of \ty{makeNeiDb} and
+  \epr In the run function, we declare the name of \ty{makeNeiDb} and
   its options, set the usage, parse the options, and construct the
   database.
 #+end_src
-#+begin_src go <<Main function, Pr. \ref{pr:db}>>=
+#+begin_src go <<Run function, Pr. \ref{pr:db}>>=
   util.SetName("makeNeiDb")
   //<<Declare options, Pr. \ref{pr:db}>>
   //<<Set usage, Pr. \ref{pr:db}>>
@@ -112,7 +112,7 @@ We import \ty{util}.
   testing logic.
 #+end_src
 #+begin_src go <<makeNeiDb_test.go>>=
-  package main
+  package makeNeiDb
 
   import (
 	  "testing"
@@ -143,7 +143,7 @@ We import \ty{util}.
   We construct a small database.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:db}>>=
-  test := exec.Command("./makeNeiDb",
+  test := exec.Command("./cmd/makeNeiDb",
 	  "-a", "../data/namesTest.dmp",
 	  "-d", "test.db",
 	  "-o", "../data/nodesTest.dmp",

@@ -1,4 +1,4 @@
-package main
+package dree
 
 import (
 	"flag"
@@ -15,7 +15,7 @@ import (
 	"text/tabwriter"
 )
 
-func main() {
+func Run() {
 	util.SetName("dree")
 	u := "dree [-h] [option]... <taxon-ID> <db>"
 	p := "Get the taxonomy rooted on a specific taxon."

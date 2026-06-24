@@ -1,4 +1,4 @@
-package main
+package outliers
 
 import (
 	"bufio"
@@ -82,7 +82,7 @@ func printOutliers(data []float64, kind string) {
 	}
 	fmt.Printf("\n")
 }
-func main() {
+func Run() {
 	util.SetName("outliers")
 	u := "outliers [option]... [file]..."
 	p := "List outliers according to the quartile criterion."

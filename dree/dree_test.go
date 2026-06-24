@@ -1,4 +1,4 @@
-package main
+package dree
 
 import (
 	"bytes"
@@ -12,31 +12,32 @@ func TestDree(t *testing.T) {
 	var tests []*exec.Cmd
 	n := "207598"
 	d := "../data/test.db"
-	test := exec.Command("./dree", n, d)
+	p := "./cmd/dree"
+	test := exec.Command(p, n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-n", n, d)
+	test = exec.Command(p, "-n", n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-g", n, d)
+	test = exec.Command(p, "-g", n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-l", n, d)
+	test = exec.Command(p, "-l", n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-l", "-g", n, d)
+	test = exec.Command(p, "-l", "-g", n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-l", "-n", n, d)
+	test = exec.Command(p, "-l", "-n", n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-l", "-g", "-n", n, d)
+	test = exec.Command(p, "-l", "-g", "-n", n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-L", "complete", n, d)
+	test = exec.Command(p, "-L", "complete", n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-L", "complete,chromosome", n, d)
+	test = exec.Command(p, "-L", "complete,chromosome", n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-m", "-2", n, d)
+	test = exec.Command(p, "-m", "-2", n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-m", "0", n, d)
+	test = exec.Command(p, "-m", "0", n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-m", "2", n, d)
+	test = exec.Command(p, "-m", "2", n, d)
 	tests = append(tests, test)
-	test = exec.Command("./dree", "-m", "200", n, d)
+	test = exec.Command(p, "-m", "200", n, d)
 	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()

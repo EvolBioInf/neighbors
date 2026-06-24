@@ -1,4 +1,4 @@
-package main
+package taxi
 
 import (
 	"bytes"
@@ -11,14 +11,15 @@ import (
 func TestTaxi(t *testing.T) {
 	var tests []*exec.Cmd
 	db := "../data/test.db"
+	p := "./cmd/taxi"
 	taxa := []string{"homo sapiens",
 		"homo  sapiens",
 		"haemophilus ducreyi",
 		"pseudomonas fluorescens ATCC 17400"}
 	for _, taxon := range taxa {
-		test := exec.Command("./taxi", taxon, db)
+		test := exec.Command(p, taxon, db)
 		tests = append(tests, test)
-		test = exec.Command("./taxi", "-e", taxon, db)
+		test = exec.Command(p, "-e", taxon, db)
 		tests = append(tests, test)
 	}
 	for i, test := range tests {
