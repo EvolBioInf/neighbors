@@ -57,7 +57,7 @@ doc/tdb.tex
 doc/tutorial.tex
 doc/util.tex
 doc/version.txt
-dree/dree
+dree/cmd/dree
 dree/dree.sh
 fintac/cmd/fintac
 land/cmd/land
