@@ -264,6 +264,95 @@ We import \ty{math}.
   q.LowerOuterFence = q.LowerQuartile - 3.0 * r
   q.UpperOuterFence = q.UpperQuartile + 3.0 * r
 #+end_src
+#+begin_export latex
+\section{\ty{SendGetRequest}}
+  !The function \ty{SendGetRequest} takes as argument an address,
+  !a map of query parameters and a map for http headers. It sends
+  !a get request using these values and returns the result.
+
+  Inside \ty{SendGetRequest} function,
+#+end_export
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
+  func SendGetRequest(address string, query, headers map[string]string) string {
+    //<<Create query, Pa. \ref{pa:util}>>
+    //<<Create request, Pa. \ref{pa:util}>>
+    //<<Write headers, Pa. \ref{pa:util}>>
+    //<<Execute request, Pa. \ref{pa:util}>>
+    //<<Parse response, Pa. \ref{pa:util}>>
+  }
+#+end_src
+#+begin_export latex
+  We use a string builder to reformat the passed 
+  map of query parameters into an URL conforming query string.
+#+end_export
+#+begin_src go <<Create query, Pa. \ref{pa:util}>>=
+  var queryBuilder strings.Builder
+  for key := range query {
+    if queryBuilder.Len() == 0 {
+      queryBuilder.WriteString("?")
+    } else {
+      queryBuilder.WriteString("&")
+    }
+    queryBuilder.WriteString(key)
+    queryBuilder.WriteString("=")
+    queryBuilder.WriteString(query[key])
+  }
+#+end_src
+#+begin_export latex
+  Using a string builder requires importing \ty{strings}.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
+  "strings"
+#+end_src
+#+begin_export latex
+  The \ty{net/http} package provides functions for creating requests.
+  There is a \ty{Get} function for creating a get request, but it does
+  not allow adding headers. We use \ty{NewRequest} instead and define
+  the http verb manually.
+#+end_export
+#+begin_src go <<Create request, Pa. \ref{pa:util}>>=
+  req, err := http.NewRequest("GET", address+queryBuilder.String(), nil)
+  Check(err)
+#+end_src
+#+begin_export latex
+  The headers are provided by the \ty{header} map. We add them to the
+  request by iterating over the keys of the map.
+#+end_export
+#+begin_src go <<Write headers, Pa. \ref{pa:util}>>=
+  for key := range headers {
+	  req.Header.Set(key, headers[key])
+  }
+#+end_src
+#+begin_export latex
+  Http clients provide methods for invoking requests.
+  The \ty{http} package uses a default client for this,
+  which is public. We are going to use this client as well.
+#+end_export
+#+begin_src go <<Execute request, Pa. \ref{pa:util}>>=
+  resp, err := http.DefaultClient.Do(req)
+  Check(err)
+#+end_src
+#+begin_export latex
+  Using the \ty{http} package requires importing it.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
+  "net/http"
+#+end_src
+#+begin_export latex
+  Laslty we parse the response using the \ty{io} package and 
+  return the data. 
+#+end_export
+#+begin_src go <<Parse response, Pa. \ref{pa:util}>>=
+  body, err := io.ReadAll(resp.Body)
+  Check(err)
+	return string(body)
+#+end_src
+#+begin_export latex
+  Though we still need to import \ty{io}.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
+  "io"
+#+end_src
 #+begin_src latex
   We are done with writing the \ty{util} package, time to test it.
   \section{Testing}

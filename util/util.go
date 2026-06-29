@@ -5,10 +5,13 @@ package util
 import (
 	"fmt"
 	"github.com/evolbioinf/clio"
+	"io"
 	"log"
 	"math"
+	"net/http"
 	"os"
 	"sort"
+	"strings"
 )
 
 type Quart struct {
@@ -109,4 +112,29 @@ func Quartiles(data []float64) *Quart {
 	q.LowerOuterFence = q.LowerQuartile - 3.0*r
 	q.UpperOuterFence = q.UpperQuartile + 3.0*r
 	return q
+}
+
+// The function SendGetRequest takes as argument an address, a map of query parameters and a map for http headers. It sends a get request using these values and returns the result.
+func SendGetRequest(address string, query, headers map[string]string) string {
+	var queryBuilder strings.Builder
+	for key := range query {
+		if queryBuilder.Len() == 0 {
+			queryBuilder.WriteString("?")
+		} else {
+			queryBuilder.WriteString("&")
+		}
+		queryBuilder.WriteString(key)
+		queryBuilder.WriteString("=")
+		queryBuilder.WriteString(query[key])
+	}
+	req, err := http.NewRequest("GET", address+queryBuilder.String(), nil)
+	Check(err)
+	for key := range headers {
+		req.Header.Set(key, headers[key])
+	}
+	resp, err := http.DefaultClient.Do(req)
+	Check(err)
+	body, err := io.ReadAll(resp.Body)
+	Check(err)
+	return string(body)
 }
