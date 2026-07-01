@@ -8,8 +8,8 @@ all : $(exe)
 
 tangle: $(pro).go $(pro)_test.go
 $(exe): $(pro).go
-	go build -ldflags "-X github.com/evolbioinf/neighbors/util.version=$(version) -X github.com/evolbioinf/neighbors/util.date=$(date)" $(pro).go
-	cd cmd && go build -o $(pro) main.go
+	go build $(pro).go
+	cd cmd && go build -ldflags "-X github.com/evolbioinf/neighbors/util.version=$(version) -X github.com/evolbioinf/neighbors/util.date=$(date)" -o $(pro) main.go
 $(pro).go: $(pro).org
 	if [ "$(nw)" != "" ]; then\
 		bash ../scripts/org2nw $(pro).org | notangle -R$(pro).go | gofmt > $(pro).go;\
