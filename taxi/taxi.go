@@ -23,6 +23,7 @@ func Run() {
 	var optE = flag.Bool("e", false, "exact match")
 	var optL = flag.Int("l", -1, "limit output to <= l taxids")
 	var optO = flag.Int("o", 0, "offset into taxid list")
+	var optT = flag.Bool("t", false, "taxid instead of name")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("taxi")
@@ -36,10 +37,12 @@ func Run() {
 	label := args[0]
 	db := args[1]
 	name := ""
-	isTaxid := true
-	num, err := strconv.ParseInt(label, 0, 0)
-	if err != nil {
-		isTaxid = false
+	taxid := 0
+	if *optT {
+		x, err := strconv.ParseInt(label, 0, 0)
+		util.Check(err)
+		taxid = int(x)
+	} else {
 		name = label
 		if !*optE {
 			na := strings.Fields(name)
@@ -47,11 +50,10 @@ func Run() {
 			name = "%" + name + "%"
 		}
 	}
-	taxid := int(num)
 	taxdb, err := tdb.OpenTaxonomyDBcheck(db)
 	util.Check(err)
 	taxa := []int{taxid}
-	if !isTaxid {
+	if !*optT {
 		taxa, err = taxdb.Taxids(name, *optL, *optO)
 		util.Check(err)
 	}
