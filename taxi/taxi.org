@@ -188,9 +188,9 @@ wild cards.
 #+begin_src latex
   Our output is based on a slice of taxon-IDs, \ty{taxa}. If the user
   supplied a taxon-ID, that is the only entry in \ty{taxa}.  If, on the
-  other hand, the user supplied a name, we get the corresponding one or
-  more taxon-IDs through a method call on the taxonomy database. If we
-  don't find any taxa, we're done.
+  other hand, the user supplied a name, we get the corresponding zero,
+  one, or more taxon-IDs through a method call on the taxonomy
+  database. If we don't find any taxa, we're done.
 #+end_src
 #+begin_src go <<Get taxon-IDs, Pr. \ref{pr:tax}>>=
   taxdb, err := tdb.OpenTaxonomyDBcheck(db)
