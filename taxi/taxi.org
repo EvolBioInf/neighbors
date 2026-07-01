@@ -3,9 +3,9 @@
   The \ty{neighbors} module is based on taxon-IDs. These are difficult
   to remember, so the program \ty{taxi} takes the user from the name of
   an organism to its taxon-ID. It can also take the user on the return
-  trip from taxon-ID to scientific name. The input to \ty{taxi} is thus
-  either a taxon-ID or a scientific name, in addition to the taxonomy
-  database.
+  trip from a taxon-ID to the scientific name. The input to \ty{taxi} is
+  thus either a taxon-ID or a scientific name, in addition to the
+  taxonomy database.
 
   If the user supplied a taxon-ID, \ty{taxi} simply looks up the
   corresponding scientific name. If the user supplied a scientific name,
