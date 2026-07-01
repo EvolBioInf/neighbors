@@ -1,2 +1,5 @@
-# ID    Parent  Name
-  9606  9605    Homo sapiens
+# ID       Parent   Name
+  9606     9605     Homo sapiens
+  63221    9606     Homo sapiens neanderthalensis
+  741158   9606     Homo sapiens subsp. 'Denisova'
+  2665953  2665952  Homo sapiens environmental sample

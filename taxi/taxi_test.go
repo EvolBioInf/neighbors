@@ -12,6 +12,8 @@ func TestTaxi(t *testing.T) {
 	var tests []*exec.Cmd
 	db := "../data/test.db"
 	p := "./cmd/taxi"
+	test := exec.Command(p, "9606", db)
+	tests = append(tests, test)
 	taxa := []string{"homo sapiens",
 		"homo  sapiens",
 		"haemophilus ducreyi",
