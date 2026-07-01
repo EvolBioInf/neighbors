@@ -20,7 +20,7 @@ func Run() {
 	clio.Usage(u, p, e)
 	var optV = flag.Bool("v", false, "version")
 	var optE = flag.Bool("e", false, "exact match")
-	var optR = flag.Bool("r", false, "remote execution")
+	var optR = flag.Bool("r", false, "remote execution (implies db)")
 	var optL = flag.Int("l", -1, "limit output to <= l taxids")
 	var optO = flag.Int("o", 0, "offset into taxid list")
 	flag.Parse()

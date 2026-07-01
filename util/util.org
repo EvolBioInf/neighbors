@@ -284,6 +284,8 @@ We import \ty{math}.
 #+begin_export latex
   We use a string builder to reformat the passed 
   map of query parameters into an URL conforming query string.
+  When writing the query's value we need to ensure encoding. The 
+  \ty{net/url} package provides a function for this.
 #+end_export
 #+begin_src go <<Create query, Pa. \ref{pa:util}>>=
   var queryBuilder strings.Builder
@@ -295,14 +297,15 @@ We import \ty{math}.
     }
     queryBuilder.WriteString(key)
     queryBuilder.WriteString("=")
-    queryBuilder.WriteString(query[key])
+    queryBuilder.WriteString(url.QueryEscape(query[key]))
   }
 #+end_src
 #+begin_export latex
-  Using a string builder requires importing \ty{strings}.
+  This requires us to import \ty{strings} and \ty{net/url}.
 #+end_export
 #+begin_src go <<Imports, Pa. \ref{pa:util}>>=
   "strings"
+  "net/url"
 #+end_src
 #+begin_export latex
   The \ty{net/http} package provides functions for creating requests.

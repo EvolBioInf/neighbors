@@ -9,6 +9,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -125,7 +126,7 @@ func SendGetRequest(address string, query, headers map[string]string) string {
 		}
 		queryBuilder.WriteString(key)
 		queryBuilder.WriteString("=")
-		queryBuilder.WriteString(query[key])
+		queryBuilder.WriteString(url.QueryEscape(query[key]))
 	}
 	req, err := http.NewRequest("GET", address+queryBuilder.String(), nil)
 	Check(err)
