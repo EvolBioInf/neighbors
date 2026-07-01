@@ -7,14 +7,16 @@ import (
 	"github.com/evolbioinf/neighbors/tdb"
 	"github.com/evolbioinf/neighbors/util"
 	"os"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 )
 
 func Run() {
 	util.SetName("taxi")
-	u := "taxi [option] <scientific-name> <db>"
-	p := "Take user from scientific name to taxon-ID."
+	u := "taxi [option] <scientific-name|taxid> <db>"
+	p := "Take user from scientific name to taxon-ID " +
+		"or vice versa."
 	e := "taxi \"homo sapiens\" neidb"
 	clio.Usage(u, p, e)
 	var optV = flag.Bool("v", false, "version")
@@ -29,18 +31,30 @@ func Run() {
 	m := "please provide a taxon and a database"
 	if len(args) != 2 {
 		fmt.Fprintf(os.Stderr, "%s\n", m)
-		os.Exit(-1)
+		os.Exit(1)
 	}
-	name := args[0]
+	label := args[0]
 	db := args[1]
-	if !*optE {
-		na := strings.Fields(name)
-		name = strings.Join(na, "% %")
-		name = "%" + name + "%"
+	name := ""
+	isTaxid := true
+	num, err := strconv.ParseInt(label, 0, 0)
+	if err != nil {
+		isTaxid = false
+		name = label
+		if !*optE {
+			na := strings.Fields(name)
+			name = strings.Join(na, "% %")
+			name = "%" + name + "%"
+		}
 	}
-	taxdb := tdb.OpenTaxonomyDB(db)
-	taxa, err := taxdb.Taxids(name, *optL, *optO)
+	taxid := int(num)
+	taxdb, err := tdb.OpenTaxonomyDBcheck(db)
 	util.Check(err)
+	taxa := []int{taxid}
+	if !isTaxid {
+		taxa, err = taxdb.Taxids(name, *optL, *optO)
+		util.Check(err)
+	}
 	if len(taxa) == 0 {
 		return
 	}

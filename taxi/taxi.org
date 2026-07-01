@@ -2,10 +2,16 @@
   \section*{Introduction}
   The \ty{neighbors} module is based on taxon-IDs. These are difficult
   to remember, so the program \ty{taxi} takes the user from the name of
-  an organism to its taxon-ID. The input to \ty{taxi} is a scientific
-  name and the taxonomy database. The search is always case-insensitive
-  and by default a query is bracketed by wildcards together with its
-  internal blanks. For example,
+  an organism to its taxon-ID. It can also take the user on the return
+  trip from taxon-ID to scientific name. The input to \ty{taxi} is thus
+  either a taxon-ID or a scientific name, in addition to the taxonomy
+  database.
+
+  If the user supplied a taxon-ID, \ty{taxi} simply looks up the
+  corresponding scientific name. If the user supplied a scientific name,
+  the search is a bit more involved. To start with, it is always
+  case-insensitive, and by default a query is bracketed by wildcards
+  together with its internal blanks. For example,
   \begin{verbatim}
   a b
   \end{verbatim}
@@ -22,13 +28,13 @@
     ducreyi}. This seems to mainly affect genus names, but not only, as
   shown by the name \ty{Pseudomonas [fluorescens] ATCC 17400}.
 
-  Instead of this default substring matching, the user can opt for an
-  exact matching, in which case no wild cards are inserted. Regardless
-  of the query type, there may be more than one, and potentially very
-  many, matches. In such cases, paged data retrieval may be more
-  convenient than wholesale output of all matches at once. To allow
-  paged data retrieval, the user can set a limit on the number of names
-  returned and an offset into the results list.
+  Instead of this default substring matching, the user can opt for exact
+  matching, in which case no wild cards are inserted. Regardless of the
+  query type, there may be more than one, and potentially very many,
+  matches. In such cases, paged data retrieval may be more convenient
+  than wholesale output of all matches at once. To allow paged data
+  retrieval, the user can set a limit on the number of names returned
+  and an offset into the results list.
 
   \section*{Implementation}
   The program \ty{taxi} has hooks for imports and the logic of the run
@@ -69,8 +75,9 @@ We import \ty{util}.
   explanation of the purpose of \ty{taxi}, and an example command.
 #+end_src
 #+begin_src go <<Set usage, Pr. \ref{pr:tax}>>=
-  u := "taxi [option] <scientific-name> <db>"
-  p := "Take user from scientific name to taxon-ID."
+  u := "taxi [option] <scientific-name|taxid> <db>"
+  p := "Take user from scientific name to taxon-ID " +
+	  "or vice versa."
   e := "taxi \"homo sapiens\" neidb"
   clio.Usage(u, p, e)
 #+end_src
@@ -100,19 +107,70 @@ We import \ty{util}.
 #+begin_src latex
   We parse the options and respond to the version option (\ty{-v})
   first, as this would stop the program. Then we get the remaining
-  arguments and check there are two of them, the name of the taxon and
-  the database. We store both names. Unless the user opted for exact
-  matching, we summarize consecutive white space into single
-  blanks. Then we bracket the taxon name and any remaining blanks with
-  wild cards.
+  arguments and count them to make sure there are two of them, the taxon
+  label and the database, which we both store. From the taxon label we
+  extract either the taxon name of the taxon-ID.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:tax}>>=
   flag.Parse()
-  if *optV { util.PrintInfo("taxi") }
+  if *optV {
+	  util.PrintInfo("taxi")
+  }
   args := flag.Args()
-  //<<Check arguments, Pr. \ref{pr:tax}>>
-  name := args[0]
+  //<<Count arguments, Pr. \ref{pr:tax}>>
+  label := args[0]
   db := args[1]
+  //<<Extract taxon name or ID, Pr. \ref{pr:tax}>>
+#+end_src
+#+begin_src latex
+  If the user didn't provide two arguments, we don't have the necessary
+  taxon and a database to work with, so we send a friendly message and
+  quit.
+#+end_src
+#+begin_src go <<Count arguments, Pr. \ref{pr:tax}>>=
+  m := "please provide a taxon and a database"
+  if len(args) != 2 {
+	  fmt.Fprintf(os.Stderr, "%s\n", m)
+	  os.Exit(1)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{fmt} and \ty{os}.
+#+end_src
+#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
+  "fmt"
+  "os"
+#+end_src
+#+begin_export latex
+If the taxon label is a number, we know that the user supplied a
+taxon-ID. Otherwise the label is a scientific name, which we need to
+still prepare.
+#+end_export
+#+begin_src go <<Extract taxon name or ID, Pr. \ref{pr:tax}>>=
+  name := ""
+  isTaxid := true
+  num, err := strconv.ParseInt(label, 0, 0)
+  if err != nil {
+	  isTaxid = false
+	  name = label
+	  //<<Prepare name, Pr. \ref{pr:tax}>>
+  }
+  taxid := int(num)
+#+end_src
+#+begin_export latex
+We import \ty{strconv}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
+  "strconv"
+#+end_src
+#+begin_export latex
+To prepare the scientific name for searching, we consider whether the
+user chose exact matching, in which case we take the label as
+given. Otherwise, we summarize consecutive white space into single
+blanks. Then we bracket the taxon name and any remaining blanks with
+wild cards.
+#+end_export
+#+begin_src go <<Prepare name, Pr. \ref{pr:tax}>>=
   if !*optE {
 	  na := strings.Fields(name)
 	  name = strings.Join(na , "% %")
@@ -126,31 +184,18 @@ We import \ty{util}.
   "strings"
 #+end_src
 #+begin_src latex
-  If the user didn't provide a taxon and a database, we send a friendly
-  message and quit.
-#+end_src
-#+begin_src go <<Check arguments, Pr. \ref{pr:tax}>>=
-  m := "please provide a taxon and a database"
-  if len(args) != 2 {
-	  fmt.Fprintf(os.Stderr, "%s\n", m)
-	  os.Exit(-1)
-  }
-#+end_src
-#+begin_src latex
-  We import \ty{fmt} and \ty{os}.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
-  "fmt"
-  "os"
-#+end_src
-#+begin_src latex
-  We get the taxon-IDs through a method call on the taxonomy
-  database. If we don't find any taxa, we're done.
+  If the user supplied a name, we get the corresponding taxon-IDs
+  through a method call on the taxonomy database. If we don't find any
+  taxa, we're done.
 #+end_src
 #+begin_src go <<Get taxon-IDs, Pr. \ref{pr:tax}>>=
-  taxdb := tdb.OpenTaxonomyDB(db)
-  taxa, err := taxdb.Taxids(name, *optL, *optO)
+  taxdb, err := tdb.OpenTaxonomyDBcheck(db)
   util.Check(err)
+  taxa := []int{taxid}
+  if !isTaxid {
+	  taxa, err = taxdb.Taxids(name, *optL, *optO)
+	  util.Check(err)
+  }
   if len(taxa) == 0 {
 	  return
   }
@@ -218,16 +263,23 @@ We import \ty{util}.
 #+begin_src go <<Testing imports, Pr. \ref{pr:tax}>>=
   "os/exec"
 #+end_src
+#+begin_export latex
+Our first query is 9606, the taxon-ID for human.
+#+end_export
+#+begin_src go <<Construct tests, Pr. \ref{pr:tax}>>=
+  db := "../data/test.db"
+  p := "./cmd/taxi"
+  test := exec.Command(p, "9606", db)
+  tests = append(tests, test)
+#+end_src
 #+begin_src latex
-  Our query is \emph{Homo sapiens}, \emph{Homo\_\_sapiens} with two
-  blanks in the middle, \emph{Haemophilus ducreyi}, and
+  Our next four queries are \emph{Homo sapiens}, \emph{Homo\_\_sapiens}
+  with two blanks in the middle, \emph{Haemophilus ducreyi}, and
   \emph{Pseudomonas fluorescens}. We run these queries in default mode
   and in exact mode. Remember that string matching in SQL databases is
   case-insensitive.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:tax}>>=
-  db := "../data/test.db"
-  p := "./cmd/taxi"
   taxa := []string{"homo sapiens",
 	  "homo  sapiens",
 	  "haemophilus ducreyi",
