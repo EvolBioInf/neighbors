@@ -19,11 +19,21 @@ func Run() {
 	e := "ants 9606 neidb"
 	clio.Usage(u, p, e)
 	var optV = flag.Bool("v", false, "version")
+	var optR = flag.Bool("r", false, "remote execution (implies db)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("ants")
 	}
 	args := flag.Args()
+	if *optR {
+		resp := util.SendGetRequest(
+			"http://localhost:8080/api/v2/taxa/"+args[0]+"/ancestors",
+			make(map[string]string),
+			map[string]string{"Accept": "text/plain"},
+		)
+		fmt.Print(resp)
+		return
+	}
 	if len(args) != 2 {
 		m := "please provide a taxon and a database"
 		fmt.Fprintf(os.Stderr, "%s\n", m)

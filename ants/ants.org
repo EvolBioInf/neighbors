@@ -55,10 +55,11 @@ We import \ty{util}.
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  There's only one option, the version.
+  There's are two options, the version and remote execution.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:ant}>>=
   var optV = flag.Bool("v", false, "version")
+	var optR = flag.Bool("r", false, "remote execution (implies db)")
 #+end_src 
 #+begin_src latex
   We import \ty{flag}.
@@ -68,8 +69,9 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   We parse the options and respond to \ty{-v} as this might stop the
-  program. Then we extract the remaining arguments, check there are two
-  of them, and store the taxon-ID and the database.
+  program. We execute remotely if \ty{-r} is active. We extract 
+  the remaining arguments, check there are two of them, and store 
+  the taxon-ID and the database for local execution.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:ant}>>=
   flag.Parse()
@@ -77,6 +79,7 @@ We import \ty{util}.
 	  util.PrintInfo("ants")
   }
   args := flag.Args()
+  //<<Act on remote switch, Pr. \ref{pr:tax}>>
   //<<Check arguments, Pr. \ref{pr:ant}>>
   tid, err := strconv.Atoi(args[0])
   if err != nil { log.Fatal(err) }
@@ -88,6 +91,24 @@ We import \ty{util}.
 #+begin_src go <<Imports, Pr. \ref{pr:ant}>>=
   "strconv"
   "log"
+#+end_src
+#+begin_src latex
+  The remote switch enables remote execution of \ty{ants}.
+  For this we need to call \ty{SendGetRequest}.
+  The servers adress is:
+  \ty{http://localhost:8080/api/v2/taxa/{taxon_id}/ancestors}.
+  We accept responses only in plain text format.
+#+end_src
+#+begin_src go <<Act on remote switch, Pr. \ref{pr:tax}>>=
+  if *optR {
+    resp := util.SendGetRequest(
+      "http://localhost:8080/api/v2/taxa/"+args[0]+"/ancestors",
+      make(map[string]string),
+      map[string]string{"Accept": "text/plain"},
+    )
+    fmt.Print(resp)
+    return
+  } 
 #+end_src
 #+begin_src latex
   If the user didn't submit two arguments, something is bound to have
