@@ -103,6 +103,7 @@ We import \ty{util}.
   \item \ty{-n}: print \emph{names} instead of taxon-IDs
   \item \ty{-g}: print only taxa with \emph{genomes}
   \item \ty{-l}: \emph{list} taxa
+  \item \ty{-r}: execute dree on a remote server
   \item \ty{-L}: only consider genomes with a particular assembly
     \emph{level}
   \item \ty{-m}: maximum tree level
@@ -115,6 +116,7 @@ We import \ty{util}.
   optG := flag.Bool("g", false,
 	  "only taxa with genome sequences")
   optL := flag.Bool("l", false, "list taxa")
+  optR := flag.Bool("r", false, "remote execution (implies db)")
   optLL := flag.String("L", "", util.LevelMsg())
   optM := flag.Int("m", -1, "maximum tree level")
 #+end_src
@@ -125,14 +127,16 @@ We import \ty{util}.
   "flag"
 #+end_src
 #+begin_src latex
-  We parse the options and respond to the version option, \ty{-v}, the
-  assembly levels option, \ty{-L}, and the maximum tree levels option,
-  \ty{-m}. Then we get the taxon-ID and the database name. Using the
-  database name, we open the database connection.
+  We parse the options and respond to the version option, \ty{-v},
+  the remote switch, \ty{-r}, the assembly levels option, \ty{-L}, 
+  and the maximum tree levels option,  \ty{-m}. Then we get the 
+  taxon-ID and the database name. Using the database name, we 
+  open the database connection.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:dr}>>=
   flag.Parse()
   //<<Respond to \ty{-v}, Pr. \ref{pr:dr}>>
+  //<<Respond to \ty{-r}, Pr. \ref{pr:dr}>>
   //<<Respond to \ty{-L}, Pr. \ref{pr:dr}>>
   //<<Respond to \ty{-m}, Pr. \ref{pr:dr}>>
   //<<Get taxon-ID, Pr. \ref{pr:dr}>>
@@ -153,6 +157,71 @@ We import \ty{util}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_src latex
+  If the remote switch is active, we retrieve all the parameters
+  and store them in a map. This map represents the query arguments
+  for the remote execution request. \ty{-l} decides on the output 
+  format. The remote equivalent of this is an accept header. We need
+  to define this according the \ty{-l}'s value. After parsing we send
+  a request using \ty{SendGetRequest} and print its response.
+#+end_src
+#+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:dr}>>=
+  if *optR {
+    query := make(map[string]string)
+    headers := make(map[string]string)
+    if *optG {
+      query["genomes_only"] = "true"
+    }
+    //<<Decide on accept header, Pr. \ref{pr:dr}>>
+    if *optLL != "" {
+      query["assembly_levels"] = *optLL
+    }
+    if *optM != -1 {
+      query["max_depth"] = strconv.Itoa(*optM)
+    }
+    if *optN {
+      query["print_names"] = "true"
+    }
+    var resp string
+    //<<Send request, Pr. \ref{pr:dr}>>
+		fmt.Print(resp)
+		return
+  }
+#+end_src
+#+begin_src latex
+  Using \ty{strconv} requires importing it.
+#+end_src
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
+  "strconv"
+#+end_src
+#+begin_src latex
+  The accept header defines the response's output format.
+  A list is represented by the header value \ty{text/plain},
+  a graph by \ty{text/vnd.graphviz}.
+#+end_src
+#+begin_src go <<Decide on accept header, Pr. \ref{pr:dr}>>=
+  if *optL {
+    headers["Accept"] = "text/plain"
+  } else {
+    headers["Accept"] = "text/vnd.graphviz"
+  }
+#+end_src
+#+begin_src latex
+  When sending a request we the \ty{SendGetRequest} function,
+  passing along the headers and query parameters we just defined.
+  We also specify a url which is: 
+  \ty{"http://localhost:8080/api/v2/taxa/{taxon_id}/subtree"}.
+  This url requires a taxon id which is stored as a call argument.
+  We get them by call \ty{flag.Args()}.
+#+end_src
+#+begin_src go <<Send request, Pr. \ref{pr:dr}>>=
+  args := flag.Args()
+  resp = util.SendGetRequest(
+		"http://localhost:8080/api/v2/taxa/"+args[0]+"/subtree",
+		query,
+		headers,
+	)
 #+end_src
 #+begin_src latex
   In order to respond to the levels option, we get the map of known
@@ -237,12 +306,11 @@ We import \ty{math}.
   }
 #+end_src
 #+begin_src latex
-  We import \ty{fmt}, \ty{os}, \ty{strconv}, and \ty{log}.
+  We import \ty{fmt}, \ty{os}, and \ty{log}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "fmt"
   "os"
-  "strconv"
   "log"
 #+end_src
 #+begin_src latex

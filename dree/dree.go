@@ -27,11 +27,42 @@ func Run() {
 	optG := flag.Bool("g", false,
 		"only taxa with genome sequences")
 	optL := flag.Bool("l", false, "list taxa")
+	optR := flag.Bool("r", false, "remote execution (implies db)")
 	optLL := flag.String("L", "", util.LevelMsg())
 	optM := flag.Int("m", -1, "maximum tree level")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("dree")
+	}
+	if *optR {
+		query := make(map[string]string)
+		headers := make(map[string]string)
+		if *optG {
+			query["genomes_only"] = "true"
+		}
+		if *optL {
+			headers["Accept"] = "text/plain"
+		} else {
+			headers["Accept"] = "text/vnd.graphviz"
+		}
+		if *optLL != "" {
+			query["assembly_levels"] = *optLL
+		}
+		if *optM != -1 {
+			query["max_depth"] = strconv.Itoa(*optM)
+		}
+		if *optN {
+			query["print_names"] = "true"
+		}
+		var resp string
+		args := flag.Args()
+		resp = util.SendGetRequest(
+			"http://localhost:8080/api/v2/taxa/"+args[0]+"/subtree",
+			query,
+			headers,
+		)
+		fmt.Print(resp)
+		return
 	}
 	levels := make(map[string]bool)
 	knowns := make(map[string]bool)
