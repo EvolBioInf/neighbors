@@ -21,9 +21,10 @@ func Run() {
 	clio.Usage(u, p, e)
 	var optV = flag.Bool("v", false, "version")
 	var optE = flag.Bool("e", false, "exact match")
-	var optR = flag.Bool("r", false, "remote execution (implies db)")
 	var optL = flag.Int("l", -1, "limit output to <= l taxids")
 	var optO = flag.Int("o", 0, "offset into taxid list")
+	var optT = flag.Bool("t", false, "taxid instead of name")
+	var optR = flag.Bool("r", false, "remote execution (implies db)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("taxi")
@@ -32,8 +33,7 @@ func Run() {
 	if *optR {
 		query := make(map[string]string)
 		var isId bool
-		_, err := strconv.Atoi(args[0])
-		isId = err == nil
+		isId = *optT
 		if !isId {
 			query["name"] = args[0]
 			if *optE {
@@ -71,10 +71,12 @@ func Run() {
 	label := args[0]
 	db := args[1]
 	name := ""
-	isTaxid := true
-	num, err := strconv.ParseInt(label, 0, 0)
-	if err != nil {
-		isTaxid = false
+	taxid := 0
+	if *optT {
+		x, err := strconv.ParseInt(label, 0, 0)
+		util.Check(err)
+		taxid = int(x)
+	} else {
 		name = label
 		if !*optE {
 			na := strings.Fields(name)
@@ -82,11 +84,10 @@ func Run() {
 			name = "%" + name + "%"
 		}
 	}
-	taxid := int(num)
 	taxdb, err := tdb.OpenTaxonomyDBcheck(db)
 	util.Check(err)
 	taxa := []int{taxid}
-	if !isTaxid {
+	if !*optT {
 		taxa, err = taxdb.Taxids(name, *optL, *optO)
 		util.Check(err)
 	}
