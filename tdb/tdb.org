@@ -1481,39 +1481,87 @@ infinite loop.
   }
 #+end_src
 #+begin_src latex
-  We declare a template for the taxids query, where we order the
-  matching names by their score in descending order before ordering by
-  name and then imposing paging.
+  We declare a template for the taxids query, where we get the taxon-IDs
+  and scores for the taxa whose names match the given name.
 #+end_src
 #+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
-  var taxidsT = "select taxid from taxon " +
-	  "where name like ? " +
-	  "order by score desc, name " +
-	  "limit ? " +
-	  "offset ?"
+  var taxidsT = "select taxid, score " +
+            "from taxon " +
+  	  "where name like ?"
 #+end_src
 #+begin_src latex
   We execute the query for taxon-IDs and catch potential errors. We also
   make sure the result table is eventually closed again.
 #+end_src
 #+begin_src go <<Execute taxids query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(taxidsT, name, limit, offset)
+  rows, err := t.db.Query(taxidsT, name)
   if err != nil {
 	  return nil, err
   }
   defer rows.Close()
 #+end_src
 #+begin_src latex
-  We extract and store the taxon-IDs.
+  To extract the taxon-IDs, we first extract the taxa. The we sort them by
+  score and apply the limit and the offset.
 #+end_src
 #+begin_src go <<Extract taxids, Pa. \ref{pa:tdb}>>=
-  taxid := 0
+  //<<Extract taxon-IDs, Pa. \ref{pa:tdb}>>
+  //<<Sort taxa, Pa. \ref{pa:tdb}>>
+  //<<Apply limit and offset, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+We store the taxa in a slice that we fill by iterating over the rows
+of the table returned by the query.c'
+#+end_export
+#+begin_src go <<Extract taxon-IDs, Pa. \ref{pa:tdb}>>=
+  taxa := []taxon{}
   for rows.Next() {
-	  err = rows.Scan(&taxid)
-	  if err != nil {
-		  return nil, err
-	  }
-	  taxids = append(taxids, taxid)
+  	t := taxon{}
+  	err = rows.Scan(&t.taxid, &t.score)
+  	if err != nil {
+  		return nil, err
+  	}
+  	taxa = append(taxa, t)
+  }
+#+end_src
+#+begin_export latex
+We sort the taxa by their score as primary key and taxon-ID as
+secondary key.
+#+end_export
+#+begin_src go <<Sort taxa, Pa. \ref{pa:tdb}>>=
+  slices.SortFunc(taxa, func(a, b taxon) int {
+  	if a.score == b.score {
+  		return a.taxid - b.taxid
+  	} else if a.score < b.score {
+  		return 1
+  	}
+  	return -1
+  })
+#+end_src
+#+begin_export latex
+We import \ty{slices}.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
+  "slices"
+#+end_src
+#+begin_export latex
+We reslice \ty{taxa} according to the limit and the offset. The starting
+point of the new taxon is the offset. The end point the starting point
+plus the limit or the end of the slice, whichever is smaller. We check
+that these bounds are within the slice in hand and then return the
+corresponding taxon-IDs.
+#+end_export
+#+begin_src go <<Apply limit and offset, Pa. \ref{pa:tdb}>>=
+  s := offset
+  e := s + limit
+  if e < len(taxa) {
+  	e = len(taxa)
+  }
+  if s < len(taxa) {
+  	taxa = taxa[s:e]
+  	for _, taxon := range taxa {
+  		taxids = append(taxids, taxon.taxid)
+  	}
   }
 #+end_src
 #+begin_src latex
