@@ -101,12 +101,18 @@ We import \ty{util}.
 #+begin_src go <<Act on remote switch, Pr. \ref{pr:tax}>>=
   if *optR {
     resp := util.SendGetRequest(
-      "http://localhost:8080/api/v2/programs/ants"",
+      "http://localhost:8080/api/v2/programs/ants",
 			strings.Join(os.Args[1:], " "),
     )
     fmt.Print(resp)
     return
   } 
+#+end_src
+#+begin_src latex
+  We need to import \ty{strings}, when using the \ty{Join} function.
+#+end_src
+#+begin_src go <<Imports, Pr. \ref{pr:ant}>>=
+  "strings"
 #+end_src
 #+begin_src latex
   If the user didn't submit two arguments, something is bound to have

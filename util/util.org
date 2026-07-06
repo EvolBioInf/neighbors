@@ -266,17 +266,16 @@ We import \ty{math}.
 #+end_src
 #+begin_export latex
 \section{\ty{SendGetRequest}}
-  !The function \ty{SendGetRequest} takes as argument an address,
-  !a map of query parameters and a map for http headers. It sends
-  !a get request using these values and returns the result.
+  !The function \ty{SendGetRequest} takes as argument an address
+  !and a query string. It sends a get request using these values
+  !and returns the result.
 
   Inside \ty{SendGetRequest} function,
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func SendGetRequest(address, query string) string {
     //<<Encode query, Pa. \ref{pa:util}>>
-    //<<Create request, Pa. \ref{pa:util}>>
-    //<<Write headers, Pa. \ref{pa:util}>>
+    //<<Create \ty{get} request, Pa. \ref{pa:util}>>
     //<<Execute request, Pa. \ref{pa:util}>>
     //<<Parse response, Pa. \ref{pa:util}>>
   }
@@ -300,8 +299,8 @@ We import \ty{math}.
   not allow adding headers. We use \ty{NewRequest} instead and define
   the http verb manually.
 #+end_export
-#+begin_src go <<Create request, Pa. \ref{pa:util}>>=
-  req, err := http.NewRequest("GET", address+"?args="+eQuery, nil)
+#+begin_src go <<Create \ty{get} request, Pa. \ref{pa:util}>>=
+  req, err := http.NewRequest(http.MethodGet, address+"?args="+eQuery, nil)
   Check(err)
 #+end_src
 #+begin_export latex
@@ -334,6 +333,49 @@ We import \ty{math}.
 #+begin_src go <<Imports, Pa. \ref{pa:util}>>=
   "io"
 #+end_src
+#+begin_export latex
+\section{\ty{SendPostRequest}}
+  !The function \ty{SendPostRequest} takes as argument an address
+  !and a query string and data for files. It sends a post request 
+  !using these values and returns the result.
+
+  Inside \ty{SendGetRequest} function,
+#+end_export
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
+  func SendPostRequest(address, query string, data []string) string {
+    //<<Encode query, Pa. \ref{pa:util}>>
+    //<<Set \ty{post} form data, Pa. \ref{pa:util}>>
+    //<<Create \ty{post} request, Pa. \ref{pa:util}>>
+    //<<Write \ty{post} headers, Pa. \ref{pa:util}>>
+    //<<Execute request, Pa. \ref{pa:util}>>
+    //<<Parse response, Pa. \ref{pa:util}>>
+  }
+#+end_src
+
+#+begin_export latex
+
+#+end_export
+
+#+begin_src go <<Set \ty{post} form data, Pa. \ref{pa:util}>>=
+#+end_src
+
+#+begin_export latex
+  We create \ty{post} request. Adding the query string is the same
+  as for the get request. The body
+#+end_export
+
+#+begin_src go <<Create \ty{post} request, Pa. \ref{pa:util}>>=
+	req, err := http.NewRequest(http.MethodPost, address+"?args="+eQuery, &b)
+#+end_src
+
+#+begin_export latex
+  We use the writer to set the correct content type including boundaries.
+#+end_export
+
+#+begin_src go <<Write \ty{post} headers, Pa. \ref{pa:util}>>=
+  req.Header.Set("Content-Type", w.FormDataContentType())
+#+end_src
+
 #+begin_src latex
   We are done with writing the \ty{util} package, time to test it.
   \section{Testing}

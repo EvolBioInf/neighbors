@@ -3,15 +3,18 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
-	"github.com/evolbioinf/clio"
 	"io"
 	"log"
 	"math"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
 	"sort"
+
+	"github.com/evolbioinf/clio"
 )
 
 type Quart struct {
@@ -114,11 +117,34 @@ func Quartiles(data []float64) *Quart {
 	return q
 }
 
-// The function SendGetRequest takes as argument an address, a map of query parameters and a map for http headers. It sends a get request using these values and returns the result.
+// The function SendGetRequest takes as argument an address and a query string. It sends a get request using these values and returns the result.
 func SendGetRequest(address, query string) string {
 	eQuery := url.QueryEscape(query)
-	req, err := http.NewRequest("GET", address+"?args="+eQuery, nil)
+	req, err := http.NewRequest(http.MethodGet, address+"?args="+eQuery, nil)
 	Check(err)
+	resp, err := http.DefaultClient.Do(req)
+	Check(err)
+	body, err := io.ReadAll(resp.Body)
+	Check(err)
+	return string(body)
+}
+
+// The function SendPostRequest takes as argument an address and a query string and data for files. It sends a post request  using these values and returns the result.
+func SendPostRequest(address, query string, filenames []string) string {
+	eQuery := url.QueryEscape(query)
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	fw, err := w.CreateFormFile("w", "e")
+	Check(err)
+
+	io.Copy(fw)
+
+	req, err := http.NewRequest(http.MethodPost, address+"?args="+eQuery, &b)
+
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
 	resp, err := http.DefaultClient.Do(req)
 	Check(err)
 	body, err := io.ReadAll(resp.Body)
