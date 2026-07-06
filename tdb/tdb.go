@@ -10,6 +10,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"math"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -194,18 +195,38 @@ func (t *TaxonomyDB) Taxids(name string,
 	limit, offset int) ([]int, error) {
 	var err error
 	taxids := make([]int, 0)
-	rows, err := t.db.Query(taxidsT, name, limit, offset)
+	rows, err := t.db.Query(taxidsT, name)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	taxid := 0
+	taxa := []taxon{}
 	for rows.Next() {
-		err = rows.Scan(&taxid)
+		t := taxon{}
+		err = rows.Scan(&t.taxid, &t.score)
 		if err != nil {
 			return nil, err
 		}
-		taxids = append(taxids, taxid)
+		taxa = append(taxa, t)
+	}
+	slices.SortFunc(taxa, func(a, b taxon) int {
+		if a.score == b.score {
+			return a.taxid - b.taxid
+		} else if a.score < b.score {
+			return 1
+		}
+		return -1
+	})
+	s := offset
+	e := s + limit
+	if e < len(taxa) {
+		e = len(taxa)
+	}
+	if s < len(taxa) {
+		taxa = taxa[s:e]
+		for _, taxon := range taxa {
+			taxids = append(taxids, taxon.taxid)
+		}
 	}
 	return taxids, err
 }
@@ -870,11 +891,9 @@ var commonNameT = "select common_name " +
 var rankT = "select rank from taxon where taxid=?"
 var parentT = "select parent from taxon where taxid=?"
 var childrenT = "select taxid from taxon where parent=?"
-var taxidsT = "select taxid from taxon " +
-	"where name like ? " +
-	"order by score desc, name " +
-	"limit ? " +
-	"offset ?"
+var taxidsT = "select taxid, score " +
+	"from taxon " +
+	"where name like ?"
 var commonTaxidsT = "select taxid from taxon " +
 	"where name like ? " +
 	"or common_name like ? " +
