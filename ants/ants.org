@@ -97,14 +97,12 @@ We import \ty{util}.
   For this we need to call \ty{SendGetRequest}.
   The servers adress is:
   \ty{http://localhost:8080/api/v2/taxa/{taxon_id}/ancestors}.
-  We accept responses only in plain text format.
 #+end_src
 #+begin_src go <<Act on remote switch, Pr. \ref{pr:tax}>>=
   if *optR {
     resp := util.SendGetRequest(
-      "http://localhost:8080/api/v2/taxa/"+args[0]+"/ancestors",
-      make(map[string]string),
-      map[string]string{"Accept": "text/plain"},
+      "http://localhost:8080/api/v2/programs/ants"",
+			strings.Join(os.Args[1:], " "),
     )
     fmt.Print(resp)
     return

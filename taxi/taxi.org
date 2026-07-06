@@ -89,8 +89,8 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   Apart from the version, we declare options for exact matching, limit,
-  and offset, using a taxon-ID and remote execution. The defaults are substring matching, 
-  no limit, and no offset, and scientific name.
+  and offset and remote execution. The defaults are substring matching, 
+  no limit, and no offset.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:tax}>>=
   var optV = flag.Bool("v", false, "version")
@@ -131,85 +131,23 @@ We import \ty{util}.
   The remote switch is an option to execute \ty{taxi}
   on a server instead of locally. For this we need to 
   call \ty{SendGetRequest} and provide the call arguments.
-  The servers adress is either 
-  \ty{http://localhost:8080/api/v2/taxa} or
-  \ty{http://localhost:8080/api/v2/taxa/{taxon_id}}
-  depending \ty{taxi}'s call arguments.
-  We specify the call arguments as a map of query parameters.
+  The request url is 
+  \ty{http://localhost:8080/api/v2/programs/taxi}.
 #+end_src
 #+begin_src go <<Act on remote switch, Pr. \ref{pr:tax}>>=
   if *optR {
-    query := make(map[string]string)
-    var isId bool
-    //<<Add query parameters, Pr. \ref{pr:tax}>>
-    var resp string
-    if isId {
-      //<<Send id request, Pr. \ref{pr:tax}>>
-    } else {
-      //<<Send name request, Pr. \ref{pr:tax}>>
-    }
+    resp := util.SendGetRequest(
+      "http://localhost:8080/api/v2/programs/taxi",
+      strings.Join(os.Args[1:], " "),
+    )
     fmt.Print(resp)
     return
   } 
 #+end_src
 #+begin_src latex
-  There are four arguments we need to consider:
-  the \ty{exact} option, \ty{limit} and \ty{offset}, 
-  as well as the provided label. If the label is a name,
-  we store it with the key name. If it is an id, we set a
-  bool instead and stop parsing the remaing arguments.
-#+end_src
-#+begin_src go <<Add query parameters, Pr. \ref{pr:tax}>>=
-  isId = *optT
-  if !isId {
-    query["name"] = args[0]
-    if *optE {
-      query["exact"] = "true"
-    }
-    if *optL != -1 {
-      query["limit"] = strconv.Itoa(*optL)
-    }
-    if *optO != 0 {
-      query["offset"] = strconv.Itoa(*optO)
-    }
-  }
-#+end_src
-#+begin_src latex
-  We need to import \ty{strconv} for string conversion.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
-  "strconv"
-#+end_src
-#+begin_src latex
-  Now we are ready to send the requests. Let's do the 
-  id request first. We call \ty{SendGetRequest} and specify
-  to accept only plain text responses. This results in the
-  same representation of data we would get from a local
-  execution. We do't use any query parameters, so we
-  pass an empty map.
-#+end_src
-#+begin_src go <<Send id request, Pr. \ref{pr:tax}>>=
-    resp = util.SendGetRequest(
-      "http://localhost:8080/api/v2/taxa/"+args[0],
-      make(map[string]string),
-      map[string]string{"Accept": "text/plain"},
-    )
-#+end_src
-#+begin_src latex
-  The name based request is almost the same as the id
-  request.
-#+end_src
-#+begin_src go <<Send name request, Pr. \ref{pr:tax}>>=
-    resp = util.SendGetRequest(
-      "http://localhost:8080/api/v2/taxa",
-      query,
-      map[string]string{"Accept": "text/plain"},
-    )
-#+end_src
-#+begin_src latex
-  If the user didn't provide two arguments, we don't have the necessary
-  taxon and a database to work with, so we send a friendly message and
-  quit.
+  Back to local execution. If the user didn't provide two arguments, we 
+  don't have the necessary taxon and a database to work with, so we
+  send a friendly message and quit.
 #+end_src
 #+begin_src go <<Count arguments, Pr. \ref{pr:tax}>>=
   m := "please provide a taxon and a database"
@@ -241,6 +179,12 @@ name, which we need to still prepare.
 	  name = label
 	  //<<Prepare name, Pr. \ref{pr:tax}>>
   }
+#+end_src
+#+begin_export latex
+We import \ty{strconv}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
+  "strconv"
 #+end_src
 #+begin_export latex
 To prepare the scientific name for searching, we consider whether the

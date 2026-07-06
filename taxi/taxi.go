@@ -31,35 +31,10 @@ func Run() {
 	}
 	args := flag.Args()
 	if *optR {
-		query := make(map[string]string)
-		var isId bool
-		isId = *optT
-		if !isId {
-			query["name"] = args[0]
-			if *optE {
-				query["exact"] = "true"
-			}
-			if *optL != -1 {
-				query["limit"] = strconv.Itoa(*optL)
-			}
-			if *optO != 0 {
-				query["offset"] = strconv.Itoa(*optO)
-			}
-		}
-		var resp string
-		if isId {
-			resp = util.SendGetRequest(
-				"http://localhost:8080/api/v2/taxa/"+args[0],
-				make(map[string]string),
-				map[string]string{"Accept": "text/plain"},
-			)
-		} else {
-			resp = util.SendGetRequest(
-				"http://localhost:8080/api/v2/taxa",
-				query,
-				map[string]string{"Accept": "text/plain"},
-			)
-		}
+		resp := util.SendGetRequest(
+			"http://localhost:8080/api/v2/programs/taxi",
+			strings.Join(os.Args[1:], " "),
+		)
 		fmt.Print(resp)
 		return
 	}

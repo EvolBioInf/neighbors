@@ -35,31 +35,9 @@ func Run() {
 		util.PrintInfo("dree")
 	}
 	if *optR {
-		query := make(map[string]string)
-		headers := make(map[string]string)
-		if *optG {
-			query["genomes_only"] = "true"
-		}
-		if *optL {
-			headers["Accept"] = "text/plain"
-		} else {
-			headers["Accept"] = "text/vnd.graphviz"
-		}
-		if *optLL != "" {
-			query["assembly_levels"] = *optLL
-		}
-		if *optM != -1 {
-			query["max_depth"] = strconv.Itoa(*optM)
-		}
-		if *optN {
-			query["print_names"] = "true"
-		}
-		var resp string
-		args := flag.Args()
-		resp = util.SendGetRequest(
-			"http://localhost:8080/api/v2/taxa/"+args[0]+"/subtree",
-			query,
-			headers,
+		resp := util.SendGetRequest(
+			"http://localhost:8080/api/v2/programs/dree",
+			strings.Join(os.Args[1:], " "),
 		)
 		fmt.Print(resp)
 		return

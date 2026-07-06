@@ -159,69 +159,18 @@ We import \ty{util}.
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
-  If the remote switch is active, we retrieve all the parameters
-  and store them in a map. This map represents the query arguments
-  for the remote execution request. \ty{-l} decides on the output 
-  format. The remote equivalent of this is an accept header. We need
-  to define this according the \ty{-l}'s value. After parsing we send
-  a request using \ty{SendGetRequest} and print its response.
+  If the remote switch is active, we pass all the call arguments
+  to \ty{SendGetRequest} and print its response.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:dr}>>=
   if *optR {
-    query := make(map[string]string)
-    headers := make(map[string]string)
-    if *optG {
-      query["genomes_only"] = "true"
-    }
-    //<<Decide on accept header, Pr. \ref{pr:dr}>>
-    if *optLL != "" {
-      query["assembly_levels"] = *optLL
-    }
-    if *optM != -1 {
-      query["max_depth"] = strconv.Itoa(*optM)
-    }
-    if *optN {
-      query["print_names"] = "true"
-    }
-    var resp string
-    //<<Send request, Pr. \ref{pr:dr}>>
+		resp := util.SendGetRequest(
+			"http://localhost:8080/api/v2/programs/dree",
+			strings.Join(os.Args[1:], " "),
+		)
 		fmt.Print(resp)
 		return
   }
-#+end_src
-#+begin_src latex
-  Using \ty{strconv} requires importing it.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
-  "strconv"
-#+end_src
-#+begin_src latex
-  The accept header defines the response's output format.
-  A list is represented by the header value \ty{text/plain},
-  a graph by \ty{text/vnd.graphviz}.
-#+end_src
-#+begin_src go <<Decide on accept header, Pr. \ref{pr:dr}>>=
-  if *optL {
-    headers["Accept"] = "text/plain"
-  } else {
-    headers["Accept"] = "text/vnd.graphviz"
-  }
-#+end_src
-#+begin_src latex
-  When sending a request we the \ty{SendGetRequest} function,
-  passing along the headers and query parameters we just defined.
-  We also specify a url which is: 
-  \ty{"http://localhost:8080/api/v2/taxa/{taxon_id}/subtree"}.
-  This url requires a taxon id which is stored as a call argument.
-  We get them by call \ty{flag.Args()}.
-#+end_src
-#+begin_src go <<Send request, Pr. \ref{pr:dr}>>=
-  args := flag.Args()
-  resp = util.SendGetRequest(
-		"http://localhost:8080/api/v2/taxa/"+args[0]+"/subtree",
-		query,
-		headers,
-	)
 #+end_src
 #+begin_src latex
   In order to respond to the levels option, we get the map of known
@@ -306,10 +255,11 @@ We import \ty{math}.
   }
 #+end_src
 #+begin_src latex
-  We import \ty{fmt}, \ty{os}, and \ty{log}.
+  We import \ty{fmt}, \ty{strconv}, \ty{os}, and \ty{log}.
 #+end_src
 #+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
   "fmt"
+  "strconv"
   "os"
   "log"
 #+end_src

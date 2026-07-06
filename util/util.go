@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"sort"
-	"strings"
 )
 
 type Quart struct {
@@ -116,23 +115,10 @@ func Quartiles(data []float64) *Quart {
 }
 
 // The function SendGetRequest takes as argument an address, a map of query parameters and a map for http headers. It sends a get request using these values and returns the result.
-func SendGetRequest(address string, query, headers map[string]string) string {
-	var queryBuilder strings.Builder
-	for key := range query {
-		if queryBuilder.Len() == 0 {
-			queryBuilder.WriteString("?")
-		} else {
-			queryBuilder.WriteString("&")
-		}
-		queryBuilder.WriteString(key)
-		queryBuilder.WriteString("=")
-		queryBuilder.WriteString(url.QueryEscape(query[key]))
-	}
-	req, err := http.NewRequest("GET", address+queryBuilder.String(), nil)
+func SendGetRequest(address, query string) string {
+	eQuery := url.QueryEscape(query)
+	req, err := http.NewRequest("GET", address+"?args="+eQuery, nil)
 	Check(err)
-	for key := range headers {
-		req.Header.Set(key, headers[key])
-	}
 	resp, err := http.DefaultClient.Do(req)
 	Check(err)
 	body, err := io.ReadAll(resp.Body)
