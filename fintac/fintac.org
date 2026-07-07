@@ -156,8 +156,9 @@ We import \ty{clio}.
   neighbor regular expression, \ty{-n}, is also initialized to nothing,
   which we interpret as anything that is neither a target nor
   unknown. For hierarchical matching we supply a Neighbors database,
-  \ty{H}. The last option is the weight of the branch lengths in
-  equation~(\ref{eq:spl}), \ty{-w}.
+  \ty{H}. Then there is the weight option for the branch lengths in
+  equation~(\ref{eq:spl}), \ty{-w}. Lastly we declare an option for
+  remote execution, \ty{-r}.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:fit}>>=
   optV := flag.Bool("v", false, "version")
@@ -171,6 +172,7 @@ We import \ty{clio}.
 	  "for targets and neighbors " +
 	  "using a neighbors database")
   optW := flag.Float64("w", 0.0, "branch weight")
+	optR := flag.Bool("r", false, "remote execution (implies hierarchical matching and db)")
 #+end_src
 #+begin_src latex
 We import \ty{flag}.
@@ -185,11 +187,12 @@ We parse the options.
   flag.Parse()
 #+end_src
 #+begin_src latex
-  We respond to the options for version, target, neighbor, unknown, and
-  Neighbors database.
+  We respond to the options for version, remote execution, target, neighbor,
+  unknown, and Neighbors database.
 #+end_src
 #+begin_src go <<Respond to options, Pr. \ref{pr:fit}>>=
   //<<Respond to \ty{-v}, Pr. \ref{pr:fit}>>
+  //<<Respond to \ty{-r}, Pr. \ref{pr:fit}>>
   //<<Respond to \ty{-t}, Pr. \ref{pr:fit}>>
   //<<Respond to \ty{-n}, Pr. \ref{pr:fit}>>
   //<<Respond to \ty{-u}, Pr. \ref{pr:fit}>>
@@ -203,6 +206,64 @@ We parse the options.
   if *optV {
 	  util.PrintInfo("fintac")
   }
+#+end_src
+#+begin_src latex
+  We need to make server requests, if switch for remote execution is toggled.
+#+end_src
+#+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:fit}>>=
+  if *optR {
+    //<<Determine query arguments, Pr. \ref{pr:fit}>>
+    //<<Get files, Pr. \ref{pr:fit}>>
+    //<<Send request, Pr. \ref{pr:fit}>>
+    //<<Print response, Pr. \ref{pr:fit}>>
+  }
+#+end_src
+#+begin_src latex
+  For query arguments we supply all the parameters declared in flags.
+  We get them by taking the vector of call arguments without the
+  values contained in \ty{flag.Args}, which are unparsed values.
+#+end_src
+#+begin_src go <<Determine query arguments, Pr. \ref{pr:fit}>>=
+  u := 	flag.NArg()
+  callArgs := os.Args[1:len(os.Args) - u]
+#+end_src
+#+begin_src latex
+  All the call arguments, that remain in \ty{flag.Args}
+  after parsing, are considered files.
+#+end_src
+#+begin_src go <<Get files, Pr. \ref{pr:fit}>>=
+  var files []*os.File
+  filenames := flag.Args()
+  for _, filename := range filenames {
+    file := util.Open(filename)
+    defer file.Close()
+    files = append(files, file)
+  }
+#+end_src
+#+begin_src latex
+  We send the request using \ty{util.SengPostRequest}. The
+  function needs an address which is
+  \ty{http://localhost:8080/api/v2/programs/fintac},
+  as well as the query parameters and files we extracted
+  above. Passing \ty{stdin} lets the server use it, if no
+  files were passed with the extra arguments.
+#+end_src
+#+begin_src go <<Send request, Pr. \ref{pr:fit}>>=
+	resp := util.SendPostRequest(
+		"http://localhost:8080/api/v2/programs/fintac",
+		strings.Join(callArgs, " "),
+    "",
+    files,
+    os.Stdin,
+	)
+#+end_src
+#+begin_src latex
+  We stop program execution with a return,
+  after printing the response.
+#+end_src
+#+begin_src go <<Print response, Pr. \ref{pr:fit}>>=
+  fmt.Print(resp)
+  return
 #+end_src
 #+begin_src latex
   We compile the target regex and check the error returned.

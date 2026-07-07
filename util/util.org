@@ -10,7 +10,7 @@
   package util
 
   import (
-	  //<<Imports, Pa. \ref{pa:util}>>
+    //<<Imports, Pa. \ref{pa:util}>>
   )
   //<<Types, Pa. \ref{pa:util}>>
   //<<Variables, Pa. \ref{pa:util}>>
@@ -23,13 +23,13 @@
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func PrintInfo(program string) {
-	  author := "EvolBioInf"
-	  email := "haubold|mourato@evolbio.mpg.de"
-	  license := "Gnu General Public License, " +
-		  "https://www.gnu.org/licenses/gpl.html"
-	  clio.PrintInfo(program, version, date,
-		  author, email, license)
-	  os.Exit(0)
+    author := "EvolBioInf"
+    email := "haubold|mourato@evolbio.mpg.de"
+    license := "Gnu General Public License, " +
+      "https://www.gnu.org/licenses/gpl.html"
+    clio.PrintInfo(program, version, date,
+      author, email, license)
+    os.Exit(0)
   }
 #+end_src
 #+begin_src latex
@@ -39,7 +39,7 @@
 #+begin_src go <<Variables, Pa. \ref{pa:util}>>=
   var version, date string
 #+end_src
-#+begin_src latex 
+#+begin_src latex
   We import \ty{clio} and \ty{os}.
 #+end_src
 #+begin_src go <<Imports, Pa. \ref{pa:util}>>=
@@ -52,13 +52,13 @@
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func Open(file string) *os.File {
-	  f, err := os.Open(file)
-	  if err != nil {
-		  fmt.Fprintf(os.Stderr, "couldn't open %s\n",
-			  file)
-		  os.Exit(1)
-	  }
-	  return f
+    f, err := os.Open(file)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "couldn't open %s\n",
+        file)
+      os.Exit(1)
+    }
+    return f
   }
 #+end_src
 #+begin_src latex
@@ -74,9 +74,9 @@
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func Check(err error) {
-	  if err != nil {
-		  log.Fatal(err)
-	  }
+    if err != nil {
+      log.Fatal(err)
+    }
   }
 #+end_src
 #+begin_export latex
@@ -93,10 +93,10 @@ package to print that name in the event of an error message.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func SetName(n string) {
-	  name = n
-	  s := fmt.Sprintf("%s: ", n)
-	  log.SetPrefix(s)
-	  log.SetFlags(0)
+    name = n
+    s := fmt.Sprintf("%s: ", n)
+    log.SetPrefix(s)
+    log.SetFlags(0)
   }
 #+end_src
 #+begin_export latex
@@ -113,7 +113,7 @@ We declare the global string variable \ty{name}.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func Version() {
-	  PrintInfo(name)
+    PrintInfo(name)
   }
 #+end_src
 #+begin_src latex
@@ -126,15 +126,15 @@ We declare the global string variable \ty{name}.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func LevelMsg() string {
-	  levels := assemblyLevels
-	  m := "assembly-level: comma-delimited combination " +
-		  "of " +	levels[0]
-	  for i := 1; i < len(levels)-1; i++ {
-		  m += ", " + levels[i]
-	  }
-	  m += ", or " + levels[len(levels)-1]
-	  m += " (default any)"
-	  return m
+    levels := assemblyLevels
+    m := "assembly-level: comma-delimited combination " +
+      "of " +	levels[0]
+    for i := 1; i < len(levels)-1; i++ {
+      m += ", " + levels[i]
+    }
+    m += ", or " + levels[len(levels)-1]
+    m += " (default any)"
+    return m
   }
 #+end_src
 #+begin_export latex
@@ -143,9 +143,9 @@ levels.
 #+end_export
 #+begin_src go <<Variables, Pa. \ref{pa:util}>>=
   var assemblyLevels = []string{"complete",
-	  "chromosome",
-	  "scaffold",
-	  "contig"}
+    "chromosome",
+    "scaffold",
+    "contig"}
 #+end_src
 #+begin_export latex
 \section{\ty{Quartiles}}
@@ -161,15 +161,15 @@ levels.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func Quartiles(data []float64) *Quart {
-	  q := new(Quart)
-	  sort.Float64s(data)
-	  //<<Determine median, Pa. \ref{pa:util}>>
-	  //<<Determine lower quartile, Pa. \ref{pa:util}>>
-	  //<<Determin upper quartile, Pa. \ref{pa:util}>>
-	  //<<Determine interquartile range, Pa. \ref{pa:util}>>
-	  //<<Determine inner fences, Pa. \ref{pa:util}>>
-	  //<<Determine outer fences, Pa. \ref{pa:util}>>
-	  return q
+    q := new(Quart)
+    sort.Float64s(data)
+    //<<Determine median, Pa. \ref{pa:util}>>
+    //<<Determine lower quartile, Pa. \ref{pa:util}>>
+    //<<Determin upper quartile, Pa. \ref{pa:util}>>
+    //<<Determine interquartile range, Pa. \ref{pa:util}>>
+    //<<Determine inner fences, Pa. \ref{pa:util}>>
+    //<<Determine outer fences, Pa. \ref{pa:util}>>
+    return q
   }
 #+end_src
 #+begin_src latex
@@ -194,13 +194,13 @@ We store these values in the structure \ty{Quart}.
 #+end_export
 #+begin_src go <<Types, Pa. \ref{pa:util}>>=
   type Quart struct {
-	  LowerOuterFence float64
-	  LowerInnerFence float64
-	  LowerQuartile   float64
-	  Median          float64
-	  UpperQuartile   float64
-	  UpperInnerFence float64
-	  UpperOuterFence float64
+    LowerOuterFence float64
+    LowerInnerFence float64
+    LowerQuartile   float64
+    Median          float64
+    UpperQuartile   float64
+    UpperInnerFence float64
+    UpperOuterFence float64
   }
 #+end_src
 #+begin_src latex
@@ -212,7 +212,7 @@ We store these values in the structure \ty{Quart}.
   m := (n+1) / 2
   q.Median = data[m-1]
   if n % 2 == 0 {
-	  q.Median = (q.Median + data[m]) / 2.0
+    q.Median = (q.Median + data[m]) / 2.0
   }
 #+end_src
 #+begin_src latex
@@ -267,13 +267,13 @@ We import \ty{math}.
 #+begin_export latex
 \section{\ty{SendGetRequest}}
   !The function \ty{SendGetRequest} takes as argument an address
-  !and a query string. It sends a get request using these values
-  !and returns the result.
+  !the program's options and extra arguments as strings. It sends a get
+  request using these values and returns the result.
 
   Inside \ty{SendGetRequest} function,
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func SendGetRequest(address, query string) string {
+  func SendGetRequest(address, options, extraArgs string) string {
     //<<Encode query, Pa. \ref{pa:util}>>
     //<<Create \ty{get} request, Pa. \ref{pa:util}>>
     //<<Execute request, Pa. \ref{pa:util}>>
@@ -285,7 +285,8 @@ We import \ty{math}.
   The \ty{net/url} package provides a function for this.
 #+end_export
 #+begin_src go <<Encode query, Pa. \ref{pa:util}>>=
-  eQuery := url.QueryEscape(query)
+  eOption := url.QueryEscape(options)
+  eExtraArgs := url.QueryEscape(extraArgs)
 #+end_src
 #+begin_export latex
   This requires us to import \ty{net/url}.
@@ -300,7 +301,7 @@ We import \ty{math}.
   the http verb manually.
 #+end_export
 #+begin_src go <<Create \ty{get} request, Pa. \ref{pa:util}>>=
-  req, err := http.NewRequest(http.MethodGet, address+"?args="+eQuery, nil)
+  req, err := http.NewRequest(http.MethodGet, address+"?options="+eOption+"&extra="+eExtraArgs, nil)
   Check(err)
 #+end_src
 #+begin_export latex
@@ -319,13 +320,13 @@ We import \ty{math}.
   "net/http"
 #+end_src
 #+begin_export latex
-  Laslty we parse the response using the \ty{io} package and 
-  return the data. 
+  Laslty we parse the response using the \ty{io} package and
+  return the data.
 #+end_export
 #+begin_src go <<Parse response, Pa. \ref{pa:util}>>=
   body, err := io.ReadAll(resp.Body)
   Check(err)
-	return string(body)
+  return string(body)
 #+end_src
 #+begin_export latex
   Though we still need to import \ty{io}.
@@ -335,14 +336,12 @@ We import \ty{math}.
 #+end_src
 #+begin_export latex
 \section{\ty{SendPostRequest}}
-  !The function \ty{SendPostRequest} takes as argument an address
-  !and a query string and data for files. It sends a post request 
-  !using these values and returns the result.
-
-  Inside \ty{SendGetRequest} function,
+  !The function \ty{SendPostRequest} takes as argument an address program
+  !options and extra arguments as a string, as well as files and stdin. It
+  !sends a post request using these values and returns the result.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func SendPostRequest(address, query string, data []string) string {
+  func SendPostRequest(address, options, extraArgs string, files []*os.File, stdin *os.File) string {
     //<<Encode query, Pa. \ref{pa:util}>>
     //<<Set \ty{post} form data, Pa. \ref{pa:util}>>
     //<<Create \ty{post} request, Pa. \ref{pa:util}>>
@@ -351,31 +350,77 @@ We import \ty{math}.
     //<<Parse response, Pa. \ref{pa:util}>>
   }
 #+end_src
-
 #+begin_export latex
-
+  For setting the post form data we use the \ty{multipart} package.
+  First we create a new multipart writer. Then we iterate over all
+  the files. We create an entry using the writer for each file
+  and copy its content. We close the multipart writer at the end.
 #+end_export
-
 #+begin_src go <<Set \ty{post} form data, Pa. \ref{pa:util}>>=
+  var b bytes.Buffer
+  w := multipart.NewWriter(&b)
+  for i, file := range files {
+    //<<Create entry in writer, Pa. \ref{pa:util}>>
+    //<<Copy content, Pa. \ref{pa:util}>>
+  }
+  //<<Add stdin to writer, Pa. \ref{pa:util}>>
+  w.Close()
 #+end_src
-
+#+begin_export latex
+  We import \ty{bytes} and \ty{mime/multipart}.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
+  "bytes"
+  "mime/multipart"
+#+end_src
+#+begin_export latex
+  When creating an entry with the multipart writer, we create a new form file.
+  We need to provide a key for the map of files and the name of the file itself.
+  The multipart package takes care of creating the file headers and other meta data.
+#+end_export
+#+begin_src go <<Create entry in writer, Pa. \ref{pa:util}>>=
+  fw, err := w.CreateFormFile(strconv.Itoa(i), file.Name())
+  Check(err)
+#+end_src
+#+begin_export latex
+  We need the \ty{strconv} package for converting integers into strings.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
+  "strconv"
+#+end_src
+#+begin_export latex
+  \ty{io.Copy} allows us to copy the file's content to the filewriter.
+#+end_export
+#+begin_src go <<Copy content, Pa. \ref{pa:util}>>=
+  _, err = io.Copy(fw, file)
+  Check(err)
+#+end_src
+#+begin_export latex
+  \ty{stdin} needs a slightly different treatment as it's name might raise
+  difficulties.
+#+end_export
+#+begin_src go <<Add stdin to writer, Pa. \ref{pa:util}>>=
+  if stdin != nil {
+    fw, err := w.CreateFormFile("stdin", "stdin")
+    Check(err)
+	  _, err = io.Copy(fw, stdin)
+	  Check(err)
+  }
+#+end_src
 #+begin_export latex
   We create \ty{post} request. Adding the query string is the same
   as for the get request. The body
 #+end_export
-
 #+begin_src go <<Create \ty{post} request, Pa. \ref{pa:util}>>=
-	req, err := http.NewRequest(http.MethodPost, address+"?args="+eQuery, &b)
+  req, err := http.NewRequest(http.MethodPost, address+"?options="+eOption+"&extra="+eExtraArgs, &b)
+  Check(err)
 #+end_src
-
 #+begin_export latex
   We use the writer to set the correct content type including boundaries.
 #+end_export
-
 #+begin_src go <<Write \ty{post} headers, Pa. \ref{pa:util}>>=
   req.Header.Set("Content-Type", w.FormDataContentType())
 #+end_src
-
 #+begin_src latex
   We are done with writing the \ty{util} package, time to test it.
   \section{Testing}
@@ -386,12 +431,12 @@ We import \ty{math}.
   package util
 
   import (
-	  "testing"
-	  //<<Testing imports, Pa. \ref{pa:util}>>
+    "testing"
+    //<<Testing imports, Pa. \ref{pa:util}>>
   )
 
   func TestUtil(t *testing.T) {
-	  //<<Testing, Pa. \ref{pa:util}>>
+    //<<Testing, Pa. \ref{pa:util}>>
   }
 #+end_src
 #+begin_src latex
@@ -412,12 +457,12 @@ We import \ty{math}.
   defer f.Close()
   sc := bufio.NewScanner(f)
   if !sc.Scan() {
-	  t.Error("scan failed")
+    t.Error("scan failed")
   }
   get := sc.Text()
   want := "success"
   if get != want {
-	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+    t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
   }
 #+end_src
 #+begin_src latex
@@ -434,9 +479,9 @@ We import \ty{math}.
   m := "user message does not match level %q"
   msg := LevelMsg()
   for _, level := range assemblyLevels {
-	  if strings.Index(msg, level) == -1 {
-		  t.Errorf(m, level)
-	  }
+    if strings.Index(msg, level) == -1 {
+      t.Errorf(m, level)
+    }
   }
 #+end_src
 #+begin_src latex
@@ -453,10 +498,10 @@ compare the results we get to the results we want.
   data := []float64{30, 171, 184, 201}
   q := Quartiles(data)
   wr := []float64{-329.25, -132, 65.25, 177.5,
-	  196.75, 394, 591.25}
+    196.75, 394, 591.25}
   gr := []float64{q.LowerOuterFence, q.LowerInnerFence,
-	  q.LowerQuartile, q.Median, q.UpperQuartile,
-	  q.UpperInnerFence, q.UpperOuterFence}
+    q.LowerQuartile, q.Median, q.UpperQuartile,
+    q.UpperInnerFence, q.UpperOuterFence}
   //<<Compare results, Pa. \ref{pa:util}>>
 #+end_src
 #+begin_export latex
@@ -465,9 +510,9 @@ error.
 #+end_export
 #+begin_src go <<Compare results, Pa. \ref{pa:util}>>=
   for i, w := range wr {
-	  if w != gr[i] {
-		  t.Errorf("want: %f\nget: %f\n",
-			  w, gr[i])
-	  }
+    if w != gr[i] {
+      t.Errorf("want: %f\nget: %f\n",
+        w, gr[i])
+    }
   }
 #+end_src

@@ -30,6 +30,7 @@ func Run() {
 		resp := util.SendGetRequest(
 			"http://localhost:8080/api/v2/programs/ants",
 			strings.Join(os.Args[1:], " "),
+			"",
 		)
 		fmt.Print(resp)
 		return

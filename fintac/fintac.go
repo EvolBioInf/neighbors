@@ -236,9 +236,30 @@ func Run() {
 		"for targets and neighbors "+
 		"using a neighbors database")
 	optW := flag.Float64("w", 0.0, "branch weight")
+	optR := flag.Bool("r", false, "remote execution (implies hierarchical matching and db)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("fintac")
+	}
+	if *optR {
+		u := flag.NArg()
+		callArgs := os.Args[1 : len(os.Args)-u]
+		var files []*os.File
+		filenames := flag.Args()
+		for _, filename := range filenames {
+			file := util.Open(filename)
+			defer file.Close()
+			files = append(files, file)
+		}
+		resp := util.SendPostRequest(
+			"http://localhost:8080/api/v2/programs/fintac",
+			strings.Join(callArgs, " "),
+			"",
+			files,
+			os.Stdin,
+		)
+		fmt.Print(resp)
+		return
 	}
 	tregex, err := regexp.Compile(*optT)
 	util.Check(err)

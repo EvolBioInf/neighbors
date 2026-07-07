@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"sort"
+	"strconv"
 
 	"github.com/evolbioinf/clio"
 )
@@ -117,10 +118,11 @@ func Quartiles(data []float64) *Quart {
 	return q
 }
 
-// The function SendGetRequest takes as argument an address and a query string. It sends a get request using these values and returns the result.
-func SendGetRequest(address, query string) string {
-	eQuery := url.QueryEscape(query)
-	req, err := http.NewRequest(http.MethodGet, address+"?args="+eQuery, nil)
+// The function SendGetRequest takes as argument an address the program's options and extra arguments as strings. It sends a get
+func SendGetRequest(address, options, extraArgs string) string {
+	eOption := url.QueryEscape(options)
+	eExtraArgs := url.QueryEscape(extraArgs)
+	req, err := http.NewRequest(http.MethodGet, address+"?options="+eOption+"&extra="+eExtraArgs, nil)
 	Check(err)
 	resp, err := http.DefaultClient.Do(req)
 	Check(err)
@@ -129,22 +131,28 @@ func SendGetRequest(address, query string) string {
 	return string(body)
 }
 
-// The function SendPostRequest takes as argument an address and a query string and data for files. It sends a post request  using these values and returns the result.
-func SendPostRequest(address, query string, filenames []string) string {
-	eQuery := url.QueryEscape(query)
-
+// The function SendPostRequest takes as argument an address program options and extra arguments as a string, as well as files and stdin. It sends a post request using these values and returns the result.
+func SendPostRequest(address, options, extraArgs string, files []*os.File, stdin *os.File) string {
+	eOption := url.QueryEscape(options)
+	eExtraArgs := url.QueryEscape(extraArgs)
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
-
-	fw, err := w.CreateFormFile("w", "e")
+	for i, file := range files {
+		fw, err := w.CreateFormFile(strconv.Itoa(i), file.Name())
+		Check(err)
+		_, err = io.Copy(fw, file)
+		Check(err)
+	}
+	if stdin != nil {
+		fw, err := w.CreateFormFile("stdin", "stdin")
+		Check(err)
+		_, err = io.Copy(fw, stdin)
+		Check(err)
+	}
+	w.Close()
+	req, err := http.NewRequest(http.MethodPost, address+"?options="+eOption+"&extra="+eExtraArgs, &b)
 	Check(err)
-
-	io.Copy(fw)
-
-	req, err := http.NewRequest(http.MethodPost, address+"?args="+eQuery, &b)
-
 	req.Header.Set("Content-Type", w.FormDataContentType())
-
 	resp, err := http.DefaultClient.Do(req)
 	Check(err)
 	body, err := io.ReadAll(resp.Body)

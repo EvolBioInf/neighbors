@@ -194,9 +194,52 @@ func Run() {
 		"(default pretty-printing)")
 	optLL := flag.String("L", "", util.LevelMsg())
 	optO := flag.Bool("o", false, "output only targets")
+	optR := flag.Bool("r", false, "remote execution (implies db)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("neighbors")
+	}
+	if *optR {
+		u := flag.NArg()
+		callArgs := os.Args[1 : len(os.Args)-u]
+		var files []*os.File
+		var stdin *os.File
+		filenames := flag.Args()
+		sendPost := true
+		if u == 0 {
+
+		} else {
+			for _, filename := range filenames {
+				file := util.Open(filename)
+				defer file.Close()
+				files = append(files, file)
+			}
+		}
+		inf, err := os.Stdin.Stat()
+		util.Check(err)
+		if inf.Mode()&os.ModeCharDevice == 0 {
+			stdin = os.Stdin
+		} else {
+			sendPost = false
+		}
+		var resp string
+		if sendPost {
+			resp = util.SendPostRequest(
+				"http://localhost:8080/api/v2/programs/neighbors",
+				strings.Join(callArgs, " "),
+				strings.Join(filenames, " "),
+				files,
+				stdin,
+			)
+		} else {
+			resp = util.SendGetRequest(
+				"http://localhost:8080/api/v2/programs/neighbors",
+				strings.Join(callArgs, " "),
+				"",
+			)
+		}
+		fmt.Print(resp)
+		return
 	}
 	var targets []int
 	if *optT != "" {

@@ -60,7 +60,7 @@ We import \ty{util}.
 #+begin_src go <<Declare options, Pr. \ref{pr:ant}>>=
   var optV = flag.Bool("v", false, "version")
 	var optR = flag.Bool("r", false, "remote execution (implies db)")
-#+end_src 
+#+end_src
 #+begin_src latex
   We import \ty{flag}.
 #+end_src
@@ -69,8 +69,8 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   We parse the options and respond to \ty{-v} as this might stop the
-  program. We execute remotely if \ty{-r} is active. We extract 
-  the remaining arguments, check there are two of them, and store 
+  program. We execute remotely if \ty{-r} is active. We extract
+  the remaining arguments, check there are two of them, and store
   the taxon-ID and the database for local execution.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:ant}>>=
@@ -103,10 +103,11 @@ We import \ty{util}.
     resp := util.SendGetRequest(
       "http://localhost:8080/api/v2/programs/ants",
 			strings.Join(os.Args[1:], " "),
+      "",
     )
     fmt.Print(resp)
     return
-  } 
+  }
 #+end_src
 #+begin_src latex
   We need to import \ty{strings}, when using the \ty{Join} function.

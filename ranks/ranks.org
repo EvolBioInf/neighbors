@@ -119,8 +119,8 @@ We import \ty{clio}.
 #+begin_export latex
 Apart from the version (\ty{-v}), we declare four options, list
 genomes (\ty{-l}), pick assembly level (\ty{-L}), print tabular output
-(\ty{-t}), and read genome accessions from file (\ty{-g}). The list
-option implies textual output.
+(\ty{-t}), read genome accessions from file (\ty{-g}) and remote execution.
+The list option implies textual output.
 #+end_export
 #+begin_src go <<Declare options, Pr. \ref{pr:ran}>>=
   optV := flag.Bool("v", false, "version")
@@ -129,6 +129,7 @@ option implies textual output.
   optT := flag.Bool("t", false, "tabular output (default tree)")
   optG := flag.String("g", "", "read genome accessions " +
 	  "from file")
+	optR := flag.Bool("r", false, "remote execution (implies db)")
 #+end_src
 #+begin_export latex
 We import \ty{flag}.
@@ -146,8 +147,41 @@ asked for the version, as printing the version terminates the program.
   flag.Parse()
   if *optV {
 	  util.PrintInfo("ranks")
-  } 
+  }
+  //<<Act on remote switch, Pr. \ref{pr:ran}>>
   //<<Get root and \ty{neidb}, Pr. \ref{pr:ran}>>
+#+end_src
+#+begin_export latex
+  If the remote switch is toggled we send a request for remote execution to the
+  server. It is a post request if a file with \ty{-g} was passed and a get in
+  every other case. We use \ty{util}'s functions for sending requests. The
+  \ty{get} request is rather easy. All we need to do is specify the servers
+  address, and pass all the call arguments of this program. The \ty{post}
+  request is similar. It takes the same arguments as \ty{get} plus the file
+  specified with \ty{-g}. \ty{ranks} does not use \ty{stdin}, so we don't need
+  to provide it.
+#+end_export
+#+begin_src go <<Act on remote switch, Pr. \ref{pr:ran}>>=
+	if *optR {
+    var resp string
+    if *optG != "" {
+		  resp = util.SendPostRequest(
+		  	"http://localhost:8080/api/v2/programs/ranks",
+        strings.Join(os.Args[1:], " "),
+		  	"",
+		  	[]*os.File{util.Open(*optG)},
+        nil,
+		  )
+    } else {
+		  resp = util.SendGetRequest(
+		  	"http://localhost:8080/api/v2/programs/ranks",
+		  	strings.Join(os.Args[1:], " "),
+		  	"",
+		  )
+    }
+		fmt.Print(resp)
+		return
+  }
 #+end_src
 #+begin_export latex
 There should now be two more arguments on the command line. If not, we

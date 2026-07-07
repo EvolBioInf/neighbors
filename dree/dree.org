@@ -1,5 +1,5 @@
 #+begin_src latex
-  \section*{Introduction} 
+  \section*{Introduction}
     The program \ty{dree} takes as input a taxon-ID and the name of the
     Neighbors database. It returns the subtree rooted on the focal
     taxon. If the focal taxon is close to the root, the subtree might be
@@ -128,9 +128,9 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   We parse the options and respond to the version option, \ty{-v},
-  the remote switch, \ty{-r}, the assembly levels option, \ty{-L}, 
-  and the maximum tree levels option,  \ty{-m}. Then we get the 
-  taxon-ID and the database name. Using the database name, we 
+  the remote switch, \ty{-r}, the assembly levels option, \ty{-L},
+  and the maximum tree levels option,  \ty{-m}. Then we get the
+  taxon-ID and the database name. Using the database name, we
   open the database connection.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:dr}>>=
@@ -167,6 +167,7 @@ We import \ty{util}.
 		resp := util.SendGetRequest(
 			"http://localhost:8080/api/v2/programs/dree",
 			strings.Join(os.Args[1:], " "),
+      "",
 		)
 		fmt.Print(resp)
 		return

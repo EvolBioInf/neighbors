@@ -38,6 +38,7 @@ func Run() {
 		resp := util.SendGetRequest(
 			"http://localhost:8080/api/v2/programs/dree",
 			strings.Join(os.Args[1:], " "),
+			"",
 		)
 		fmt.Print(resp)
 		return

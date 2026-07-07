@@ -4,15 +4,16 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/evolbioinf/clio"
-	"github.com/evolbioinf/neighbors/tdb"
-	"github.com/evolbioinf/neighbors/util"
 	"log"
 	"os"
 	"slices"
 	"strconv"
 	"strings"
 	"text/tabwriter"
+
+	"github.com/evolbioinf/clio"
+	"github.com/evolbioinf/neighbors/tdb"
+	"github.com/evolbioinf/neighbors/util"
 )
 
 var Id int = 0
@@ -83,9 +84,30 @@ func Run() {
 	optT := flag.Bool("t", false, "tabular output (default tree)")
 	optG := flag.String("g", "", "read genome accessions "+
 		"from file")
+	optR := flag.Bool("r", false, "remote execution (implies db)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("ranks")
+	}
+	if *optR {
+		var resp string
+		if *optG != "" {
+			resp = util.SendPostRequest(
+				"http://localhost:8080/api/v2/programs/ranks",
+				strings.Join(os.Args[1:], " "),
+				"",
+				[]*os.File{util.Open(*optG)},
+				nil,
+			)
+		} else {
+			resp = util.SendGetRequest(
+				"http://localhost:8080/api/v2/programs/ranks",
+				strings.Join(os.Args[1:], " "),
+				"",
+			)
+		}
+		fmt.Print(resp)
+		return
 	}
 	args := flag.Args()
 	if len(args) < 2 {
