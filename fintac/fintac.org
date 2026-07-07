@@ -42,16 +42,16 @@
   In the above draft we treat unknowns like targets and neighbors by
   entering them linearly. However, positive identification as target or
   neighbor is much stronger information than ``unknown''. So we enter
-  the unknowns outside logarithmically,
+  the unknowns outside logarithmically to get a revised draft,
   \[
-  s_{\rm d}(v)=v_{\rm t}f + v^{\ast}_{\rm n} + \log(v^{\ast}_{\rm u} + 1).
+  s_{\rm d}(v)=v_{\rm t} + v^{\ast}_{\rm n} + \log(v^{\ast}_{\rm u} + 1).
   \]
 
   To ensure the upper bound, we divide our draft split score by its
-  maximum and multiply it by 100 to get the final split score,
+  maximum and multiply it by 100 to get the final version,
   \begin{equation}\label{eq:spl}
     s(v)=\frac{v_{\rm t} + v^{\ast}_{\rm n} +\log(v^{\ast}_{\rm
-        u}+1)}{n_{\rm t} + n_{\rm n} + \log(n_{\rm u}+1)}\times 100,
+        u}+1)}{n_{\rm t} + n_{\rm n} + \log(n_{\rm u}+1)}\times 100.
   \end{equation}
 
   In the worst case, a focal node contains no targets and all neighbors
