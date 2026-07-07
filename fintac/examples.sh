@@ -12,7 +12,6 @@ $p -t 83334_ -u 562_ -H ~/Data/neidb/neidb ../data/phyl_cleaned.nwk
 echo "***O25:H4-ST131, -u, -w"
 $p -t 941322_ ../data/phyl_cleaned.nwk
 $p -t 941322_ -u 562_ ../data/phyl_cleaned.nwk
-$p -t 941322_ -u 562_ -w 3 ../data/phyl_cleaned.nwk
 echo "***O16:H48 from pangenomics chapter and paper: include K12, -u, -H"
 $p -t 2605619_ ../data/phyl_cleaned.nwk
 $p -t '2605619_|83333_' ../data/phyl_cleaned.nwk
