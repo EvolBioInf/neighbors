@@ -251,8 +251,8 @@ We parse the options.
 #+begin_src go <<Send request, Pr. \ref{pr:fit}>>=
 	resp := util.SendPostRequest(
 		"http://localhost:8080/api/v2/programs/fintac",
-		strings.Join(callArgs, " "),
-    "",
+		callArgs,
+    filenames,
     files,
     os.Stdin,
 	)

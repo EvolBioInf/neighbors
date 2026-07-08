@@ -266,14 +266,14 @@ We import \ty{math}.
 #+end_src
 #+begin_export latex
 \section{\ty{SendGetRequest}}
-  !The function \ty{SendGetRequest} takes as argument an address
-  !the program's options and extra arguments as strings. It sends a get
-  request using these values and returns the result.
+  !The function \ty{SendGetRequest} takes as argument an address as a string
+  !and the program's options and extra arguments as string slices. It sends a
+  !get request using these values and returns the result.
 
   Inside \ty{SendGetRequest} function,
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func SendGetRequest(address, options, extraArgs string) string {
+  func SendGetRequest(address string, options, extraArgs []string) string {
     //<<Encode query, Pa. \ref{pa:util}>>
     //<<Create \ty{get} request, Pa. \ref{pa:util}>>
     //<<Execute request, Pa. \ref{pa:util}>>
@@ -281,18 +281,44 @@ We import \ty{math}.
   }
 #+end_src
 #+begin_export latex
-  When passing the query, we need to ensure correct encoding.
-  The \ty{net/url} package provides a function for this.
+  There may be multiple slices that need to be encoded for a single request.
+  This means we should write a function, which handles this url encoding. We 
+  use the exploded parameters for passing slices via the url. This means we
+  need to iterate over each slice and add key value pairs. The values need to 
+  be encoded. The \ty{net/url} package provides a function for this.
 #+end_export
-#+begin_src go <<Encode query, Pa. \ref{pa:util}>>=
-  eOption := url.QueryEscape(options)
-  eExtraArgs := url.QueryEscape(extraArgs)
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
+  func urlEncodeSlice(slc []string, paramName string, hasParam *bool) string {
+    var sb strings.Builder
+    for _, v := range slc {
+      if !(*hasParam) {
+        sb.WriteRune('?')
+        *hasParam = true
+      } else {
+        sb.WriteRune('&')
+      }
+      sb.WriteString(paramName)
+        sb.WriteRune('=')
+      sb.WriteString(url.QueryEscape(v))
+    }
+    return sb.String()
+  }
 #+end_src
 #+begin_export latex
-  This requires us to import \ty{net/url}.
+  Now all we need to do is call \ty{urlEncodeSlice} for both the options and 
+  the extra arguments.
+#+end_export
+#+begin_src go <<Encode query, Pa. \ref{pa:util}>>=
+  hasParam := new(bool)
+  qOptions := urlEncodeSlice(options, "options", hasParam)
+  qExtraArgs := urlEncodeSlice(extraArgs, "extra", hasParam)
+#+end_src
+#+begin_export latex
+  This requires us to import \ty{net/url} and \ty{strings}.
 #+end_export
 #+begin_src go <<Imports, Pa. \ref{pa:util}>>=
   "net/url"
+  "strings"
 #+end_src
 #+begin_export latex
   The \ty{net/http} package provides functions for creating requests.
@@ -301,7 +327,7 @@ We import \ty{math}.
   the http verb manually.
 #+end_export
 #+begin_src go <<Create \ty{get} request, Pa. \ref{pa:util}>>=
-  req, err := http.NewRequest(http.MethodGet, address+"?options="+eOption+"&extra="+eExtraArgs, nil)
+  req, err := http.NewRequest(http.MethodGet, address+qOptions+qExtraArgs, nil)
   Check(err)
 #+end_src
 #+begin_export latex
@@ -336,12 +362,13 @@ We import \ty{math}.
 #+end_src
 #+begin_export latex
 \section{\ty{SendPostRequest}}
-  !The function \ty{SendPostRequest} takes as argument an address program
-  !options and extra arguments as a string, as well as files and stdin. It
-  !sends a post request using these values and returns the result.
+  !The function \ty{SendPostRequest} takes as argument an address as a string,
+  !program options and extra arguments as a slice of strings, as well as files
+  !and stdin. It sends a post request using these values and returns the 
+  !result.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func SendPostRequest(address, options, extraArgs string, files []*os.File, stdin *os.File) string {
+  func SendPostRequest(address string, options, extraArgs []string, files []*os.File, stdin *os.File) string {
     //<<Encode query, Pa. \ref{pa:util}>>
     //<<Set \ty{post} form data, Pa. \ref{pa:util}>>
     //<<Create \ty{post} request, Pa. \ref{pa:util}>>
@@ -412,7 +439,7 @@ We import \ty{math}.
   as for the get request. The body
 #+end_export
 #+begin_src go <<Create \ty{post} request, Pa. \ref{pa:util}>>=
-  req, err := http.NewRequest(http.MethodPost, address+"?options="+eOption+"&extra="+eExtraArgs, &b)
+  req, err := http.NewRequest(http.MethodPost, address+qOptions+qExtraArgs, &b)
   Check(err)
 #+end_src
 #+begin_export latex

@@ -253,8 +253,8 @@ func Run() {
 		}
 		resp := util.SendPostRequest(
 			"http://localhost:8080/api/v2/programs/fintac",
-			strings.Join(callArgs, " "),
-			"",
+			callArgs,
+			filenames,
 			files,
 			os.Stdin,
 		)

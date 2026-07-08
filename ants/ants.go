@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"text/tabwriter"
 )
 
@@ -29,8 +28,8 @@ func Run() {
 	if *optR {
 		resp := util.SendGetRequest(
 			"http://localhost:8080/api/v2/programs/ants",
-			strings.Join(os.Args[1:], " "),
-			"",
+			os.Args[1:],
+			[]string{},
 		)
 		fmt.Print(resp)
 		return

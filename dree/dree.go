@@ -3,9 +3,6 @@ package dree
 import (
 	"flag"
 	"fmt"
-	"github.com/evolbioinf/clio"
-	"github.com/evolbioinf/neighbors/tdb"
-	"github.com/evolbioinf/neighbors/util"
 	"log"
 	"math"
 	"os"
@@ -13,6 +10,10 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+
+	"github.com/evolbioinf/clio"
+	"github.com/evolbioinf/neighbors/tdb"
+	"github.com/evolbioinf/neighbors/util"
 )
 
 func Run() {
@@ -37,8 +38,8 @@ func Run() {
 	if *optR {
 		resp := util.SendGetRequest(
 			"http://localhost:8080/api/v2/programs/dree",
-			strings.Join(os.Args[1:], " "),
-			"",
+			os.Args[1:],
+			[]string{},
 		)
 		fmt.Print(resp)
 		return

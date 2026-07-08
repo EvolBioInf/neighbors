@@ -167,16 +167,16 @@ asked for the version, as printing the version terminates the program.
     if *optG != "" {
 		  resp = util.SendPostRequest(
 		  	"http://localhost:8080/api/v2/programs/ranks",
-        strings.Join(os.Args[1:], " "),
-		  	"",
+        os.Args[1:],
+		  	[]string{},
 		  	[]*os.File{util.Open(*optG)},
         nil,
 		  )
     } else {
 		  resp = util.SendGetRequest(
 		  	"http://localhost:8080/api/v2/programs/ranks",
-		  	strings.Join(os.Args[1:], " "),
-		  	"",
+		  	os.Args[1:],
+		  	[]string{},
 		  )
     }
 		fmt.Print(resp)

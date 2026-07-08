@@ -226,16 +226,16 @@ func Run() {
 		if sendPost {
 			resp = util.SendPostRequest(
 				"http://localhost:8080/api/v2/programs/neighbors",
-				strings.Join(callArgs, " "),
-				strings.Join(filenames, " "),
+				callArgs,
+				filenames,
 				files,
 				stdin,
 			)
 		} else {
 			resp = util.SendGetRequest(
 				"http://localhost:8080/api/v2/programs/neighbors",
-				strings.Join(callArgs, " "),
-				"",
+				callArgs,
+				[]string{},
 			)
 		}
 		fmt.Print(resp)

@@ -5,6 +5,7 @@ package util
 import (
 	"bytes"
 	"fmt"
+	"github.com/evolbioinf/clio"
 	"io"
 	"log"
 	"math"
@@ -14,8 +15,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
-
-	"github.com/evolbioinf/clio"
+	"strings"
 )
 
 type Quart struct {
@@ -118,11 +118,12 @@ func Quartiles(data []float64) *Quart {
 	return q
 }
 
-// The function SendGetRequest takes as argument an address the program's options and extra arguments as strings. It sends a get
-func SendGetRequest(address, options, extraArgs string) string {
-	eOption := url.QueryEscape(options)
-	eExtraArgs := url.QueryEscape(extraArgs)
-	req, err := http.NewRequest(http.MethodGet, address+"?options="+eOption+"&extra="+eExtraArgs, nil)
+// The function SendGetRequest takes as argument an address as a string and the program's options and extra arguments as string slices. It sends a get request using these values and returns the result.
+func SendGetRequest(address string, options, extraArgs []string) string {
+	hasParam := new(bool)
+	qOptions := urlEncodeSlice(options, "options", hasParam)
+	qExtraArgs := urlEncodeSlice(extraArgs, "extra", hasParam)
+	req, err := http.NewRequest(http.MethodGet, address+qOptions+qExtraArgs, nil)
 	Check(err)
 	resp, err := http.DefaultClient.Do(req)
 	Check(err)
@@ -130,11 +131,27 @@ func SendGetRequest(address, options, extraArgs string) string {
 	Check(err)
 	return string(body)
 }
+func urlEncodeSlice(slc []string, paramName string, hasParam *bool) string {
+	var sb strings.Builder
+	for _, v := range slc {
+		if !(*hasParam) {
+			sb.WriteRune('?')
+			*hasParam = true
+		} else {
+			sb.WriteRune('&')
+		}
+		sb.WriteString(paramName)
+		sb.WriteRune('=')
+		sb.WriteString(url.QueryEscape(v))
+	}
+	return sb.String()
+}
 
-// The function SendPostRequest takes as argument an address program options and extra arguments as a string, as well as files and stdin. It sends a post request using these values and returns the result.
-func SendPostRequest(address, options, extraArgs string, files []*os.File, stdin *os.File) string {
-	eOption := url.QueryEscape(options)
-	eExtraArgs := url.QueryEscape(extraArgs)
+// The function SendPostRequest takes as argument an address as a string, program options and extra arguments as a slice of strings, as well as files and stdin. It sends a post request using these values and returns the  result.
+func SendPostRequest(address string, options, extraArgs []string, files []*os.File, stdin *os.File) string {
+	hasParam := new(bool)
+	qOptions := urlEncodeSlice(options, "options", hasParam)
+	qExtraArgs := urlEncodeSlice(extraArgs, "extra", hasParam)
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 	for i, file := range files {
@@ -150,7 +167,7 @@ func SendPostRequest(address, options, extraArgs string, files []*os.File, stdin
 		Check(err)
 	}
 	w.Close()
-	req, err := http.NewRequest(http.MethodPost, address+"?options="+eOption+"&extra="+eExtraArgs, &b)
+	req, err := http.NewRequest(http.MethodPost, address+qOptions+qExtraArgs, &b)
 	Check(err)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	resp, err := http.DefaultClient.Do(req)
