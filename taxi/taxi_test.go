@@ -35,7 +35,7 @@ func TestTaxi(t *testing.T) {
 			t.Error(err)
 		}
 		if !bytes.Equal(get, want) {
-			t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+			t.Errorf("%s - get:\n%s\nwant:\n%s\n", f, get, want)
 		}
 	}
 }
