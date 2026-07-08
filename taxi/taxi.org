@@ -108,7 +108,8 @@ We import \ty{util}.
 #+begin_src latex
   We parse the options and respond to the version option (\ty{-v})
   first, as this would stop the program. The other option we respond to
-  is \ty{-l}, as its default value is ``infinity'' encoded by -1.
+  is the limit on the number of items output (\ty{-l}), as its default
+  value is ``infinity'' encoded by -1.
 
   Then we get the remaining arguments and count them to make sure there
   are two of them, the taxon label and the database, which we both
