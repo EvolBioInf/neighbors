@@ -91,7 +91,7 @@ func TestTdb(t *testing.T) {
 	if g != w {
 		t.Errorf("get:\n%d\nwant:\n%d\n", g, w)
 	}
-	taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 2)
+	taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 1)
 	g = len(taxa)
 	w = 2
 	if g != w {

@@ -1511,7 +1511,7 @@ infinite loop.
 #+end_src
 #+begin_export latex
 We store the taxa in a slice that we fill by iterating over the rows
-of the table returned by the query.c'
+of the table returned by the query.
 #+end_export
 #+begin_src go <<Extract taxon-IDs, Pa. \ref{pa:tdb}>>=
   taxa := []taxon{}
@@ -1545,19 +1545,19 @@ We import \ty{slices}.
   "slices"
 #+end_src
 #+begin_export latex
-We reslice \ty{taxa} according to the limit and the offset. The starting
-point of the new taxon is the offset. The end point the starting point
-plus the limit or the end of the slice, whichever is smaller. We check
-that these bounds are within the slice in hand and then return the
-corresponding taxon-IDs.
+We reslice \ty{taxa} according to the limit and the offset. The
+starting point of the new \ty{taxa} is the offset. The end point is
+the starting point plus the limit or the end of the slice, whichever
+is smaller. We check that these bounds are within the slice in hand
+and then store the corresponding taxon-IDs.
 #+end_export
 #+begin_src go <<Apply limit and offset, Pa. \ref{pa:tdb}>>=
   s := offset
   e := s + limit
-  if e < len(taxa) {
+  if e > len(taxa) {
   	e = len(taxa)
   }
-  if s < len(taxa) {
+  if s >= 0 && s < len(taxa) && e >= s {
   	taxa = taxa[s:e]
   	for _, taxon := range taxa {
   		taxids = append(taxids, taxon.taxid)
@@ -2398,12 +2398,12 @@ returns that number.
 #+end_src
 #+begin_src latex
   To test \ty{Taxids}, we get the four taxa whose names contain
-  \emph{homo sapiens}, but limit the output to the last two. Notice the
-  lower-case ``h'' in \emph{homo}, which SQL matches to the upper-case
-  ``H'' in the actual names.
+  \emph{homo sapiens}, but limit the output to the middle two. Notice
+  the lower-case ``h'' in \emph{homo}, which SQL matches to the
+  upper-case ``H'' in the actual names.
 #+end_src
 #+begin_src go <<Test \ty{Taxids}, Pa. \ref{pa:tdb}>>=
-  taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 2)
+  taxa, _ = taxdb.Taxids("%homo sapiens%", 2, 1)
   g = len(taxa)
   w = 2
   if g != w {
