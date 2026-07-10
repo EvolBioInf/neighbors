@@ -327,6 +327,7 @@ We import \ty{math}.
   the http verb manually.
 #+end_export
 #+begin_src go <<Create \ty{get} request, Pa. \ref{pa:util}>>=
+  fmt.Println("GET: "+address+qOptions+qExtraArgs)
   req, err := http.NewRequest(http.MethodGet, address+qOptions+qExtraArgs, nil)
   Check(err)
 #+end_src
@@ -439,6 +440,7 @@ We import \ty{math}.
   as for the get request. The body
 #+end_export
 #+begin_src go <<Create \ty{post} request, Pa. \ref{pa:util}>>=
+  fmt.Println("POST: "+address+qOptions+qExtraArgs)
   req, err := http.NewRequest(http.MethodPost, address+qOptions+qExtraArgs, &b)
   Check(err)
 #+end_src

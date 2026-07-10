@@ -207,20 +207,19 @@ func Run() {
 		filenames := flag.Args()
 		sendPost := true
 		if u == 0 {
-
+			inf, err := os.Stdin.Stat()
+			util.Check(err)
+			if inf.Mode()&os.ModeCharDevice == 0 {
+				stdin = os.Stdin
+			} else {
+				sendPost = false
+			}
 		} else {
 			for _, filename := range filenames {
 				file := util.Open(filename)
 				defer file.Close()
 				files = append(files, file)
 			}
-		}
-		inf, err := os.Stdin.Stat()
-		util.Check(err)
-		if inf.Mode()&os.ModeCharDevice == 0 {
-			stdin = os.Stdin
-		} else {
-			sendPost = false
 		}
 		var resp string
 		if sendPost {

@@ -123,6 +123,7 @@ func SendGetRequest(address string, options, extraArgs []string) string {
 	hasParam := new(bool)
 	qOptions := urlEncodeSlice(options, "options", hasParam)
 	qExtraArgs := urlEncodeSlice(extraArgs, "extra", hasParam)
+	fmt.Println("GET: " + address + qOptions + qExtraArgs)
 	req, err := http.NewRequest(http.MethodGet, address+qOptions+qExtraArgs, nil)
 	Check(err)
 	resp, err := http.DefaultClient.Do(req)
@@ -167,6 +168,7 @@ func SendPostRequest(address string, options, extraArgs []string, files []*os.Fi
 		Check(err)
 	}
 	w.Close()
+	fmt.Println("POST: " + address + qOptions + qExtraArgs)
 	req, err := http.NewRequest(http.MethodPost, address+qOptions+qExtraArgs, &b)
 	Check(err)
 	req.Header.Set("Content-Type", w.FormDataContentType())

@@ -251,12 +251,18 @@ func Run() {
 			defer file.Close()
 			files = append(files, file)
 		}
+		var stdin *os.File
+		inf, err := os.Stdin.Stat()
+		util.Check(err)
+		if inf.Mode()&os.ModeCharDevice == 0 {
+			stdin = os.Stdin
+		}
 		resp := util.SendPostRequest(
 			"http://localhost:8080/api/v2/programs/fintac",
 			callArgs,
 			filenames,
 			files,
-			os.Stdin,
+			stdin,
 		)
 		fmt.Print(resp)
 		return

@@ -172,7 +172,7 @@ We import \ty{util}.
   \ty{stdin}. We check whether there is any by looking at some cryptic bits,
   provided by the file's stats.
 #+end_src
-#+begin_src go <<Check for extra arguments, Pr. \ref{pr:neig}>>=
+#+begin_src go <<Handle stdin, Pr. \ref{pr:neig}>>=
   inf, err := os.Stdin.Stat()
   util.Check(err)
   if (inf.Mode() & os.ModeCharDevice == 0) {

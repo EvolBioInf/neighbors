@@ -3,6 +3,9 @@ package dree
 import (
 	"flag"
 	"fmt"
+	"github.com/evolbioinf/clio"
+	"github.com/evolbioinf/neighbors/tdb"
+	"github.com/evolbioinf/neighbors/util"
 	"log"
 	"math"
 	"os"
@@ -10,10 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
-
-	"github.com/evolbioinf/clio"
-	"github.com/evolbioinf/neighbors/tdb"
-	"github.com/evolbioinf/neighbors/util"
 )
 
 func Run() {

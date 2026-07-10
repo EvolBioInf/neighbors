@@ -239,6 +239,23 @@ We parse the options.
     defer file.Close()
     files = append(files, file)
   }
+  //<<Set stdin, Pr. \ref{pr:fit}>>
+#+end_src
+#+begin_src latex
+  Data may be passed via file arguments or through \ty{stdin}. Before providing
+  \ty{stdin}, we need to check wether it contains any data. If no data is piped
+  into it, it will listen and block until the user signals the end of input.
+  We check whether \ty{stdin} contains data, by looking at its file 
+  information. This contains bits on it's file mode defining, whether data was
+  piped to it or if it's going to listen on the command line.
+#+end_src
+#+begin_src go <<Set stdin, Pr. \ref{pr:fit}>>=
+	var stdin *os.File
+  inf, err := os.Stdin.Stat()
+	util.Check(err)
+	if inf.Mode()&os.ModeCharDevice == 0 {
+		stdin = os.Stdin
+  }
 #+end_src
 #+begin_src latex
   We send the request using \ty{util.SengPostRequest}. The
@@ -254,7 +271,7 @@ We parse the options.
 		callArgs,
     filenames,
     files,
-    os.Stdin,
+    stdin,
 	)
 #+end_src
 #+begin_src latex
