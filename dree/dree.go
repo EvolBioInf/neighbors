@@ -19,7 +19,7 @@ func Run() {
 	util.SetName("dree")
 	u := "dree [-h] [option]... <taxon-ID> <db>"
 	p := "Get the taxonomy rooted on a specific taxon."
-	e := "dree -n -g 207598 neidb | dot -T x11"
+	e := "dree -n -g 207598 neidb | xdot -"
 	clio.Usage(u, p, e)
 	optV := flag.Bool("v", false, "version")
 	optN := flag.Bool("n", false,
@@ -29,6 +29,7 @@ func Run() {
 	optL := flag.Bool("l", false, "list taxa")
 	optLL := flag.String("L", "", util.LevelMsg())
 	optM := flag.Int("m", -1, "maximum tree level")
+	optR := flag.Bool("r", false, "recursive genome counts in list")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("dree")
@@ -67,7 +68,8 @@ func Run() {
 		log.Fatalf("couldn't convert %q", tokens[0])
 	}
 	dbname := tokens[1]
-	neidb := tdb.OpenTaxonomyDB(dbname)
+	neidb, err := tdb.OpenTaxonomyDBcheck(dbname)
+	util.Check(err)
 	subtree, err := neidb.SubtreeLevel(tid, *optM)
 	util.Check(err)
 	hasGenome := make(map[int]bool)
@@ -104,18 +106,24 @@ func Run() {
 		}
 		fmt.Fprint(w, "\n")
 		for _, v := range subtree {
-			numAcc := 0
-			acc, err := neidb.Accessions(v)
-			util.Check(err)
-			acc, err = neidb.FilterAccessions(acc, levels)
-			util.Check(err)
-			numAcc = len(acc)
-			if !*optG || numAcc > 0 {
+			numGenomes := 0
+			for level, _ := range levels {
+				n := 0
+				var err error
+				if *optR {
+					n, err = neidb.NumGenomesRec(v, level)
+					util.Check(err)
+				} else {
+					n, err = neidb.NumGenomes(v, level)
+				}
+				numGenomes += n
+			}
+			if !*optG || numGenomes > 0 {
 				p, err := neidb.Parent(v)
 				util.Check(err)
 				r, err := neidb.Rank(v)
 				util.Check(err)
-				fmt.Fprintf(w, "%d\t%d\t%s\t%d", v, p, r, numAcc)
+				fmt.Fprintf(w, "%d\t%d\t%s\t%d", v, p, r, numGenomes)
 				if *optN {
 					a, err := neidb.Name(v)
 					util.Check(err)

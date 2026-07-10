@@ -15,41 +15,100 @@
   genomes are colored.
 #+end_src
 #+begin_src sh <<dree.sh>>=
-  ./dree -n 207598 neidb | dot -T x11
+  dree -n 207598 test.db | xdot -
 #+end_src
 #+begin_src latex
   The resulting tree in Figure~\ref{fig:homininaeFull} is pretty
   crowded, so we use \ty{-g} to to reduce it to the taxa with sequenced
-  genomes and their ancestors.
+  genomes and their ancestors, which gives the more legible
+  Figure~\ref{fig:homininaeG}.
 #+end_src
 #+begin_src sh <<dree.sh>>=
-  ./dree -n -g 207598 neidb | dot -T x11
+  dree -n -g 207598 test.db | xdot -
 #+end_src
 #+begin_src latex
-  This gives the more
-  legible Figure~\ref{fig:homininaeG}.
-    \begin{figure}
-      \begin{center}
-	\resizebox{\textwidth}{!}{\includegraphics{../dree/homininae_full_n}}
-      \end{center}
-      \caption{Taxonomy of the \emph{Homininae}, taxa with sequenced
-	genomes are colored.}\label{fig:homininaeFull}
-    \end{figure}
+  \begin{figure}
+    \begin{center}
+  	\resizebox{\textwidth}{!}{\includegraphics{../dree/homininae_full_n}}
+    \end{center}
+    \caption{Taxonomy of the \emph{Homininae}, taxa with sequenced
+  	genomes are colored.}\label{fig:homininaeFull}
+  \end{figure}
 
-    \begin{figure}
-      \begin{center}
-	\resizebox{\textwidth}{!}{\includegraphics{../dree/homininae_g_n}}
-      \end{center}
-      \caption{Taxonomy of the \emph{Homininae} reduced to taxa with
-	sequenced genomes and their ancestors; taxa with genomes are
-	colored.}\label{fig:homininaeG}
-    \end{figure}
+  \begin{figure}
+    \begin{center}
+  	\resizebox{\textwidth}{!}{\includegraphics{../dree/homininae_g_n}}
+    \end{center}
+    \caption{Taxonomy of the \emph{Homininae} reduced to taxa with
+  	sequenced genomes and their ancestors; taxa with genomes are
+  	colored.}\label{fig:homininaeG}
+  \end{figure}
 
-    \section*{Implementation}
-    The outline of \ty{dree} has hooks for imports and the logic of the
-    run function.  \bpr{dree}{pr:dr}
+  Instead of drawing a taxonomic tree, the user can list the taxa with
+  \ty{-l}. The resulting table has by default four columns, taxon-ID,
+  parent, rank, and number of genomes. A fifth column of names is
+  activated with \ty{-n}. For example, we can list the eight taxa with
+  genomes in Figure~\ref{fig:homininaeG}.
 #+end_src
+#+begin_src sh <<dree.sh>>=
+  dree -n -g -l 207598 test.db
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+# Taxid  Parent  Rank        Genomes  Name
+9593     9592    species     2        Gorilla gorilla
+9595     9593    subspecies  12       Gorilla gorilla gorilla
+9597     9596    species     7        Pan paniscus
+9598     9596    species     12       Pan troglodytes
+9606     9605    species     1851     Homo sapiens
+37012    9598    subspecies  1        Pan troglodytes verus
+499232   9592    species     1        Gorilla beringei
+1159185  499232  subspecies  2        Gorilla beringei beringei
+\end{verbatim}
+#+end_export
+#+begin_export latex
+By default, the number of genomes is the raw count. We can also list
+the recursive count, that is, the number of genomes in a subtree
+rooted on a given taxon.
+#+end_export
+#+begin_src sh <<dree.sh>>=
+  dree -r -n -g -l 207598 test.db
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+# Taxid  Parent  Rank        Genomes  Name
+9592     207598  genus       17       Gorilla
+9593     9592    species     14       Gorilla gorilla
+9595     9593    subspecies  12       Gorilla gorilla gorilla
+9596     207598  genus       20       Pan
+9597     9596    species     7        Pan paniscus
+9598     9596    species     13       Pan troglodytes
+9605     207598  genus       1851     Homo
+9606     9605    species     1851     Homo sapiens
+37012    9598    subspecies  1        Pan troglodytes verus
+207598   207598  subfamily   1888     Homininae
+499232   9592    species     3        Gorilla beringei
+1159185  499232  subspecies  2        Gorilla beringei beringei
+\end{verbatim}
+By default, the number of genomes listed is the sum over all assembly
+levels. If we reduce the assembly level to ``complete'', the number of
+genomes available drops to 58.
+#+end_export
+#+begin_src sh <<dree.sh>>=
+  dree -L complete -r -n -g -l 207598 test.db
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+# Taxid  Parent  Rank       Genomes  Name
+9605     207598  genus      58       Homo
+9606     9605    species    58       Homo sapiens
+207598   207598  subfamily  58       Homininae
+\end{verbatim}
 
+\section*{Implementation}
+The outline of \ty{dree} has hooks for imports and the logic of the
+run function.  \bpr{dree}{pr:dr}
+#+end_export
 #+begin_src go <<dree.go>>=
   package dree
 
@@ -83,12 +142,13 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   The usage consists of the actual usage message, an explanation of the
-  purpose of \ty{dree}, and an example command.
+  purpose of \ty{dree}, and an example command, where we include code
+  for rendering the taxonomy.
 #+end_src
 #+begin_src go <<Set usage, Pr. \ref{pr:dr}>>=
   u := "dree [-h] [option]... <taxon-ID> <db>"
   p := "Get the taxonomy rooted on a specific taxon."
-  e := "dree -n -g 207598 neidb | dot -T x11"
+  e := "dree -n -g 207598 neidb | xdot -"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -98,7 +158,7 @@ We import \ty{util}.
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  Apart from the version, we declare five options:
+  Apart from the version, we declare six options:
   \begin{itemize}
   \item \ty{-n}: print \emph{names} instead of taxon-IDs
   \item \ty{-g}: print only taxa with \emph{genomes}
@@ -106,17 +166,19 @@ We import \ty{util}.
   \item \ty{-L}: only consider genomes with a particular assembly
     \emph{level}
   \item \ty{-m}: maximum tree level
+  \item \ty{-r}: \emph{recursive} genome counts in list
   \end{itemize}
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:dr}>>=
   optV := flag.Bool("v", false, "version")
   optN := flag.Bool("n", false,
-	  "print names instead of taxon-IDs")
+  	  "print names instead of taxon-IDs")
   optG := flag.Bool("g", false,
-	  "only taxa with genome sequences")
+  	  "only taxa with genome sequences")
   optL := flag.Bool("l", false, "list taxa")
   optLL := flag.String("L", "", util.LevelMsg())
   optM := flag.Int("m", -1, "maximum tree level")
+  optR := flag.Bool("r", false, "recursive genome counts in list")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -176,10 +238,9 @@ We import \ty{util}.
   }
 #+end_src
 #+begin_export latex
-We import \ty{tdb} and \ty{strings}.
+We import \ty{strings}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
-  "github.com/evolbioinf/neighbors/tdb"
   "strings"
 #+end_src
 #+begin_export latex
@@ -189,6 +250,12 @@ We fill in the known assembly levels.
   for _, level := range tdb.AssemblyLevels() {
 	  knowns[level] = true
   }
+#+end_src
+#+begin_export latex
+We import \ty{tdb}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:dr}>>=
+  "github.com/evolbioinf/neighbors/tdb"
 #+end_src
 #+begin_export latex
 When iterating over the requested levels we store those that are
@@ -220,9 +287,10 @@ We import \ty{math}.
   "math"
 #+end_src
 #+begin_src latex
-  The remaining tokens on the command line are interpreted as taxon-ID
-  and database, in that order. If we don't have two tokens, we bail with
-  a friendly message. We convert the taxonomy-ID to an integer.
+  The remaining two tokens on the command line are interpreted as
+  taxon-ID and database, in that order. If we don't have two tokens, we
+  bail with a friendly message. We convert the taxonomy-ID to an
+  integer.
 #+end_src
 #+begin_src go <<Get taxon-ID, Pr. \ref{pr:dr}>>=
   tokens := flag.Args()
@@ -255,7 +323,8 @@ We import \ty{math}.
   We open a connection to the taxonomy database.
 #+end_src
 #+begin_src go <<Open database connection, Pr. \ref{pr:dr}>>=
-  neidb := tdb.OpenTaxonomyDB(dbname)
+  neidb, err := tdb.OpenTaxonomyDBcheck(dbname)
+  util.Check(err)
 #+end_src
 #+begin_src latex
   We get the subtree we're looking for.
@@ -269,8 +338,8 @@ We import \ty{math}.
   information: whether or not $v$ has at least one genome associated
   with it, and whether or not $v$ has at least one genome in the subtree
   rooted on it. So we construct two maps for storing this
-  information. Then we mark nodes with genomes and nodes with genomes in
-  subtree.
+  information. Then we mark nodes with genomes, and nodes with genomes
+  in subtree.
 #+end_src
 #+begin_src go <<Annotate subtree, Pr. \ref{pr:dr}>>=
   hasGenome := make(map[int]bool)
@@ -296,8 +365,8 @@ also the initial set of nodes with genomes in their subtree.
 #+end_src
 #+begin_src latex
   To find the nodes with genomes in their subtrees, we iterate over the
-  nodes and for each node with a genome in it subtree, and propagate
-  this fact up the tree.
+  nodes and for each node with a genome in it subtree, we propagate this
+  fact up the tree.
 #+end_src
 #+begin_src go <<Mark nodes with genomes in subtree, Pr. \ref{pr:dr}>>=
   for _, v := range subtree {
@@ -367,37 +436,43 @@ We import \ty{tabwriter}.
   "text/tabwriter"
 #+end_src
 #+begin_src latex
-The user might have opted to list only taxon nodes with genomes and/or
-to add names to taxa.
+  We count the number of genomes associated with the current node. Then
+  we consider whether the user opted to list only taxa with genomes.
 #+end_src
 #+begin_src go <<List one node, Pr. \ref{pr:dr}>>=
-  numAcc := 0
-  //<<Determine the number of accessions, Pr. \ref{pr:dr}>>
-  if !*optG || numAcc > 0 {
-	  //<<Print node line, Pr. \ref{pr:dr}>>
+  numGenomes := 0
+  //<<Count genomes, Pr. \ref{pr:dr}>>
+  if !*optG || numGenomes > 0 {
+  	  //<<Print node line, Pr. \ref{pr:dr}>>
   }
 #+end_src
 #+begin_export latex
-We get the full list of accessions and filter them by level to find
-the final number of accessions.
+If the user requested recursive genome counts, we provide that.
 #+end_export
-#+begin_src go <<Determine the number of accessions, Pr. \ref{pr:dr}>>=
-  acc, err := neidb.Accessions(v)
-  util.Check(err)
-  acc, err = neidb.FilterAccessions(acc, levels)
-  util.Check(err)
-  numAcc = len(acc)
+#+begin_src go <<Count genomes, Pr. \ref{pr:dr}>>=
+  for level, _ := range levels {
+  	n := 0
+  	var err error
+  	if *optR {
+  		n, err = neidb.NumGenomesRec(v, level)
+  		util.Check(err)
+  	} else {
+  		n, err = neidb.NumGenomes(v, level)
+  	}
+  	numGenomes += n
+  }
 #+end_src
 #+begin_export latex
 We write the current node into a line consisting of taxon-ID, parent,
-rank, and number of genomes.
+rank, and number of genomes. If the user opted for names, we print
+them as the fifth column.
 #+end_export
 #+begin_src go <<Print node line, Pr. \ref{pr:dr}>>=
   p, err := neidb.Parent(v)
   util.Check(err)
   r, err := neidb.Rank(v)
   util.Check(err)
-  fmt.Fprintf(w, "%d\t%d\t%s\t%d", v, p, r, numAcc)
+  fmt.Fprintf(w, "%d\t%d\t%s\t%d", v, p, r, numGenomes)
   if *optN {
 	  a, err := neidb.Name(v)
 	  util.Check(err)
@@ -406,7 +481,7 @@ rank, and number of genomes.
   fmt.Fprintf(w, "\n")
 #+end_src
 #+begin_src latex
-  The default node is simply its taxon ID. However, nodes can be
+  The default node is simply its taxon-ID. However, nodes can be
   annotated with color and a taxon name. For this purpose we declare
   templates for annotation lines, one for color, ``lightsalmon'', the
   other for the name.
@@ -499,9 +574,9 @@ rank, and number of genomes.
 #+end_src
 #+begin_src latex
   In our tests, we draw the \emph{Homininae} which have taxon-ID
-  207598. First with no options, then we test our four options names
-  (\ty{-n}), genomes (\ty{-g}), list \ty{-l}, assembly level
-  (\ty{-L}), and tree level, \ty{-m}.
+  207598. First with no options, then we test our six options names
+  (\ty{-n}), genomes (\ty{-g}), list \ty{-l}, assembly level (\ty{-L}),
+  tree level, \ty{-m}, and recursive genome count, \ty{-r}.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:dr}>>=
   n := "207598"
@@ -513,6 +588,7 @@ rank, and number of genomes.
   //<<Test \ty{-l}, Pr. \ref{pr:dr}>>
   //<<Test \ty{-L}, Pr. \ref{pr:dr}>>
   //<<Test \ty{-m}, Pr. \ref{pr:dr}>>
+  //<<Test \ty{-r}, Pr. \ref{pr:dr}>>
 #+end_src
 #+begin_export latex
 We construct our first test without any options and store it.
@@ -571,6 +647,14 @@ We test \ty{-m} with a negative maximum level, ordinary levels 0 and
   test = exec.Command(p, "-m", "2", n, d)
   tests = append(tests, test)
   test = exec.Command(p, "-m", "200", n, d)
+  tests = append(tests, test)
+#+end_src
+#+begin_export latex
+We test recursive genome counting, \ty{-r}, in conjunction with
+listing.
+#+end_export
+#+begin_src go <<Test \ty{-t}, Pr. \ref{pr:dr}>>=
+  test = exec.Command(p, "-r", "-l", n, d)
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
