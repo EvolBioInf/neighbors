@@ -134,7 +134,7 @@ and \ty{image} as the auxiliary table \ty{tax2ima}.
   Table \ty{taxon} has the five attributes \ty{taxid}, \ty{parent},
   \ty{name}, \ty{rank}, and score. Taxon-IDs are integers, names are
   text, scores are floats. \ty{taxid} is also the primary key. As there
-  are currently 2.7 million taxa, and this number is bound to grow, we
+  are currently 2.9 million taxa, and this number is bound to grow, we
   ensure that queries are quick by using indexes. The primary key,
   \ty{taxid}, is automatically indexed but we explicitly construct an
   index for \ty{parent} and \ty{score}. We might be tempted to also
