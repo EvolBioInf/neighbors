@@ -6,6 +6,7 @@ import (
 	"github.com/evolbioinf/clio"
 	"github.com/evolbioinf/neighbors/tdb"
 	"github.com/evolbioinf/neighbors/util"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -29,7 +30,6 @@ func Run() {
 	if *optV {
 		util.PrintInfo("taxi")
 	}
-	args := flag.Args()
 	if *optR {
 		resp := util.SendGetRequest(
 			"http://localhost:8080/api/v2/programs/taxi",
@@ -39,6 +39,10 @@ func Run() {
 		fmt.Print(resp)
 		return
 	}
+	if *optL == -1 {
+		(*optL) = math.MaxInt
+	}
+	args := flag.Args()
 	m := "please provide a taxon and a database"
 	if len(args) != 2 {
 		fmt.Fprintf(os.Stderr, "%s\n", m)

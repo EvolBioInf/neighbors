@@ -219,10 +219,10 @@ func (t *TaxonomyDB) Taxids(name string,
 	})
 	s := offset
 	e := s + limit
-	if e < len(taxa) {
+	if e > len(taxa) {
 		e = len(taxa)
 	}
-	if s < len(taxa) {
+	if s >= 0 && s < len(taxa) && e >= s {
 		taxa = taxa[s:e]
 		for _, taxon := range taxa {
 			taxids = append(taxids, taxon.taxid)

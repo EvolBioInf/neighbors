@@ -89,8 +89,8 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   Apart from the version, we declare options for exact matching, limit,
-  and offset and remote execution. The defaults are substring matching,
-  no limit, and no offset.
+  offset, and using a taxon-ID. The defaults are substring matching, no
+  limit, no offset, and scientific name.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:tax}>>=
   var optV = flag.Bool("v", false, "version")
@@ -110,22 +110,33 @@ We import \ty{util}.
   We parse the options and respond to the version option (\ty{-v})
   first, as this would stop the program. If the remote switch (\ty{-r})
   is active, we need to act on it, before inspecting the remaining
-  arguments. In every other case we get the remaining arguments
-  and count them to make sure there are two of them, the taxon
-  label and the database, which we both store. From the taxon label we
-  extract either the taxon name of the taxon-ID.
+  arguments. The other option we respond to is the limit on the number of items
+  output (\ty{-l}), as its default value is ``infinity'' encoded by -1.
+
+  Then we get the remaining arguments and count them to make sure there
+  are two of them, the taxon label and the database, which we both
+  store. From the taxon label we extract either the taxon name of the
+  taxon-ID.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:tax}>>=
   flag.Parse()
-  if *optV {
-	  util.PrintInfo("taxi")
-  }
+  //<<Respond to \ty{-v}, Pr. \ref{pr:tax}>>
+  //<<Respond to \ty{-r}, Pr. \ref{pr:tax}>>
+  //<<Respond to \ty{-l}, Pr. \ref{pr:tax}>>
   args := flag.Args()
-  //<<Act on remote switch, Pr. \ref{pr:tax}>>
   //<<Count arguments, Pr. \ref{pr:tax}>>
   label := args[0]
   db := args[1]
   //<<Extract taxon name or ID, Pr. \ref{pr:tax}>>
+#+end_src
+#+begin_export latex
+If the user asked for the version, we print the program information,
+which contains the version.
+#+end_export
+#+begin_src go <<Respond to \ty{-v}, Pr. \ref{pr:tax}>>=
+  if *optV {
+  	  util.PrintInfo("taxi")
+  }
 #+end_src
 #+begin_src latex
   The remote switch is an option to execute \ty{taxi}
@@ -134,7 +145,7 @@ We import \ty{util}.
   The request url is
   \ty{http://localhost:8080/api/v2/programs/taxi}.
 #+end_src
-#+begin_src go <<Act on remote switch, Pr. \ref{pr:tax}>>=
+#+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:tax}>>=
   if *optR {
     resp := util.SendGetRequest(
       "http://localhost:8080/api/v2/programs/taxi",
@@ -145,10 +156,25 @@ We import \ty{util}.
     return
   }
 #+end_src
+#+begin_export latex
+Back to local execution. If the user didn't provide a limit, we set it to 
+effectively infinity.
+#+end_export
+#+begin_src go <<Respond to \ty{-l}, Pr. \ref{pr:tax}>>=
+  if *optL == -1 {
+  	(*optL) = math.MaxInt
+  }
+#+end_src
+#+begin_export latex
+We import \ty{math}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
+  "math"
+#+end_src
 #+begin_src latex
-  Back to local execution. If the user didn't provide two arguments, we
-  don't have the necessary taxon and a database to work with, so we
-  send a friendly message and quit.
+  If the user didn't provide two arguments, we don't have the necessary
+  taxon and a database to work with, so we send a friendly message and
+  quit.
 #+end_src
 #+begin_src go <<Count arguments, Pr. \ref{pr:tax}>>=
   m := "please provide a taxon and a database"
@@ -319,7 +345,7 @@ Our first query is 9606, the taxon-ID for human.
 #+end_src
 #+begin_src latex
   We execute the test and compare the result we get to the result we
-  want. The results we want are contained in the files \ty{r1.txt},
+  want. The results we want are contained in the files \ty{r1.txt}, 
   \ty{r2.txt} and so on.
 #+end_src
 #+begin_src go <<Run test, Pr. \ref{pr:tax}>>=
@@ -329,7 +355,7 @@ Our first query is 9606, the taxon-ID for human.
   want, err := ioutil.ReadFile(f)
   if err != nil { t.Error(err) }
   if !bytes.Equal(get, want) {
-	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  	  t.Errorf("%s - get:\n%s\nwant:\n%s\n", f, get, want)
   }
 #+end_src
 #+begin_src latex
@@ -340,3 +366,4 @@ Our first query is 9606, the taxon-ID for human.
   "io/ioutil"
   "bytes"
 #+end_src
+
