@@ -39,7 +39,8 @@ func TestDree(t *testing.T) {
 	tests = append(tests, test)
 	test = exec.Command(p, "-m", "200", n, d)
 	tests = append(tests, test)
-
+	test = exec.Command(p, "-R", "-l", n, d)
+	tests = append(tests, test)
 	for i, test := range tests {
 		get, err := test.Output()
 		if err != nil {

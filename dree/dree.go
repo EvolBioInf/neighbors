@@ -29,7 +29,8 @@ func Run() {
 	optL := flag.Bool("l", false, "list taxa")
 	optLL := flag.String("L", "", util.LevelMsg())
 	optM := flag.Int("m", -1, "maximum tree level")
-	optR := flag.Bool("r", false, "recursive genome counts in list")
+	optRR := flag.Bool("R", false, "recursive genome counts in list "+
+		"(default raw counts)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("dree")
@@ -110,7 +111,7 @@ func Run() {
 			for level, _ := range levels {
 				n := 0
 				var err error
-				if *optR {
+				if *optRR {
 					n, err = neidb.NumGenomesRec(v, level)
 					util.Check(err)
 				} else {
