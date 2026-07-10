@@ -1465,7 +1465,8 @@ infinite loop.
   ! of names returned, and an offset into the list of matching names. It
   ! matches the taxon name, to the scientific names in the database,
   ! orders the hits by their score, imposes the limit and offset, and
-  ! returns the corresponding taxon-IDs and an error.
+  ! returns the corresponding taxon-IDs and an error. A negative limit
+  ! means no limit.
 
   We declare and execute the query for taxon-IDs, extract the IDs, and
   return them.
@@ -1554,7 +1555,7 @@ and then store the corresponding taxon-IDs.
 #+begin_src go <<Apply limit and offset, Pa. \ref{pa:tdb}>>=
   s := offset
   e := s + limit
-  if e > len(taxa) {
+  if e > len(taxa) || limit < 0 {
   	e = len(taxa)
   }
   if s >= 0 && s < len(taxa) && e >= s {
@@ -1570,7 +1571,8 @@ and then store the corresponding taxon-IDs.
   ! number of names returned, and an offset into the list of matching
   ! names. It matches the taxon name to the scientific and common names,
   ! orders the hits by their score, imposes the limit and offset, and
-  ! returns the corresponding taxon-IDs and an error.
+  ! returns the corresponding taxon-IDs and an error. A negative limit
+  ! is no limit.
 
   We declare and execute the query for taxon-IDs from common and
   scientific names, extract the IDs, and return them.
