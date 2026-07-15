@@ -125,7 +125,7 @@ func listLeaves(v *nwk.Node) {
 }
 func Run() {
 	util.SetName("pickle")
-	u := "pickle <clade1,clade2...> [option]... [foo.nwk]..."
+	u := "pickle [option]... <clade1,clade2...> [foo.nwk]..."
 	p := "Pick clades in Newick trees."
 	e := "pickle 3,5 foo.nwk"
 	clio.Usage(u, p, e)

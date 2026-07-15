@@ -79,7 +79,7 @@ We import \ty{util}.
   explanation of the purpose of \ty{pickle}, and an example command.
 #+end_src
 #+begin_src go <<Set usage, Pr. \ref{pr:pic}>>=
-  u := "pickle <clade1,clade2...> [option]... [foo.nwk]..."
+  u := "pickle [option]... <clade1,clade2...> [foo.nwk]..."
   p := "Pick clades in Newick trees."
   e := "pickle 3,5 foo.nwk"
   clio.Usage(u, p, e)
