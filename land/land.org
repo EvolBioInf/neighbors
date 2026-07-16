@@ -3,7 +3,8 @@
   The program \ty{land} labels the internal nodes of a Newick tree. This
   makes it easy to subsequently pick individual clades in the tree with
   \ty{pickle}. The program can also remove labels from the internal
-  nodes of a labeled tree and/or from the leaves.
+  nodes of a labeled tree and/or from its leaves. Removal of a
+  particular set of labels leaves the remaining labels unchanged.
 
   \section*{Implementation}
   \ty{land} contains hooks for imports, functions, and the logic of the
@@ -153,28 +154,47 @@ Inside the function \ty{labelTree} we label the nodes in order.
   }
 #+end_src
 #+begin_src latex
-  When labeling a node, construct new labels for internal nodes and
-  might remove labels from leaves.
+  When labeling a node, we distinguish between internal nodes and leaf
+  nodes.
 #+end_src
 #+begin_src go <<Label node, Pr. \ref{pr:lan}>>=
-  l := v.Label
+  label := v.Label
   if v.Child != nil {
-	  if ri {
-		  l = ""
-	  } else {
-		  l = pr + strconv.Itoa(c) + su
-		  c++
-	  }
-  } else if rl {
-	  l = ""
+  	//<<Label internal node, Pr. \ref{pr:lan}>>
+  } else {
+  	//<<Label leaf node, Pr. \ref{pr:lan}>>
   }
-  v.Label = l
+  v.Label = label
 #+end_src
-#+begin_src latex
-  We import \ty{strconv}.
+#+begin_export latex
+When labeling an internal node, we first ask, whether the user is
+removing labels. If so, we set the label to the empty
+string. Otherwise, we construct the new label and increment the label
+counter, unless the user is removing leaf labels, in which case we
+leave the label unchanged.
+#+end_export
+#+begin_src go <<Label internal node, Pr. \ref{pr:lan}>>=
+  if ri {
+  	label = ""
+  } else if !rl {
+  	label = pr + strconv.Itoa(c) + su
+  	c++
+  }
 #+end_src
+#+begin_export latex
+We import \ty{strconv}.
+#+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:lan}>>=
   "strconv"
+#+end_src
+#+begin_export latex
+When labeling a leaf, we ask whether the user is removing leaf labels,
+in which case we set the label to the empty string.
+#+end_export
+#+begin_src go <<Label leaf node, Pr. \ref{pr:lan}>>=
+  if rl {
+  	label = ""
+  }
 #+end_src
 #+begin_src latex
   We're done writing \ty{land}, let's test it.

@@ -190,7 +190,7 @@ func (t *TaxonomyDB) SubtreeLevel(r, m int) ([]int, error) {
 	return taxa, err
 }
 
-// Taxids takes as arguments a taxon name, a limit on the number  of names returned, and an offset into the list of matching names. It  matches the taxon name, to the scientific names in the database,  orders the hits by their score, imposes the limit and offset, and  returns the corresponding taxon-IDs and an error.
+// Taxids takes as arguments a taxon name, a limit on the number  of names returned, and an offset into the list of matching names. It  matches the taxon name, to the scientific names in the database,  orders the hits by their score, imposes the limit and offset, and  returns the corresponding taxon-IDs and an error. A negative limit  means no limit.
 func (t *TaxonomyDB) Taxids(name string,
 	limit, offset int) ([]int, error) {
 	var err error
@@ -219,7 +219,7 @@ func (t *TaxonomyDB) Taxids(name string,
 	})
 	s := offset
 	e := s + limit
-	if e > len(taxa) {
+	if e > len(taxa) || limit < 0 {
 		e = len(taxa)
 	}
 	if s >= 0 && s < len(taxa) && e >= s {
@@ -231,7 +231,7 @@ func (t *TaxonomyDB) Taxids(name string,
 	return taxids, err
 }
 
-// CommonTaxids takes as arguments a taxon name, a limit on the  number of names returned, and an offset into the list of matching  names. It matches the taxon name to the scientific and common names,  orders the hits by their score, imposes the limit and offset, and  returns the corresponding taxon-IDs and an error.
+// CommonTaxids takes as arguments a taxon name, a limit on the  number of names returned, and an offset into the list of matching  names. It matches the taxon name to the scientific and common names,  orders the hits by their score, imposes the limit and offset, and  returns the corresponding taxon-IDs and an error. A negative limit  is no limit.
 func (t *TaxonomyDB) CommonTaxids(name string,
 	limit, offset int) ([]int, error) {
 	var err error

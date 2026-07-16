@@ -27,18 +27,20 @@ func labelTree(v *nwk.Node, c int, pr, su string,
 	if v == nil {
 		return c
 	}
-	l := v.Label
+	label := v.Label
 	if v.Child != nil {
 		if ri {
-			l = ""
-		} else {
-			l = pr + strconv.Itoa(c) + su
+			label = ""
+		} else if !rl {
+			label = pr + strconv.Itoa(c) + su
 			c++
 		}
-	} else if rl {
-		l = ""
+	} else {
+		if rl {
+			label = ""
+		}
 	}
-	v.Label = l
+	v.Label = label
 	c = labelTree(v.Child, c, pr, su, ri, rl)
 	c = labelTree(v.Sib, c, pr, su, ri, rl)
 	return c

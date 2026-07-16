@@ -110,9 +110,7 @@ We import \ty{util}.
   We parse the options and respond to the version option (\ty{-v})
   first, as this would stop the program. If the remote switch (\ty{-r})
   is active, we need to act on it, before inspecting the remaining
-  arguments. The other option we respond to is the limit on the number of items
-  output (\ty{-l}), as its default value is ``infinity'' encoded by -1.
-
+  arguments.
   Then we get the remaining arguments and count them to make sure there
   are two of them, the taxon label and the database, which we both
   store. From the taxon label we extract either the taxon name of the
@@ -122,7 +120,6 @@ We import \ty{util}.
   flag.Parse()
   //<<Respond to \ty{-v}, Pr. \ref{pr:tax}>>
   //<<Respond to \ty{-r}, Pr. \ref{pr:tax}>>
-  //<<Respond to \ty{-l}, Pr. \ref{pr:tax}>>
   args := flag.Args()
   //<<Count arguments, Pr. \ref{pr:tax}>>
   label := args[0]
@@ -157,24 +154,9 @@ which contains the version.
   }
 #+end_src
 #+begin_export latex
-Back to local execution. If the user didn't provide a limit, we set it to 
-effectively infinity.
-#+end_export
-#+begin_src go <<Respond to \ty{-l}, Pr. \ref{pr:tax}>>=
-  if *optL == -1 {
-  	(*optL) = math.MaxInt
-  }
-#+end_src
-#+begin_export latex
-We import \ty{math}.
-#+end_export
-#+begin_src go <<Imports, Pr. \ref{pr:tax}>>=
-  "math"
-#+end_src
-#+begin_src latex
-  If the user didn't provide two arguments, we don't have the necessary
-  taxon and a database to work with, so we send a friendly message and
-  quit.
+  Back to local execution.  If the user didn't provide two arguments, we don't
+  have the necessary taxon and a database to work with, so we send a friendly
+  message and quit.
 #+end_src
 #+begin_src go <<Count arguments, Pr. \ref{pr:tax}>>=
   m := "please provide a taxon and a database"
