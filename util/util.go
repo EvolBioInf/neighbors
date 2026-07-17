@@ -118,12 +118,23 @@ func Quartiles(data []float64) *Quart {
 	return q
 }
 
-// The function SendGetRequest takes as argument an address as a string and the program's options and extra arguments as string slices. It sends a get request using these values and returns the result.
-func SendGetRequest(address string, options, extraArgs []string) string {
-	hasParam := new(bool)
-	qOptions := urlEncodeSlice(options, "options", hasParam)
-	qExtraArgs := urlEncodeSlice(extraArgs, "extra", hasParam)
-	req, err := http.NewRequest(http.MethodGet, address+qOptions+qExtraArgs, nil)
+// The function SendGetRequest takes as argument a url path as a string and the program's options and extra arguments as string slices, as well as miscellaneous arguments as a map. It sends a get request using these values to never at neighbors.evolbio.mpg.de and returns the result.
+func SendGetRequest(address string, options, extraArgs []string, miscArgs map[string]string) string {
+	address = "http://localhost:8080" + address
+	qb := new(strings.Builder)
+	urlEncodeSlice(qb, options, "options")
+	urlEncodeSlice(qb, extraArgs, "extra")
+	for m, a := range miscArgs {
+		if qb.Len() == 0 {
+			qb.WriteRune('?')
+		} else {
+			qb.WriteRune('&')
+		}
+		qb.WriteString(url.QueryEscape(m))
+		qb.WriteRune('=')
+		qb.WriteString(url.QueryEscape(a))
+	}
+	req, err := http.NewRequest(http.MethodGet, address+qb.String(), nil)
 	Check(err)
 	resp, err := http.DefaultClient.Do(req)
 	Check(err)
@@ -131,27 +142,35 @@ func SendGetRequest(address string, options, extraArgs []string) string {
 	Check(err)
 	return string(body)
 }
-func urlEncodeSlice(slc []string, paramName string, hasParam *bool) string {
-	var sb strings.Builder
+func urlEncodeSlice(qb *strings.Builder, slc []string, paramName string) {
 	for _, v := range slc {
-		if !(*hasParam) {
-			sb.WriteRune('?')
-			*hasParam = true
+		if qb.Len() == 0 {
+			qb.WriteRune('?')
 		} else {
-			sb.WriteRune('&')
+			qb.WriteRune('&')
 		}
-		sb.WriteString(paramName)
-		sb.WriteRune('=')
-		sb.WriteString(url.QueryEscape(v))
+		qb.WriteString(paramName)
+		qb.WriteRune('=')
+		qb.WriteString(url.QueryEscape(v))
 	}
-	return sb.String()
 }
 
-// The function SendPostRequest takes as argument an address as a string, program options and extra arguments as a slice of strings, as well as files and stdin. It sends a post request using these values and returns the  result.
-func SendPostRequest(address string, options, extraArgs []string, files []*os.File, stdin *os.File) string {
-	hasParam := new(bool)
-	qOptions := urlEncodeSlice(options, "options", hasParam)
-	qExtraArgs := urlEncodeSlice(extraArgs, "extra", hasParam)
+// The function SendPostRequest takes as argument a url path as a string, program options and extra arguments as a slice of strings, as well as files and stdin. It sends a post request to never at neighbors.evolbio.mpg.de using these values and returns the result.
+func SendPostRequest(address string, options, extraArgs []string, miscArgs map[string]string, files []*os.File, stdin *os.File) string {
+	address = "http://localhost:8080/" + address
+	qb := new(strings.Builder)
+	urlEncodeSlice(qb, options, "options")
+	urlEncodeSlice(qb, extraArgs, "extra")
+	for m, a := range miscArgs {
+		if qb.Len() == 0 {
+			qb.WriteRune('?')
+		} else {
+			qb.WriteRune('&')
+		}
+		qb.WriteString(url.QueryEscape(m))
+		qb.WriteRune('=')
+		qb.WriteString(url.QueryEscape(a))
+	}
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 	for i, file := range files {
@@ -167,7 +186,7 @@ func SendPostRequest(address string, options, extraArgs []string, files []*os.Fi
 		Check(err)
 	}
 	w.Close()
-	req, err := http.NewRequest(http.MethodPost, address+qOptions+qExtraArgs, &b)
+	req, err := http.NewRequest(http.MethodPost, address+qb.String(), &b)
 	Check(err)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	resp, err := http.DefaultClient.Do(req)

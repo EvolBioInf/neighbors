@@ -55,11 +55,11 @@ We import \ty{util}.
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  There's are two options, the version and remote execution.
+  There's are two options, the version and remote database.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:ant}>>=
   var optV = flag.Bool("v", false, "version")
-	var optR = flag.Bool("r", false, "remote execution (implies db)")
+	var optR = flag.String("r", "", "name of remote database (implies remote execution)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -93,17 +93,17 @@ We import \ty{util}.
   "log"
 #+end_src
 #+begin_src latex
-  The remote switch enables remote execution of \ty{ants}.
-  For this we need to call \ty{SendGetRequest}.
-  The servers adress is:
-  \ty{http://localhost:8080/api/v2/taxa/{taxon_id}/ancestors}.
+  The remote db option enables remote execution of \ty{ants}. This uses the
+  database specified via \ty{optR}. For this we need to call 
+  \ty{SendGetRequest}. We use the path: \ty{api/v2/programs/ants}.
 #+end_src
 #+begin_src go <<Act on remote switch, Pr. \ref{pr:tax}>>=
-  if *optR {
+  if *optR != "" {
     resp := util.SendGetRequest(
-      "http://localhost:8080/api/v2/programs/ants",
+      "api/v2/programs/ants",
 			os.Args[1:],
       []string{},
+      map[string]string{"db": *optR},
     )
     fmt.Print(resp)
     return

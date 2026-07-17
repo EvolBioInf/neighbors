@@ -27,7 +27,7 @@ func Run() {
 	optG := flag.Bool("g", false,
 		"only taxa with genome sequences")
 	optL := flag.Bool("l", false, "list taxa")
-	optR := flag.Bool("r", false, "remote execution (implies db)")
+	optR := flag.String("r", "", "name of remote database (implies remote execution)")
 	optLL := flag.String("L", "", util.LevelMsg())
 	optM := flag.Int("m", -1, "maximum tree level")
 	optRR := flag.Bool("R", false, "recursive genome counts in list "+
@@ -36,11 +36,12 @@ func Run() {
 	if *optV {
 		util.PrintInfo("dree")
 	}
-	if *optR {
+	if *optR != "" {
 		resp := util.SendGetRequest(
-			"http://localhost:8080/api/v2/programs/dree",
+			"api/v2/programs/dree",
 			os.Args[1:],
 			[]string{},
+			map[string]string{"db": *optR},
 		)
 		fmt.Print(resp)
 		return

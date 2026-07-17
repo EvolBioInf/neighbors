@@ -194,12 +194,12 @@ func Run() {
 		"(default pretty-printing)")
 	optLL := flag.String("L", "", util.LevelMsg())
 	optO := flag.Bool("o", false, "output only targets")
-	optR := flag.Bool("r", false, "remote execution (implies db)")
+	optR := flag.String("r", "", "name of remote database (implies remote execution)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("neighbors")
 	}
-	if *optR {
+	if *optR != "" {
 		u := flag.NArg()
 		callArgs := os.Args[1 : len(os.Args)-u]
 		var files []*os.File
@@ -224,17 +224,19 @@ func Run() {
 		var resp string
 		if sendPost {
 			resp = util.SendPostRequest(
-				"http://localhost:8080/api/v2/programs/neighbors",
+				"api/v2/programs/neighbors",
 				callArgs,
 				filenames,
+				map[string]string{"db": *optR},
 				files,
 				stdin,
 			)
 		} else {
 			resp = util.SendGetRequest(
-				"http://localhost:8080/api/v2/programs/neighbors",
+				"api/v2/programs/neighbors",
 				callArgs,
 				[]string{},
+				map[string]string{"db": *optR},
 			)
 		}
 		fmt.Print(resp)

@@ -266,14 +266,16 @@ We import \ty{math}.
 #+end_src
 #+begin_export latex
 \section{\ty{SendGetRequest}}
-  !The function \ty{SendGetRequest} takes as argument an address as a string
-  !and the program's options and extra arguments as string slices. It sends a
-  !get request using these values and returns the result.
+  !The function \ty{SendGetRequest} takes as argument a url path as a string
+  !and the program's options and extra arguments as string slices, as well as
+  !miscellaneous arguments as a map. It sends a get request using these values
+  !to \ty{never} at \ty{neighbors.evolbio.mpg.de} and returns the result.
 
   Inside \ty{SendGetRequest} function,
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func SendGetRequest(address string, options, extraArgs []string) string {
+  func SendGetRequest(address string, options, extraArgs []string, miscArgs map[string]string) string {
+    address = "http://localhost:8080" + address
     //<<Encode query, Pa. \ref{pa:util}>>
     //<<Create \ty{get} request, Pa. \ref{pa:util}>>
     //<<Execute request, Pa. \ref{pa:util}>>
@@ -282,36 +284,35 @@ We import \ty{math}.
 #+end_src
 #+begin_export latex
   There may be multiple slices that need to be encoded for a single request.
-  This means we should write a function, which handles this url encoding. We 
+  This means we should write a function, which handles this url encoding. We
   use the exploded parameters for passing slices via the url. This means we
-  need to iterate over each slice and add key value pairs. The values need to 
+  need to iterate over each slice and add key value pairs. The values need to
   be encoded. The \ty{net/url} package provides a function for this.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func urlEncodeSlice(slc []string, paramName string, hasParam *bool) string {
-    var sb strings.Builder
+  func urlEncodeSlice(qb *strings.Builder, slc []string, paramName string) {
     for _, v := range slc {
-      if !(*hasParam) {
-        sb.WriteRune('?')
-        *hasParam = true
+      if qb.Len() == 0 {
+        qb.WriteRune('?')
       } else {
-        sb.WriteRune('&')
+        qb.WriteRune('&')
       }
-      sb.WriteString(paramName)
-        sb.WriteRune('=')
-      sb.WriteString(url.QueryEscape(v))
+      qb.WriteString(paramName)
+      qb.WriteRune('=')
+      qb.WriteString(url.QueryEscape(v))
     }
-    return sb.String()
   }
 #+end_src
 #+begin_export latex
-  Now all we need to do is call \ty{urlEncodeSlice} for both the options and 
-  the extra arguments.
+  Now all we need to do is call \ty{urlEncodeSlice} for both the options and
+  the extra arguments... and encode the miscellaneous arguments further down 
+  the line.
 #+end_export
 #+begin_src go <<Encode query, Pa. \ref{pa:util}>>=
-  hasParam := new(bool)
-  qOptions := urlEncodeSlice(options, "options", hasParam)
-  qExtraArgs := urlEncodeSlice(extraArgs, "extra", hasParam)
+  qb := new(strings.Builder)
+  urlEncodeSlice(qb, options, "options")
+  urlEncodeSlice(qb, extraArgs, "extra")
+  //<<Encode misc args, Pa. \ref{pa:util}>>
 #+end_src
 #+begin_export latex
   This requires us to import \ty{net/url} and \ty{strings}.
@@ -321,14 +322,36 @@ We import \ty{math}.
   "strings"
 #+end_src
 #+begin_export latex
+  We iterate over the \ty{miscArgs} encoding both the keys and values. 
+  Everything else is pretty much the same as encoding a slice.
+#+end_export
+#+begin_src go <<Encode misc args, Pa. \ref{pa:util}>>=
+  for m, a := range miscArgs {
+    if qb.Len() == 0 {
+      qb.WriteRune('?')
+    } else {
+      qb.WriteRune('&')
+    }
+    qb.WriteString(url.QueryEscape(m))
+    qb.WriteRune('=')
+    qb.WriteString(url.QueryEscape(a))
+  }
+#+end_src
+#+begin_export latex
   The \ty{net/http} package provides functions for creating requests.
   There is a \ty{Get} function for creating a get request, but it does
   not allow adding headers. We use \ty{NewRequest} instead and define
   the http verb manually.
 #+end_export
 #+begin_src go <<Create \ty{get} request, Pa. \ref{pa:util}>>=
-  req, err := http.NewRequest(http.MethodGet, address+qOptions+qExtraArgs, nil)
+  req, err := http.NewRequest(http.MethodGet, address+qb.String(), nil)
   Check(err)
+#+end_src
+#+begin_export latex
+  We need to import \ty{net/http}.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
+  "net/http"
 #+end_src
 #+begin_export latex
   Http clients provide methods for invoking requests.
@@ -338,12 +361,6 @@ We import \ty{math}.
 #+begin_src go <<Execute request, Pa. \ref{pa:util}>>=
   resp, err := http.DefaultClient.Do(req)
   Check(err)
-#+end_src
-#+begin_export latex
-  Using the \ty{http} package requires importing it.
-#+end_export
-#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
-  "net/http"
 #+end_src
 #+begin_export latex
   Laslty we parse the response using the \ty{io} package and
@@ -362,13 +379,14 @@ We import \ty{math}.
 #+end_src
 #+begin_export latex
 \section{\ty{SendPostRequest}}
-  !The function \ty{SendPostRequest} takes as argument an address as a string,
+  !The function \ty{SendPostRequest} takes as argument a url path as a string,
   !program options and extra arguments as a slice of strings, as well as files
-  !and stdin. It sends a post request using these values and returns the 
-  !result.
+  !and stdin. It sends a post request to \ty{never} at
+  !\ty{neighbors.evolbio.mpg.de} using these values and returns the result.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func SendPostRequest(address string, options, extraArgs []string, files []*os.File, stdin *os.File) string {
+  func SendPostRequest(address string, options, extraArgs []string, miscArgs map[string]string, files []*os.File, stdin *os.File) string {
+    address = "http://localhost:8080/" + address
     //<<Encode query, Pa. \ref{pa:util}>>
     //<<Set \ty{post} form data, Pa. \ref{pa:util}>>
     //<<Create \ty{post} request, Pa. \ref{pa:util}>>
@@ -439,7 +457,7 @@ We import \ty{math}.
   as for the get request. The body
 #+end_export
 #+begin_src go <<Create \ty{post} request, Pa. \ref{pa:util}>>=
-  req, err := http.NewRequest(http.MethodPost, address+qOptions+qExtraArgs, &b)
+  req, err := http.NewRequest(http.MethodPost, address+qb.String(), &b)
   Check(err)
 #+end_src
 #+begin_export latex

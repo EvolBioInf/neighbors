@@ -78,7 +78,7 @@ We import \ty{util}.
     of targets, levels can be combined in a comma-delimited string. If
     no level is given, we return all accessions.
   \item \ty{-o}: output only targets
-  \item \ty{-r}: execute program on a remote server using the servers database
+  \item \ty{-r}: execute program with remote database program on a remote server
   \end{itemize}
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:neig}>>=
@@ -90,7 +90,7 @@ We import \ty{util}.
 	  "(default pretty-printing)")
   optLL := flag.String("L", "", util.LevelMsg())
   optO := flag.Bool("o", false, "output only targets")
-	optR := flag.Bool("r", false, "remote execution (implies db)")
+	optR := flag.String("r", "", "name of remote database (implies remote execution)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -128,7 +128,7 @@ We import \ty{util}.
   \ty{neighbors} instead of executing the program locally.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:neig}>>=
-  if *optR {
+  if *optR != "" {
     //<<Get program options, Pr. \ref{pr:neig}>>
     //<<Check for extra arguments, Pr. \ref{pr:neig}>>
     //<<Send request, Pr. \ref{pr:neig}>>
@@ -191,17 +191,19 @@ We import \ty{util}.
   var resp string
   if sendPost {
 	  resp = util.SendPostRequest(
-	  	"http://localhost:8080/api/v2/programs/neighbors",
+	  	"api/v2/programs/neighbors",
 	  	callArgs,
       filenames,
+      map[string]string{"db": *optR},
       files,
       stdin,
 	  )
   } else {
 	  resp = util.SendGetRequest(
-	  	"http://localhost:8080/api/v2/programs/neighbors",
+	  	"api/v2/programs/neighbors",
 	  	callArgs,
       []string{},
+      map[string]string{"db": *optR},
 	  )
   }
 #+end_src

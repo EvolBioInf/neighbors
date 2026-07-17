@@ -163,7 +163,7 @@ We import \ty{util}.
   \item \ty{-n}: print \emph{names} instead of taxon-IDs
   \item \ty{-g}: print only taxa with \emph{genomes}
   \item \ty{-l}: \emph{list} taxa
-  \item \ty{-r}: execute dree on a remote server
+  \item \ty{-r}: use remote database and execute on remote server 
   \item \ty{-L}: only consider genomes with a particular assembly
     \emph{level}
   \item \ty{-m}: maximum tree level
@@ -177,7 +177,7 @@ We import \ty{util}.
   optG := flag.Bool("g", false,
   	  "only taxa with genome sequences")
   optL := flag.Bool("l", false, "list taxa")
-  optR := flag.Bool("r", false, "remote execution (implies db)")
+  optR := flag.String("r", "", "name of remote database (implies remote execution)")
   optLL := flag.String("L", "", util.LevelMsg())
   optM := flag.Int("m", -1, "maximum tree level")
   optRR := flag.Bool("R", false, "recursive genome counts in list " +
@@ -222,15 +222,16 @@ We import \ty{util}.
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
-  If the remote switch is active, we pass all the call arguments
-  to \ty{SendGetRequest} and print its response.
+  If a remote database is given, we pass all the call arguments to 
+  \ty{SendGetRequest} and print its response.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:dr}>>=
-  if *optR {
+  if *optR != "" {
 		resp := util.SendGetRequest(
-			"http://localhost:8080/api/v2/programs/dree",
+			"api/v2/programs/dree",
 			os.Args[1:],
       []string{},
+      map[string]string{"db": *optR},
 		)
 		fmt.Print(resp)
 		return

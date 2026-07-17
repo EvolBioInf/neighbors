@@ -98,7 +98,7 @@ We import \ty{util}.
   var optL = flag.Int("l", -1, "limit output to <= l taxids")
   var optO = flag.Int("o", 0, "offset into taxid list")
   var optT = flag.Bool("t", false, "taxid instead of name")
-  var optR = flag.Bool("r", false, "remote execution (implies db)")
+  var optR = flag.String("r", "", "name of remote database (implies remote execution)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -108,13 +108,11 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   We parse the options and respond to the version option (\ty{-v})
-  first, as this would stop the program. If the remote switch (\ty{-r})
-  is active, we need to act on it, before inspecting the remaining
-  arguments.
-  Then we get the remaining arguments and count them to make sure there
-  are two of them, the taxon label and the database, which we both
-  store. From the taxon label we extract either the taxon name of the
-  taxon-ID.
+  first, as this would stop the program. If (\ty{-r}) contains a remote 
+  database, we need to act on it, before inspecting the remaining
+  arguments. Then we get the remaining arguments and count them to make sure
+  there are two of them, the taxon label and the database, which we both store.
+  From the taxon label we extract either the taxon name of the taxon-ID.
 #+end_src
 #+begin_src go <<Parse options, Pr. \ref{pr:tax}>>=
   flag.Parse()
@@ -136,18 +134,17 @@ which contains the version.
   }
 #+end_src
 #+begin_src latex
-  The remote switch is an option to execute \ty{taxi}
-  on a server instead of locally. For this we need to
-  call \ty{SendGetRequest} and provide the call arguments.
-  The request url is
-  \ty{http://localhost:8080/api/v2/programs/taxi}.
+  The remote switch is an option to execute \ty{taxi} on a server instead of
+  locally. For this we need to call \ty{SendGetRequest} and provide the call
+  arguments. The request url path is \ty{api/v2/programs/taxi}.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:tax}>>=
-  if *optR {
+  if *optR != "" {
     resp := util.SendGetRequest(
-      "http://localhost:8080/api/v2/programs/taxi",
+      "api/v2/programs/taxi",
       os.Args[1:],
       []string{},
+      map[string]string{"db": *optR},
     )
     fmt.Print(resp)
     return
