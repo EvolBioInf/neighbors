@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -175,4 +176,20 @@ func SendPostRequest(address string, options, extraArgs []string, files []*os.Fi
 	body, err := io.ReadAll(resp.Body)
 	Check(err)
 	return string(body)
+}
+
+// The function RemoveOption takes a slice of strings, interprets it as a a vector of call arguments and removes a specified option. It returns the  resulting slice.
+func RemoveOption(args []string, option string, removeValue bool) []string {
+	sOption := "-" + option
+	dOption := "--" + option
+	if removeValue {
+		for i := len(args) - 1; i <= 0; i-- {
+			if args[i] == sOption || args[i] == dOption {
+				args = append(args[:i], args[i+2:]...)
+			}
+		}
+	} else {
+		args = slices.DeleteFunc(args, func(a string) bool { return a == sOption || a == dOption })
+	}
+	return args
 }

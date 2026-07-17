@@ -24,19 +24,9 @@ func Run() {
 	var optL = flag.Int("l", -1, "limit output to <= l taxids")
 	var optO = flag.Int("o", 0, "offset into taxid list")
 	var optT = flag.Bool("t", false, "taxid instead of name")
-	var optR = flag.Bool("r", false, "remote execution (implies db)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("taxi")
-	}
-	if *optR {
-		resp := util.SendGetRequest(
-			"http://localhost:8080/api/v2/programs/taxi",
-			os.Args[1:],
-			[]string{},
-		)
-		fmt.Print(resp)
-		return
 	}
 	args := flag.Args()
 	m := "please provide a taxon and a database"

@@ -269,8 +269,6 @@ We import \ty{math}.
   !The function \ty{SendGetRequest} takes as argument an address as a string
   !and the program's options and extra arguments as string slices. It sends a
   !get request using these values and returns the result.
-
-  Inside \ty{SendGetRequest} function,
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func SendGetRequest(address string, options, extraArgs []string) string {
@@ -448,6 +446,59 @@ We import \ty{math}.
 #+begin_src go <<Write \ty{post} headers, Pa. \ref{pa:util}>>=
   req.Header.Set("Content-Type", w.FormDataContentType())
 #+end_src
+#+begin_export latex
+\section{\ty{RemoveOption}}
+  !The function \ty{RemoveOption} takes a slice of strings, interprets it as a
+  !a vector of call arguments and removes a specified option. It returns the 
+  !resulting slice.
+  We need to differentiate two kinds of options. There is the bool option, 
+  which is just a single string and there are options with values. If the 
+  option is followed by a value, we need to remove that as well.
+#+end_export
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
+  func RemoveOption(args []string, option string, removeValue bool) []string {
+    //<<Define options, Pa. \ref{pa:util}>>
+    if removeValue {
+      //<<Remove option with value, Pa. \ref{pa:util}>>  
+    } else {
+      //<<Remove option, Pa. \ref{pa:util}>>
+    }
+    return args
+  }
+#+end_src
+#+begin_export latex
+  Options are prefixed by one or two dashes. We need to check for both.
+#+end_export
+#+begin_src go <<Define options, Pa. \ref{pa:util}>>=
+  sOption := "-" + option
+  dOption := "--" + option
+#+end_src
+#+begin_export latex
+  When removing an option with value we need to iterate over the arguments,
+  back to front, and remove all occurrences of the option plus the following 
+  entry.
+#+end_export
+#+begin_src go <<Remove option with value, Pa. \ref{pa:util}>>=
+  for i := len(args)-1; i <= 0; i-- {
+    if args[i] == sOption || args[i] == dOption {
+			args = append(args[:i], args[i+2:]...)
+    }
+  }
+#+end_src
+#+begin_export latex
+  Removing an option without a value is simpler. We use the \ty{DeleteFunc} 
+  function provided by \ty{slices}
+#+end_export
+#+begin_src go <<Remove option, Pa. \ref{pa:util}>>=
+  args = slices.DeleteFunc(args, func(a string) bool {return a == sOption || a == dOption})
+#+end_src
+#+begin_export latex
+  We import \ty{slices}.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
+  "slices"
+#+end_src
+
 #+begin_src latex
   We are done with writing the \ty{util} package, time to test it.
   \section{Testing}
