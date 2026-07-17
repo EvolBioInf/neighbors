@@ -68,14 +68,14 @@ the run function.  \bpr{ranks}{pr:ran}
   package ranks
 
   import (
-	  //<<Imports, Pr. \ref{pr:ran}>>
+    //<<Imports, Pr. \ref{pr:ran}>>
   )
   //<<Variables, Pr. \ref{pr:ran}>>
   //<<Types, Pr. \ref{pr:ran}>>
   //<<Functions, Pr. \ref{pr:ran}>>
   func Run() {
-	  genomes := []string{}
-	  //<<Run function, Pr. \ref{pr:ran}>>
+    genomes := []string{}
+    //<<Run function, Pr. \ref{pr:ran}>>
   }
 #+end_src
 #+begin_export latex
@@ -106,7 +106,7 @@ purpose of \ty{ranks}, and an example command.
 #+begin_src go <<Set usage, Pr. \ref{pr:ran}>>=
   u := "ranks [option]... <taxon-ID> <db>"
   p := "Calculate distribution of genomes " +
-	  "among taxonomic ranks."
+    "among taxonomic ranks."
   e := "ranks -g myGenomeList.txt 562 neidb"
   clio.Usage(u, p, e)
 #+end_src
@@ -119,8 +119,8 @@ We import \ty{clio}.
 #+begin_export latex
 Apart from the version (\ty{-v}), we declare four options, list genomes 
 (\ty{-l}), pick assembly level (\ty{-L}), print tabular output (\ty{-t}), read
-genome accessions from file (\ty{-g}) and use a remote database (\ty{-r}). The
-list option implies textual output.
+genome accessions from file (\ty{-g}), execute remotely (\ty{-r}) and specify
+a remote database (\ty{-D}). The list option implies textual output.
 #+end_export
 #+begin_src go <<Declare options, Pr. \ref{pr:ran}>>=
   optV := flag.Bool("v", false, "version")
@@ -128,8 +128,9 @@ list option implies textual output.
   optLL := flag.String("L", "", util.LevelMsg())
   optT := flag.Bool("t", false, "tabular output (default tree)")
   optG := flag.String("g", "", "read genome accessions " +
-	  "from file")
-	optR := flag.String("r", "", "name of remote database (implies remote execution)")
+    "from file")
+  optR := flag.Bool("r", false, "remote execution (implies db)")
+  optDD := flag.String("D", "", "name of remote database (implies remote execution)")
 #+end_src
 #+begin_export latex
 We import \ty{flag}.
@@ -146,7 +147,7 @@ asked for the version, as printing the version terminates the program.
 #+begin_src go <<Parse options, Pr. \ref{pr:ran}>>=
   flag.Parse()
   if *optV {
-	  util.PrintInfo("ranks")
+    util.PrintInfo("ranks")
   }
   //<<Act on remote switch, Pr. \ref{pr:ran}>>
   //<<Get root and \ty{neidb}, Pr. \ref{pr:ran}>>
@@ -159,30 +160,46 @@ asked for the version, as printing the version terminates the program.
   address, and pass all the call arguments of this program. The \ty{post}
   request is similar. It takes the same arguments as \ty{get} plus the file
   specified with \ty{-g}. \ty{ranks} does not use \ty{stdin}, so we don't need
-  to provide it.
+  to provide it. We remove the options \ty{-r} and \ty{-D} in sanitization.
 #+end_export
 #+begin_src go <<Act on remote switch, Pr. \ref{pr:ran}>>=
-	if *optR != "" {
+  if *optR || *optDD != "" {
     var resp string
+    options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
+    //<<Set miscellaneous arguments, Pr. \ref{pr:ran}>>
     if *optG != "" {
-		  resp = util.SendPostRequest(
-		  	"api/v2/programs/ranks",
-        util.RemoveOption(os.Args[1:], "r", true),
-		  	[]string{},
-        map[string]string{"db": *optR},
-		  	[]*os.File{util.Open(*optG)},
+      resp = util.SendPostRequest(
+        "api/v2/programs/ranks",
+        util.SanitizeArguments(
+          os.Args[1:],
+          options),
+        []string{},
+        misc,
+        []*os.File{util.Open(*optG)},
         nil,
-		  )
+      )
     } else {
-		  resp = util.SendGetRequest(
-		  	"api/v2/programs/ranks",
-		  	util.RemoveOption(os.Args[1:], "r", true),
-		  	[]string{},
-        map[string]string{"db": *optR},
-		  )
+      resp = util.SendGetRequest(
+        "api/v2/programs/ranks",
+        util.SanitizeArguments(
+          os.Args[1:],
+          options),
+        []string{},
+        misc,
+      )
     }
-		fmt.Print(resp)
-		return
+    fmt.Print(resp)
+    return
+  }
+#+end_src
+#+begin_export latex
+  Miscellaneous are anything that does not belong to a normal/ local program
+  call. In this case it's the specification of a database.
+#+end_export
+#+begin_src go <<Set miscellaneous arguments, Pr. \ref{pr:ran}>>=
+  misc := map[string]string{}
+  if *optDD != "" {
+    misc["db"] = *optDD
   }
 #+end_src
 #+begin_export latex
@@ -193,9 +210,9 @@ Neighbors database, \ty{neidb}.
 #+begin_src go <<Get root and \ty{neidb}, Pr. \ref{pr:ran}>>=
   args := flag.Args()
   if len(args) < 2 {
-	  m := "please enter the root taxon-ID " +
-		  "and the Neighbors database"
-	  log.Fatal(m)
+    m := "please enter the root taxon-ID " +
+      "and the Neighbors database"
+    log.Fatal(m)
   }
   root, err := strconv.Atoi(args[0])
   util.Check(err)
@@ -228,10 +245,10 @@ levels.
   levels := make(map[string]bool)
   knowns := tdb.AssemblyLevels()
   if *optLL != "" {
-	  requests := strings.Split(*optLL, ",")
-	  //<<Compare requested and known levels, Pr. \ref{pr:ran}>>
+    requests := strings.Split(*optLL, ",")
+    //<<Compare requested and known levels, Pr. \ref{pr:ran}>>
   } else {
-	  //<<Store known levels, Pr. \ref{pr:ran}>>
+    //<<Store known levels, Pr. \ref{pr:ran}>>
   }
 #+end_src
 #+begin_export latex
@@ -241,11 +258,11 @@ unknown level. In that case we exit with a friendly message.
 #+begin_src go <<Compare requested and known levels, Pr. \ref{pr:ran}>>=
   slices.Sort(knowns)
   for _, request := range requests {
-	  _, found := slices.BinarySearch(knowns, request)
-	  if !found {
-		  log.Fatalf("unknown level %q", request)
-	  }
-	  levels[request] = true
+    _, found := slices.BinarySearch(knowns, request)
+    if !found {
+      log.Fatalf("unknown level %q", request)
+    }
+    levels[request] = true
   }
 #+end_src
 #+begin_export latex
@@ -259,7 +276,7 @@ We store all known levels.
 #+end_export
 #+begin_src go <<Store known levels, Pr. \ref{pr:ran}>>=
   for _, known := range knowns {
-	  levels[known] = true
+    levels[known] = true
   }
 #+end_src
 #+begin_export latex
@@ -269,9 +286,9 @@ we've got the genomes, we filter them by assembly level.
 #+end_export
 #+begin_src go <<Respond to \ty{-g}, Pr. \ref{pr:ran}>>=
   if *optG != "" {
-	  //<<Read genomes from file, Pr. \ref{pr:ran}>>
+    //<<Read genomes from file, Pr. \ref{pr:ran}>>
   } else {
-	  //<<Read genomes from database, Pr. \ref{pr:ran}>>
+    //<<Read genomes from database, Pr. \ref{pr:ran}>>
   }
   genomes, err = neidb.FilterAccessions(genomes, levels)
   util.Check(err)
@@ -285,7 +302,7 @@ it contains, and close it again.
   util.Check(err)
   sc := bufio.NewScanner(f)
   for sc.Scan() {
-	  genomes = append(genomes, sc.Text())
+    genomes = append(genomes, sc.Text())
   }
   f.Close()
 #+end_src
@@ -304,11 +321,11 @@ subtree and store the genomes attached to each taxon.
   taxa, err := neidb.Subtree(root)
   util.Check(err)
   for _, taxon := range taxa {
-	  accessions, err := neidb.Accessions(taxon)
-	  util.Check(err)
-	  for _, accession := range accessions {
-		  genomes = append(genomes, accession)
-	  }
+    accessions, err := neidb.Accessions(taxon)
+    util.Check(err)
+    for _, accession := range accessions {
+      genomes = append(genomes, accession)
+    }
   }
 #+end_src
 #+begin_export latex
@@ -330,11 +347,11 @@ ranks to a path and store the corresponding genome.
   tree := make(map[string][]string)
   ranks := []string{}
   for _, genome := range genomes {
-	  path := ""
-	  ranks = ranks[:0]
-	  //<<Determine ranks, Pr. \ref{pr:ran}>>
-	  //<<Convert ranks to path, Pr. \ref{pr:ran}>>
-	  tree[path] = append(tree[path], genome)
+    path := ""
+    ranks = ranks[:0]
+    //<<Determine ranks, Pr. \ref{pr:ran}>>
+    //<<Convert ranks to path, Pr. \ref{pr:ran}>>
+    tree[path] = append(tree[path], genome)
   }
 #+end_src
 #+begin_export latex
@@ -344,13 +361,13 @@ the ranks we find on the way.
 #+begin_src go <<Determine ranks, Pr. \ref{pr:ran}>>=
   currTaxid, err := neidb.AccessionTaxid(genome)
   if err != nil {
-	  util.Check(err)
+    util.Check(err)
   }
   //<<Store rank, Pr. \ref{pr:ran}>>
   for currTaxid != root {
-	  currTaxid, err = neidb.Parent(currTaxid)
-	  util.Check(err)
-	  //<<Store rank, Pr. \ref{pr:ran}>>
+    currTaxid, err = neidb.Parent(currTaxid)
+    util.Check(err)
+    //<<Store rank, Pr. \ref{pr:ran}>>
   }
 #+end_src
 #+begin_export latex
@@ -387,10 +404,10 @@ tree we need a sorted list of paths, so we construct that first.
 #+begin_src go <<Print ranks tree, Pr. \ref{pr:ran}>>=
   //<<Sort paths, Pr. \ref{pr:ran}>>
   if *optT || *optL {
-	  //<<Print tabular tree, Pr. \ref{pr:ran}>>
+    //<<Print tabular tree, Pr. \ref{pr:ran}>>
   } else {
-	  //<<Construct dot tree, Pr. \ref{pr:ran}>>
-	  //<<Print dot tree, Pr. \ref{pr:ran}>>
+    //<<Construct dot tree, Pr. \ref{pr:ran}>>
+    //<<Print dot tree, Pr. \ref{pr:ran}>>
   }
 #+end_src
 #+begin_export latex
@@ -399,7 +416,7 @@ To sort the paths, we store them in a slice.
 #+begin_src go <<Sort paths, Pr. \ref{pr:ran}>>=
   paths := []string{}
   for path, _ := range tree {
-	  paths = append(paths, path)
+    paths = append(paths, path)
   }
   slices.Sort(paths)
 #+end_src
@@ -425,11 +442,11 @@ The table header consists of the column labels ``Path'', ``Count'',
 #+end_export
 #+begin_src go <<Print table header, Pr. \ref{pr:ran}>>=
   fmt.Fprintf(w, "#%s\t%s\t%s",
-	  "Path",
-	  "Count",
-	  "%")
+    "Path",
+    "Count",
+    "%")
   if *optL {
-	  fmt.Fprintf(w, "\tGenomes")
+    fmt.Fprintf(w, "\tGenomes")
   }
   fmt.Fprintf(w, "\n")
 #+end_src
@@ -447,11 +464,11 @@ for the genomes, we print them, too.
 #+begin_src go <<Print table body, Pr. \ref{pr:ran}>>=
   n := float64(len(genomes))
   for _, path := range paths {
-	  //<<Print path, count and percentage, Pr. \ref{pr:ran}>>
-	  if *optL {
-		  //<<Print genomes, Pr. \ref{pr:ran}>>
-	  }
-	  fmt.Fprintf(w, "\n")
+    //<<Print path, count and percentage, Pr. \ref{pr:ran}>>
+    if *optL {
+      //<<Print genomes, Pr. \ref{pr:ran}>>
+    }
+    fmt.Fprintf(w, "\n")
   }
 #+end_src
 #+begin_export latex
@@ -483,12 +500,12 @@ children.
 #+end_export
 #+begin_src go <<Types, Pr. \ref{pr:ran}>>=
   type Node struct {
-	  Id int
-	  N int
-	  Percent float64
-	  Label string
-	  Parent *Node
-	  Children map[string]*Node
+    Id int
+    N int
+    Percent float64
+    Label string
+    Parent *Node
+    Children map[string]*Node
   }
 #+end_src
 #+begin_export latex
@@ -501,14 +518,14 @@ percentage.
 #+begin_src go <<Construct dot tree, Pr. \ref{pr:ran}>>=
   start := newNode("start", 0, 1, nil)
   for _, path := range paths {
-	  v := start
-	  n := len(tree[path])
-	  pathElements := strings.Split(path, ":")
-	  for _, pathElement := range pathElements {
-		  //<<Move to path element, Pr. \ref{pr:ran}>>
-	  }
-	  v.N = n
-	  v.Percent = float64(n) / float64(len(genomes)) * 100.0
+    v := start
+    n := len(tree[path])
+    pathElements := strings.Split(path, ":")
+    for _, pathElement := range pathElements {
+      //<<Move to path element, Pr. \ref{pr:ran}>>
+    }
+    v.N = n
+    v.Percent = float64(n) / float64(len(genomes)) * 100.0
   }
 #+end_src
 #+begin_export latex
@@ -519,16 +536,16 @@ from the global variable \ty{Id}, which we define in a moment.
 #+end_export
 #+begin_src go <<Functions, Pr. \ref{pr:ran}>>=
   func newNode(label string, count, total int,
-	  parent *Node) *Node {
-	  v := new(Node)
-	  v.Label = label
-	  v.N = count
-	  v.Percent = float64(count) / float64(total) * 100.0
-	  v.Parent = parent
-	  v.Children  = make(map[string]*Node)
-	  v.Id = Id
-	  Id++
-	  return v
+    parent *Node) *Node {
+    v := new(Node)
+    v.Label = label
+    v.N = count
+    v.Percent = float64(count) / float64(total) * 100.0
+    v.Parent = parent
+    v.Children  = make(map[string]*Node)
+    v.Id = Id
+    Id++
+    return v
   }
 #+end_src
 #+begin_export latex
@@ -546,8 +563,8 @@ or becomes a new child of $v$. In both cases we move $v$ to the child.
   parent := v
   child := v.Children[pathElement]
   if child == nil {
-	  child = newNode(pathElement, 0, 1, parent)
-	  v.Children[pathElement] = child
+    child = newNode(pathElement, 0, 1, parent)
+    v.Children[pathElement] = child
   }
   v = child
 #+end_src
@@ -570,11 +587,11 @@ by setting its parent to nil.
 #+begin_src go <<Extract root, Pr. \ref{pr:ran}>>=
   children := []*Node{}
   for _, k := range start.Children {
-	  children = append(children, k)
+    children = append(children, k)
   }
   if len(children) != 1 {
-	  log.Fatalf("start has %d children",
-		  len(children))
+    log.Fatalf("start has %d children",
+      len(children))
   }
   root := children[0]
   root.Parent = nil
@@ -602,8 +619,8 @@ Inside \ty{printNode} we print the current node and its children.
 #+end_export
 #+begin_src go <<Functions, Pr. \ref{pr:ran}>>=
   func printNodes(v *Node) {
-	  //<<Print node, Pr. \ref{pr:ran}>>
-	  //<<Print node children, Pr. \ref{pr:ran}>>
+    //<<Print node, Pr. \ref{pr:ran}>>
+    //<<Print node children, Pr. \ref{pr:ran}>>
   }
 #+end_src
 #+begin_export latex
@@ -611,11 +628,11 @@ We print the current node like the nodes in Figure~\ref{fig:ranks}.
 #+end_export
 #+begin_src go <<Print node, Pr. \ref{pr:ran}>>=
   fmt.Printf("\t%d [label=\"%s\\n%d (",
-	  v.Id, v.Label, v.N)
+    v.Id, v.Label, v.N)
   if v.Percent >= 0.1 {
-	  fmt.Printf("%.1f%%", v.Percent)
+    fmt.Printf("%.1f%%", v.Percent)
   } else {
-	  fmt.Printf("< 0.1%%")
+    fmt.Printf("< 0.1%%")
   }
   fmt.Printf(")\"]\n")
 #+end_src
@@ -626,11 +643,11 @@ To make the output of \ty{ranks} easily reproducible, we apply
 #+begin_src go <<Print node children, Pr. \ref{pr:ran}>>=
   keys := []string{}
   for key, _ := range v.Children {
-	  keys = append(keys, key)
+    keys = append(keys, key)
   }
   slices.Sort(keys)
   for _, key := range keys {
-	  printNodes(v.Children[key])
+    printNodes(v.Children[key])
   }
 #+end_src
 #+begin_export latex
@@ -639,8 +656,8 @@ print the edges of the children.
 #+end_export
 #+begin_src go <<Functions, Pr. \ref{pr:ran}>>=
   func printEdges(v *Node) {
-	  //<<Print edge, Pr. \ref{pr:ran}>>
-	  //<<Print edge children, Pr. \ref{pr:ran}>>
+    //<<Print edge, Pr. \ref{pr:ran}>>
+    //<<Print edge children, Pr. \ref{pr:ran}>>
   }
 #+end_src
 #+begin_export latex
@@ -649,7 +666,7 @@ $v$.
 #+end_export
 #+begin_src go <<Print edge, Pr. \ref{pr:ran}>>=
   if v.Parent != nil {
-	  fmt.Printf("\t%d -> %d\n", v.Parent.Id, v.Id)
+    fmt.Printf("\t%d -> %d\n", v.Parent.Id, v.Id)
   }
 #+end_src
 #+begin_export latex
@@ -659,11 +676,11 @@ the children in alphabetical order.
 #+begin_src go <<Print edge children, Pr. \ref{pr:ran}>>=
   keys := []string{}
   for key, _ := range v.Children {
-	  keys = append(keys, key)
+    keys = append(keys, key)
   }
   slices.Sort(keys)
   for _, key := range keys {
-	  printEdges(v.Children[key])
+    printEdges(v.Children[key])
   }
 #+end_src
 #+begin_export latex
@@ -682,12 +699,12 @@ testing logic.
   package ranks
 
   import (
-	  "testing"
-	  //<<Testing imports, Pr. \ref{pr:ran}>>
+    "testing"
+    //<<Testing imports, Pr. \ref{pr:ran}>>
   )
 
   func TestRanks(t *testing.T) {
-	  //<<Testing, Pr. \ref{pr:ran}>>
+    //<<Testing, Pr. \ref{pr:ran}>>
   }
 #+end_src
 #+begin_export latex
@@ -697,7 +714,7 @@ We construct a set of tests and run them.
   tests := make([]*exec.Cmd, 0)
   //<<Construct tests, Pr. \ref{pr:ran}>>
   for i, test := range tests {
-	  //<<Run test, Pr. \ref{pr:ran}>>
+    //<<Run test, Pr. \ref{pr:ran}>>
   }
 #+end_src
 #+begin_export latex
@@ -775,15 +792,15 @@ want, which is contained in files \ty{r1.txt}, \ty{r2.txt}, and so on.
 #+begin_src go <<Run test, Pr. \ref{pr:ran}>>=
   get, err := test.Output()
   if err != nil {
-	  t.Error(err)
+    t.Error(err)
   }
   f := "r" + strconv.Itoa(i+1) + ".txt"
   want, err := os.ReadFile(f)
   if err != nil {
-	  t.Error(err)
+    t.Error(err)
   }
   if !bytes.Equal(get, want) {
-	  t.Errorf("%s - get:\n%s\nwant:\n%s\n", f, get, want)
+    t.Errorf("%s - get:\n%s\nwant:\n%s\n", f, get, want)
   }
 #+end_src
 #+begin_export latex

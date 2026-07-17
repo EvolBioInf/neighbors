@@ -465,18 +465,46 @@ We import \ty{math}.
   req.Header.Set("Content-Type", w.FormDataContentType())
 #+end_src
 #+begin_export latex
-\section{\ty{RemoveOption}}
-  !The function \ty{RemoveOption} takes a slice of strings, interprets it as a
-  !a vector of call arguments and removes a specified option. It returns the 
-  !resulting slice.
+\section{\ty{SanitizeArguments}}
+  !The function \ty{SanitizeArguments} takes a slice of strings, interprets it
+  !as a vector of call arguments and sanitizes it for remote usage. It removes 
+  !specified options and possible references to a local database. It returns
+  !the resulting slice.
   We need to differentiate two kinds of options. There is the bool option, 
   which is just a single string and there are options with values. If the 
-  option is followed by a value, we need to remove that as well.
+  option is followed by a value, we need to remove that as well. Let's define
+  a type for this.
+#+end_export
+#+begin_src go <<Types, Pa. \ref{pa:util}>>=
+  type Option struct {
+    Name      string
+    WithValue bool
+  }
+#+end_src
+#+begin_export latex
+  In this function we remove all options first, then look for a local database
+  reference. We'll need to write a function for the options. Let's call this
+  \ty{removeOption}.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func RemoveOption(args []string, option string, removeValue bool) []string {
+  func SanitizeArguments(args []string, options []Option) []string {
+    c := slices.Clone(args)
+    for _, o := range options {
+      c = removeOption(c, o)
+    }
+    //<<Remove database reference Pa. \ref{pa:util}>>
+    return c
+  }
+#+end_src
+
+#+begin_export latex
+  \ty{removeOption} scours through the arguments and removes any occurrences of
+  the option
+#+end_export
+#+begin_src go <<Functions, Pa. \ref{pa:util}>>=
+  func removeOption(args []string, option Option) []string {
     //<<Define options, Pa. \ref{pa:util}>>
-    if removeValue {
+    if option.WithValue {
       //<<Remove option with value, Pa. \ref{pa:util}>>  
     } else {
       //<<Remove option, Pa. \ref{pa:util}>>
@@ -488,8 +516,8 @@ We import \ty{math}.
   Options are prefixed by one or two dashes. We need to check for both.
 #+end_export
 #+begin_src go <<Define options, Pa. \ref{pa:util}>>=
-  sOption := "-" + option
-  dOption := "--" + option
+  sOption := "-" + option.Name
+  dOption := "--" + option.Name
 #+end_src
 #+begin_export latex
   When removing an option with value we need to iterate over the arguments,
@@ -504,7 +532,7 @@ We import \ty{math}.
   }
 #+end_src
 #+begin_export latex
-  Removing an option without a value is simpler. We use the \ty{DeleteFunc} 
+  Removing an option without a value is mpler. We use the \ty{DeleteFunc} 
   function provided by \ty{slices}
 #+end_export
 #+begin_src go <<Remove option, Pa. \ref{pa:util}>>=

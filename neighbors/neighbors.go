@@ -194,14 +194,16 @@ func Run() {
 		"(default pretty-printing)")
 	optLL := flag.String("L", "", util.LevelMsg())
 	optO := flag.Bool("o", false, "output only targets")
-	optR := flag.String("r", "", "name of remote database (implies remote execution)")
+	optR := flag.Bool("r", false, "remote execution (implies db)")
+	optDD := flag.String("D", "", "name of remote database (implies remote execution)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("neighbors")
 	}
-	if *optR != "" {
+	if *optR || *optDD != "" {
 		u := flag.NArg()
-		callArgs := util.RemoveOption(os.Args[1:len(os.Args)-u], "r", true)
+		options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
+		callArgs := util.SanitizeArguments(os.Args[1:len(os.Args)-u], options)
 		var files []*os.File
 		var stdin *os.File
 		filenames := flag.Args()
@@ -221,13 +223,17 @@ func Run() {
 				files = append(files, file)
 			}
 		}
+		misc := map[string]string{}
+		if *optDD != "" {
+			misc["db"] = *optDD
+		}
 		var resp string
 		if sendPost {
 			resp = util.SendPostRequest(
 				"api/v2/programs/neighbors",
 				callArgs,
 				filenames,
-				map[string]string{"db": *optR},
+				misc,
 				files,
 				stdin,
 			)
@@ -236,7 +242,7 @@ func Run() {
 				"api/v2/programs/neighbors",
 				callArgs,
 				[]string{},
-				map[string]string{"db": *optR},
+				misc,
 			)
 		}
 		fmt.Print(resp)

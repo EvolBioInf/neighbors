@@ -145,8 +145,9 @@ We import \ty{clio}.
   neighbor regular expression, \ty{-n}, is also initialized to nothing,
   which we interpret as anything that is neither a target nor
   unknown. For hierarchical matching we supply a Neighbors database,
-  \ty{H}. Lastly we declare an option that allows using a remote database,
-  \ty{-r}.
+  \ty{H}. We declare an option that allows remote execution, \ty{-r}. Lastly
+  we define \ty{D}, which allows the user to specify a remote database, 
+  implying remote execution.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:fit}>>=
   optV := flag.Bool("v", false, "version")
@@ -159,7 +160,8 @@ We import \ty{clio}.
   optHH := flag.String("H", "", "hierarchical matching " +
 	  "for targets and neighbors " +
 	  "using a neighbors database")
-	optR := flag.String("r", "", "name of remote database (implies hierarchical matching and remote execution)")
+	optR := flag.Bool("r", false, "remote execution (implies hierarchical matching)")
+  optDD := flag.String("D", "", "name of remote database (implies remote execution)")
 #+end_src
 #+begin_src latex
 We import \ty{flag}.
@@ -198,21 +200,24 @@ We parse the options.
   We need to make server requests, if switch for remote execution is toggled.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:fit}>>=
-  if *optR != "" {
+  if *optR || *optDD != "" {
     //<<Determine query arguments, Pr. \ref{pr:fit}>>
     //<<Get files, Pr. \ref{pr:fit}>>
+    //<<Set misc arguments, Pr. \ref{pr:neig}>>
     //<<Send request, Pr. \ref{pr:fit}>>
     //<<Print response, Pr. \ref{pr:fit}>>
   }
 #+end_src
 #+begin_src latex
-  For query arguments we supply all the parameters declared in flags.
-  We get them by taking the vector of call arguments without the
-  values contained in \ty{flag.Args}, which are unparsed values.
+  For query arguments we supply all the parameters declared in flags. We get
+  them by taking the vector of call arguments without the values contained in
+  \ty{flag.Args}, which are unparsed values. We need to sanitize these
+  arguments, removing \ty{-r} and \ty{-D}.
 #+end_src
 #+begin_src go <<Determine query arguments, Pr. \ref{pr:fit}>>=
   u := 	flag.NArg()
-  callArgs := util.RemoveOption(os.Args[1:len(os.Args) - u], "r", true)
+  options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
+  callArgs := util.SanitizeArguments(os.Args[1:len(os.Args) - u], options)
 #+end_src
 #+begin_src latex
   All the call arguments, that remain in \ty{flag.Args}
@@ -244,6 +249,16 @@ We parse the options.
 		stdin = os.Stdin
   }
 #+end_src
+#+begin_export latex
+  Miscellaneous are anything that does not belong to a normal/ local program
+  call. In this case it's the specification of a database.
+#+end_export
+#+begin_src go <<Set misc arguments, Pr. \ref{pr:neig}>>=
+  misc := map[string]string{}
+  if *optDD != "" {
+    misc["db"] = *optDD
+  }
+#+end_src
 #+begin_src latex
   We send the request using \ty{util.SengPostRequest}. The
   function needs an url path which is
@@ -257,7 +272,7 @@ We parse the options.
 		"api/v2/programs/fintac",
 		callArgs,
     filenames,
-    map[string]string{"db": *optR},
+    misc,
     files,
     stdin,
 	)

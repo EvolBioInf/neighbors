@@ -78,7 +78,8 @@ We import \ty{util}.
     of targets, levels can be combined in a comma-delimited string. If
     no level is given, we return all accessions.
   \item \ty{-o}: output only targets
-  \item \ty{-r}: execute program with remote database program on a remote server
+  \item \ty{-r}: execute program on a remote server
+  \item \ty{-D}: execute program with a specific remote database
   \end{itemize}
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:neig}>>=
@@ -90,7 +91,8 @@ We import \ty{util}.
 	  "(default pretty-printing)")
   optLL := flag.String("L", "", util.LevelMsg())
   optO := flag.Bool("o", false, "output only targets")
-	optR := flag.String("r", "", "name of remote database (implies remote execution)")
+  optR := flag.Bool("r", false, "remote execution (implies db)")
+  optDD := flag.String("D", "", "name of remote database (implies remote execution)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -128,9 +130,10 @@ We import \ty{util}.
   \ty{neighbors} instead of executing the program locally.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:neig}>>=
-  if *optR != "" {
+  if *optR || *optDD != "" {
     //<<Get program options, Pr. \ref{pr:neig}>>
     //<<Check for extra arguments, Pr. \ref{pr:neig}>>
+    //<<Set misc arguments, Pr. \ref{pr:neig}>>
     //<<Send request, Pr. \ref{pr:neig}>>
     //<<Print response, Pr. \ref{pr:neig}>>
   }
@@ -138,11 +141,13 @@ We import \ty{util}.
 #+begin_src latex
   The program options are anything that is declared as an option in \ty{flag}.
   This means it's all of the call arguments except for the unparsed params.
-  We also define the extra argumets, these are all the unparsed params.
+  We also define the extra argumets, these are all the unparsed params. We need
+  to sanitize these arguments, removing \ty{-r} and \ty{-D}.
 #+end_src
 #+begin_src go <<Get program options, Pr. \ref{pr:neig}>>=
 	u := flag.NArg()
-	callArgs := util.RemoveOption(os.Args[1 : len(os.Args)-u], "r", true)
+  options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
+	callArgs := util.SanitizeArguments(os.Args[1 : len(os.Args)-u], options)
 #+end_src
 #+begin_src latex
   If there are unparsed arguments, they are files we need to send using a post
@@ -181,6 +186,16 @@ We import \ty{util}.
     sendPost = false
   }
 #+end_src
+#+begin_export latex
+  Miscellaneous are anything that does not belong to a normal/ local program
+  call. In this case it's the specification of a database.
+#+end_export
+#+begin_src go <<Set misc arguments, Pr. \ref{pr:neig}>>=
+  misc := map[string]string{}
+  if *optDD != "" {
+    misc["db"] = *optDD
+  }
+#+end_src
 #+begin_src latex
   We already checked whether we need to send a get or a post request in the
   last step. So depending on this we call the corresponding function in
@@ -194,7 +209,7 @@ We import \ty{util}.
 	  	"api/v2/programs/neighbors",
 	  	callArgs,
       filenames,
-      map[string]string{"db": *optR},
+      misc,
       files,
       stdin,
 	  )
@@ -203,7 +218,7 @@ We import \ty{util}.
 	  	"api/v2/programs/neighbors",
 	  	callArgs,
       []string{},
-      map[string]string{"db": *optR},
+      misc,
 	  )
   }
 #+end_src

@@ -19,18 +19,24 @@ func Run() {
 	e := "ants 9606 neidb"
 	clio.Usage(u, p, e)
 	var optV = flag.Bool("v", false, "version")
-	var optR = flag.String("r", "", "name of remote database (implies remote execution)")
+	var optR = flag.Bool("r", false, "remote execution (implies db)")
+	var optDD = flag.String("D", "", "name of remote database (implies remote execution)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("ants")
 	}
 	args := flag.Args()
-	if *optR != "" {
+	if *optR || *optDD != "" {
+		misc := map[string]string{}
+		if *optDD != "" {
+			misc["db"] = *optDD
+		}
+		options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
 		resp := util.SendGetRequest(
 			"api/v2/programs/ants",
-			util.RemoveOption(os.Args[1:], "r", true),
+			util.SanitizeArguments(os.Args[1:], options),
 			[]string{},
-			map[string]string{"db": *optR},
+			misc,
 		)
 		fmt.Print(resp)
 		return

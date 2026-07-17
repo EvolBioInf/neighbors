@@ -29,6 +29,12 @@ type Quart struct {
 	UpperOuterFence float64
 }
 
+// The function SanitizeArguments takes a slice of strings, interprets it as a vector of call arguments and sanitizes it for remote usage. It removes  specified options and possible references to a local database. It returns the resulting slice.
+type Option struct {
+	Name      string
+	WithValue bool
+}
+
 var version, date string
 var name string
 var assemblyLevels = []string{"complete",
@@ -196,12 +202,19 @@ func SendPostRequest(address string, options, extraArgs []string, miscArgs map[s
 	Check(err)
 	return string(body)
 }
+func SanitizeArguments(args []string, options []Option) []string {
+	c := slices.Clone(args)
+	for _, o := range options {
+		c = removeOption(c, o)
+	}
 
-// The function RemoveOption takes a slice of strings, interprets it as a a vector of call arguments and removes a specified option. It returns the  resulting slice.
-func RemoveOption(args []string, option string, removeValue bool) []string {
-	sOption := "-" + option
-	dOption := "--" + option
-	if removeValue {
+	return c
+}
+
+func removeOption(args []string, option Option) []string {
+	sOption := "-" + option.Name
+	dOption := "--" + option.Name
+	if option.WithValue {
 		for i := len(args) - 1; i >= 0; i-- {
 			if args[i] == sOption || args[i] == dOption {
 				args = append(args[:i], args[i+2:]...)

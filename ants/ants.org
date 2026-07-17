@@ -55,11 +55,13 @@ We import \ty{util}.
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  There's are two options, the version and remote database.
+  There's are three options, the version and remote execution and remote 
+  execution with a specific database.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:ant}>>=
   var optV = flag.Bool("v", false, "version")
-	var optR = flag.String("r", "", "name of remote database (implies remote execution)")
+	var optR = flag.Bool("r", false, "remote execution (implies db)")
+  var optDD = flag.String("D", "", "name of remote database (implies remote execution)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -98,15 +100,27 @@ We import \ty{util}.
   \ty{SendGetRequest}. We use the path: \ty{api/v2/programs/ants}.
 #+end_src
 #+begin_src go <<Act on remote switch, Pr. \ref{pr:tax}>>=
-  if *optR != "" {
+  if *optR || *optDD != "" {
+    //<<Set misc arguments, Pr. \ref{pr:neig}>>
+    options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
     resp := util.SendGetRequest(
       "api/v2/programs/ants",
-			util.RemoveOption(os.Args[1:], "r", true),
+			util.SanitizeArguments(os.Args[1:], options),
       []string{},
-      map[string]string{"db": *optR},
+      misc,
     )
     fmt.Print(resp)
     return
+  }
+#+end_src
+#+begin_export latex
+  Miscellaneous are anything that does not belong to a normal/ local program
+  call. In this case it's the specification of a database.
+#+end_export
+#+begin_src go <<Set misc arguments, Pr. \ref{pr:neig}>>=
+  misc := map[string]string{}
+  if *optDD != "" {
+    misc["db"] = *optDD
   }
 #+end_src
 #+begin_src latex

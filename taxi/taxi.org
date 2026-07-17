@@ -89,8 +89,8 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   Apart from the version, we declare options for exact matching, limit,
-  offset, and using a taxon-ID. The defaults are substring matching, no
-  limit, no offset, and scientific name.
+  offset, using a taxon-ID, remote execution and a remote database. The 
+  defaults are substring matching, no limit, no offset, and scientific name.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:tax}>>=
   var optV = flag.Bool("v", false, "version")
@@ -98,7 +98,8 @@ We import \ty{util}.
   var optL = flag.Int("l", -1, "limit output to <= l taxids")
   var optO = flag.Int("o", 0, "offset into taxid list")
   var optT = flag.Bool("t", false, "taxid instead of name")
-  var optR = flag.String("r", "", "name of remote database (implies remote execution)")
+  var optR = flag.Bool("r", false, "remote execution (implies db)")
+  var optDD = flag.String("D", "", "name of remote database (implies remote execution)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -135,16 +136,26 @@ which contains the version.
 #+end_src
 #+begin_src latex
   The remote switch is an option to execute \ty{taxi} on a server instead of
-  locally. For this we need to call \ty{SendGetRequest} and provide the call
-  arguments. The request url path is \ty{api/v2/programs/taxi}.
+  locally. The user may specify a remote database as well. For this we need to
+  call \ty{SendGetRequest} and provide the call arguments. The request url path
+  is \ty{api/v2/programs/taxi}. We remove the options \ty{-r} and \ty{-D} in 
+  sanitization.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:tax}>>=
-  if *optR != "" {
+  if *optR || *optDD != "" {
+    misc := map[string]string{}
+    if *optDD != "" {
+      misc["db"] = *optDD
+    }
     resp := util.SendGetRequest(
       "api/v2/programs/taxi",
-      util.RemoveOption(os.Args[1:], "r", true),
+			util.SanitizeArguments(
+				os.Args[1:],
+				[]util.Option{
+					{Name: "r", WithValue: false},
+					{Name: "D", WithValue: true}}),
       []string{},
-      map[string]string{"db": *optR},
+      misc,
     )
     fmt.Print(resp)
     return

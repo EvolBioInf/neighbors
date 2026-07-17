@@ -83,28 +83,38 @@ func Run() {
 	optT := flag.Bool("t", false, "tabular output (default tree)")
 	optG := flag.String("g", "", "read genome accessions "+
 		"from file")
-	optR := flag.String("r", "", "name of remote database (implies remote execution)")
+	optR := flag.Bool("r", false, "remote execution (implies db)")
+	optDD := flag.String("D", "", "name of remote database (implies remote execution)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("ranks")
 	}
-	if *optR != "" {
+	if *optR || *optDD != "" {
 		var resp string
+		options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
+		misc := map[string]string{}
+		if *optDD != "" {
+			misc["db"] = *optDD
+		}
 		if *optG != "" {
 			resp = util.SendPostRequest(
 				"api/v2/programs/ranks",
-				util.RemoveOption(os.Args[1:], "r", true),
+				util.SanitizeArguments(
+					os.Args[1:],
+					options),
 				[]string{},
-				map[string]string{"db": *optR},
+				misc,
 				[]*os.File{util.Open(*optG)},
 				nil,
 			)
 		} else {
 			resp = util.SendGetRequest(
 				"api/v2/programs/ranks",
-				util.RemoveOption(os.Args[1:], "r", true),
+				util.SanitizeArguments(
+					os.Args[1:],
+					options),
 				[]string{},
-				map[string]string{"db": *optR},
+				misc,
 			)
 		}
 		fmt.Print(resp)
