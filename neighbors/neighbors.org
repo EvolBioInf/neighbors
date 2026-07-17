@@ -142,7 +142,7 @@ We import \ty{util}.
 #+end_src
 #+begin_src go <<Get program options, Pr. \ref{pr:neig}>>=
 	u := flag.NArg()
-	callArgs := os.Args[1 : len(os.Args)-u]
+	callArgs := util.RemoveOption(os.Args[1 : len(os.Args)-u], "r", true)
 #+end_src
 #+begin_src latex
   If there are unparsed arguments, they are files we need to send using a post

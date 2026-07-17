@@ -93,7 +93,7 @@ func Run() {
 		if *optG != "" {
 			resp = util.SendPostRequest(
 				"api/v2/programs/ranks",
-				os.Args[1:],
+				util.RemoveOption(os.Args[1:], "r", true),
 				[]string{},
 				map[string]string{"db": *optR},
 				[]*os.File{util.Open(*optG)},
@@ -102,7 +102,7 @@ func Run() {
 		} else {
 			resp = util.SendGetRequest(
 				"api/v2/programs/ranks",
-				os.Args[1:],
+				util.RemoveOption(os.Args[1:], "r", true),
 				[]string{},
 				map[string]string{"db": *optR},
 			)

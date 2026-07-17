@@ -39,7 +39,7 @@ func Run() {
 	if *optR != "" {
 		resp := util.SendGetRequest(
 			"api/v2/programs/dree",
-			os.Args[1:],
+			util.RemoveOption(os.Args[1:], "r", true),
 			[]string{},
 			map[string]string{"db": *optR},
 		)

@@ -201,7 +201,7 @@ func Run() {
 	}
 	if *optR != "" {
 		u := flag.NArg()
-		callArgs := os.Args[1 : len(os.Args)-u]
+		callArgs := util.RemoveOption(os.Args[1:len(os.Args)-u], "r", true)
 		var files []*os.File
 		var stdin *os.File
 		filenames := flag.Args()

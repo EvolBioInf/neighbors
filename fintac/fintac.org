@@ -212,7 +212,7 @@ We parse the options.
 #+end_src
 #+begin_src go <<Determine query arguments, Pr. \ref{pr:fit}>>=
   u := 	flag.NArg()
-  callArgs := os.Args[1:len(os.Args) - u]
+  callArgs := util.RemoveOption(os.Args[1:len(os.Args) - u], "r", true)
 #+end_src
 #+begin_src latex
   All the call arguments, that remain in \ty{flag.Args}
