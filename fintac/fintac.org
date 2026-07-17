@@ -145,8 +145,8 @@ We import \ty{clio}.
   neighbor regular expression, \ty{-n}, is also initialized to nothing,
   which we interpret as anything that is neither a target nor
   unknown. For hierarchical matching we supply a Neighbors database,
-  \ty{H}. Lastly we declare an option for
-  remote execution, \ty{-r}.
+  \ty{H}. Lastly we declare an option that allows using a remote database,
+  \ty{-r}.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:fit}>>=
   optV := flag.Bool("v", false, "version")
@@ -159,7 +159,7 @@ We import \ty{clio}.
   optHH := flag.String("H", "", "hierarchical matching " +
 	  "for targets and neighbors " +
 	  "using a neighbors database")
-	optR := flag.Bool("r", false, "remote execution (implies hierarchical matching and db)")
+	optR := flag.String("r", "", "name of remote database (implies hierarchical matching and remote execution)")
 #+end_src
 #+begin_src latex
 We import \ty{flag}.
@@ -198,7 +198,7 @@ We parse the options.
   We need to make server requests, if switch for remote execution is toggled.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:fit}>>=
-  if *optR {
+  if *optR != "" {
     //<<Determine query arguments, Pr. \ref{pr:fit}>>
     //<<Get files, Pr. \ref{pr:fit}>>
     //<<Send request, Pr. \ref{pr:fit}>>
@@ -246,17 +246,18 @@ We parse the options.
 #+end_src
 #+begin_src latex
   We send the request using \ty{util.SengPostRequest}. The
-  function needs an address which is
-  \ty{http://localhost:8080/api/v2/programs/fintac},
+  function needs an url path which is
+  \ty{api/v2/programs/fintac},
   as well as the query parameters and files we extracted
   above. Passing \ty{stdin} lets the server use it, if no
   files were passed with the extra arguments.
 #+end_src
 #+begin_src go <<Send request, Pr. \ref{pr:fit}>>=
 	resp := util.SendPostRequest(
-		"http://localhost:8080/api/v2/programs/fintac",
+		"api/v2/programs/fintac",
 		callArgs,
     filenames,
+    map[string]string{"db": *optR},
     files,
     stdin,
 	)
