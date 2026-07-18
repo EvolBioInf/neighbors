@@ -1,2 +1,7 @@
-# Parent   Children
-303        304 305
+303
+   304
+      tGCA_013167495.1_ASM1316749v1_genomic.fna
+      tGCA_013168115.1_ASM1316811v1_genomic.fna
+   305
+      306
+      307

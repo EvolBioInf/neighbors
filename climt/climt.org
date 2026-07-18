@@ -27,13 +27,33 @@
   Instead of climbing up the tree toward the root, the user can also opt
   to climb down. However, while climbing up goes all the way to the
   root, climbing down all the way to the leaves could lead to large
-  output that is hard to read. So we just climb down by one level to the
-  direct children. Here's an example showing that in \ty{test.nwk} node
-  295 has two children, node 303 as expected from above, and node 296:
+  output that is hard to read. So we just climb down by the number of
+  levels given by the user, and if that number has the default value of
+  zero, we climb up. The tree encountered during the climb down is
+  written in indentation notation.  For example, we can climb down two
+  levels from node 294.
   \begin{verbatim}
-  # Parent   Children
-  295        296 303
+  climt -d 2 294 test.nwk
   \end{verbatim}
+  The resulting tree in Figure~\ref{fig:cli} shows that node 294 has two
+  children, 295 as expected from the upward journey above, and the leaf
+  with the long name. Node 295 in turn has two children, 303 again as
+  expected from above, and 296.
+  \begin{figure}
+    \begin{center}
+    \begin{minipage}{8.15cm}
+  \begin{Verbatim}[frame=single]
+  294
+     tGCA_003722195.1_ASM372219v1_genomic.fna
+     295
+        296
+        303
+  \end{Verbatim}
+    \end{minipage}
+    \end{center}
+  \caption{The first two levels of the tree rooted on node 294 in the
+    test tree given in indentation notation.}\label{fig:cli}
+  \end{figure}
   By default, node labels are searched for by exact matching, but the
   user can opt for matching as regular expression.
 
@@ -91,12 +111,17 @@ We import \ty{clio}.
 #+begin_src latex
   We declare the obligatory version option. Apart from that, we allow
   the user to switch from the default mode of climbing up the tree, that
-  is, toward the root, to climbing down (\ty{-d}), and to interpret the
-  name of the staring node as a regular expression (\ty{-r}).
+  is, toward the root, to climbing down by a given number of levels,
+  \ty{-d}, to change the delimiter in the resulting indentation tree
+  from default three blanks, \ty{-D}, and to interpret the name of the
+  staring node as a regular expression, \ty{-r}.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:cli}>>=
   optV := flag.Bool("v", false, "version")
-  optD := flag.Bool("d", false, "climb down one level")
+  optD := flag.Int("d", 0, "number of levels climbed " +
+  	"down")
+  optDD := flag.String("D", "   ", "delimiter for " +
+  	"indentation in down climb")
   optR := flag.Bool("r", false, "v is a regular expression")
 #+end_src
 #+begin_src latex
@@ -146,28 +171,29 @@ check the error returned.
 #+begin_src latex
   The remaining tokens on the command line are the names of input
   files. We parse each input file with the function \ty{scan}, which
-  takes as argument the name of the starting node and the ``down''
-  option.
+  takes as argument the name of the starting node the number of levels
+  climbed down, and the delimiter used in the indentation tree.
 #+end_src
 #+begin_src go <<Parse input files, Pr. \ref{pr:cli}>>=
   files := args[1:]
-  clio.ParseFiles(files, scan, start, *optD)
+  clio.ParseFiles(files, scan, start, *optD, *optDD)
 #+end_src
 #+begin_src latex
-  Inside \ty{scan} we first retrieve the name of the start node and the
-  ``down'' option. Then we iterate over the trees in the current
-  file. For each tree we find the start nodes with the function
-  \ty{findStart}.
+  Inside \ty{scan} we first retrieve the name of the start node, the
+  number of levels to climb down, and the delimiter in the indentation
+  tree. Then we iterate over the trees in the current file. For each
+  tree we find the start nodes with the function \ty{findStart}.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:cli}>>=
   func scan(r io.Reader, args ...interface{}) {
-	  start := args[0].(*regexp.Regexp)
-	  down := args[1].(bool)
-	  sc := nwk.NewScanner(r)
-	  for sc.Scan() {
-		  root := sc.Tree()
-		  findStart(root, down, start)
-	  }
+  	start := args[0].(*regexp.Regexp)
+  	down := args[1].(int)
+  	delim := args[2].(string)
+  	sc := nwk.NewScanner(r)
+  	for sc.Scan() {
+  		root := sc.Tree()
+  		findStart(root, down, delim, start)
+  	}
   }
 #+end_src
 #+begin_src latex
@@ -182,101 +208,74 @@ We import \ty{io} and \ty{nwk}.
   finds a start node, we call it \ty{v} and climb the tree from there.
 #+end_src
 #+begin_src go <<Functions, Pr. \ref{pr:cli}>>=
-  func findStart(root *nwk.Node, down bool, start *regexp.Regexp) {
-	  if root == nil {
-		  return
-	  }
-	  if start.MatchString(root.Label) {
-		  v := root
-		  //<<Climb tree, Pr. \ref{pr:cli}>>
-	  }
-	  findStart(root.Child, down, start)
-	  findStart(root.Sib, down, start)
+  func findStart(root *nwk.Node, down int, delim string,
+  	start *regexp.Regexp) {
+  	if root == nil {
+  		return
+  	}
+  	if start.MatchString(root.Label) {
+  		v := root
+  		//<<Climb tree, Pr. \ref{pr:cli}>>
+  	}
+  	findStart(root.Child, down, delim, start)
+  	findStart(root.Sib, down, delim, start)
   }
 #+end_src
 #+begin_src latex
 We climb either down or up the tree.
 #+end_src
 #+begin_src go <<Climb tree, Pr. \ref{pr:cli}>>=
-  if down {
+  if down > 0 {
 	  //<<Climb down, Pr. \ref{pr:cli}>>
   } else {
 	  //<<Climb up, Pr. \ref{pr:cli}>>
   }
 #+end_src
 #+begin_src latex
-We import \ty{fmt} and \ty{os}.
-#+end_src
-#+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
-  "fmt"
-  "os"
-#+end_src
-#+begin_src latex
-When climbing down a tree, we get the children of $v$ and print them.
+  When climbing down a tree, we call the recursive function
+  \ty{writeTree} on $v$. Apart from $v$, \ty{writeTree} takes as
+  arguments the number of levels to do go down, the delimiter, and the
+  current level.
 #+end_src
 #+begin_src go <<Climb down, Pr. \ref{pr:cli}>>=
-  //<<Get children, Pr. \ref{pr:cli}>>
-  //<<Print children, Pr. \ref{pr:cli}>>
+  writeTree(v, down, delim, 0)
 #+end_src
 #+begin_src latex
-We store the children as a slice of nodes.
+  Inside \ty{writeTree} we check whether the current node is either \ty{nil} or
+  beyond the desired level, in which case we return. Otherwise we write
+  the node before visiting its child and its sibling. When we visit the
+  child, the level is incremented, when we visit the sibling, the level
+  remains unchanged.
 #+end_src
-#+begin_src go <<Get children, Pr. \ref{pr:cli}>>=
-  children := make([]*nwk.Node, 0)
-  np := v.Child
-  for np != nil {
-	  children = append(children, np)
-	  np = np.Sib
+#+begin_src go <<Functions, Pr. \ref{pr:cli}>>=
+  func writeTree(v *nwk.Node, down int, delim string,
+  	level int) {
+  	if v == nil || level > down {
+  		return
+  	}
+  	//<<Write node, Pr. \ref{pr:cli}>>
+  	writeTree(v.Child, down, delim, level+1)
+  	writeTree(v.Sib, down, delim, level)
   }
 #+end_src
-#+begin_src latex
-If we found any children, we print them as a table, which we format
-using a \ty{tabwriter}. The table consists of a header and a row
-listing the children. Having printed the table, we flush the
-\ty{tabwriter}.
-#+end_src
-#+begin_src go <<Print children, Pr. \ref{pr:cli}>>=
-  if len(children) > 0 {
-	  w := tabwriter.NewWriter(os.Stdout, 0,
-		  1, 3, ' ', 0)
-	  //<<Print children header, Pr. \ref{pr:cli}>>
-	  //<<Print children row, Pr. \ref{pr:cli}>>
-	  w.Flush()
+#+begin_export latex
+To write a node, we first write its indentation for each level and
+then its label.
+#+end_export
+#+begin_src go <<Write node, Pr. \ref{pr:cli}>>=
+  for i := 0; i < level; i++ {
+  	fmt.Printf("%s", delim)
   }
+  fmt.Printf("%s\n", v.Label)
 #+end_src
-#+begin_src latex
-We import the \ty{tabwriter}.
-#+end_src
+#+begin_export latex
+We import \ty{fmt}.
+#+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
-  "text/tabwriter"
+  "fmt"
 #+end_src
 #+begin_src latex
-In the header of our table we distinguish between one or more
-children.
-#+end_src
-#+begin_src go <<Print children header, Pr. \ref{pr:cli}>>=
-  fmt.Fprint(w, "# Parent\tChild")
-  if len(children) > 1 {
-	  fmt.Fprint(w, "ren")
-  }
-  fmt.Fprint(w, "\n")
-#+end_src
-#+begin_src latex
-The child row consists of the name of the parent, followed by the
-names of its children separated by blanks.
-#+end_src
-#+begin_src go <<Print children row, Pr. \ref{pr:cli}>>=
-  fmt.Fprintf(w, "%s\t", v.Label)
-  for i, child := range children {
-	  if i > 0 {
-		  fmt.Fprint(w, " ")
-	  }
-	  fmt.Fprintf(w, "%s", child.Label)
-  }
-  fmt.Fprint(w, "\n")
-#+end_src
-#+begin_src latex
-  When climbing the tree, we encounter the nodes in the order
+  When climbing upwards we encounter the nodes in the order
   child/parent, but we would like to print them in the reverse order
   parent/child, so that on the screen the root is \emph{up}. To get the
   printing order from the climbing order, we first collect all the
@@ -292,6 +291,13 @@ names of its children separated by blanks.
   //<<Print header of ancestor table, Pr. \ref{pr:cli}>>
   //<<Print body of ancestor table, Pr. \ref{pr:cli}>>
   w.Flush()
+#+end_src
+#+begin_export latex
+We import \ty{tabwriter} and \ty{os}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:cli}>>=
+  "text/tabwriter"
+  "os"
 #+end_src
 #+begin_src latex
   We collect the ancestors until we reach the root.
@@ -359,7 +365,7 @@ length.
 
   As a further small complication, we might end up rounding to a
   negative zero, which looks ugly when printed. Since a negative zero is
-  not less than zero, we can't test for negativity be testing for
+  not less than zero, we can't test for less than zero to prevent
   $-0$. Instead, we use the dedicated function \ty{Signbit}, which
   returns true for negative arguments, including negative zero.
 #+end_src
@@ -425,9 +431,13 @@ We import \ty{exec}.
 #+end_src
 #+begin_src latex
   We run our tests on the tree in file \ty{test.nwk} with starting node
-  303, or 303 and 304. Using these two inputs, we construct three tests,
-  one with only default options, the other with the ``down'' option,
-  \ty{-d}, the third with the regex option, \ty{-r}.
+  303, or 303 and 304. Using these two inputs, we construct four tests,
+  \begin{enumerate}
+  \item only default options,
+  \item two levels down,
+  \item pipe, |, as delimiter for the tree two levels down,
+  \item a regex as node identifier.
+  \end{enumerate}
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:cli}>>=
   f := "test.nwk"
@@ -435,7 +445,9 @@ We import \ty{exec}.
   p := "./cmd/climt"
   test := exec.Command(p, s , f)
   tests = append(tests, test)
-  test = exec.Command(p, "-d", s, f)
+  test = exec.Command(p, "-d", "2", s, f)
+  tests = append(tests, test)
+  test = exec.Command(p, "-D", "|", "-d", "2", s, f)
   tests = append(tests, test)
   s = "^30[34]$"
   test = exec.Command(p, "-r", s, f)
@@ -443,7 +455,7 @@ We import \ty{exec}.
 #+end_src
 #+begin_src latex
   For a given test we compare the result we get with the result we want,
-  which is stored in files \ty{r1.txt}, \ty{r2.txt}, or \ty{r3.txt}.
+  which is stored in files \ty{r1.txt}, \ty{r2.txt}, and so on.
 #+end_src
 #+begin_src go <<Run test, Pr. \ref{pr:cli}>>=
   get, err := test.Output()

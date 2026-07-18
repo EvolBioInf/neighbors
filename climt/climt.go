@@ -16,44 +16,23 @@ import (
 
 func scan(r io.Reader, args ...interface{}) {
 	start := args[0].(*regexp.Regexp)
-	down := args[1].(bool)
+	down := args[1].(int)
+	delim := args[2].(string)
 	sc := nwk.NewScanner(r)
 	for sc.Scan() {
 		root := sc.Tree()
-		findStart(root, down, start)
+		findStart(root, down, delim, start)
 	}
 }
-func findStart(root *nwk.Node, down bool, start *regexp.Regexp) {
+func findStart(root *nwk.Node, down int, delim string,
+	start *regexp.Regexp) {
 	if root == nil {
 		return
 	}
 	if start.MatchString(root.Label) {
 		v := root
-		if down {
-			children := make([]*nwk.Node, 0)
-			np := v.Child
-			for np != nil {
-				children = append(children, np)
-				np = np.Sib
-			}
-			if len(children) > 0 {
-				w := tabwriter.NewWriter(os.Stdout, 0,
-					1, 3, ' ', 0)
-				fmt.Fprint(w, "# Parent\tChild")
-				if len(children) > 1 {
-					fmt.Fprint(w, "ren")
-				}
-				fmt.Fprint(w, "\n")
-				fmt.Fprintf(w, "%s\t", v.Label)
-				for i, child := range children {
-					if i > 0 {
-						fmt.Fprint(w, " ")
-					}
-					fmt.Fprintf(w, "%s", child.Label)
-				}
-				fmt.Fprint(w, "\n")
-				w.Flush()
-			}
+		if down > 0 {
+			writeTree(v, down, delim, 0)
 		} else {
 			ancestors := make([]*nwk.Node, 0)
 			np := v
@@ -91,8 +70,20 @@ func findStart(root *nwk.Node, down bool, start *regexp.Regexp) {
 			w.Flush()
 		}
 	}
-	findStart(root.Child, down, start)
-	findStart(root.Sib, down, start)
+	findStart(root.Child, down, delim, start)
+	findStart(root.Sib, down, delim, start)
+}
+func writeTree(v *nwk.Node, down int, delim string,
+	level int) {
+	if v == nil || level > down {
+		return
+	}
+	for i := 0; i < level; i++ {
+		fmt.Printf("%s", delim)
+	}
+	fmt.Printf("%s\n", v.Label)
+	writeTree(v.Child, down, delim, level+1)
+	writeTree(v.Sib, down, delim, level)
 }
 func Run() {
 	util.SetName("climt")
@@ -101,7 +92,10 @@ func Run() {
 	e := "climt -r 303 foo.nwk"
 	clio.Usage(u, p, e)
 	optV := flag.Bool("v", false, "version")
-	optD := flag.Bool("d", false, "climb down one level")
+	optD := flag.Int("d", 0, "number of levels climbed "+
+		"down")
+	optDD := flag.String("D", "   ", "delimiter for "+
+		"indentation in down climb")
 	optR := flag.Bool("r", false, "v is a regular expression")
 	flag.Parse()
 	if *optV {
@@ -118,5 +112,5 @@ func Run() {
 	start, err := regexp.Compile(expr)
 	util.Check(err)
 	files := args[1:]
-	clio.ParseFiles(files, scan, start, *optD)
+	clio.ParseFiles(files, scan, start, *optD, *optDD)
 }

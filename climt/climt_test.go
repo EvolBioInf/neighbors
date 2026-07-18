@@ -15,7 +15,9 @@ func TestClimt(t *testing.T) {
 	p := "./cmd/climt"
 	test := exec.Command(p, s, f)
 	tests = append(tests, test)
-	test = exec.Command(p, "-d", s, f)
+	test = exec.Command(p, "-d", "2", s, f)
+	tests = append(tests, test)
+	test = exec.Command(p, "-D", "|", "-d", "2", s, f)
 	tests = append(tests, test)
 	s = "^30[34]$"
 	test = exec.Command(p, "-r", s, f)
