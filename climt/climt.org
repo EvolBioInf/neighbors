@@ -235,10 +235,15 @@ We climb either down or up the tree.
   When climbing down a tree, we call the recursive function
   \ty{writeTree} on $v$. Apart from $v$, \ty{writeTree} takes as
   arguments the number of levels to do go down, the delimiter, and the
-  current level.
+  current level. To make sure that $v$ is the root of the tree, we cut
+  off its sibling link before climbing down the tree and restore again
+  it afterwards.
 #+end_src
 #+begin_src go <<Climb down, Pr. \ref{pr:cli}>>=
+  sib := v.Sib
+  v.Sib = nil
   writeTree(v, down, delim, 0)
+  v.Sib = sib
 #+end_src
 #+begin_src latex
   Inside \ty{writeTree} we check whether the current node is either \ty{nil} or

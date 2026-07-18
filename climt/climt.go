@@ -32,7 +32,10 @@ func findStart(root *nwk.Node, down int, delim string,
 	if start.MatchString(root.Label) {
 		v := root
 		if down > 0 {
+			sib := v.Sib
+			v.Sib = nil
 			writeTree(v, down, delim, 0)
+			v.Sib = sib
 		} else {
 			ancestors := make([]*nwk.Node, 0)
 			np := v
