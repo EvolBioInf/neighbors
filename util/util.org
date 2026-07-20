@@ -303,7 +303,7 @@ We import \ty{math}.
 #+end_src
 #+begin_export latex
   Now all we need to do is call \ty{urlEncodeSlice} for both the options and
-  the extra arguments... and encode the miscellaneous arguments further down 
+  the extra arguments... and encode the miscellaneous arguments further down
   the line.
 #+end_export
 #+begin_src go <<Encode query, Pa. \ref{pa:util}>>=
@@ -320,7 +320,7 @@ We import \ty{math}.
   "strings"
 #+end_src
 #+begin_export latex
-  We iterate over the \ty{miscArgs} encoding both the keys and values. 
+  We iterate over the \ty{miscArgs} encoding both the keys and values.
   Everything else is pretty much the same as encoding a slice.
 #+end_export
 #+begin_src go <<Encode misc args, Pa. \ref{pa:util}>>=
@@ -467,11 +467,11 @@ We import \ty{math}.
 #+begin_export latex
 \section{\ty{SanitizeArguments}}
   !The function \ty{SanitizeArguments} takes a slice of strings, interprets it
-  !as a vector of call arguments and sanitizes it for remote usage. It removes 
+  !as a vector of call arguments and sanitizes it for remote usage. It removes
   !specified options and possible references to a local database. It returns
   !the resulting slice.
-  We need to differentiate two kinds of options. There is the bool option, 
-  which is just a single string and there are options with values. If the 
+  We need to differentiate two kinds of options. There is the bool option,
+  which is just a single string and there are options with values. If the
   option is followed by a value, we need to remove that as well. Let's define
   a type for this.
 #+end_export
@@ -492,7 +492,7 @@ We import \ty{math}.
     for _, o := range options {
       c = removeOption(c, o)
     }
-    //<<Remove database reference Pa. \ref{pa:util}>>
+    //<<Remove database reference, Pa. \ref{pa:util}>>
     return c
   }
 #+end_src
@@ -505,7 +505,7 @@ We import \ty{math}.
   func removeOption(args []string, option Option) []string {
     //<<Define options, Pa. \ref{pa:util}>>
     if option.WithValue {
-      //<<Remove option with value, Pa. \ref{pa:util}>>  
+      //<<Remove option with value, Pa. \ref{pa:util}>>
     } else {
       //<<Remove option, Pa. \ref{pa:util}>>
     }
@@ -521,7 +521,7 @@ We import \ty{math}.
 #+end_src
 #+begin_export latex
   When removing an option with value we need to iterate over the arguments,
-  back to front, and remove all occurrences of the option plus the following 
+  back to front, and remove all occurrences of the option plus the following
   entry.
 #+end_export
 #+begin_src go <<Remove option with value, Pa. \ref{pa:util}>>=
@@ -532,7 +532,7 @@ We import \ty{math}.
   }
 #+end_src
 #+begin_export latex
-  Removing an option without a value is mpler. We use the \ty{DeleteFunc} 
+  Removing an option without a value is mpler. We use the \ty{DeleteFunc}
   function provided by \ty{slices}
 #+end_export
 #+begin_src go <<Remove option, Pa. \ref{pa:util}>>=
@@ -543,6 +543,29 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Imports, Pa. \ref{pa:util}>>=
   "slices"
+#+end_src
+#+begin_export latex
+  Removing the database from the args is a rather complex task. It might be
+  pretty much anywhere. This means we need to go through all the arguments and
+  check them individually.
+#+end_export
+#+begin_src go <<Remove database reference, Pa. \ref{pa:util}>>=
+  for _, a := range c {
+    //<<Check if arg is database, Pa. \ref{pa:util}>>
+  }
+#+end_src
+#+begin_export latex
+  Checking a specific value for being a database is still a complex issue. I'm
+  a bit at a loss here, but I did come up with a rather crude method. For each
+  argument we first check whether it starts with a dash. If it does, we ignore
+  it, as it's probably an option. For all other arguments: we try to open it.
+  If it is a file, we read the first line and compare it to the sqlite header.
+  We delete the reference if the first line matches the header.
+#+end_export
+#+begin_src go <<Check if arg is database, Pa. \ref{pa:util}>>=
+  if a[0] != "-" {
+
+  }
 #+end_src
 
 #+begin_src latex

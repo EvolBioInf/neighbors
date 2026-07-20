@@ -212,11 +212,11 @@ We parse the options.
   For query arguments we supply all the parameters declared in flags. We get
   them by taking the vector of call arguments without the values contained in
   \ty{flag.Args}, which are unparsed values. We need to sanitize these
-  arguments, removing \ty{-r} and \ty{-D}.
+  arguments, removing \ty{-r}, \ty{-D} and \ty{-H}.
 #+end_src
 #+begin_src go <<Determine query arguments, Pr. \ref{pr:fit}>>=
   u := 	flag.NArg()
-  options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
+  options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}, {Name: "H", WithValue: true}}
   callArgs := util.SanitizeArguments(os.Args[1:len(os.Args) - u], options)
 #+end_src
 #+begin_src latex
