@@ -146,7 +146,7 @@ We import \ty{clio}.
   which we interpret as anything that is neither a target nor
   unknown. For hierarchical matching we supply a Neighbors database,
   \ty{H}. We declare an option that allows remote execution, \ty{-r}. Lastly
-  we define \ty{D}, which allows the user to specify a remote database, 
+  we define \ty{D}, which allows the user to specify a remote database,
   implying remote execution.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:fit}>>=
@@ -237,7 +237,7 @@ We parse the options.
   Data may be passed via file arguments or through \ty{stdin}. Before providing
   \ty{stdin}, we need to check wether it contains any data. If no data is piped
   into it, it will listen and block until the user signals the end of input.
-  We check whether \ty{stdin} contains data, by looking at its file 
+  We check whether \ty{stdin} contains data, by looking at its file
   information. This contains bits on it's file mode defining, whether data was
   piped to it or if it's going to listen on the command line.
 #+end_src

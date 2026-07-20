@@ -545,26 +545,68 @@ We import \ty{math}.
   "slices"
 #+end_src
 #+begin_export latex
-  Removing the database from the args is a rather complex task. It might be
-  pretty much anywhere. This means we need to go through all the arguments and
-  check them individually.
+  Removing the database from the args is a rather complex task. The reference
+  might be any argument. This means we need to go through all of them and
+  check each individually.
 #+end_export
 #+begin_src go <<Remove database reference, Pa. \ref{pa:util}>>=
-  for _, a := range c {
+  var dbArgs []int
+  for i, a := range c {
     //<<Check if arg is database, Pa. \ref{pa:util}>>
+  }
+  //<<Delete elements, Pa. \ref{pa:util}>>
+#+end_src
+#+begin_export latex
+  I'm a bit at a loss on how to elegantly check whether an argument is a
+  database or anything else. I did however come up with a rather crude method,
+  that is: for each argument we first check whether it starts with a dash. If
+  it does, we ignore it, as it's probably an option. If the previous argument
+  was \ty{-D}, we need to skip sanitization as well. We treat all other
+  arguments as paths and try them. If an argument is indeed a file, we read the
+  first few bytes and compare them to the standard sqlite file header. We
+  delete the reference if the first line matches the header.
+#+end_export
+#+begin_src go <<Check if arg is database, Pa. \ref{pa:util}>>=
+  if a[0] == '-' || (i > 0 && (c[i] == "-D" || c[i] == "--D")) {
+    continue
+  }
+  //<<Check if is file, Pa. \ref{pa:util}>>
+  //<<Read first bytes, Pa. \ref{pa:util}>>
+  //<<Compare to header, Pa. \ref{pa:util}>>
+#+end_src
+#+begin_export latex
+  For checking whether we are dealing with a file, we just try to open the
+  "path". We ignore anything that returns an error while opening.
+#+end_export
+#+begin_src go <<Check if is file, Pa. \ref{pa:util}>>=
+  f, err := os.Open(a)
+  if err != nil {
+    continue
   }
 #+end_src
 #+begin_export latex
-  Checking a specific value for being a database is still a complex issue. I'm
-  a bit at a loss here, but I did come up with a rather crude method. For each
-  argument we first check whether it starts with a dash. If it does, we ignore
-  it, as it's probably an option. For all other arguments: we try to open it.
-  If it is a file, we read the first line and compare it to the sqlite header.
-  We delete the reference if the first line matches the header.
+  The sqlite header begins with 16 bytes stating the files format.
 #+end_export
-#+begin_src go <<Check if arg is database, Pa. \ref{pa:util}>>=
-  if a[0] != "-" {
-
+#+begin_src go <<Read first bytes, Pa. \ref{pa:util}>>=
+  h := make([]byte, 16)
+  f.Read(h)
+#+end_src
+#+begin_export latex
+  Lastly we need to compare the bits we read to the expected header.
+#+end_export
+#+begin_src go <<Compare to header, Pa. \ref{pa:util}>>=
+  fileHeader := []byte{0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00}
+  if bytes.Equal(h, fileHeader) {
+    dbArgs = append(dbArgs, i)
+  }
+#+end_src
+#+begin_export latex
+  We iterate over the args back to front and delete the entries using array
+  slicing. The arguments are already sorted by their index.
+#+end_export
+#+begin_src go <<Delete elements, Pa. \ref{pa:util}>>=
+  for i := len(dbArgs) - 1; i >= 0; i-- {
+    c = append(c[:dbArgs[i]], c[dbArgs[i]+1:]...)
   }
 #+end_src
 

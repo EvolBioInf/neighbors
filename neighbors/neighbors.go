@@ -207,6 +207,7 @@ func Run() {
 		var files []*os.File
 		var stdin *os.File
 		filenames := flag.Args()
+		filenames = util.SanitizeArguments([]util.Option{})
 		sendPost := true
 		if u == 0 {
 			inf, err := os.Stdin.Stat()

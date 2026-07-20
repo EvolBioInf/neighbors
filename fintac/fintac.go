@@ -219,7 +219,7 @@ func Run() {
 	}
 	if *optR || *optDD != "" {
 		u := flag.NArg()
-		options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
+		options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}, {Name: "H", WithValue: true}}
 		callArgs := util.SanitizeArguments(os.Args[1:len(os.Args)-u], options)
 		var files []*os.File
 		filenames := flag.Args()

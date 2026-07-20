@@ -155,12 +155,14 @@ We import \ty{util}.
   The server calls the program just like we would via the shell. As files are
   passed with file references - their names - we need to tell the server which
   files it needs to create. Creating these files allows the server use the
-  same program call as the local one. \ty{stdin} is a similar matter.
+  same program call as the local one. \ty{stdin} is a similar matter. However,
+  we need to sanitize these filenames before using them
 #+end_src
 #+begin_src go <<Check for extra arguments, Pr. \ref{pr:neig}>>=
   var files []*os.File
   var stdin *os.File
   filenames := flag.Args()
+  filenames = util.SanitizeArguments([]util.Option{})
   sendPost := true
   if u == 0 {
     //<<Handle stdin, Pr. \ref{pr:neig}>>
