@@ -24,12 +24,20 @@ func TestTaxi(t *testing.T) {
 		test = exec.Command(p, "-e", taxon, db)
 		tests = append(tests, test)
 	}
+	test = exec.Command(p, "-D", "test", "-t", "9606")
+	tests = append(tests, test)
+	for _, taxon := range taxa {
+		test := exec.Command(p, "-D", "test", taxon)
+		tests = append(tests, test)
+		test = exec.Command(p, "-D", "test", "-e", taxon)
+		tests = append(tests, test)
+	}
 	for i, test := range tests {
 		get, err := test.Output()
 		if err != nil {
 			t.Error(err)
 		}
-		f := "r" + strconv.Itoa(i+1) + ".txt"
+		f := "r" + strconv.Itoa((i%9)+1) + ".txt"
 		want, err := ioutil.ReadFile(f)
 		if err != nil {
 			t.Error(err)

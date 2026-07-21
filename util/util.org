@@ -567,12 +567,11 @@ We import \ty{math}.
   delete the reference if the first line matches the header.
 #+end_export
 #+begin_src go <<Check if arg is database, Pa. \ref{pa:util}>>=
-  if a[0] == '-' || (i > 0 && (c[i] == "-D" || c[i] == "--D")) {
-    continue
+  if a[0] != '-' {
+    //<<Check if is file, Pa. \ref{pa:util}>>
+    //<<Read first bytes, Pa. \ref{pa:util}>>
+    //<<Compare to header, Pa. \ref{pa:util}>>
   }
-  //<<Check if is file, Pa. \ref{pa:util}>>
-  //<<Read first bytes, Pa. \ref{pa:util}>>
-  //<<Compare to header, Pa. \ref{pa:util}>>
 #+end_src
 #+begin_export latex
   For checking whether we are dealing with a file, we just try to open the

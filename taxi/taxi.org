@@ -89,7 +89,7 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   Apart from the version, we declare options for exact matching, limit,
-  offset, using a taxon-ID, remote execution and a remote database. The 
+  offset, using a taxon-ID, remote execution and a remote database. The
   defaults are substring matching, no limit, no offset, and scientific name.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:tax}>>=
@@ -109,7 +109,7 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   We parse the options and respond to the version option (\ty{-v})
-  first, as this would stop the program. If (\ty{-r}) contains a remote 
+  first, as this would stop the program. If (\ty{-r}) contains a remote
   database, we need to act on it, before inspecting the remaining
   arguments. Then we get the remaining arguments and count them to make sure
   there are two of them, the taxon label and the database, which we both store.
@@ -138,7 +138,7 @@ which contains the version.
   The remote switch is an option to execute \ty{taxi} on a server instead of
   locally. The user may specify a remote database as well. For this we need to
   call \ty{SendGetRequest} and provide the call arguments. The request url path
-  is \ty{api/v2/programs/taxi}. We remove the options \ty{-r} and \ty{-D} in 
+  is \ty{api/v2/programs/taxi}. We remove the options \ty{-r} and \ty{-D} in
   sanitization.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:tax}>>=
@@ -334,14 +334,30 @@ Our first query is 9606, the taxon-ID for human.
   }
 #+end_src
 #+begin_src latex
+  We now test the remote options of taxi. For this we use the same tests as
+  before, but add \ty{-D} and \ty{test}. This signals the server to use the
+  test database. We expect to get the same results as before.
+#+end_src
+#+begin_src go <<Construct tests, Pr. \ref{pr:tax}>>=
+  test = exec.Command(p, "-D", "test", "-t", "9606")
+  tests = append(tests, test)
+  for _, taxon := range taxa {
+	  test := exec.Command(p, "-D", "test", taxon)
+	  tests = append(tests, test)
+	  test = exec.Command(p, "-D", "test", "-e", taxon)
+	  tests = append(tests, test)
+  }
+#+end_src
+#+begin_src latex
   We execute the test and compare the result we get to the result we
-  want. The results we want are contained in the files \ty{r1.txt}, 
-  \ty{r2.txt} and so on.
+  want. The results we want are contained in the files \ty{r1.txt},
+  \ty{r2.txt} and so on. There are nine result files, but 18 tests.
+  We use the a modulo operator to compare to the files twice.
 #+end_src
 #+begin_src go <<Run test, Pr. \ref{pr:tax}>>=
   get, err := test.Output()
   if err != nil { t.Error(err) }
-  f := "r" + strconv.Itoa(i + 1) + ".txt"
+  f := "r" + strconv.Itoa((i % 9) + 1) + ".txt"
   want, err := ioutil.ReadFile(f)
   if err != nil { t.Error(err) }
   if !bytes.Equal(get, want) {
@@ -356,4 +372,3 @@ Our first query is 9606, the taxon-ID for human.
   "io/ioutil"
   "bytes"
 #+end_src
-

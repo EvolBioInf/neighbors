@@ -209,18 +209,17 @@ func SanitizeArguments(args []string, options []Option) []string {
 	}
 	var dbArgs []int
 	for i, a := range c {
-		if a[0] == '-' || (i > 0 && (c[i] == "-D" || c[i] == "--D")) {
-			continue
-		}
-		f, err := os.Open(a)
-		if err != nil {
-			continue
-		}
-		h := make([]byte, 16)
-		f.Read(h)
-		fileHeader := []byte{0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00}
-		if bytes.Equal(h, fileHeader) {
-			dbArgs = append(dbArgs, i)
+		if a[0] != '-' {
+			f, err := os.Open(a)
+			if err != nil {
+				continue
+			}
+			h := make([]byte, 16)
+			f.Read(h)
+			fileHeader := []byte{0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00}
+			if bytes.Equal(h, fileHeader) {
+				dbArgs = append(dbArgs, i)
+			}
 		}
 	}
 	for i := len(dbArgs) - 1; i >= 0; i-- {
