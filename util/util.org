@@ -635,6 +635,7 @@ We import \ty{math}.
   //<<Test \ty{Open}, Pa. \ref{pa:util}>>
   //<<Test \ty{LevelMsg}, Pa. \ref{pa:util}>>
   //<<Test \ty{Quartiles}, Pa. \ref{pa:util}>>
+  //<<Test \ty{SanitizeArguments}, Pa. \ref{pa:util}>>
 #+end_src
 #+begin_src latex
   To test \ty{Open}, we open a test file and read the string ``success''
@@ -667,7 +668,7 @@ We import \ty{math}.
   m := "user message does not match level %q"
   msg := LevelMsg()
   for _, level := range assemblyLevels {
-    if strings.Index(msg, level) == -1 {
+    if !strings.Contains(msg, level) {
       t.Errorf(m, level)
     }
   }
@@ -703,4 +704,27 @@ error.
         w, gr[i])
     }
   }
+#+end_src
+#+begin_src latex
+  To test \ty{SanitizeArguments}, we create a string slice containing, some
+  unimportant literals, some options, and two database references. Databases
+  need to exist, in order for the function to flag them as such. We use two
+  fake databases for this. Let's also add non db file references.
+#+end_src
+#+begin_src go <<Test \ty{SanitizeArguments}, Pa. \ref{pa:util}>>=
+  args := []string{"first", "1234", "-t", "-m", "xyz", "-f", "r.txt", "-r",
+    "-p", "1233", "&4982k", "-D", "smth", "fake1.db", "sdlfjk", "fake2.db"}
+  cArgs := slices.Clone(args)
+
+  res := SanitizeArguments(args, []Options{{Name: "-r", Value: false}, {Name: "-D", Value: true}, {Name: "-p", Value: true}})
+  e := []string{"first", "1234", "-t", "-m", "xyz", "-f", "r.txt", "&4982k",
+    "sdlfjk"}
+
+  if !slices.Equal(res, e) {
+  	t.Errorf("want:\n%s\nget:n\%s\n",	e, res)
+	}
+
+  if !slices.Equal(args, cArgs) {
+  	t.Errorf("original args changed during processing\n")
+	}
 #+end_src
