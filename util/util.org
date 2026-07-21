@@ -716,15 +716,25 @@ error.
     "-p", "1233", "&4982k", "-D", "smth", "fake1.db", "sdlfjk", "fake2.db"}
   cArgs := slices.Clone(args)
 
-  res := SanitizeArguments(args, []Options{{Name: "-r", Value: false}, {Name: "-D", Value: true}, {Name: "-p", Value: true}})
+  res := SanitizeArguments(args, []Option{
+    {Name: "r", WithValue: false}, 
+    {Name: "D", WithValue: true}, 
+    {Name: "p", WithValue: true},
+  })
   e := []string{"first", "1234", "-t", "-m", "xyz", "-f", "r.txt", "&4982k",
     "sdlfjk"}
 
   if !slices.Equal(res, e) {
-  	t.Errorf("want:\n%s\nget:n\%s\n",	e, res)
+  	t.Errorf("want:\n%s\nget:\n%s\n",	e, res)
 	}
 
   if !slices.Equal(args, cArgs) {
   	t.Errorf("original args changed during processing\n")
 	}
+#+end_src
+#+begin_export latex
+  We import \ty{slices}.
+#+end_export
+#+begin_src go <<Testing imports, Pa. \ref{pa:util}>>=
+  "slices"
 #+end_src

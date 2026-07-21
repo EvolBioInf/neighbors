@@ -2,6 +2,7 @@ package util
 
 import (
 	"bufio"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -37,5 +38,24 @@ func TestUtil(t *testing.T) {
 			t.Errorf("want: %f\nget: %f\n",
 				w, gr[i])
 		}
+	}
+	args := []string{"first", "1234", "-t", "-m", "xyz", "-f", "r.txt", "-r",
+		"-p", "1233", "&4982k", "-D", "smth", "fake1.db", "sdlfjk", "fake2.db"}
+	cArgs := slices.Clone(args)
+
+	res := SanitizeArguments(args, []Option{
+		{Name: "r", WithValue: false},
+		{Name: "D", WithValue: true},
+		{Name: "p", WithValue: true},
+	})
+	e := []string{"first", "1234", "-t", "-m", "xyz", "-f", "r.txt", "&4982k",
+		"sdlfjk"}
+
+	if !slices.Equal(res, e) {
+		t.Errorf("want:\n%s\nget:\n%s\n", e, res)
+	}
+
+	if !slices.Equal(args, cArgs) {
+		t.Errorf("original args changed during processing\n")
 	}
 }
