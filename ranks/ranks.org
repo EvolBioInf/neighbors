@@ -117,7 +117,7 @@ We import \ty{clio}.
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_export latex
-Apart from the version (\ty{-v}), we declare four options, list genomes 
+Apart from the version (\ty{-v}), we declare four options, list genomes
 (\ty{-l}), pick assembly level (\ty{-L}), print tabular output (\ty{-t}), read
 genome accessions from file (\ty{-g}), execute remotely (\ty{-r}) and specify
 a remote database (\ty{-D}). The list option implies textual output.
@@ -741,10 +741,15 @@ program name, the root taxon, and the database.
   db := "../data/test.db"
 #+end_src
 #+begin_export latex
-We construct and store the test without options.
+We construct and store the test without options. Each test is
+executed locally and remotely. Remote execution is signalled via
+the options \ty{-D} or \ty{-r}. We use \ty{-D}, which lets us
+specify a specific database.
 #+end_export
 #+begin_src go <<Test without options, Pr. \ref{pr:ran}>>=
   test := exec.Command(pr, ta, db)
+  tests = append(tests, test)
+  test = exec.Command(pr, "-D", "test", ta, db)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -763,12 +768,16 @@ The genomes list is contained in file \ty{genomes.txt}.
 #+begin_src go <<Test \ty{-g}, Pr. \ref{pr:ran}>>=
 test = exec.Command(pr, "-g", "genomes.txt", ta, db)
 tests = append(tests, test)
+test = exec.Command(pr, "-D", "test", "-g", "genomes.txt", ta, db)
+tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We list the genomes.
 #+end_export
 #+begin_src go <<Test \ty{-l}, Pr. \ref{pr:ran}>>=
   test = exec.Command(pr, "-l", ta, db)
+  tests = append(tests, test)
+  test = exec.Command(pr, "-D", "test", "-l", ta, db)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -777,6 +786,8 @@ We restrict the search to complete genomes.
 #+begin_src go <<Test \ty{-L}, Pr. \ref{pr:ran}>>=
   test = exec.Command(pr, "-L", "complete", ta, db)
   tests = append(tests, test)
+  test = exec.Command(pr, "-D", "test", "-L", "complete", ta, db)
+  tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We test tabular output.
@@ -784,17 +795,21 @@ We test tabular output.
 #+begin_src go <<Test \ty{-t}, Pr. \ref{pr:ran}>>=
   test = exec.Command(pr, "-t", ta, db)
   tests = append(tests, test)
+  test = exec.Command(pr, "-D", "test", "-t", ta, db)
+  tests = append(tests, test)
 #+end_src
 #+begin_export latex
 When we run a test, we compare the output we get to the output we
 want, which is contained in files \ty{r1.txt}, \ty{r2.txt}, and so on.
+There are two tests for each expected result. We divide \ty{i} by two
+when indexing.
 #+end_export
 #+begin_src go <<Run test, Pr. \ref{pr:ran}>>=
   get, err := test.Output()
   if err != nil {
     t.Error(err)
   }
-  f := "r" + strconv.Itoa(i+1) + ".txt"
+  f := "r" + strconv.Itoa(i/2+1) + ".txt"
   want, err := os.ReadFile(f)
   if err != nil {
     t.Error(err)
