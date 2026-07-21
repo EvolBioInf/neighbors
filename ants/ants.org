@@ -55,7 +55,7 @@ We import \ty{util}.
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  There's are three options, the version and remote execution and remote 
+  There's are three options, the version and remote execution and remote
   execution with a specific database.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:ant}>>=
@@ -96,7 +96,7 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   The remote db option enables remote execution of \ty{ants}. This uses the
-  database specified via \ty{optR}. For this we need to call 
+  database specified via \ty{optR}. For this we need to call
   \ty{SendGetRequest}. We use the path: \ty{api/v2/programs/ants}.
 #+end_src
 #+begin_src go <<Act on remote switch, Pr. \ref{pr:tax}>>=
@@ -205,18 +205,19 @@ We import \ty{util}.
 	  //<<Testing imports, Pr. \ref{pr:ant}>>
   )
 
+	//<<Testing types, Pr. \ref{pr:dr}>>
+
   func TestAnts(t *testing.T) {
 	  //<<Testing, Pr. \ref{pr:ant}>>
   }
 #+end_src
 #+begin_src latex
-  We construct a set of tests and iterate over them.
+  A test is composed of a command and an expected result.
 #+end_src
-#+begin_src go <<Testing, Pr. \ref{pr:ant}>>=
-  var tests []*exec.Cmd
-  //<<Construct tests, Pr. \ref{pr:ant}>>
-  for i, test := range tests {
-	  //<<Run test, Pr. \ref{pr:ant}>>
+#+begin_src go <<Testing types, Pr. \ref{pr:dr}>>=
+  type Test struct {
+    t *exec.Cmd
+    r int
   }
 #+end_src
 #+begin_src latex
@@ -226,13 +227,25 @@ We import \ty{util}.
   "os/exec"
 #+end_src
 #+begin_src latex
+  We construct a set of tests and iterate over them.
+#+end_src
+#+begin_src go <<Testing, Pr. \ref{pr:ant}>>=
+  var tests []Test
+  //<<Construct tests, Pr. \ref{pr:ant}>>
+  for _, test := range tests {
+	  //<<Run test, Pr. \ref{pr:ant}>>
+  }
+#+end_src
+#+begin_src latex
   A single test should suffice for now, for which we start from
-  \emph{Homo sapiens} (9606).
+  \emph{Homo sapiens} (9606). We test this with the remote options as well.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:ant}>>=
   tid := "9606"
   db := "../data/test.db"
-  test := exec.Command("./cmd/ants", tid, db)
+  test := Test{t: exec.Command("./cmd/ants", tid, db), r: 1}
+  tests = append(tests, test)
+  test = Test{t: exec.Command("./cmd/ants", "-D", "test", tid, db), r: 1}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -240,9 +253,9 @@ We import \ty{util}.
   want contained in \ty{r1.txt}.
 #+end_src
 #+begin_src go <<Run test, Pr. \ref{pr:ant}>>=
-  get, err := test.Output()
+  get, err := test.t.Output()
   if err != nil { t.Error(err) }
-  f := "r" + strconv.Itoa(i + 1) + ".txt"
+  f := "r" + strconv.Itoa(test.r) + ".txt"
   want, err := ioutil.ReadFile(f)
   if err != nil { t.Error(err) }
   if !bytes.Equal(get, want) {

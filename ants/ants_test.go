@@ -8,18 +8,25 @@ import (
 	"testing"
 )
 
+type Test struct {
+	t *exec.Cmd
+	r int
+}
+
 func TestAnts(t *testing.T) {
-	var tests []*exec.Cmd
+	var tests []Test
 	tid := "9606"
 	db := "../data/test.db"
-	test := exec.Command("./cmd/ants", tid, db)
+	test := Test{t: exec.Command("./cmd/ants", tid, db), r: 1}
 	tests = append(tests, test)
-	for i, test := range tests {
-		get, err := test.Output()
+	test = Test{t: exec.Command("./cmd/ants", "-D", "test", tid, db), r: 1}
+	tests = append(tests, test)
+	for _, test := range tests {
+		get, err := test.t.Output()
 		if err != nil {
 			t.Error(err)
 		}
-		f := "r" + strconv.Itoa(i+1) + ".txt"
+		f := "r" + strconv.Itoa(test.r) + ".txt"
 		want, err := ioutil.ReadFile(f)
 		if err != nil {
 			t.Error(err)
