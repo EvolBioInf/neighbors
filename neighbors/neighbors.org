@@ -753,7 +753,7 @@ taxon-ID, name, and genomes.
   We construct a set of tests based on the hominoid tree in
   Figure~\ref{fig:hom} and run each one. Every test is made up of a command
   and an expected result. The results are stored in text files \ty{r1.txt},
-  \ty{r2.txt} and so on. Different tests may reuse these files, so lets
+  \ty{r2.txt} and so on. Different tests may reuse these files, so let's
   make this command-result binding descriptive using a type.
 #+end_src
 #+begin_src go <<Testing types, Pr. \ref{pr:neig}>>=
@@ -761,6 +761,12 @@ taxon-ID, name, and genomes.
     t *exec.Cmd
     r int
   }
+#+end_src
+#+begin_src latex
+  We import \ty{exec}.
+#+end_src
+#+begin_src go <<Testing imports, Pr. \ref{pr:neig}>>=
+  "os/exec"
 #+end_src
 #+begin_src latex
   We now construct all the tests and run them afterwards.
@@ -773,12 +779,6 @@ taxon-ID, name, and genomes.
 	    //<<Run test, Pr. \ref{pr:neig}>>
     }
   }
-#+end_src
-#+begin_src latex
-  We import \ty{exec}.
-#+end_src
-#+begin_src go <<Testing imports, Pr. \ref{pr:neig}>>=
-  "os/exec"
 #+end_src
 #+begin_src latex
   We run \ty{neighbors} on the full database with four sets of

@@ -167,7 +167,7 @@ We import \ty{util}.
     \emph{level}
   \item \ty{-m}: maximum tree level
   \item \ty{-R}: \emph{recursive} genome counts in list
-  \item \ty{-r}: execute program on remote server 
+  \item \ty{-r}: execute program on remote server
   \item \ty{-D}: use a specific databas for remote execution
   \end{itemize}
 #+end_src
@@ -224,7 +224,7 @@ We import \ty{util}.
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_src latex
-  If a remote database is given, we pass all the call arguments to 
+  If a remote database is given, we pass all the call arguments to
   \ty{SendGetRequest} and print its response. We remove the options \ty{-r} and
   \ty{-D} in sanitization.
 #+end_src
@@ -588,18 +588,19 @@ them as the fifth column.
 	  //<<Testing imports, Pr. \ref{pr:dr}>>
   )
 
+	//<<Testing types, Pr. \ref{pr:dr}>>
+
   func TestDree(t *testing.T) {
 	  //<<Testing, Pr. \ref{pr:dr}>>
   }
 #+end_src
 #+begin_src latex
-  We construct tests and run them in a loop.
+  A test is composed of a command and an expected result.
 #+end_src
-#+begin_src go <<Testing, Pr. \ref{pr:dr}>>=
-  var tests []*exec.Cmd
-  //<<Construct tests, Pr. \ref{pr:dr}>>
-  for i, test := range tests {
-	  //<<Run test, Pr. \ref{pr:dr}>>
+#+begin_src go <<Testing types, Pr. \ref{pr:dr}>>=
+  type Test struct {
+    t *exec.Cmd
+    r int
   }
 #+end_src
 #+begin_src latex
@@ -609,10 +610,21 @@ them as the fifth column.
   "os/exec"
 #+end_src
 #+begin_src latex
+  We construct tests and run them in a loop.
+#+end_src
+#+begin_src go <<Testing, Pr. \ref{pr:dr}>>=
+  var tests []Test
+  //<<Construct tests, Pr. \ref{pr:dr}>>
+  for _, test := range tests {
+	  //<<Run test, Pr. \ref{pr:dr}>>
+  }
+#+end_src
+#+begin_src latex
   In our tests, we draw the \emph{Homininae} which have taxon-ID
   207598. First with no options, then we test our six options names
   (\ty{-n}), genomes (\ty{-g}), list \ty{-l}, assembly level (\ty{-L}),
-  tree level, \ty{-m}, and recursive genome count, \ty{-R}.
+  tree level, \ty{-m}, and recursive genome count, \ty{-R}. We run all the test
+  both locally and remotely.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:dr}>>=
   n := "207598"
@@ -630,21 +642,27 @@ them as the fifth column.
 We construct our first test without any options and store it.
 #+end_export
 #+begin_src go <<Test without options, Pr. \ref{pr:dr}>>=
-  test := exec.Command(p, n, d)
+  test := Test{t: exec.Command(p, n, d), r: 1}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", n, d), r: 1}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We test the names option, \ty{-n}.
 #+end_export
 #+begin_src go <<Test \ty{-n}, Pr. \ref{pr:dr}>>=
-  test = exec.Command(p, "-n", n, d)
+  test = Test{t: exec.Command(p, "-n", n, d), r: 2}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-n", n, d), r: 2}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
 We test the genomes option, \ty{-g}.
 #+end_export
 #+begin_src go <<Test \ty{-g}, Pr. \ref{pr:dr}>>=
-  test = exec.Command(p, "-g", n, d)
+  test = Test{t: exec.Command(p, "-g", n, d), r: 3}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-g", n, d), r: 3}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -652,13 +670,21 @@ We test the list option, \ty{-l}, alone and in combination with genome
 and name.
 #+end_export
 #+begin_src go <<Test \ty{-l}, Pr. \ref{pr:dr}>>=
-  test = exec.Command(p, "-l", n, d)
+  test = Test{t: exec.Command(p, "-l", n, d), r: 4}
   tests = append(tests, test)
-  test = exec.Command(p, "-l", "-g", n, d)
+  test = Test{t: exec.Command(p, "-D", "test", "-l", n, d), r: 4}
   tests = append(tests, test)
-  test = exec.Command(p, "-l", "-n", n, d)
+  test = Test{t: exec.Command(p, "-l", "-g", n, d), r: 5}
   tests = append(tests, test)
-  test = exec.Command(p, "-l", "-g", "-n", n, d)
+  test = Test{t: exec.Command(p, "-D", "test", "-l", "-g", n, d), r: 5}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-l", "-n", n, d), r: 6}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-l", "-n", n, d), r: 6}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-l", "-g", "-n", n, d), r: 7}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-l", "-g", "-n", n, d), r: 7}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -666,9 +692,13 @@ We test \ty{-L}, first with level \emph{complete}, then with levels
 \emph{complete} and \emph{chromosome}.
 #+end_export
 #+begin_src go <<Test \ty{-L}, Pr. \ref{pr:dr}>>=
-  test = exec.Command(p, "-L", "complete", n, d)
+  test = Test{t: exec.Command(p, "-L", "complete", n, d), r: 8}
   tests = append(tests, test)
-  test = exec.Command(p, "-L", "complete,chromosome", n, d)
+  test = Test{t: exec.Command(p, "-D", "test", "-L", "complete", n, d), r: 8}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-L", "complete,chromosome", n, d), r: 9}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-L", "complete,chromosome", n, d), r: 9}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -676,13 +706,21 @@ We test \ty{-m} with a negative maximum level, ordinary levels 0 and
 2, and the very large level 200.
 #+end_export
 #+begin_src go <<Test \ty{-m}, Pr. \ref{pr:dr}>>=
-  test = exec.Command(p, "-m", "-2", n, d)
+  test = Test{t: exec.Command(p, "-m", "-2", n, d), r: 10}
   tests = append(tests, test)
-  test = exec.Command(p, "-m", "0", n, d)
+  test = Test{t: exec.Command(p, "-D", "test", "-m", "-2", n, d), r: 10}
   tests = append(tests, test)
-  test = exec.Command(p, "-m", "2", n, d)
+  test = Test{t: exec.Command(p, "-m", "0", n, d), r: 11}
   tests = append(tests, test)
-  test = exec.Command(p, "-m", "200", n, d)
+  test = Test{t: exec.Command(p, "-D", "test", "-m", "0", n, d), r: 11}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-m", "2", n, d), r: 12}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-m", "2", n, d), r: 12}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-m", "200", n, d), r: 13}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-m", "200", n, d), r: 13}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -690,7 +728,9 @@ We test recursive genome counting, \ty{-R}, in conjunction with
 listing.
 #+end_export
 #+begin_src go <<Test \ty{-R}, Pr. \ref{pr:dr}>>=
-  test = exec.Command(p, "-R", "-l", n, d)
+  test = Test{t: exec.Command(p, "-R", "-l", n, d), r: 14}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-R", "-l", n, d), r: 14}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -698,11 +738,11 @@ listing.
   which is contained in \ty{r1.txt}, \ty{r2.txt}, and so on.
 #+end_src
 #+begin_src go <<Run test, Pr. \ref{pr:dr}>>=
-  get, err := test.Output()
+  get, err := test.t.Output()
   if err != nil {
-	  t.Errorf("couldn't run %q", test)
+	  t.Errorf("couldn't run %q", test.t)
   }
-  f := "r" + strconv.Itoa(i+1) + ".txt"
+  f := "r" + strconv.Itoa(test.r) + ".txt"
   want, err := ioutil.ReadFile(f)
   if err != nil {
 	  t.Errorf("couldn't open %q", f)
