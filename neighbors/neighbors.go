@@ -209,7 +209,7 @@ func Run() {
 		filenames := flag.Args()
 		filenames = util.SanitizeArguments(filenames, []util.Option{})
 		sendPost := true
-		if u == 0 {
+		if len(filenames) == 0 {
 			inf, err := os.Stdin.Stat()
 			util.Check(err)
 			if inf.Mode()&os.ModeCharDevice == 0 {

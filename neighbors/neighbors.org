@@ -164,7 +164,7 @@ We import \ty{util}.
   filenames := flag.Args()
 	filenames = util.SanitizeArguments(filenames, []util.Option{})
   sendPost := true
-  if u == 0 {
+  if len(filenames) == 0 {
     //<<Handle stdin, Pr. \ref{pr:neig}>>
   } else {
     for _, filename := range filenames {
@@ -743,19 +743,35 @@ taxon-ID, name, and genomes.
 	  //<<Testing imports, Pr. \ref{pr:neig}>>
   )
 
+  //<<Testing types, Pr. \ref{pr:neig}>>
+
   func TestNeighbors(t *testing.T) {
 	  //<<Testing, Pr. \ref{pr:neig}>>
   }
 #+end_src
 #+begin_src latex
   We construct a set of tests based on the hominoid tree in
-  Figure~\ref{fig:hom} and run each one.
+  Figure~\ref{fig:hom} and run each one. Every test is made up of a command
+  and an expected result. The results are stored in text files \ty{r1.txt},
+  \ty{r2.txt} and so on. Different tests may reuse these files, so lets
+  make this command-result binding descriptive using a type.
+#+end_src
+#+begin_src go <<Testing types, Pr. \ref{pr:neig}>>=
+  type Test struct {
+    t *exec.Cmd
+    r int
+  }
+#+end_src
+#+begin_src latex
+  We now construct all the tests and run them afterwards.
 #+end_src
 #+begin_src go <<Testing, Pr. \ref{pr:neig}>>=
-  var tests []*exec.Cmd
+  var tests []Test
   //<<Construct tests, Pr. \ref{pr:neig}>>
   for i, test := range tests {
-	  //<<Run test, Pr. \ref{pr:neig}>>
+    if i < 16 {
+	    //<<Run test, Pr. \ref{pr:neig}>>
+    }
   }
 #+end_src
 #+begin_src latex
@@ -767,14 +783,16 @@ taxon-ID, name, and genomes.
 #+begin_src latex
   We run \ty{neighbors} on the full database with four sets of
   target-IDs, \ty{tid1.txt}, \ty{tid2.txt}, and so on. Then we test the
-  options.
+  options. We test these four target-IDs both for local and remote execution.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:neig}>>=
   db := "../data/test.db"
   p := "./cmd/neighbors"
   for i := 1; i <= 4; i++ {
 	  in := "tid" + strconv.Itoa(i) + ".txt"
-	  test := exec.Command(p, db, in)
+	  test := Test{t: exec.Command(p, db, in), r: i}
+	  tests = append(tests, test)
+	  test = Test{t: exec.Command(p, "-D", "test", db, in), r: i}
 	  tests = append(tests, test)
   }
   //<<Test options, Pr. \ref{pr:neig}>>
@@ -788,6 +806,7 @@ taxon-ID, name, and genomes.
 #+begin_src latex
   We test the five options list, \ty{-l}, genomes, \ty{-g}, tab,
   \ty{-T}, targets, \ty{-t}, level, \ty{-L}, and targets-only, \ty{-o}.
+  All of these are tested locally and remotely as well.
 #+end_src
 #+begin_src go <<Test options, Pr. \ref{pr:neig}>>=
   //<<Test \ty{-l}, Pr. \ref{pr:neig}>>
@@ -801,7 +820,9 @@ taxon-ID, name, and genomes.
 We test the list option, \ty{-l}, on \ty{tid4.txt}.
 #+end_src
 #+begin_src go <<Test \ty{-l}, Pr. \ref{pr:neig}>>=
-  test := exec.Command(p, "-l", db, "tid4.txt")
+  test := Test{t: exec.Command(p, "-l", db, "tid4.txt"), r: 5}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-l", db, "tid4.txt"), r: 5}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -809,14 +830,18 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   \ty{tid4.txt}.
 #+end_src
 #+begin_src go <<Test \ty{-g}, Pr. \ref{pr:neig}>>=
-  test = exec.Command(p, "-g", db, "tid4.txt")
+  test = Test{t: exec.Command(p, "-g", db, "tid4.txt"), r: 6}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-g", db, "tid4.txt"), r: 6}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
   We also run the tab option, \ty{-T} on \ty{tid4.txt}.
 #+end_src
 #+begin_src go <<Test \ty{-T}, Pr. \ref{pr:neig}>>=
-  test = exec.Command(p, "-T", db, "tid4.txt")
+  test = Test{t: exec.Command(p, "-T", db, "tid4.txt"), r: 7}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-T", db, "tid4.txt"), r: 7}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -824,10 +849,15 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   first on a single taxon-ID, and then on two.
 #+end_src
 #+begin_src go <<Test \ty{-t}, Pr. \ref{pr:neig}>>=
-  test = exec.Command(p, "-t", "9606", db)
+  test = Test{t: exec.Command(p, "-t", "9606", db), r: 8}
   tests = append(tests, test)
-  test = exec.Command(p, "-t",
-	  "9606,9605", db)
+  test = Test{t: exec.Command(p, "-D", "test", "-t", "9606", db), r: 8}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-t",
+	  "9606,9605", db), r: 9}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-t",
+	  "9606,9605", db), r: 9}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -835,11 +865,17 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   and for complete or chromosome-level genomes.
 #+end_src
 #+begin_src go <<Test \ty{-L}, Pr. \ref{pr:neig}>>=
-  test = exec.Command(p, "-t", "9606",
-	  "-L", "complete", db)
+  test = Test{t: exec.Command(p, "-t", "9606",
+	  "-L", "complete", db), r: 10}
   tests = append(tests, test)
-  test = exec.Command(p, "-t", "9606",
-	  "-L", "complete,chromosome", db)
+  test = Test{t: exec.Command(p, "-D", "test", "-t", "9606",
+	  "-L", "complete", db), r: 10}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-t", "9606",
+	  "-L", "complete,chromosome", db), r: 11}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test", "-t", "9606",
+	  "-L", "complete,chromosome", db), r: 11}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -847,23 +883,31 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   output and the list output for \ty{tid4.txt} to the targets.
 #+end_src
 #+begin_src go <<Test \ty{-o}, Pr. \ref{pr:neig}>>=
-  test = exec.Command(p,
-	  "-o", db, "tid4.txt")
+  test = Test{t: exec.Command(p,
+	  "-o", db, "tid4.txt"), r: 12}
   tests = append(tests, test)
-  test = exec.Command(p,
-	  "-l", "-o", db, "tid4.txt")
+  test = Test{t: exec.Command(p, "-D", "test",
+	  "-o", db, "tid4.txt"), r: 12}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p,
+	  "-l", "-o", db, "tid4.txt"), r: 13}
+  tests = append(tests, test)
+  test = Test{t: exec.Command(p, "-D", "test",
+	  "-l", "-o", db, "tid4.txt"), r: 13}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
   For a given test we compare the result we get with the result we want,
-  which is contained in files \ty{r1.txt}, \ty{r2.txt}, and so on.
+  which is contained in files \ty{r1.txt}, \ty{r2.txt}, and so on. As we
+  are testing both local and remote execution, we expect all the results
+  to show up twice. We divide i by two to test for this.
 #+end_src
 #+begin_src go <<Run test, Pr. \ref{pr:neig}>>=
-  get, err := test.Output()
+  get, err := test.t.Output()
   if err != nil {
-	  t.Errorf("couldn't run %q", test)
+	  t.Errorf("couldn't run %q", test.t)
   }
-  f := "r" + strconv.Itoa(i+1) + ".txt"
+  f := "r" + strconv.Itoa(test.r) + ".txt"
   want, err := os.ReadFile(f)
   if err != nil {
 	  t.Errorf("couldn't open %q", f)
