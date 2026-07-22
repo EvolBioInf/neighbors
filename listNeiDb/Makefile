@@ -12,5 +12,8 @@ $(exe).go: $(exe).org
 	if [ "$(nw)" != "" ]; then\
 		bash ../scripts/org2nw $(exe).org | notangle -R$(exe).go | gofmt > $(exe).go;\
 	fi
+
+test:
+
 clean:
 	rm -f *.go $(exe)
