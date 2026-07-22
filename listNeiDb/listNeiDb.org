@@ -1,0 +1,137 @@
+#+begin_src latex
+  \section*{Introduction}
+  Alot of \ty{neighbors} programs allow remote execution. These use programs
+  use databases provided by the neighbors server \ty{never}. Every programs
+  that provides an option for remote execution also provides an option, which
+  allows to specify a certain database. In order to specify a database, a user
+  has to be aware of all available databases. This program does exactly that.
+  It queries \ty{never} and prints out all available databases.
+
+  \section*{Implementation}
+  The program \ty{listNeiDb} has hooks for imports and the logic of the main
+  function.\bpr{listNeidb}{pr:lis}
+#+end_src
+#+begin_src go <<listNeiDb.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr. \ref{pr:lis}>>
+  )
+
+  func main() {
+	  //<<Main function, Pr. \ref{pr:lis}>>
+  }
+#+end_src
+#+begin_src latex
+  \epr In the \ty{main} function we set the name of \ty{listNeiDb} and its
+  usage, declare the options, parse the options, get the databases, and
+  print them.
+#+end_src
+#+begin_src go <<Main function, Pr. \ref{pr:lis}>>=
+  util.SetName("listNeiDb")
+  //<<Set usage, Pr. \ref{pr:lis}>>
+  //<<Declare options, Pr. \ref{pr:lis}>>
+  //<<Parse options, Pr. \ref{pr:lis}>>
+  //<<Get databases, Pr. \ref{pr:lis}>>
+  //<<Print databases, Pr. \ref{pr:lis}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:lis}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_src latex
+  The usage consists of three parts: The actual usage message, an
+  explanation of the purpose of \ty{listNeiDb}, and an example command.
+  All of this is rather straight forward, as \ty{listNeiDb} does not provide
+  a whole lot of options.
+#+end_src
+#+begin_src go <<Set usage, Pr. \ref{pr:lis}>>=
+  u := "listNeiDb [option]"
+  p := "Print all of never's available databases."
+  e := "listNeiDb"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_src latex
+  We import \ty{clio}.
+#+end_src
+#+begin_src go <<Imports, Pr. \ref{pr:lis}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_src latex
+  There is just a single option, which is \ty{-v}.
+#+end_src
+#+begin_src go <<Declare options, Pr. \ref{pr:lis}>>=
+  var optV = flag.Bool("v", false, "version")
+#+end_src
+#+begin_src latex
+  We import \ty{flag}.
+#+end_src
+#+begin_src go <<Imports, Pr. \ref{pr:lis}>>=
+  "flag"
+#+end_src
+#+begin_src latex
+  We parse the options and respond to the version option (\ty{-v}), if it is
+  provided.
+#+end_src
+#+begin_src go <<Parse options, Pr. \ref{pr:lis}>>=
+  flag.Parse()
+  //<<Respond to \ty{-v}, Pr. \ref{pr:lis}>>
+#+end_src
+#+begin_export latex
+If the user asked for the version, we print the program information,
+which contains the version.
+#+end_export
+#+begin_src go <<Respond to \ty{-v}, Pr. \ref{pr:lis}>>=
+  if *optV {
+  	  util.PrintInfo("listNeiDb")
+  }
+#+end_src
+#+begin_export latex
+  \ty{neighbors' util} package provides a function, which let's us send a
+  \ty{GET} request. We use this to inquire \ty{never} for it's databases.
+  \ty{SendGetRequest} provides a bunch of arguments, which we don't need. All
+  that's necessary is passing the correct address suffix. Passing a 
+  \ty{plain_data} as a misc arg is not necessary, but reduces parsing 
+  complexity. 
+#+end_export
+#+begin_src go <<Get databases, Pr. \ref{pr:lis}>>=
+  a := make(map[string]string)
+  a["plain_data"] = "true"
+  rawRes := util.SendGetRequest("api/v2/databases", nil, nil, a)
+#+end_src
+#+begin_export latex
+  We need to import the \ty{util} package.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:lis}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_export latex
+  We get the request's result in a json string format. When printing it to 
+  \ty{stdout} it should be a comma + space delimited string. We use the 
+  \ty{json} package to unmarshall the string and allow iteration. 
+#+end_export
+#+begin_src go <<Get databases, Pr. \ref{pr:lis}>>=
+  var res []string
+  json.Unmarshal([]byte(rawRes), &res)
+#+end_src
+#+begin_export latex
+  We need to import the \ty{encoding/json} and \ty{fmt}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:lis}>>=
+  "encoding/json"
+  "fmt"
+#+end_src
+#+begin_export latex
+  Lastly we join the string slice and print it.
+#+end_export
+#+begin_src go <<Print databases, Pr. \ref{pr:lis}>>=
+	fmt.Println(strings.Join(res, ", "))
+#+end_src
+#+begin_export latex
+  We need to import the \ty{strings}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:lis}>>=
+  "strings"
+#+end_src
