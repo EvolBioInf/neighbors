@@ -77,6 +77,11 @@ Instead of clusters, the user can also opt to print the input tree
 with marked clusters (\ty{-t}). We mark a cluster by appending
 $\ty{c}$ to its label.
 
+As a final option, the user can print the branch lengths for all nodes
+in a subtree rooted on a given node. This provides the raw data on
+which the cluster decision is based. It also allows users to identify
+nodes with exceptionally long or short branches.
+
 \section*{Implementation}
 To find clusters, we need convenient access to three things, the nodes
 of the tree, the branch lengths per node, and the clusters
@@ -492,13 +497,13 @@ We import \ty{fmt}.
 #+begin_export latex
 To print the branch lengths, we look up the node that matches the
 label passed. For the branch lengths themselves we create a table of
-two columns, length and type, where type can be either descendant, or
-parent.
+four columns, node, parent, length and type, where type can be either
+descendant, or parent.
 #+end_export
 #+begin_src go <<Print branch lengths, Pr. \ref{pr:clu}>>=
   w := tabwriter.NewWriter(os.Stdout, 2, 1, 2, ' ', 0)
-  fmt.Fprintf(w, "#Len\tType\n")
-  for i, bl := range branchLengths {
+  fmt.Fprintf(w, "#Node\tParent\tLen\tType\n")
+  for i, _ := range branchLengths {
 	  v := nodes[i]
 	  if v.Label == *optB {
 		  //<<Print parent branch length, Pr. \ref{pr:clu}>>
@@ -521,16 +526,31 @@ distance marked by \ty{par}.
 #+begin_src go <<Print parent branch length, Pr. \ref{pr:clu}>>=
   if v.Parent != nil {
 	  pl := v.Length
-	  fmt.Fprintf(w, "%.3g\tpar\n", pl)
+	  fmt.Fprintf(w, "%s\t%s\t%.3g\tpar\n", v.Label, v.Parent.Label, pl)
   }
 #+end_src
 #+begin_export latex
-We iterate over the branch lengths of the descendants and mark each
-one \ty{des}.
+We call the recursive function \ty{printBranchLengths} on the child of
+$v$ to print the branch lengths in the subtree rooted on $v$. These
+are marked \ty{des}.
 #+end_export
 #+begin_src go <<Print descendants branch lengths, Pr. \ref{pr:clu}>>=
-  for _, dl := range(bl) {
-	  fmt.Fprintf(w, "%.3g\tdes\n", dl)
+  printBranchLengths(v.Child, w, "des")
+#+end_src
+#+begin_export latex
+Inside \ty{printBranchLengths} we print the label, the parent's label,
+the branch length, and the mark.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:clu}>>=
+  func printBranchLengths(v *nwk.Node, w *tabwriter.Writer,
+  	mark string) {
+  	if v == nil {
+  		return
+  	}
+  	fmt.Fprintf(w, "%s\t%s\t%.3g\t%s\n",
+  		v.Label, v.Parent.Label, v.Length, mark)
+  	printBranchLengths(v.Child, w, mark)
+  	printBranchLengths(v.Sib, w, mark)
   }
 #+end_src
 #+begin_export latex

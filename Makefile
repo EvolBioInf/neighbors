@@ -29,11 +29,13 @@ clean:
 	make clean -C doc
 	make clean -C tutorial
 	rm -f bin/*
-test:
-	echo test
+test: data/test.db
 	for prog in $(packs) $(progs); do \
 		make test -C $$prog; \
 	done
+data/test.db:
+	make -C makeNeiDb
+	cp makeNeiDb/test.db data
 data:
 	mkdir -p data
 	cd data; wget $(ftp)/pub/taxonomy/taxdump.tar.gz; \

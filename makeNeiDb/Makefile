@@ -15,7 +15,7 @@ $(pro).go: $(pro).org
 		bash ../scripts/org2nw $(pro).org | notangle -R$(pro).go | gofmt > $(pro).go;\
 	fi
 test: $(pro)_test.go $(exe)
-	test -d test.db || rm -r test.db
+	rm -f test.db
 	@go test
 $(pro)_test.go: $(pro).org
 	if [ "$(nw)" != "" ]; then\

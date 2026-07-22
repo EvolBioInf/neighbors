@@ -85,17 +85,15 @@ func parse(r io.Reader, args ...interface{}) {
 		}
 		if *optB != "" {
 			w := tabwriter.NewWriter(os.Stdout, 2, 1, 2, ' ', 0)
-			fmt.Fprintf(w, "#Len\tType\n")
-			for i, bl := range branchLengths {
+			fmt.Fprintf(w, "#Node\tParent\tLen\tType\n")
+			for i, _ := range branchLengths {
 				v := nodes[i]
 				if v.Label == *optB {
 					if v.Parent != nil {
 						pl := v.Length
-						fmt.Fprintf(w, "%.3g\tpar\n", pl)
+						fmt.Fprintf(w, "%s\t%s\t%.3g\tpar\n", v.Label, v.Parent.Label, pl)
 					}
-					for _, dl := range bl {
-						fmt.Fprintf(w, "%.3g\tdes\n", dl)
-					}
+					printBranchLengths(v.Child, w, "des")
 				}
 			}
 			w.Flush()
@@ -190,6 +188,16 @@ func isTerminal(v *nwk.Node, clusters map[int]*Cluster,
 		it = false
 	}
 	return it
+}
+func printBranchLengths(v *nwk.Node, w *tabwriter.Writer,
+	mark string) {
+	if v == nil {
+		return
+	}
+	fmt.Fprintf(w, "%s\t%s\t%.3g\t%s\n",
+		v.Label, v.Parent.Label, v.Length, mark)
+	printBranchLengths(v.Child, w, mark)
+	printBranchLengths(v.Sib, w, mark)
 }
 func Run() {
 	util.SetName("clusters")
