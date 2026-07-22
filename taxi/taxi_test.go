@@ -24,12 +24,12 @@ func TestTaxi(t *testing.T) {
 		test = exec.Command(p, "-e", taxon, db)
 		tests = append(tests, test)
 	}
-	test = exec.Command(p, "-D", "test", "-t", "9606")
+	test = exec.Command(p, "-D", "test.db", "-t", "9606")
 	tests = append(tests, test)
 	for _, taxon := range taxa {
-		test := exec.Command(p, "-D", "test", taxon)
+		test := exec.Command(p, "-D", "test.db", taxon)
 		tests = append(tests, test)
-		test = exec.Command(p, "-D", "test", "-e", taxon)
+		test = exec.Command(p, "-D", "test.db", "-e", taxon)
 		tests = append(tests, test)
 	}
 	for i, test := range tests {

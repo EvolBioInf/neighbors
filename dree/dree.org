@@ -644,7 +644,7 @@ We construct our first test without any options and store it.
 #+begin_src go <<Test without options, Pr. \ref{pr:dr}>>=
   test := Test{t: exec.Command(p, n, d), r: 1}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", n, d), r: 1}
+  test = Test{t: exec.Command(p, "-D", "test.db", n, d), r: 1}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -653,7 +653,7 @@ We test the names option, \ty{-n}.
 #+begin_src go <<Test \ty{-n}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-n", n, d), r: 2}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-n", n, d), r: 2}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-n", n, d), r: 2}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -662,7 +662,7 @@ We test the genomes option, \ty{-g}.
 #+begin_src go <<Test \ty{-g}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-g", n, d), r: 3}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-g", n, d), r: 3}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-g", n, d), r: 3}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -672,19 +672,19 @@ and name.
 #+begin_src go <<Test \ty{-l}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-l", n, d), r: 4}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-l", n, d), r: 4}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-l", n, d), r: 4}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-l", "-g", n, d), r: 5}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-l", "-g", n, d), r: 5}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-l", "-g", n, d), r: 5}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-l", "-n", n, d), r: 6}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-l", "-n", n, d), r: 6}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-l", "-n", n, d), r: 6}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-l", "-g", "-n", n, d), r: 7}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-l", "-g", "-n", n, d), r: 7}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-l", "-g", "-n", n, d), r: 7}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -694,11 +694,11 @@ We test \ty{-L}, first with level \emph{complete}, then with levels
 #+begin_src go <<Test \ty{-L}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-L", "complete", n, d), r: 8}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-L", "complete", n, d), r: 8}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-L", "complete", n, d), r: 8}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-L", "complete,chromosome", n, d), r: 9}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-L", "complete,chromosome", n, d), r: 9}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-L", "complete,chromosome", n, d), r: 9}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -708,19 +708,19 @@ We test \ty{-m} with a negative maximum level, ordinary levels 0 and
 #+begin_src go <<Test \ty{-m}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-m", "-2", n, d), r: 10}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-m", "-2", n, d), r: 10}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-m", "-2", n, d), r: 10}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-m", "0", n, d), r: 11}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-m", "0", n, d), r: 11}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-m", "0", n, d), r: 11}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-m", "2", n, d), r: 12}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-m", "2", n, d), r: 12}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-m", "2", n, d), r: 12}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-m", "200", n, d), r: 13}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-m", "200", n, d), r: 13}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-m", "200", n, d), r: 13}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -730,7 +730,7 @@ listing.
 #+begin_src go <<Test \ty{-R}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-R", "-l", n, d), r: 14}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test", "-R", "-l", n, d), r: 14}
+  test = Test{t: exec.Command(p, "-D", "test.db", "-R", "-l", n, d), r: 14}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

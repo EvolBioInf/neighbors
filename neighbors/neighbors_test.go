@@ -21,53 +21,53 @@ func TestNeighbors(t *testing.T) {
 		in := "tid" + strconv.Itoa(i) + ".txt"
 		test := Test{t: exec.Command(p, db, in), r: i}
 		tests = append(tests, test)
-		test = Test{t: exec.Command(p, "-D", "test", db, in), r: i}
+		test = Test{t: exec.Command(p, "-D", "test.db", in), r: i}
 		tests = append(tests, test)
 	}
 	test := Test{t: exec.Command(p, "-l", db, "tid4.txt"), r: 5}
 	tests = append(tests, test)
-	test = Test{t: exec.Command(p, "-D", "test", "-l", db, "tid4.txt"), r: 5}
+	test = Test{t: exec.Command(p, "-D", "test.db", "-l", "tid4.txt"), r: 5}
 	tests = append(tests, test)
 	test = Test{t: exec.Command(p, "-g", db, "tid4.txt"), r: 6}
 	tests = append(tests, test)
-	test = Test{t: exec.Command(p, "-D", "test", "-g", db, "tid4.txt"), r: 6}
+	test = Test{t: exec.Command(p, "-D", "test.db", "-g", "tid4.txt"), r: 6}
 	tests = append(tests, test)
 	test = Test{t: exec.Command(p, "-T", db, "tid4.txt"), r: 7}
 	tests = append(tests, test)
-	test = Test{t: exec.Command(p, "-D", "test", "-T", db, "tid4.txt"), r: 7}
+	test = Test{t: exec.Command(p, "-D", "test.db", "-T", "tid4.txt"), r: 7}
 	tests = append(tests, test)
 	test = Test{t: exec.Command(p, "-t", "9606", db), r: 8}
 	tests = append(tests, test)
-	test = Test{t: exec.Command(p, "-D", "test", "-t", "9606", db), r: 8}
+	test = Test{t: exec.Command(p, "-D", "test.db", "-t", "9606"), r: 8}
 	tests = append(tests, test)
 	test = Test{t: exec.Command(p, "-t",
 		"9606,9605", db), r: 9}
 	tests = append(tests, test)
-	test = Test{t: exec.Command(p, "-D", "test", "-t",
+	test = Test{t: exec.Command(p, "-D", "test.db", "-t",
 		"9606,9605", db), r: 9}
 	tests = append(tests, test)
 	test = Test{t: exec.Command(p, "-t", "9606",
 		"-L", "complete", db), r: 10}
 	tests = append(tests, test)
-	test = Test{t: exec.Command(p, "-D", "test", "-t", "9606",
+	test = Test{t: exec.Command(p, "-D", "test.db", "-t", "9606",
 		"-L", "complete", db), r: 10}
 	tests = append(tests, test)
 	test = Test{t: exec.Command(p, "-t", "9606",
 		"-L", "complete,chromosome", db), r: 11}
 	tests = append(tests, test)
-	test = Test{t: exec.Command(p, "-D", "test", "-t", "9606",
+	test = Test{t: exec.Command(p, "-D", "test.db", "-t", "9606",
 		"-L", "complete,chromosome", db), r: 11}
 	tests = append(tests, test)
 	test = Test{t: exec.Command(p,
 		"-o", db, "tid4.txt"), r: 12}
 	tests = append(tests, test)
-	test = Test{t: exec.Command(p, "-D", "test",
+	test = Test{t: exec.Command(p, "-D", "test.db",
 		"-o", db, "tid4.txt"), r: 12}
 	tests = append(tests, test)
 	test = Test{t: exec.Command(p,
 		"-l", "-o", db, "tid4.txt"), r: 13}
 	tests = append(tests, test)
-	test = Test{t: exec.Command(p, "-D", "test",
+	test = Test{t: exec.Command(p, "-D", "test.db",
 		"-l", "-o", db, "tid4.txt"), r: 13}
 	tests = append(tests, test)
 	for i, test := range tests {

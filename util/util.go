@@ -127,7 +127,7 @@ func Quartiles(data []float64) *Quart {
 
 // The function SendGetRequest takes as argument a url path as a string and the program's options and extra arguments as string slices, as well as miscellaneous arguments as a map. It sends a get request using these values to never at neighbors.evolbio.mpg.de and returns the result.
 func SendGetRequest(address string, options, extraArgs []string, miscArgs map[string]string) string {
-	address = "http://localhost:8080/" + address
+	address = "https://neighbors.evolbio.mpg.de/" + address
 	qb := new(strings.Builder)
 	urlEncodeSlice(qb, options, "options")
 	urlEncodeSlice(qb, extraArgs, "extra")
@@ -164,7 +164,7 @@ func urlEncodeSlice(qb *strings.Builder, slc []string, paramName string) {
 
 // The function SendPostRequest takes as argument a url path as a string, program options and extra arguments as a slice of strings, as well as files and stdin. It sends a post request to never at neighbors.evolbio.mpg.de using these values and returns the result.
 func SendPostRequest(address string, options, extraArgs []string, miscArgs map[string]string, files []*os.File, stdin *os.File) string {
-	address = "http://localhost:8080/" + address
+	address = "https://neighbors.evolbio.mpg.de/" + address
 	qb := new(strings.Builder)
 	urlEncodeSlice(qb, options, "options")
 	urlEncodeSlice(qb, extraArgs, "extra")

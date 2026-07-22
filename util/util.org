@@ -273,7 +273,7 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func SendGetRequest(address string, options, extraArgs []string, miscArgs map[string]string) string {
-    address = "http://localhost:8080/" + address
+    address = "https://neighbors.evolbio.mpg.de/" + address
     //<<Encode query, Pa. \ref{pa:util}>>
     //<<Create \ty{get} request, Pa. \ref{pa:util}>>
     //<<Execute request, Pa. \ref{pa:util}>>
@@ -384,7 +384,7 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func SendPostRequest(address string, options, extraArgs []string, miscArgs map[string]string, files []*os.File, stdin *os.File) string {
-    address = "http://localhost:8080/" + address
+    address = "https://neighbors.evolbio.mpg.de/" + address
     //<<Encode query, Pa. \ref{pa:util}>>
     //<<Set \ty{post} form data, Pa. \ref{pa:util}>>
     //<<Create \ty{post} request, Pa. \ref{pa:util}>>

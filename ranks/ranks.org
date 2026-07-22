@@ -749,7 +749,7 @@ specify a specific database.
 #+begin_src go <<Test without options, Pr. \ref{pr:ran}>>=
   test := exec.Command(pr, ta, db)
   tests = append(tests, test)
-  test = exec.Command(pr, "-D", "test", ta, db)
+  test = exec.Command(pr, "-D", "test.db", ta)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -768,7 +768,7 @@ The genomes list is contained in file \ty{genomes.txt}.
 #+begin_src go <<Test \ty{-g}, Pr. \ref{pr:ran}>>=
 test = exec.Command(pr, "-g", "genomes.txt", ta, db)
 tests = append(tests, test)
-test = exec.Command(pr, "-D", "test", "-g", "genomes.txt", ta, db)
+test = exec.Command(pr, "-D", "test.db", "-g", "genomes.txt", ta)
 tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -777,7 +777,7 @@ We list the genomes.
 #+begin_src go <<Test \ty{-l}, Pr. \ref{pr:ran}>>=
   test = exec.Command(pr, "-l", ta, db)
   tests = append(tests, test)
-  test = exec.Command(pr, "-D", "test", "-l", ta, db)
+  test = exec.Command(pr, "-D", "test.db", "-l", ta)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -786,7 +786,7 @@ We restrict the search to complete genomes.
 #+begin_src go <<Test \ty{-L}, Pr. \ref{pr:ran}>>=
   test = exec.Command(pr, "-L", "complete", ta, db)
   tests = append(tests, test)
-  test = exec.Command(pr, "-D", "test", "-L", "complete", ta, db)
+  test = exec.Command(pr, "-D", "test.db", "-L", "complete", ta)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -795,7 +795,7 @@ We test tabular output.
 #+begin_src go <<Test \ty{-t}, Pr. \ref{pr:ran}>>=
   test = exec.Command(pr, "-t", ta, db)
   tests = append(tests, test)
-  test = exec.Command(pr, "-D", "test", "-t", ta, db)
+  test = exec.Command(pr, "-D", "test.db", "-t", ta)
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
