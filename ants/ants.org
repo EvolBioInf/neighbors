@@ -60,8 +60,9 @@ We import \ty{util}.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:ant}>>=
   var optV = flag.Bool("v", false, "version")
-	var optR = flag.Bool("r", false, "remote execution (implies db)")
-  var optDD = flag.String("D", "", "name of remote database (implies remote execution)")
+  var optR = flag.Bool("r", false, "remote execution (implies db)")
+  var optDD = flag.String("D", "", "name of remote database" +
+	  "(implies remote execution)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -101,16 +102,18 @@ We import \ty{util}.
 #+end_src
 #+begin_src go <<Act on remote switch, Pr. \ref{pr:tax}>>=
   if *optR || *optDD != "" {
-    //<<Set misc arguments, Pr. \ref{pr:ant}>>
-    options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
-    resp := util.SendGetRequest(
-      "api/v2/programs/ants",
-			util.SanitizeArguments(os.Args[1:], options),
-      []string{},
-      misc,
-    )
-    fmt.Print(resp)
-    return
+	  //<<Set misc arguments, Pr. \ref{pr:ant}>>
+	  options := []util.Option{
+		  {Name: "r", WithValue: false},
+		  {Name: "D", WithValue: true}}
+	  resp := util.SendGetRequest(
+		  "api/v2/programs/ants",
+		  util.SanitizeArguments(os.Args[1:], options),
+		  []string{},
+		  misc,
+	  )
+	  fmt.Print(resp)
+	  return
   }
 #+end_src
 #+begin_export latex
@@ -120,7 +123,7 @@ We import \ty{util}.
 #+begin_src go <<Set misc arguments, Pr. \ref{pr:ant}>>=
   misc := map[string]string{}
   if *optDD != "" {
-    misc["db"] = *optDD
+	  misc["db"] = *optDD
   }
 #+end_src
 #+begin_src latex
@@ -143,7 +146,7 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   We open a database connection and store the taxon-ID as the first
-  ``ancestor''.  Then we get its parent. As long as the parent differs
+  ``ancestor''. Then we get its parent. As long as the parent differs
   from the current taxon, we haven't yet reached the root and keep
   climbing.
 #+end_src
@@ -216,8 +219,8 @@ We import \ty{util}.
 #+end_src
 #+begin_src go <<Testing types, Pr. \ref{pr:ant}>>=
   type Test struct {
-    t *exec.Cmd
-    r int
+	  t *exec.Cmd
+	  r int
   }
 #+end_src
 #+begin_src latex
@@ -245,7 +248,8 @@ We import \ty{util}.
   db := "../data/test.db"
   test := Test{t: exec.Command("./cmd/ants", tid, db), r: 1}
   tests = append(tests, test)
-  test = Test{t: exec.Command("./cmd/ants", "-D", "test.db", tid, db), r: 1}
+  test = Test{t: exec.Command("./cmd/ants", "-D", "test.db",
+	  tid, db), r: 1}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

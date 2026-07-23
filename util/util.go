@@ -126,7 +126,9 @@ func Quartiles(data []float64) *Quart {
 }
 
 // The function SendGetRequest takes as argument a url path as a string and the program's options and extra arguments as string slices, as well as miscellaneous arguments as a map. It sends a get request using these values to never at neighbors.evolbio.mpg.de and returns the result.
-func SendGetRequest(address string, options, extraArgs []string, miscArgs map[string]string) string {
+func SendGetRequest(address string, options, extraArgs []string,
+	miscArgs map[string]string) string {
+
 	address = "https://neighbors.evolbio.mpg.de/" + address
 	qb := new(strings.Builder)
 	urlEncodeSlice(qb, options, "options")

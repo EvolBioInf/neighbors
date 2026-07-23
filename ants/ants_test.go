@@ -19,7 +19,8 @@ func TestAnts(t *testing.T) {
 	db := "../data/test.db"
 	test := Test{t: exec.Command("./cmd/ants", tid, db), r: 1}
 	tests = append(tests, test)
-	test = Test{t: exec.Command("./cmd/ants", "-D", "test.db", tid, db), r: 1}
+	test = Test{t: exec.Command("./cmd/ants", "-D", "test.db",
+		tid, db), r: 1}
 	tests = append(tests, test)
 	for _, test := range tests {
 		get, err := test.t.Output()

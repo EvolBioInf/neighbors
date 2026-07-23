@@ -92,7 +92,8 @@ We import \ty{util}.
   optLL := flag.String("L", "", util.LevelMsg())
   optO := flag.Bool("o", false, "output only targets")
   optR := flag.Bool("r", false, "remote execution (implies db)")
-  optDD := flag.String("D", "", "name of remote database (implies remote execution)")
+  optDD := flag.String("D", "", "name of remote database" +
+	  "(implies remote execution)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -131,11 +132,11 @@ We import \ty{util}.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:neig}>>=
   if *optR || *optDD != "" {
-    //<<Get program options, Pr. \ref{pr:neig}>>
-    //<<Check for extra arguments, Pr. \ref{pr:neig}>>
-    //<<Set misc arguments, Pr. \ref{pr:neig}>>
-    //<<Send request, Pr. \ref{pr:neig}>>
-    //<<Print response, Pr. \ref{pr:neig}>>
+	  //<<Get program options, Pr. \ref{pr:neig}>>
+	  //<<Check for extra arguments, Pr. \ref{pr:neig}>>
+	  //<<Set misc arguments, Pr. \ref{pr:neig}>>
+	  //<<Send request, Pr. \ref{pr:neig}>>
+	  //<<Print response, Pr. \ref{pr:neig}>>
   }
 #+end_src
 #+begin_src latex
@@ -145,9 +146,12 @@ We import \ty{util}.
   to sanitize these arguments, removing \ty{-r} and \ty{-D}.
 #+end_src
 #+begin_src go <<Get program options, Pr. \ref{pr:neig}>>=
-	u := flag.NArg()
-  options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
-	callArgs := util.SanitizeArguments(os.Args[1 : len(os.Args)-u], options)
+  u := flag.NArg()
+  options := []util.Option{
+	  {Name: "r", WithValue: false},
+	  {Name: "D", WithValue: true}}
+  callArgs := util.SanitizeArguments(os.Args[1 : len(os.Args)-u],
+	  options)
 #+end_src
 #+begin_src latex
   If there are unparsed arguments, they are files we need to send using a post
@@ -162,16 +166,16 @@ We import \ty{util}.
   var files []*os.File
   var stdin *os.File
   filenames := flag.Args()
-	filenames = util.SanitizeArguments(filenames, []util.Option{})
+  filenames = util.SanitizeArguments(filenames, []util.Option{})
   sendPost := true
   if len(filenames) == 0 {
-    //<<Handle stdin, Pr. \ref{pr:neig}>>
+	  //<<Handle stdin, Pr. \ref{pr:neig}>>
   } else {
-    for _, filename := range filenames {
-      file := util.Open(filename)
-      defer file.Close()
-      files = append(files, file)
-    }
+	  for _, filename := range filenames {
+		  file := util.Open(filename)
+		  defer file.Close()
+		  files = append(files, file)
+	  }
   }
 #+end_src
 #+begin_src latex
@@ -183,9 +187,9 @@ We import \ty{util}.
   inf, err := os.Stdin.Stat()
   util.Check(err)
   if (inf.Mode() & os.ModeCharDevice == 0) {
-    stdin = os.Stdin
+	  stdin = os.Stdin
   } else {
-    sendPost = false
+	  sendPost = false
   }
 #+end_src
 #+begin_export latex
@@ -195,7 +199,7 @@ We import \ty{util}.
 #+begin_src go <<Set misc arguments, Pr. \ref{pr:neig}>>=
   misc := map[string]string{}
   if *optDD != "" {
-    misc["db"] = *optDD
+	  misc["db"] = *optDD
   }
 #+end_src
 #+begin_src latex
@@ -208,19 +212,19 @@ We import \ty{util}.
   var resp string
   if sendPost {
 	  resp = util.SendPostRequest(
-	  	"api/v2/programs/neighbors",
-	  	callArgs,
-      filenames,
-      misc,
-      files,
-      stdin,
+		  "api/v2/programs/neighbors",
+		  callArgs,
+		  filenames,
+		  misc,
+		  files,
+		  stdin,
 	  )
   } else {
 	  resp = util.SendGetRequest(
-	  	"api/v2/programs/neighbors",
-	  	callArgs,
-      []string{},
-      misc,
+		  "api/v2/programs/neighbors",
+		  callArgs,
+		  []string{},
+		  misc,
 	  )
   }
 #+end_src
@@ -758,8 +762,8 @@ taxon-ID, name, and genomes.
 #+end_src
 #+begin_src go <<Testing types, Pr. \ref{pr:neig}>>=
   type Test struct {
-    t *exec.Cmd
-    r int
+	  t *exec.Cmd
+	  r int
   }
 #+end_src
 #+begin_src latex
@@ -775,9 +779,9 @@ taxon-ID, name, and genomes.
   var tests []Test
   //<<Construct tests, Pr. \ref{pr:neig}>>
   for i, test := range tests {
-    if i < 16 {
-	    //<<Run test, Pr. \ref{pr:neig}>>
-    }
+	  if i < 16 {
+		  //<<Run test, Pr. \ref{pr:neig}>>
+	  }
   }
 #+end_src
 #+begin_src latex
@@ -792,7 +796,8 @@ taxon-ID, name, and genomes.
 	  in := "tid" + strconv.Itoa(i) + ".txt"
 	  test := Test{t: exec.Command(p, db, in), r: i}
 	  tests = append(tests, test)
-	  test = Test{t: exec.Command(p, "-D", "test.db", in), r: i}
+	  test = Test{t: exec.Command(p, "-D", "test.db", in),
+	  r: i}
 	  tests = append(tests, test)
   }
   //<<Test options, Pr. \ref{pr:neig}>>
@@ -822,7 +827,8 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
 #+begin_src go <<Test \ty{-l}, Pr. \ref{pr:neig}>>=
   test := Test{t: exec.Command(p, "-l", db, "tid4.txt"), r: 5}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-l", "tid4.txt"), r: 5}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-l", "tid4.txt"), r: 5}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -832,7 +838,8 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
 #+begin_src go <<Test \ty{-g}, Pr. \ref{pr:neig}>>=
   test = Test{t: exec.Command(p, "-g", db, "tid4.txt"), r: 6}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-g", "tid4.txt"), r: 6}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-g", "tid4.txt"), r: 6}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -841,7 +848,8 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
 #+begin_src go <<Test \ty{-T}, Pr. \ref{pr:neig}>>=
   test = Test{t: exec.Command(p, "-T", db, "tid4.txt"), r: 7}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-T", "tid4.txt"), r: 7}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-T", "tid4.txt"), r: 7}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -851,13 +859,14 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
 #+begin_src go <<Test \ty{-t}, Pr. \ref{pr:neig}>>=
   test = Test{t: exec.Command(p, "-t", "9606", db), r: 8}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-t", "9606"), r: 8}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-t", "9606"), r: 8}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-t",
 	  "9606,9605", db), r: 9}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-t",
-	  "9606,9605", db), r: 9}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-t", "9606,9605", db), r: 9}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex
@@ -868,14 +877,14 @@ We test the list option, \ty{-l}, on \ty{tid4.txt}.
   test = Test{t: exec.Command(p, "-t", "9606",
 	  "-L", "complete", db), r: 10}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-t", "9606",
-	  "-L", "complete", db), r: 10}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-t", "9606", "-L", "complete", db), r: 10}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-t", "9606",
 	  "-L", "complete,chromosome", db), r: 11}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-t", "9606",
-	  "-L", "complete,chromosome", db), r: 11}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-t", "9606", "-L", "complete,chromosome", db), r: 11}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

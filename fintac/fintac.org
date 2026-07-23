@@ -160,8 +160,10 @@ We import \ty{clio}.
   optHH := flag.String("H", "", "hierarchical matching " +
 	  "for targets and neighbors " +
 	  "using a neighbors database")
-	optR := flag.Bool("r", false, "remote execution (implies hierarchical matching)")
-  optDD := flag.String("D", "", "name of remote database (implies remote execution)")
+  optR := flag.Bool("r", false, "remote execution" +
+	  "(implies hierarchical matching)")
+  optDD := flag.String("D", "", "name of remote database" +
+	  "(implies remote execution)")
 #+end_src
 #+begin_src latex
 We import \ty{flag}.
@@ -201,11 +203,11 @@ We parse the options.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:fit}>>=
   if *optR || *optDD != "" {
-    //<<Determine query arguments, Pr. \ref{pr:fit}>>
-    //<<Get files, Pr. \ref{pr:fit}>>
-    //<<Set misc arguments, Pr. \ref{pr:fit}>>
-    //<<Send request, Pr. \ref{pr:fit}>>
-    //<<Print response, Pr. \ref{pr:fit}>>
+	  //<<Determine query arguments, Pr. \ref{pr:fit}>>
+	  //<<Get files, Pr. \ref{pr:fit}>>
+	  //<<Set misc arguments, Pr. \ref{pr:fit}>>
+	  //<<Send request, Pr. \ref{pr:fit}>>
+	  //<<Print response, Pr. \ref{pr:fit}>>
   }
 #+end_src
 #+begin_src latex
@@ -215,9 +217,13 @@ We parse the options.
   arguments, removing \ty{-r}, \ty{-D} and \ty{-H}.
 #+end_src
 #+begin_src go <<Determine query arguments, Pr. \ref{pr:fit}>>=
-  u := 	flag.NArg()
-  options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}, {Name: "H", WithValue: true}}
-  callArgs := util.SanitizeArguments(os.Args[1:len(os.Args) - u], options)
+  u := flag.NArg()
+  options := []util.Option{
+	  {Name: "r", WithValue: false},
+	  {Name: "D", WithValue: true},
+	  {Name: "H", WithValue: true}}
+  callArgs := util.SanitizeArguments(os.Args[1:len(os.Args) - u],
+	  options)
 #+end_src
 #+begin_src latex
   All the call arguments, that remain in \ty{flag.Args}
@@ -227,9 +233,9 @@ We parse the options.
   var files []*os.File
   filenames := flag.Args()
   for _, filename := range filenames {
-    file := util.Open(filename)
-    defer file.Close()
-    files = append(files, file)
+	  file := util.Open(filename)
+	  defer file.Close()
+	  files = append(files, file)
   }
   //<<Set stdin, Pr. \ref{pr:fit}>>
 #+end_src
@@ -242,11 +248,11 @@ We parse the options.
   piped to it or if it's going to listen on the command line.
 #+end_src
 #+begin_src go <<Set stdin, Pr. \ref{pr:fit}>>=
-	var stdin *os.File
+  var stdin *os.File
   inf, err := os.Stdin.Stat()
-	util.Check(err)
-	if inf.Mode()&os.ModeCharDevice == 0 {
-		stdin = os.Stdin
+  util.Check(err)
+  if inf.Mode()&os.ModeCharDevice == 0 {
+	  stdin = os.Stdin
   }
 #+end_src
 #+begin_export latex
@@ -256,7 +262,7 @@ We parse the options.
 #+begin_src go <<Set misc arguments, Pr. \ref{pr:fit}>>=
   misc := map[string]string{}
   if *optDD != "" {
-    misc["db"] = *optDD
+	  misc["db"] = *optDD
   }
 #+end_src
 #+begin_src latex
@@ -268,14 +274,14 @@ We parse the options.
   files were passed with the extra arguments.
 #+end_src
 #+begin_src go <<Send request, Pr. \ref{pr:fit}>>=
-	resp := util.SendPostRequest(
-		"api/v2/programs/fintac",
-		callArgs,
-    filenames,
-    misc,
-    files,
-    stdin,
-	)
+  resp := util.SendPostRequest(
+	  "api/v2/programs/fintac",
+	  callArgs,
+	  filenames,
+	  misc,
+	  files,
+	  stdin,
+  )
 #+end_src
 #+begin_src latex
   We stop program execution with a return,
@@ -725,11 +731,11 @@ We make sure all internal nodes are labeled.
 #+end_src
 #+begin_src go <<Calculate split scores, Pr. \ref{pr:fit}>>=
   for _, count := range counts {
-  	van := nn - float64(count.vn)
-  	vau := nu - float64(count.vu)
-  	vt := float64(count.vt)
-  	count.sv = (vt + van + math.Log(vau +1)) /
-  		(nt + nn + math.Log(nu+1.0)) * 100.0
+	  van := nn - float64(count.vn)
+	  vau := nu - float64(count.vu)
+	  vt := float64(count.vt)
+	  count.sv = (vt + van + math.Log(vau +1)) /
+		  (nt + nn + math.Log(nu+1.0)) * 100.0
   }
 #+end_src
 #+begin_export latex

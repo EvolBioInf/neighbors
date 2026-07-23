@@ -195,15 +195,19 @@ func Run() {
 	optLL := flag.String("L", "", util.LevelMsg())
 	optO := flag.Bool("o", false, "output only targets")
 	optR := flag.Bool("r", false, "remote execution (implies db)")
-	optDD := flag.String("D", "", "name of remote database (implies remote execution)")
+	optDD := flag.String("D", "", "name of remote database"+
+		"(implies remote execution)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("neighbors")
 	}
 	if *optR || *optDD != "" {
 		u := flag.NArg()
-		options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
-		callArgs := util.SanitizeArguments(os.Args[1:len(os.Args)-u], options)
+		options := []util.Option{
+			{Name: "r", WithValue: false},
+			{Name: "D", WithValue: true}}
+		callArgs := util.SanitizeArguments(os.Args[1:len(os.Args)-u],
+			options)
 		var files []*os.File
 		var stdin *os.File
 		filenames := flag.Args()

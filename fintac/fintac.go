@@ -211,16 +211,22 @@ func Run() {
 	optHH := flag.String("H", "", "hierarchical matching "+
 		"for targets and neighbors "+
 		"using a neighbors database")
-	optR := flag.Bool("r", false, "remote execution (implies hierarchical matching)")
-	optDD := flag.String("D", "", "name of remote database (implies remote execution)")
+	optR := flag.Bool("r", false, "remote execution"+
+		"(implies hierarchical matching)")
+	optDD := flag.String("D", "", "name of remote database"+
+		"(implies remote execution)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("fintac")
 	}
 	if *optR || *optDD != "" {
 		u := flag.NArg()
-		options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}, {Name: "H", WithValue: true}}
-		callArgs := util.SanitizeArguments(os.Args[1:len(os.Args)-u], options)
+		options := []util.Option{
+			{Name: "r", WithValue: false},
+			{Name: "D", WithValue: true},
+			{Name: "H", WithValue: true}}
+		callArgs := util.SanitizeArguments(os.Args[1:len(os.Args)-u],
+			options)
 		var files []*os.File
 		filenames := flag.Args()
 		for _, filename := range filenames {

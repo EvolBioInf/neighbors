@@ -10,7 +10,7 @@
   package util
 
   import (
-    //<<Imports, Pa. \ref{pa:util}>>
+	  //<<Imports, Pa. \ref{pa:util}>>
   )
   //<<Types, Pa. \ref{pa:util}>>
   //<<Variables, Pa. \ref{pa:util}>>
@@ -23,13 +23,13 @@
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func PrintInfo(program string) {
-    author := "EvolBioInf"
-    email := "haubold|mourato@evolbio.mpg.de"
-    license := "Gnu General Public License, " +
-      "https://www.gnu.org/licenses/gpl.html"
-    clio.PrintInfo(program, version, date,
-      author, email, license)
-    os.Exit(0)
+	  author := "EvolBioInf"
+	  email := "haubold|mourato@evolbio.mpg.de"
+	  license := "Gnu General Public License, " +
+		  "https://www.gnu.org/licenses/gpl.html"
+	  clio.PrintInfo(program, version, date,
+		  author, email, license)
+	  os.Exit(0)
   }
 #+end_src
 #+begin_src latex
@@ -52,13 +52,13 @@
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func Open(file string) *os.File {
-    f, err := os.Open(file)
-    if err != nil {
-      fmt.Fprintf(os.Stderr, "couldn't open %s\n",
-        file)
-      os.Exit(1)
-    }
-    return f
+	  f, err := os.Open(file)
+	  if err != nil {
+		  fmt.Fprintf(os.Stderr, "couldn't open %s\n",
+			  file)
+		  os.Exit(1)
+	  }
+	  return f
   }
 #+end_src
 #+begin_src latex
@@ -74,9 +74,9 @@
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func Check(err error) {
-    if err != nil {
-      log.Fatal(err)
-    }
+	  if err != nil {
+		  log.Fatal(err)
+	  }
   }
 #+end_src
 #+begin_export latex
@@ -93,10 +93,10 @@ package to print that name in the event of an error message.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func SetName(n string) {
-    name = n
-    s := fmt.Sprintf("%s: ", n)
-    log.SetPrefix(s)
-    log.SetFlags(0)
+	  name = n
+	  s := fmt.Sprintf("%s: ", n)
+	  log.SetPrefix(s)
+	  log.SetFlags(0)
   }
 #+end_src
 #+begin_export latex
@@ -113,7 +113,7 @@ We declare the global string variable \ty{name}.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func Version() {
-    PrintInfo(name)
+	  PrintInfo(name)
   }
 #+end_src
 #+begin_src latex
@@ -126,15 +126,15 @@ We declare the global string variable \ty{name}.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func LevelMsg() string {
-    levels := assemblyLevels
-    m := "assembly-level: comma-delimited combination " +
-      "of " +	levels[0]
-    for i := 1; i < len(levels)-1; i++ {
-      m += ", " + levels[i]
-    }
-    m += ", or " + levels[len(levels)-1]
-    m += " (default any)"
-    return m
+	  levels := assemblyLevels
+	  m := "assembly-level: comma-delimited combination " +
+		  "of " + levels[0]
+	  for i := 1; i < len(levels)-1; i++ {
+		  m += ", " + levels[i]
+	  }
+	  m += ", or " + levels[len(levels)-1]
+	  m += " (default any)"
+	  return m
   }
 #+end_src
 #+begin_export latex
@@ -143,9 +143,9 @@ levels.
 #+end_export
 #+begin_src go <<Variables, Pa. \ref{pa:util}>>=
   var assemblyLevels = []string{"complete",
-    "chromosome",
-    "scaffold",
-    "contig"}
+	  "chromosome",
+	  "scaffold",
+	  "contig"}
 #+end_src
 #+begin_export latex
 \section{\ty{Quartiles}}
@@ -161,15 +161,15 @@ levels.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func Quartiles(data []float64) *Quart {
-    q := new(Quart)
-    sort.Float64s(data)
-    //<<Determine median, Pa. \ref{pa:util}>>
-    //<<Determine lower quartile, Pa. \ref{pa:util}>>
-    //<<Determin upper quartile, Pa. \ref{pa:util}>>
-    //<<Determine interquartile range, Pa. \ref{pa:util}>>
-    //<<Determine inner fences, Pa. \ref{pa:util}>>
-    //<<Determine outer fences, Pa. \ref{pa:util}>>
-    return q
+	  q := new(Quart)
+	  sort.Float64s(data)
+	  //<<Determine median, Pa. \ref{pa:util}>>
+	  //<<Determine lower quartile, Pa. \ref{pa:util}>>
+	  //<<Determin upper quartile, Pa. \ref{pa:util}>>
+	  //<<Determine interquartile range, Pa. \ref{pa:util}>>
+	  //<<Determine inner fences, Pa. \ref{pa:util}>>
+	  //<<Determine outer fences, Pa. \ref{pa:util}>>
+	  return q
   }
 #+end_src
 #+begin_src latex
@@ -194,13 +194,13 @@ We store these values in the structure \ty{Quart}.
 #+end_export
 #+begin_src go <<Types, Pa. \ref{pa:util}>>=
   type Quart struct {
-    LowerOuterFence float64
-    LowerInnerFence float64
-    LowerQuartile   float64
-    Median          float64
-    UpperQuartile   float64
-    UpperInnerFence float64
-    UpperOuterFence float64
+	  LowerOuterFence float64
+	  LowerInnerFence float64
+	  LowerQuartile   float64
+	  Median          float64
+	  UpperQuartile   float64
+	  UpperInnerFence float64
+	  UpperOuterFence float64
   }
 #+end_src
 #+begin_src latex
@@ -212,7 +212,7 @@ We store these values in the structure \ty{Quart}.
   m := (n+1) / 2
   q.Median = data[m-1]
   if n % 2 == 0 {
-    q.Median = (q.Median + data[m]) / 2.0
+	  q.Median = (q.Median + data[m]) / 2.0
   }
 #+end_src
 #+begin_src latex
@@ -272,12 +272,14 @@ We import \ty{math}.
   !to \ty{never} at \ty{neighbors.evolbio.mpg.de} and returns the result.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func SendGetRequest(address string, options, extraArgs []string, miscArgs map[string]string) string {
-    address = "https://neighbors.evolbio.mpg.de/" + address
-    //<<Encode query, Pa. \ref{pa:util}>>
-    //<<Create \ty{get} request, Pa. \ref{pa:util}>>
-    //<<Execute request, Pa. \ref{pa:util}>>
-    //<<Parse response, Pa. \ref{pa:util}>>
+  func SendGetRequest(address string, options, extraArgs []string,
+	  miscArgs map[string]string) string {
+
+	  address = "https://neighbors.evolbio.mpg.de/" + address
+	  //<<Encode query, Pa. \ref{pa:util}>>
+	  //<<Create \ty{get} request, Pa. \ref{pa:util}>>
+	  //<<Execute request, Pa. \ref{pa:util}>>
+	  //<<Parse response, Pa. \ref{pa:util}>>
   }
 #+end_src
 #+begin_export latex
@@ -289,16 +291,16 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func urlEncodeSlice(qb *strings.Builder, slc []string, paramName string) {
-    for _, v := range slc {
-      if qb.Len() == 0 {
-        qb.WriteRune('?')
-      } else {
-        qb.WriteRune('&')
-      }
-      qb.WriteString(paramName)
-      qb.WriteRune('=')
-      qb.WriteString(url.QueryEscape(v))
-    }
+	  for _, v := range slc {
+		  if qb.Len() == 0 {
+			  qb.WriteRune('?')
+		  } else {
+			  qb.WriteRune('&')
+		  }
+		  qb.WriteString(paramName)
+		  qb.WriteRune('=')
+		  qb.WriteString(url.QueryEscape(v))
+	  }
   }
 #+end_src
 #+begin_export latex
@@ -325,14 +327,14 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Encode misc args, Pa. \ref{pa:util}>>=
   for m, a := range miscArgs {
-    if qb.Len() == 0 {
-      qb.WriteRune('?')
-    } else {
-      qb.WriteRune('&')
-    }
-    qb.WriteString(url.QueryEscape(m))
-    qb.WriteRune('=')
-    qb.WriteString(url.QueryEscape(a))
+	  if qb.Len() == 0 {
+		  qb.WriteRune('?')
+	  } else {
+		  qb.WriteRune('&')
+	  }
+	  qb.WriteString(url.QueryEscape(m))
+	  qb.WriteRune('=')
+	  qb.WriteString(url.QueryEscape(a))
   }
 #+end_src
 #+begin_export latex
@@ -384,13 +386,13 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func SendPostRequest(address string, options, extraArgs []string, miscArgs map[string]string, files []*os.File, stdin *os.File) string {
-    address = "https://neighbors.evolbio.mpg.de/" + address
-    //<<Encode query, Pa. \ref{pa:util}>>
-    //<<Set \ty{post} form data, Pa. \ref{pa:util}>>
-    //<<Create \ty{post} request, Pa. \ref{pa:util}>>
-    //<<Write \ty{post} headers, Pa. \ref{pa:util}>>
-    //<<Execute request, Pa. \ref{pa:util}>>
-    //<<Parse response, Pa. \ref{pa:util}>>
+	  address = "https://neighbors.evolbio.mpg.de/" + address
+	  //<<Encode query, Pa. \ref{pa:util}>>
+	  //<<Set \ty{post} form data, Pa. \ref{pa:util}>>
+	  //<<Create \ty{post} request, Pa. \ref{pa:util}>>
+	  //<<Write \ty{post} headers, Pa. \ref{pa:util}>>
+	  //<<Execute request, Pa. \ref{pa:util}>>
+	  //<<Parse response, Pa. \ref{pa:util}>>
   }
 #+end_src
 #+begin_export latex
@@ -403,8 +405,8 @@ We import \ty{math}.
   var b bytes.Buffer
   w := multipart.NewWriter(&b)
   for i, file := range files {
-    //<<Create entry in writer, Pa. \ref{pa:util}>>
-    //<<Copy content, Pa. \ref{pa:util}>>
+	  //<<Create entry in writer, Pa. \ref{pa:util}>>
+	  //<<Copy content, Pa. \ref{pa:util}>>
   }
   //<<Add stdin to writer, Pa. \ref{pa:util}>>
   w.Close()
@@ -444,8 +446,8 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Add stdin to writer, Pa. \ref{pa:util}>>=
   if stdin != nil {
-    fw, err := w.CreateFormFile("stdin", "stdin")
-    Check(err)
+	  fw, err := w.CreateFormFile("stdin", "stdin")
+	  Check(err)
 	  _, err = io.Copy(fw, stdin)
 	  Check(err)
   }
@@ -477,8 +479,8 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Types, Pa. \ref{pa:util}>>=
   type Option struct {
-    Name      string
-    WithValue bool
+	  Name      string
+	  WithValue bool
   }
 #+end_src
 #+begin_export latex
@@ -488,12 +490,12 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func SanitizeArguments(args []string, options []Option) []string {
-    c := slices.Clone(args)
-    for _, o := range options {
-      c = removeOption(c, o)
-    }
-    //<<Remove database reference, Pa. \ref{pa:util}>>
-    return c
+	  c := slices.Clone(args)
+	  for _, o := range options {
+		  c = removeOption(c, o)
+	  }
+	  //<<Remove database reference, Pa. \ref{pa:util}>>
+	  return c
   }
 #+end_src
 
@@ -503,13 +505,13 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func removeOption(args []string, option Option) []string {
-    //<<Define options, Pa. \ref{pa:util}>>
-    if option.WithValue {
-      //<<Remove option with value, Pa. \ref{pa:util}>>
-    } else {
-      //<<Remove option, Pa. \ref{pa:util}>>
-    }
-    return args
+	  //<<Define options, Pa. \ref{pa:util}>>
+	  if option.WithValue {
+		  //<<Remove option with value, Pa. \ref{pa:util}>>
+	  } else {
+		  //<<Remove option, Pa. \ref{pa:util}>>
+	  }
+	  return args
   }
 #+end_src
 #+begin_export latex
@@ -526,9 +528,9 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Remove option with value, Pa. \ref{pa:util}>>=
   for i := len(args)-1; i >= 0; i-- {
-    if args[i] == sOption || args[i] == dOption {
-			args = append(args[:i], args[i+2:]...)
-    }
+	  if args[i] == sOption || args[i] == dOption {
+		  args = append(args[:i], args[i+2:]...)
+	  }
   }
 #+end_src
 #+begin_export latex
@@ -552,7 +554,7 @@ We import \ty{math}.
 #+begin_src go <<Remove database reference, Pa. \ref{pa:util}>>=
   var dbArgs []int
   for i, a := range c {
-    //<<Check if arg is database, Pa. \ref{pa:util}>>
+	  //<<Check if arg is database, Pa. \ref{pa:util}>>
   }
   //<<Delete elements, Pa. \ref{pa:util}>>
 #+end_src
@@ -568,9 +570,9 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Check if arg is database, Pa. \ref{pa:util}>>=
   if a[0] != '-' {
-    //<<Check if is file, Pa. \ref{pa:util}>>
-    //<<Read first bytes, Pa. \ref{pa:util}>>
-    //<<Compare to header, Pa. \ref{pa:util}>>
+	  //<<Check if is file, Pa. \ref{pa:util}>>
+	  //<<Read first bytes, Pa. \ref{pa:util}>>
+	  //<<Compare to header, Pa. \ref{pa:util}>>
   }
 #+end_src
 #+begin_export latex
@@ -580,7 +582,7 @@ We import \ty{math}.
 #+begin_src go <<Check if is file, Pa. \ref{pa:util}>>=
   f, err := os.Open(a)
   if err != nil {
-    continue
+	  continue
   }
 #+end_src
 #+begin_export latex
@@ -596,7 +598,7 @@ We import \ty{math}.
 #+begin_src go <<Compare to header, Pa. \ref{pa:util}>>=
   fileHeader := []byte{0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00}
   if bytes.Equal(h, fileHeader) {
-    dbArgs = append(dbArgs, i)
+	  dbArgs = append(dbArgs, i)
   }
 #+end_src
 #+begin_export latex
@@ -605,7 +607,7 @@ We import \ty{math}.
 #+end_export
 #+begin_src go <<Delete elements, Pa. \ref{pa:util}>>=
   for i := len(dbArgs) - 1; i >= 0; i-- {
-    c = append(c[:dbArgs[i]], c[dbArgs[i]+1:]...)
+	  c = append(c[:dbArgs[i]], c[dbArgs[i]+1:]...)
   }
 #+end_src
 
@@ -619,12 +621,12 @@ We import \ty{math}.
   package util
 
   import (
-    "testing"
-    //<<Testing imports, Pa. \ref{pa:util}>>
+	  "testing"
+	  //<<Testing imports, Pa. \ref{pa:util}>>
   )
 
   func TestUtil(t *testing.T) {
-    //<<Testing, Pa. \ref{pa:util}>>
+	  //<<Testing, Pa. \ref{pa:util}>>
   }
 #+end_src
 #+begin_src latex
@@ -646,12 +648,12 @@ We import \ty{math}.
   defer f.Close()
   sc := bufio.NewScanner(f)
   if !sc.Scan() {
-    t.Error("scan failed")
+	  t.Error("scan failed")
   }
   get := sc.Text()
   want := "success"
   if get != want {
-    t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+	  t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
   }
 #+end_src
 #+begin_src latex
@@ -668,9 +670,9 @@ We import \ty{math}.
   m := "user message does not match level %q"
   msg := LevelMsg()
   for _, level := range assemblyLevels {
-    if !strings.Contains(msg, level) {
-      t.Errorf(m, level)
-    }
+	  if !strings.Contains(msg, level) {
+		  t.Errorf(m, level)
+	  }
   }
 #+end_src
 #+begin_src latex
@@ -687,10 +689,10 @@ compare the results we get to the results we want.
   data := []float64{30, 171, 184, 201}
   q := Quartiles(data)
   wr := []float64{-329.25, -132, 65.25, 177.5,
-    196.75, 394, 591.25}
+	  196.75, 394, 591.25}
   gr := []float64{q.LowerOuterFence, q.LowerInnerFence,
-    q.LowerQuartile, q.Median, q.UpperQuartile,
-    q.UpperInnerFence, q.UpperOuterFence}
+	  q.LowerQuartile, q.Median, q.UpperQuartile,
+	  q.UpperInnerFence, q.UpperOuterFence}
   //<<Compare results, Pa. \ref{pa:util}>>
 #+end_src
 #+begin_export latex
@@ -699,10 +701,10 @@ error.
 #+end_export
 #+begin_src go <<Compare results, Pa. \ref{pa:util}>>=
   for i, w := range wr {
-    if w != gr[i] {
-      t.Errorf("want: %f\nget: %f\n",
-        w, gr[i])
-    }
+	  if w != gr[i] {
+		  t.Errorf("want: %f\nget: %f\n",
+			  w, gr[i])
+	  }
   }
 #+end_src
 #+begin_src latex
@@ -713,24 +715,24 @@ error.
 #+end_src
 #+begin_src go <<Test \ty{SanitizeArguments}, Pa. \ref{pa:util}>>=
   args := []string{"first", "1234", "-t", "-m", "xyz", "-f", "r.txt", "-r",
-    "-p", "1233", "&4982k", "-D", "smth", "fake1.db", "sdlfjk", "fake2.db"}
+	  "-p", "1233", "&4982k", "-D", "smth", "fake1.db", "sdlfjk", "fake2.db"}
   cArgs := slices.Clone(args)
 
   res := SanitizeArguments(args, []Option{
-    {Name: "r", WithValue: false}, 
-    {Name: "D", WithValue: true}, 
-    {Name: "p", WithValue: true},
+	  {Name: "r", WithValue: false}, 
+	  {Name: "D", WithValue: true}, 
+	  {Name: "p", WithValue: true},
   })
   e := []string{"first", "1234", "-t", "-m", "xyz", "-f", "r.txt", "&4982k",
-    "sdlfjk"}
+	  "sdlfjk"}
 
   if !slices.Equal(res, e) {
-  	t.Errorf("want:\n%s\nget:\n%s\n",	e, res)
-	}
+	  t.Errorf("want:\n%s\nget:\n%s\n", e, res)
+  }
 
   if !slices.Equal(args, cArgs) {
-  	t.Errorf("original args changed during processing\n")
-	}
+	  t.Errorf("original args changed during processing\n")
+  }
 #+end_src
 #+begin_export latex
   We import \ty{slices}.

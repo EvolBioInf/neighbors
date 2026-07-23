@@ -99,7 +99,8 @@ We import \ty{util}.
   var optO = flag.Int("o", 0, "offset into taxid list")
   var optT = flag.Bool("t", false, "taxid instead of name")
   var optR = flag.Bool("r", false, "remote execution (implies db)")
-  var optDD = flag.String("D", "", "name of remote database (implies remote execution)")
+  var optDD = flag.String("D", "", "name of remote database" +
+	  "(implies remote execution)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -131,7 +132,7 @@ which contains the version.
 #+end_export
 #+begin_src go <<Respond to \ty{-v}, Pr. \ref{pr:tax}>>=
   if *optV {
-  	  util.PrintInfo("taxi")
+	  util.PrintInfo("taxi")
   }
 #+end_src
 #+begin_src latex
@@ -143,22 +144,22 @@ which contains the version.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:tax}>>=
   if *optR || *optDD != "" {
-    misc := map[string]string{}
-    if *optDD != "" {
-      misc["db"] = *optDD
-    }
-    resp := util.SendGetRequest(
-      "api/v2/programs/taxi",
-			util.SanitizeArguments(
-				os.Args[1:],
-				[]util.Option{
-					{Name: "r", WithValue: false},
-					{Name: "D", WithValue: true}}),
-      []string{},
-      misc,
-    )
-    fmt.Print(resp)
-    return
+	  misc := map[string]string{}
+	  if *optDD != "" {
+		  misc["db"] = *optDD
+	  }
+	  resp := util.SendGetRequest(
+		  "api/v2/programs/taxi",
+		  util.SanitizeArguments(
+			  os.Args[1:],
+			  []util.Option{
+				  {Name: "r", WithValue: false},
+				  {Name: "D", WithValue: true}}),
+		  []string{},
+		  misc,
+		  )
+		  fmt.Print(resp)
+		  return
   }
 #+end_src
 #+begin_export latex
@@ -361,7 +362,7 @@ Our first query is 9606, the taxon-ID for human.
   want, err := ioutil.ReadFile(f)
   if err != nil { t.Error(err) }
   if !bytes.Equal(get, want) {
-  	  t.Errorf("%s - get:\n%s\nwant:\n%s\n", f, get, want)
+	  t.Errorf("%s - get:\n%s\nwant:\n%s\n", f, get, want)
   }
 #+end_src
 #+begin_src latex

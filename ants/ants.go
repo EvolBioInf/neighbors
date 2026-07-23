@@ -20,7 +20,8 @@ func Run() {
 	clio.Usage(u, p, e)
 	var optV = flag.Bool("v", false, "version")
 	var optR = flag.Bool("r", false, "remote execution (implies db)")
-	var optDD = flag.String("D", "", "name of remote database (implies remote execution)")
+	var optDD = flag.String("D", "", "name of remote database"+
+		"(implies remote execution)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("ants")
@@ -31,7 +32,9 @@ func Run() {
 		if *optDD != "" {
 			misc["db"] = *optDD
 		}
-		options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
+		options := []util.Option{
+			{Name: "r", WithValue: false},
+			{Name: "D", WithValue: true}}
 		resp := util.SendGetRequest(
 			"api/v2/programs/ants",
 			util.SanitizeArguments(os.Args[1:], options),

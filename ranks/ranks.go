@@ -84,14 +84,17 @@ func Run() {
 	optG := flag.String("g", "", "read genome accessions "+
 		"from file")
 	optR := flag.Bool("r", false, "remote execution (implies db)")
-	optDD := flag.String("D", "", "name of remote database (implies remote execution)")
+	optDD := flag.String("D", "", "name of remote database"+
+		"(implies remote execution)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("ranks")
 	}
 	if *optR || *optDD != "" {
 		var resp string
-		options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
+		options := []util.Option{
+			{Name: "r", WithValue: false},
+			{Name: "D", WithValue: true}}
 		misc := map[string]string{}
 		if *optDD != "" {
 			misc["db"] = *optDD

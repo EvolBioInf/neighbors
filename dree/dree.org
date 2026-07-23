@@ -174,16 +174,17 @@ We import \ty{util}.
 #+begin_src go <<Declare options, Pr. \ref{pr:dr}>>=
   optV := flag.Bool("v", false, "version")
   optN := flag.Bool("n", false,
-  	  "print names instead of taxon-IDs")
+	  "print names instead of taxon-IDs")
   optG := flag.Bool("g", false,
-  	  "only taxa with genome sequences")
+	  "only taxa with genome sequences")
   optL := flag.Bool("l", false, "list taxa")
   optLL := flag.String("L", "", util.LevelMsg())
   optM := flag.Int("m", -1, "maximum tree level")
   optRR := flag.Bool("R", false, "recursive genome counts in list " +
-  	"(default raw counts)")
+	  "(default raw counts)")
   optR := flag.Bool("r", false, "remote execution (implies db)")
-  optDD := flag.String("D", "", "name of remote database (implies remote execution)")
+  optDD := flag.String("D", "", "name of remote database" +
+	  "(implies remote execution)")
 #+end_src
 #+begin_src latex
   We import \ty{flag}.
@@ -230,16 +231,18 @@ We import \ty{util}.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:dr}>>=
   if *optR || *optDD != "" {
-    //<<Set misc arguments, Pr. \ref{pr:dr}>>
-    options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
-		resp := util.SendGetRequest(
-			"api/v2/programs/dree",
-			util.SanitizeArguments(os.Args[1:], options),
-      []string{},
-      misc,
-		)
-		fmt.Print(resp)
-		return
+	  //<<Set misc arguments, Pr. \ref{pr:dr}>>
+	  options := []util.Option{
+		  {Name: "r", WithValue: false},
+		  {Name: "D", WithValue: true}}
+	  resp := util.SendGetRequest(
+		  "api/v2/programs/dree",
+		  util.SanitizeArguments(os.Args[1:], options),
+		  []string{},
+		  misc,
+	  )
+	  fmt.Print(resp)
+	  return
   }
 #+end_src
 #+begin_export latex
@@ -249,7 +252,7 @@ We import \ty{util}.
 #+begin_src go <<Set misc arguments, Pr. \ref{pr:dr}>>=
   misc := map[string]string{}
   if *optDD != "" {
-    misc["db"] = *optDD
+	  misc["db"] = *optDD
   }
 #+end_src
 #+begin_src latex
@@ -479,7 +482,7 @@ We import \ty{tabwriter}.
   numGenomes := 0
   //<<Count genomes, Pr. \ref{pr:dr}>>
   if !*optG || numGenomes > 0 {
-  	  //<<Print node line, Pr. \ref{pr:dr}>>
+	  //<<Print node line, Pr. \ref{pr:dr}>>
   }
 #+end_src
 #+begin_export latex
@@ -487,15 +490,15 @@ If the user requested recursive genome counts, we provide that.
 #+end_export
 #+begin_src go <<Count genomes, Pr. \ref{pr:dr}>>=
   for level, _ := range levels {
-  	n := 0
-  	var err error
-  	if *optRR {
-  		n, err = neidb.NumGenomesRec(v, level)
-  		util.Check(err)
-  	} else {
-  		n, err = neidb.NumGenomes(v, level)
-  	}
-  	numGenomes += n
+	  n := 0
+	  var err error
+	  if *optRR {
+		  n, err = neidb.NumGenomesRec(v, level)
+		  util.Check(err)
+	  } else {
+		  n, err = neidb.NumGenomes(v, level)
+	  }
+	  numGenomes += n
   }
 #+end_src
 #+begin_export latex
@@ -588,7 +591,7 @@ them as the fifth column.
 	  //<<Testing imports, Pr. \ref{pr:dr}>>
   )
 
-	//<<Testing types, Pr. \ref{pr:dr}>>
+  //<<Testing types, Pr. \ref{pr:dr}>>
 
   func TestDree(t *testing.T) {
 	  //<<Testing, Pr. \ref{pr:dr}>>
@@ -599,8 +602,8 @@ them as the fifth column.
 #+end_src
 #+begin_src go <<Testing types, Pr. \ref{pr:dr}>>=
   type Test struct {
-    t *exec.Cmd
-    r int
+	  t *exec.Cmd
+	  r int
   }
 #+end_src
 #+begin_src latex
@@ -644,7 +647,8 @@ We construct our first test without any options and store it.
 #+begin_src go <<Test without options, Pr. \ref{pr:dr}>>=
   test := Test{t: exec.Command(p, n, d), r: 1}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", n, d), r: 1}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  n, d), r: 1}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -653,7 +657,8 @@ We test the names option, \ty{-n}.
 #+begin_src go <<Test \ty{-n}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-n", n, d), r: 2}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-n", n, d), r: 2}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-n", n, d), r: 2}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -662,7 +667,8 @@ We test the genomes option, \ty{-g}.
 #+begin_src go <<Test \ty{-g}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-g", n, d), r: 3}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-g", n, d), r: 3}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-g", n, d), r: 3}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -672,19 +678,23 @@ and name.
 #+begin_src go <<Test \ty{-l}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-l", n, d), r: 4}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-l", n, d), r: 4}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-l", n, d), r: 4}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-l", "-g", n, d), r: 5}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-l", "-g", n, d), r: 5}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-l", "-g", n, d), r: 5}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-l", "-n", n, d), r: 6}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-l", "-n", n, d), r: 6}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	 "-l", "-n", n, d), r: 6}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-l", "-g", "-n", n, d), r: 7}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-l", "-g", "-n", n, d), r: 7}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-l", "-g", "-n", n, d), r: 7}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -694,11 +704,13 @@ We test \ty{-L}, first with level \emph{complete}, then with levels
 #+begin_src go <<Test \ty{-L}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-L", "complete", n, d), r: 8}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-L", "complete", n, d), r: 8}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-L", "complete", n, d), r: 8}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-L", "complete,chromosome", n, d), r: 9}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-L", "complete,chromosome", n, d), r: 9}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-L", "complete,chromosome", n, d), r: 9}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -708,19 +720,23 @@ We test \ty{-m} with a negative maximum level, ordinary levels 0 and
 #+begin_src go <<Test \ty{-m}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-m", "-2", n, d), r: 10}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-m", "-2", n, d), r: 10}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-m", "-2", n, d), r: 10}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-m", "0", n, d), r: 11}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-m", "0", n, d), r: 11}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-m", "0", n, d), r: 11}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-m", "2", n, d), r: 12}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-m", "2", n, d), r: 12}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-m", "2", n, d), r: 12}
   tests = append(tests, test)
   test = Test{t: exec.Command(p, "-m", "200", n, d), r: 13}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-m", "200", n, d), r: 13}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-m", "200", n, d), r: 13}
   tests = append(tests, test)
 #+end_src
 #+begin_export latex
@@ -730,7 +746,8 @@ listing.
 #+begin_src go <<Test \ty{-R}, Pr. \ref{pr:dr}>>=
   test = Test{t: exec.Command(p, "-R", "-l", n, d), r: 14}
   tests = append(tests, test)
-  test = Test{t: exec.Command(p, "-D", "test.db", "-R", "-l", n, d), r: 14}
+  test = Test{t: exec.Command(p, "-D", "test.db",
+	  "-R", "-l", n, d), r: 14}
   tests = append(tests, test)
 #+end_src
 #+begin_src latex

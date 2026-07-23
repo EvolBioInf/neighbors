@@ -32,7 +32,8 @@ func Run() {
 	optRR := flag.Bool("R", false, "recursive genome counts in list "+
 		"(default raw counts)")
 	optR := flag.Bool("r", false, "remote execution (implies db)")
-	optDD := flag.String("D", "", "name of remote database (implies remote execution)")
+	optDD := flag.String("D", "", "name of remote database"+
+		"(implies remote execution)")
 	flag.Parse()
 	if *optV {
 		util.PrintInfo("dree")
@@ -42,7 +43,9 @@ func Run() {
 		if *optDD != "" {
 			misc["db"] = *optDD
 		}
-		options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
+		options := []util.Option{
+			{Name: "r", WithValue: false},
+			{Name: "D", WithValue: true}}
 		resp := util.SendGetRequest(
 			"api/v2/programs/dree",
 			util.SanitizeArguments(os.Args[1:], options),
