@@ -1,9 +1,9 @@
 #+begin_src latex
   \section*{Introduction}
-  Alot of \ty{neighbors} programs allow remote execution. These use programs
-  use databases provided by the neighbors server \ty{never}. Every programs
-  that provides an option for remote execution also provides an option, which
-  allows to specify a certain database. In order to specify a database, a user
+  A lot of \ty{neighbors'} programs allow remote execution. These programs
+  use databases provided by the \ty{neighbors} server \ty{never}. Every program
+  that provides an option for remote execution also provides an option, for 
+  specifying a certain database. In order to name a specific database, a user
   has to be aware of all available databases. This program does exactly that.
   It queries \ty{never} and prints out all available databases.
 
@@ -93,7 +93,7 @@ which contains the version.
   \ty{GET} request. We use this to inquire \ty{never} for it's databases.
   \ty{SendGetRequest} provides a bunch of arguments, which we don't need. All
   that's necessary is passing the correct address suffix. Passing a 
-  \ty{plain_data} as a misc arg is not necessary, but reduces parsing 
+  \ty{plain\_data} as a misc arg is not necessary, but reduces parsing 
   complexity. 
 #+end_export
 #+begin_src go <<Get databases, Pr. \ref{pr:lis}>>=

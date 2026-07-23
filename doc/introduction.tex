@@ -41,12 +41,12 @@ where $s(v)$ returns the nodes in the subtree rooted on $v$, and
 $p(v)$ the parent of $v$. This set subtraction is implemented in the
 program \ty{neighbors}.
 
-The Neighbors package consists of the 13 programs listed in
+The Neighbors package consists of the 14 programs listed in
 Table~\ref{tab:pro}. Six of these programs are based on the taxonomy,
 six on a phylogeny, and one, \ty{outliers}, on numerical data.
 
 \begin{table}
-\caption{The eleven programs of Neighbors}\label{tab:pro}
+\caption{The 14 programs of Neighbors}\label{tab:pro}
 \begin{center}
 \begin{tabular}{rlll}
 \hline
@@ -57,13 +57,14 @@ six on a phylogeny, and one, \ty{outliers}, on numerical data.
 4 & \ty{dree} & taxonomy & draw tree\\
 5 & \ty{fintac} & phylogeny & find target clade\\
 6 & \ty{land} & phylogeny & label nodes\\
-7 & \ty{makeNeiDb} & taxonomy & make neighbors database\\
-8 & \ty{mrca} & phylogeny & find most recent common ancestor\\
-9 & \ty{neighbors} & taxonomy & find neighbors (and targets)\\
-10 & \ty{outliers} & numbers & find outliers\\
-11 & \ty{pickle} & phylogeny & pick clades\\
-12 & \ty{ranks} & taxonomy & distribute genomes among taxonomic ranks\\
-13 & \ty{taxi} & taxonomy & get taxon-ID for taxon name\\\hline
+7 & \ty{listNeiDb} & taxonomy & list remote databases\\
+8 & \ty{makeNeiDb} & taxonomy & make neighbors database\\
+9 & \ty{mrca} & phylogeny & find most recent common ancestor\\
+10 & \ty{neighbors} & taxonomy & find neighbors (and targets)\\
+11 & \ty{outliers} & numbers & find outliers\\
+12 & \ty{pickle} & phylogeny & pick clades\\
+13 & \ty{ranks} & taxonomy & distribute genomes among taxonomic ranks\\
+14 & \ty{taxi} & taxonomy & get taxon-ID for taxon name\\\hline
 \end{tabular}
 \end{center}
 \end{table}
