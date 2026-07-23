@@ -34,7 +34,7 @@ test: data/test.db
 		make test -C $$prog; \
 	done
 data/test.db:
-	make -C makeNeiDb
+	make test -C makeNeiDb
 	cp makeNeiDb/test.db data
 data:
 	mkdir -p data
