@@ -203,7 +203,7 @@ We parse the options.
   if *optR || *optDD != "" {
     //<<Determine query arguments, Pr. \ref{pr:fit}>>
     //<<Get files, Pr. \ref{pr:fit}>>
-    //<<Set misc arguments, Pr. \ref{pr:neig}>>
+    //<<Set misc arguments, Pr. \ref{pr:fit}>>
     //<<Send request, Pr. \ref{pr:fit}>>
     //<<Print response, Pr. \ref{pr:fit}>>
   }
@@ -253,7 +253,7 @@ We parse the options.
   Miscellaneous are anything that does not belong to a normal/ local program
   call. In this case it's the specification of a database.
 #+end_export
-#+begin_src go <<Set misc arguments, Pr. \ref{pr:neig}>>=
+#+begin_src go <<Set misc arguments, Pr. \ref{pr:fit}>>=
   misc := map[string]string{}
   if *optDD != "" {
     misc["db"] = *optDD

@@ -230,7 +230,7 @@ We import \ty{util}.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:dr}>>=
   if *optR || *optDD != "" {
-    //<<Set misc arguments, Pr. \ref{pr:neig}>>
+    //<<Set misc arguments, Pr. \ref{pr:dr}>>
     options := []util.Option{{Name: "r", WithValue: false}, {Name: "D", WithValue: true}}
 		resp := util.SendGetRequest(
 			"api/v2/programs/dree",
@@ -246,7 +246,7 @@ We import \ty{util}.
   Miscellaneous are anything that does not belong to a normal/ local program
   call. In this case it's the specification of a database.
 #+end_export
-#+begin_src go <<Set misc arguments, Pr. \ref{pr:neig}>>=
+#+begin_src go <<Set misc arguments, Pr. \ref{pr:dr}>>=
   misc := map[string]string{}
   if *optDD != "" {
     misc["db"] = *optDD
