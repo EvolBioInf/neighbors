@@ -1,7 +1,7 @@
 version = $(shell bash ../scripts/getVersion.sh)
 date = $(shell bash ../scripts/getDate.sh)
 nw = $(shell which noweb)
-exe = listNeiDb
+exe = listNeiDbs
 
 all : $(exe)
 

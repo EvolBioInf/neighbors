@@ -285,9 +285,9 @@ We import \ty{math}.
 #+begin_export latex
   There may be multiple slices that need to be encoded for a single request.
   This means we should write a function, which handles this url encoding. We
-  use the exploded parameters for passing slices via the url. This means we
-  need to iterate over each slice and add key value pairs. The values need to
-  be encoded. The \ty{net/url} package provides a function for this.
+  use exploded parameters for passing slices via the url. In order to do this,
+  we iterate over each slice and add key value pairs. The keys and values
+  require encoding. The \ty{net/url} package provides a function for this.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func urlEncodeSlice(qb *strings.Builder, slc []string, paramName string) {
@@ -304,9 +304,8 @@ We import \ty{math}.
   }
 #+end_src
 #+begin_export latex
-  Now all we need to do is call \ty{urlEncodeSlice} for both the options and
-  the extra arguments... and encode the miscellaneous arguments further down
-  the line.
+  Now we may call \ty{urlEncodeSlice} for both the options and the extra
+  arguments. We encode the miscellaneous arguments further down the line.
 #+end_export
 #+begin_src go <<Encode query, Pa. \ref{pa:util}>>=
   qb := new(strings.Builder)
@@ -338,10 +337,9 @@ We import \ty{math}.
   }
 #+end_src
 #+begin_export latex
-  The \ty{net/http} package provides functions for creating requests.
-  There is a \ty{Get} function for creating a get request, but it does
-  not allow adding headers. We use \ty{NewRequest} instead and define
-  the http verb manually.
+  The \ty{net/http} package provides functions for creating requests. There is
+  a \ty{Get} function for creating a get request, but it does not allow adding
+  headers. We use \ty{NewRequest} instead and define the http verb manually.
 #+end_export
 #+begin_src go <<Create \ty{get} request, Pa. \ref{pa:util}>>=
   req, err := http.NewRequest(http.MethodGet, address+qb.String(), nil)
@@ -354,17 +352,16 @@ We import \ty{math}.
   "net/http"
 #+end_src
 #+begin_export latex
-  Http clients provide methods for invoking requests.
-  The \ty{http} package uses a default client for this,
-  which is public. We are going to use this client as well.
+  Http clients provide methods for invoking requests. The \ty{http} package
+  uses a default client for this, which is public. We are going to use this
+  client as well.
 #+end_export
 #+begin_src go <<Execute request, Pa. \ref{pa:util}>>=
   resp, err := http.DefaultClient.Do(req)
   Check(err)
 #+end_src
 #+begin_export latex
-  Laslty we parse the response using the \ty{io} package and
-  return the data.
+  Laslty we parse the response using the \ty{io} package and return the data.
 #+end_export
 #+begin_src go <<Parse response, Pa. \ref{pa:util}>>=
   body, err := io.ReadAll(resp.Body)
@@ -385,7 +382,9 @@ We import \ty{math}.
   !\ty{neighbors.evolbio.mpg.de} using these values and returns the result.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func SendPostRequest(address string, options, extraArgs []string, miscArgs map[string]string, files []*os.File, stdin *os.File) string {
+  func SendPostRequest(address string, options, extraArgs []string, 
+	  miscArgs map[string]string, files []*os.File, stdin *os.File) string {
+
 	  address = "https://neighbors.evolbio.mpg.de/" + address
 	  //<<Encode query, Pa. \ref{pa:util}>>
 	  //<<Set \ty{post} form data, Pa. \ref{pa:util}>>
@@ -396,10 +395,10 @@ We import \ty{math}.
   }
 #+end_src
 #+begin_export latex
-  For setting the post form data we use the \ty{multipart} package.
-  First we create a new multipart writer. Then we iterate over all
-  the files. We create an entry using the writer for each file
-  and copy its content. We close the multipart writer at the end.
+  For setting the post form data we use the \ty{multipart} package. First we
+  create a new multipart writer. Then we iterate over all the files. We create
+  an entry using the writer for each file and copy its content. We close the
+  multipart writer at the end.
 #+end_export
 #+begin_src go <<Set \ty{post} form data, Pa. \ref{pa:util}>>=
   var b bytes.Buffer
@@ -420,8 +419,9 @@ We import \ty{math}.
 #+end_src
 #+begin_export latex
   When creating an entry with the multipart writer, we create a new form file.
-  We need to provide a key for the map of files and the name of the file itself.
-  The multipart package takes care of creating the file headers and other meta data.
+  We need to provide a key for the map of files and the name of the file 
+  itself. The multipart package takes care of creating the file headers and
+  other meta data.
 #+end_export
 #+begin_src go <<Create entry in writer, Pa. \ref{pa:util}>>=
   fw, err := w.CreateFormFile(strconv.Itoa(i), file.Name())
@@ -538,7 +538,8 @@ We import \ty{math}.
   function provided by \ty{slices}
 #+end_export
 #+begin_src go <<Remove option, Pa. \ref{pa:util}>>=
-  args = slices.DeleteFunc(args, func(a string) bool {return a == sOption || a == dOption})
+  args = slices.DeleteFunc(args,
+	  func(a string) bool {return a == sOption || a == dOption})
 #+end_src
 #+begin_export latex
   We import \ty{slices}.
@@ -596,7 +597,8 @@ We import \ty{math}.
   Lastly we need to compare the bits we read to the expected header.
 #+end_export
 #+begin_src go <<Compare to header, Pa. \ref{pa:util}>>=
-  fileHeader := []byte{0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00}
+  fileHeader := []byte{0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66,
+	  0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00}
   if bytes.Equal(h, fileHeader) {
 	  dbArgs = append(dbArgs, i)
   }

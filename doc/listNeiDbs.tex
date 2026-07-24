@@ -1,0 +1,117 @@
+\nwfilename{}\nwbegindocs{0}\nwenddocs{}\nwbegindocs{1}\nwdocspar% ===> this file was generated automatically by noweave --- better not edit it
+\section*{Introduction}
+Several Neighbors programs are based on the Neighbors database, \ty{neidb}.
+These programs can work with either a local copy of \ty{neidb} or a remote 
+copy. Users can specify the remote \ty{neidb} by choosing among those hosted
+on the Neighbors server, \ty{never}. The program \ty{listNeiDbs} lists the
+databases available.
+
+\section*{Implementation}
+The program \ty{listNeiDbs} has hooks for imports and the logic of the main
+function.\bpr{listNeidbs}{pr:lis}
+\nwenddocs{}\nwbegincode{2}\sublabel{NW0-9Rnp3-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-9Rnp3-1}}}\moddef{listNeiDbs.go~{\nwtagstyle{}\subpageref{NW0-9Rnp3-1}}}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+package main
+
+import (
+          \LA{}Imports, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-10JJKB-1}}\RA{}
+)
+
+func main() \{
+          \LA{}Main function, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-3D2NBK-1}}\RA{}
+\}
+\nwnotused{listNeiDbs.go}\nwendcode{}\nwbegindocs{3}\nwdocspar
+\epr In the \ty{main} function we set the name of \ty{listNeiDbs} and its
+usage, declare the options, parse the options, get the databases, and
+print them.
+\nwenddocs{}\nwbegincode{4}\sublabel{NW0-3D2NBK-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-3D2NBK-1}}}\moddef{Main function, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-3D2NBK-1}}}\endmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-9Rnp3-1}}\nwenddeflinemarkup
+util.SetName("listNeiDbs")
+\LA{}Set usage, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-2rdd1Y-1}}\RA{}
+\LA{}Declare options, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-1fbE8j-1}}\RA{}
+\LA{}Parse options, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-4UfG5R-1}}\RA{}
+\LA{}Get databases, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-2iu7sQ-1}}\RA{}
+\LA{}Print databases, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-sJUme-1}}\RA{}
+\nwused{\\{NW0-9Rnp3-1}}\nwendcode{}\nwbegindocs{5}\nwdocspar
+We import \ty{util}.
+\nwenddocs{}\nwbegincode{6}\sublabel{NW0-10JJKB-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-10JJKB-1}}}\moddef{Imports, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-10JJKB-1}}}\endmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-9Rnp3-1}}\nwprevnextdefs{\relax}{NW0-10JJKB-2}\nwenddeflinemarkup
+"github.com/evolbioinf/neighbors/util"
+\nwalsodefined{\\{NW0-10JJKB-2}\\{NW0-10JJKB-3}\\{NW0-10JJKB-4}\\{NW0-10JJKB-5}\\{NW0-10JJKB-6}}\nwused{\\{NW0-9Rnp3-1}}\nwendcode{}\nwbegindocs{7}\nwdocspar
+The usage consists of three parts: The actual usage message, an
+explanation of the purpose of \ty{listNeiDbs}, and an example command.
+All of this is rather straight forward, as \ty{listNeiDbs} does not provide
+a whole lot of options.
+\nwenddocs{}\nwbegincode{8}\sublabel{NW0-2rdd1Y-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-2rdd1Y-1}}}\moddef{Set usage, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-2rdd1Y-1}}}\endmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-3D2NBK-1}}\nwenddeflinemarkup
+u := "listNeiDbs [option]"
+p := "Print all of never's available databases."
+e := "listNeiDbs"
+clio.Usage(u, p, e)
+\nwused{\\{NW0-3D2NBK-1}}\nwendcode{}\nwbegindocs{9}\nwdocspar
+We import \ty{clio}.
+\nwenddocs{}\nwbegincode{10}\sublabel{NW0-10JJKB-2}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-10JJKB-2}}}\moddef{Imports, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-10JJKB-1}}}\plusendmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-9Rnp3-1}}\nwprevnextdefs{NW0-10JJKB-1}{NW0-10JJKB-3}\nwenddeflinemarkup
+"github.com/evolbioinf/clio"
+\nwused{\\{NW0-9Rnp3-1}}\nwendcode{}\nwbegindocs{11}\nwdocspar
+There is just a single option, which is \ty{-v}.
+\nwenddocs{}\nwbegincode{12}\sublabel{NW0-1fbE8j-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-1fbE8j-1}}}\moddef{Declare options, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-1fbE8j-1}}}\endmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-3D2NBK-1}}\nwenddeflinemarkup
+var optV = flag.Bool("v", false, "version")
+\nwused{\\{NW0-3D2NBK-1}}\nwendcode{}\nwbegindocs{13}\nwdocspar
+We import \ty{flag}.
+\nwenddocs{}\nwbegincode{14}\sublabel{NW0-10JJKB-3}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-10JJKB-3}}}\moddef{Imports, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-10JJKB-1}}}\plusendmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-9Rnp3-1}}\nwprevnextdefs{NW0-10JJKB-2}{NW0-10JJKB-4}\nwenddeflinemarkup
+"flag"
+\nwused{\\{NW0-9Rnp3-1}}\nwendcode{}\nwbegindocs{15}\nwdocspar
+We parse the options and respond to the version option (\ty{-v}), if it is
+provided.
+\nwenddocs{}\nwbegincode{16}\sublabel{NW0-4UfG5R-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-4UfG5R-1}}}\moddef{Parse options, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-4UfG5R-1}}}\endmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-3D2NBK-1}}\nwenddeflinemarkup
+flag.Parse()
+\LA{}Respond to \ty{-v}, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-swedK-1}}\RA{}
+\nwused{\\{NW0-3D2NBK-1}}\nwendcode{}\nwbegindocs{17}\nwdocspar
+If the user asked for the version, we print the program information,
+which contains the version.
+\nwenddocs{}\nwbegincode{18}\sublabel{NW0-swedK-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-swedK-1}}}\moddef{Respond to \ty{-v}, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-swedK-1}}}\endmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-4UfG5R-1}}\nwenddeflinemarkup
+if *optV \{
+          util.PrintInfo("listNeiDbs")
+\}
+\nwused{\\{NW0-4UfG5R-1}}\nwendcode{}\nwbegindocs{19}\nwdocspar
+The \ty{util} package of Neighbors provides a function, which lets us send a
+\ty{GET} request. We use this to query \ty{never} for its databases.
+\ty{SendGetRequest} takes four arguments, of which only the first, the 
+address suffix, is strictly necessary. Passing \ty{plain\_data} as a 
+miscellaneous argument is not necessary, but reduces parsing complexity.
+\nwenddocs{}\nwbegincode{20}\sublabel{NW0-2iu7sQ-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-2iu7sQ-1}}}\moddef{Get databases, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-2iu7sQ-1}}}\endmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-3D2NBK-1}}\nwprevnextdefs{\relax}{NW0-2iu7sQ-2}\nwenddeflinemarkup
+a := make(map[string]string)
+a["plain_data"] = "true"
+rawRes := util.SendGetRequest("api/v2/databases", nil, nil, a)
+\nwalsodefined{\\{NW0-2iu7sQ-2}}\nwused{\\{NW0-3D2NBK-1}}\nwendcode{}\nwbegindocs{21}\nwdocspar
+We import \ty{util}.
+\nwenddocs{}\nwbegincode{22}\sublabel{NW0-10JJKB-4}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-10JJKB-4}}}\moddef{Imports, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-10JJKB-1}}}\plusendmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-9Rnp3-1}}\nwprevnextdefs{NW0-10JJKB-3}{NW0-10JJKB-5}\nwenddeflinemarkup
+"github.com/evolbioinf/neighbors/util"
+\nwused{\\{NW0-9Rnp3-1}}\nwendcode{}\nwbegindocs{23}\nwdocspar
+We get the request's result as a json string. When printing it to
+\ty{stdout}, it should be a comma + space delimited string. We use the
+\ty{json} package to unmarshall the string and allow iteration.
+\nwenddocs{}\nwbegincode{24}\sublabel{NW0-2iu7sQ-2}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-2iu7sQ-2}}}\moddef{Get databases, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-2iu7sQ-1}}}\plusendmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-3D2NBK-1}}\nwprevnextdefs{NW0-2iu7sQ-1}{\relax}\nwenddeflinemarkup
+var res []string
+json.Unmarshal([]byte(rawRes), &res)
+\nwused{\\{NW0-3D2NBK-1}}\nwendcode{}\nwbegindocs{25}\nwdocspar
+We import \ty{encoding/json}.
+\nwenddocs{}\nwbegincode{26}\sublabel{NW0-10JJKB-5}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-10JJKB-5}}}\moddef{Imports, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-10JJKB-1}}}\plusendmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-9Rnp3-1}}\nwprevnextdefs{NW0-10JJKB-4}{NW0-10JJKB-6}\nwenddeflinemarkup
+"encoding/json"
+\nwused{\\{NW0-9Rnp3-1}}\nwendcode{}\nwbegindocs{27}\nwdocspar
+Lastly we join the string slice and print the result.
+\nwenddocs{}\nwbegincode{28}\sublabel{NW0-sJUme-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-sJUme-1}}}\moddef{Print databases, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-sJUme-1}}}\endmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-3D2NBK-1}}\nwenddeflinemarkup
+fmt.Println(strings.Join(res, ", "))
+\nwused{\\{NW0-3D2NBK-1}}\nwendcode{}\nwbegindocs{29}\nwdocspar
+We import \ty{strings} and \ty{fmt}.
+\nwenddocs{}\nwbegincode{30}\sublabel{NW0-10JJKB-6}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-10JJKB-6}}}\moddef{Imports, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-10JJKB-1}}}\plusendmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-9Rnp3-1}}\nwprevnextdefs{NW0-10JJKB-5}{\relax}\nwenddeflinemarkup
+"strings"
+"fmt"
+\nwused{\\{NW0-9Rnp3-1}}\nwendcode{}
+
+\nwixlogsorted{c}{{Declare options, Pr. \ref{pr:lis}}{NW0-1fbE8j-1}{\nwixu{NW0-3D2NBK-1}\nwixd{NW0-1fbE8j-1}}}%
+\nwixlogsorted{c}{{Get databases, Pr. \ref{pr:lis}}{NW0-2iu7sQ-1}{\nwixu{NW0-3D2NBK-1}\nwixd{NW0-2iu7sQ-1}\nwixd{NW0-2iu7sQ-2}}}%
+\nwixlogsorted{c}{{Imports, Pr. \ref{pr:lis}}{NW0-10JJKB-1}{\nwixu{NW0-9Rnp3-1}\nwixd{NW0-10JJKB-1}\nwixd{NW0-10JJKB-2}\nwixd{NW0-10JJKB-3}\nwixd{NW0-10JJKB-4}\nwixd{NW0-10JJKB-5}\nwixd{NW0-10JJKB-6}}}%
+\nwixlogsorted{c}{{listNeiDbs.go}{NW0-9Rnp3-1}{\nwixd{NW0-9Rnp3-1}}}%
+\nwixlogsorted{c}{{Main function, Pr. \ref{pr:lis}}{NW0-3D2NBK-1}{\nwixu{NW0-9Rnp3-1}\nwixd{NW0-3D2NBK-1}}}%
+\nwixlogsorted{c}{{Parse options, Pr. \ref{pr:lis}}{NW0-4UfG5R-1}{\nwixu{NW0-3D2NBK-1}\nwixd{NW0-4UfG5R-1}}}%
+\nwixlogsorted{c}{{Print databases, Pr. \ref{pr:lis}}{NW0-sJUme-1}{\nwixu{NW0-3D2NBK-1}\nwixd{NW0-sJUme-1}}}%
+\nwixlogsorted{c}{{Respond to \ty{-v}, Pr. \ref{pr:lis}}{NW0-swedK-1}{\nwixu{NW0-4UfG5R-1}\nwixd{NW0-swedK-1}}}%
+\nwixlogsorted{c}{{Set usage, Pr. \ref{pr:lis}}{NW0-2rdd1Y-1}{\nwixu{NW0-3D2NBK-1}\nwixd{NW0-2rdd1Y-1}}}%
+

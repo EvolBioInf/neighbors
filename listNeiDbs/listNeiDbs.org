@@ -1,17 +1,16 @@
 #+begin_src latex
   \section*{Introduction}
-  A lot of \ty{neighbors'} programs allow remote execution. These programs
-  use databases provided by the \ty{neighbors} server \ty{never}. Every program
-  that provides an option for remote execution also provides an option, for 
-  specifying a certain database. In order to name a specific database, a user
-  has to be aware of all available databases. This program does exactly that.
-  It queries \ty{never} and prints out all available databases.
+Several Neighbors programs are based on the Neighbors database, \ty{neidb}.
+These programs can work with either a local copy of \ty{neidb} or a remote 
+copy. Users can specify the remote \ty{neidb} by choosing among those hosted
+on the Neighbors server, \ty{never}. The program \ty{listNeiDbs} lists the
+databases available.
 
   \section*{Implementation}
-  The program \ty{listNeiDb} has hooks for imports and the logic of the main
-  function.\bpr{listNeidb}{pr:lis}
+  The program \ty{listNeiDbs} has hooks for imports and the logic of the main
+  function.\bpr{listNeidbs}{pr:lis}
 #+end_src
-#+begin_src go <<listNeiDb.go>>=
+#+begin_src go <<listNeiDbs.go>>=
   package main
 
   import (
@@ -23,12 +22,12 @@
   }
 #+end_src
 #+begin_src latex
-  \epr In the \ty{main} function we set the name of \ty{listNeiDb} and its
+  \epr In the \ty{main} function we set the name of \ty{listNeiDbs} and its
   usage, declare the options, parse the options, get the databases, and
   print them.
 #+end_src
 #+begin_src go <<Main function, Pr. \ref{pr:lis}>>=
-  util.SetName("listNeiDb")
+  util.SetName("listNeiDbs")
   //<<Set usage, Pr. \ref{pr:lis}>>
   //<<Declare options, Pr. \ref{pr:lis}>>
   //<<Parse options, Pr. \ref{pr:lis}>>
@@ -43,14 +42,14 @@ We import \ty{util}.
 #+end_src
 #+begin_src latex
   The usage consists of three parts: The actual usage message, an
-  explanation of the purpose of \ty{listNeiDb}, and an example command.
-  All of this is rather straight forward, as \ty{listNeiDb} does not provide
+  explanation of the purpose of \ty{listNeiDbs}, and an example command.
+  All of this is rather straight forward, as \ty{listNeiDbs} does not provide
   a whole lot of options.
 #+end_src
 #+begin_src go <<Set usage, Pr. \ref{pr:lis}>>=
-  u := "listNeiDb [option]"
+  u := "listNeiDbs [option]"
   p := "Print all of never's available databases."
-  e := "listNeiDb"
+  e := "listNeiDbs"
   clio.Usage(u, p, e)
 #+end_src
 #+begin_src latex
@@ -85,16 +84,15 @@ which contains the version.
 #+end_export
 #+begin_src go <<Respond to \ty{-v}, Pr. \ref{pr:lis}>>=
   if *optV {
-  	  util.PrintInfo("listNeiDb")
+	  util.PrintInfo("listNeiDbs")
   }
 #+end_src
 #+begin_export latex
-  \ty{neighbors' util} package provides a function, which let's us send a
-  \ty{GET} request. We use this to inquire \ty{never} for it's databases.
-  \ty{SendGetRequest} provides a bunch of arguments, which we don't need. All
-  that's necessary is passing the correct address suffix. Passing a 
-  \ty{plain\_data} as a misc arg is not necessary, but reduces parsing 
-  complexity. 
+  The \ty{util} package of Neighbors provides a function, which lets us send a
+  \ty{GET} request. We use this to query \ty{never} for its databases.
+  \ty{SendGetRequest} takes four arguments, of which only the first, the 
+  address suffix, is strictly necessary. Passing \ty{plain\_data} as a 
+  miscellaneous argument is not necessary, but reduces parsing complexity.
 #+end_export
 #+begin_src go <<Get databases, Pr. \ref{pr:lis}>>=
   a := make(map[string]string)
@@ -102,36 +100,36 @@ which contains the version.
   rawRes := util.SendGetRequest("api/v2/databases", nil, nil, a)
 #+end_src
 #+begin_export latex
-  We need to import the \ty{util} package.
+  We import \ty{util}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:lis}>>=
   "github.com/evolbioinf/neighbors/util"
 #+end_src
 #+begin_export latex
-  We get the request's result in a json string format. When printing it to 
-  \ty{stdout} it should be a comma + space delimited string. We use the 
-  \ty{json} package to unmarshall the string and allow iteration. 
+  We get the request's result as a json string. When printing it to
+  \ty{stdout}, it should be a comma + space delimited string. We use the
+  \ty{json} package to unmarshall the string and allow iteration.
 #+end_export
 #+begin_src go <<Get databases, Pr. \ref{pr:lis}>>=
   var res []string
   json.Unmarshal([]byte(rawRes), &res)
 #+end_src
 #+begin_export latex
-  We need to import the \ty{encoding/json} and \ty{fmt}.
+  We import \ty{encoding/json}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:lis}>>=
   "encoding/json"
-  "fmt"
 #+end_src
 #+begin_export latex
-  Lastly we join the string slice and print it.
+  Lastly we join the string slice and print the result.
 #+end_export
 #+begin_src go <<Print databases, Pr. \ref{pr:lis}>>=
-	fmt.Println(strings.Join(res, ", "))
+  fmt.Println(strings.Join(res, ", "))
 #+end_src
 #+begin_export latex
-  We need to import the \ty{strings}.
+  We import \ty{strings} and \ty{fmt}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:lis}>>=
   "strings"
+  "fmt"
 #+end_src

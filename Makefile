@@ -1,4 +1,4 @@
-progs = makeNeiDb ants climt clusters dree land listNeiDb fintac mrca neighbors outliers pickle ranks taxi
+progs = makeNeiDb ants climt clusters dree land listNeiDbs fintac mrca neighbors outliers pickle ranks taxi
 packs = util tdb # Order matters
 ftp = ftp.ncbi.nlm.nih.gov
 

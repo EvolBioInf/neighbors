@@ -61,7 +61,7 @@ dree/cmd/dree
 dree/dree.sh
 fintac/cmd/fintac
 land/cmd/land
-listNeiDb/listNeiDb
+listNeiDbs/listNeiDbs
 makeNeiDb/cmd/makeNeiDb
 makeNeiDb/test.db
 mrca/cmd/mrca

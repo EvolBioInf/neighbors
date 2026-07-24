@@ -10,15 +10,15 @@ import (
 )
 
 func main() {
-	util.SetName("listNeiDb")
-	u := "listNeiDb [option]"
+	util.SetName("listNeiDbs")
+	u := "listNeiDbs [option]"
 	p := "Print all of never's available databases."
-	e := "listNeiDb"
+	e := "listNeiDbs"
 	clio.Usage(u, p, e)
 	var optV = flag.Bool("v", false, "version")
 	flag.Parse()
 	if *optV {
-		util.PrintInfo("listNeiDb")
+		util.PrintInfo("listNeiDbs")
 	}
 	a := make(map[string]string)
 	a["plain_data"] = "true"

@@ -1,4 +1,4 @@
-SRC1 = ants.tex climt.tex clusters.tex dree.tex fintac.tex listNeiDb.tex land.tex makeNeiDb.tex mrca.tex \
+SRC1 = ants.tex climt.tex clusters.tex dree.tex fintac.tex listNeiDbs.tex land.tex makeNeiDb.tex mrca.tex \
 neighbors.tex outliers.tex pickle.tex ranks.tex taxi.tex tdb.tex tutorial.tex util.tex
 SRC2 =   header.tex introduction.tex neighborsDoc.tex labels.tex covTree.tex
 

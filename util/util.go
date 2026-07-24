@@ -165,7 +165,9 @@ func urlEncodeSlice(qb *strings.Builder, slc []string, paramName string) {
 }
 
 // The function SendPostRequest takes as argument a url path as a string, program options and extra arguments as a slice of strings, as well as files and stdin. It sends a post request to never at neighbors.evolbio.mpg.de using these values and returns the result.
-func SendPostRequest(address string, options, extraArgs []string, miscArgs map[string]string, files []*os.File, stdin *os.File) string {
+func SendPostRequest(address string, options, extraArgs []string,
+	miscArgs map[string]string, files []*os.File, stdin *os.File) string {
+
 	address = "https://neighbors.evolbio.mpg.de/" + address
 	qb := new(strings.Builder)
 	urlEncodeSlice(qb, options, "options")
@@ -218,7 +220,8 @@ func SanitizeArguments(args []string, options []Option) []string {
 			}
 			h := make([]byte, 16)
 			f.Read(h)
-			fileHeader := []byte{0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00}
+			fileHeader := []byte{0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66,
+				0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00}
 			if bytes.Equal(h, fileHeader) {
 				dbArgs = append(dbArgs, i)
 			}
@@ -241,7 +244,8 @@ func removeOption(args []string, option Option) []string {
 			}
 		}
 	} else {
-		args = slices.DeleteFunc(args, func(a string) bool { return a == sOption || a == dOption })
+		args = slices.DeleteFunc(args,
+			func(a string) bool { return a == sOption || a == dOption })
 	}
 	return args
 }
