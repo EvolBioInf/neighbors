@@ -1,4 +1,4 @@
-package makeNeiDb
+package main
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 
 func TestMakeNeiDb(t *testing.T) {
 	var tests []*exec.Cmd
-	test := exec.Command("./cmd/makeNeiDb",
+	test := exec.Command("./makeNeiDb",
 		"-a", "../data/namesTest.dmp",
 		"-d", "test.db",
 		"-o", "../data/nodesTest.dmp",

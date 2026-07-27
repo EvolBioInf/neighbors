@@ -1,4 +1,4 @@
-package clusters
+package main
 
 import (
 	"flag"
@@ -199,7 +199,7 @@ func printBranchLengths(v *nwk.Node, w *tabwriter.Writer,
 	printBranchLengths(v.Child, w, mark)
 	printBranchLengths(v.Sib, w, mark)
 }
-func Run() {
+func main() {
 	util.SetName("clusters")
 	u := "clusters [option]... [foo.nwk]..."
 	p := "Find nodes with long parental " +

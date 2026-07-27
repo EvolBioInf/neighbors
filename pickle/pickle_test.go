@@ -1,4 +1,4 @@
-package pickle
+package main
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 func TestPickle(t *testing.T) {
 	var tests []*exec.Cmd
 	f := "test.nwk"
-	p := "./cmd/pickle"
+	p := "./pickle"
 	test := exec.Command(p, "7", f)
 	tests = append(tests, test)
 	test = exec.Command(p, "7,3", f)

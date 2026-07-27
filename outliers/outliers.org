@@ -35,14 +35,14 @@
   \bpr{outlines}{pr:out}
 #+end_src
 #+begin_src go <<outliers.go>>=
-  package outliers
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:out}>>
   )
 
   //<<Functions, Pr. \ref{pr:out}>>
-  func Run() {
+  func main() {
 	  //<<Run function, Pr. \ref{pr:out}>>
   }
 #+end_src
@@ -299,7 +299,7 @@ The outline of our testing code contains hooks for imports and the
 testing logic.
 #+end_src
 #+begin_src go <<outliers_test.go>>=
-  package outliers
+  package main
 
   import (
 	  "testing"
@@ -334,7 +334,7 @@ We import \ty{exec}.
   other data sets are variations of it.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:out}>>=
-  p := "./cmd/outliers"
+  p := "./outliers"
   for i := 1; i <= 5; i++ {
 	  f := "test" + strconv.Itoa(i) + ".txt"
 	  test := exec.Command(p, f)

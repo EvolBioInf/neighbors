@@ -1,24 +1,22 @@
 version = $(shell bash ../scripts/getVersion.sh)
 date = $(shell bash ../scripts/getDate.sh)
 nw = $(shell which noweb)
-pro = pickle
-exe = cmd/$(pro)
+exe = pickle
 
 all : $(exe)
 
-tangle: $(pro).go $(pro)_test.go
-$(exe): $(pro).go
-	go build $(pro).go
-	cd cmd && go build -ldflags "-X github.com/evolbioinf/neighbors/util.version=$(version) -X github.com/evolbioinf/neighbors/util.date=$(date)" -o $(pro) main.go
-$(pro).go: $(pro).org
+tangle: $(exe).go $(exe)_test.go
+$(exe): $(exe).go
+	go build -ldflags "-X github.com/evolbioinf/neighbors/util.version=$(version) -X github.com/evolbioinf/neighbors/util.date=$(date)" -o $(exe) $(exe).go
+$(exe).go: $(exe).org
 	if [ "$(nw)" != "" ]; then\
-		bash ../scripts/org2nw $(pro).org | notangle -R$(pro).go | gofmt > $(pro).go;\
+		bash ../scripts/org2nw $(exe).org | notangle -R$(exe).go | gofmt > $(exe).go;\
 	fi
-test: $(pro)_test.go $(exe)
+test: $(exe)_test.go $(exe)
 	@go test
-$(pro)_test.go: $(pro).org
+$(exe)_test.go: $(exe).org
 	if [ "$(nw)" != "" ]; then\
-		bash ../scripts/org2nw $(pro).org | notangle -R$(pro)_test.go | gofmt > $(pro)_test.go;\
+		bash ../scripts/org2nw $(exe).org | notangle -R$(exe)_test.go | gofmt > $(exe)_test.go;\
 	fi
 clean:
 	rm -f *.go $(exe)

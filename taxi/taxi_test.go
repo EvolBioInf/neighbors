@@ -1,4 +1,4 @@
-package taxi
+package main
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 func TestTaxi(t *testing.T) {
 	var tests []*exec.Cmd
 	db := "../data/test.db"
-	p := "./cmd/taxi"
+	p := "./taxi"
 	test := exec.Command(p, "-t", "9606", db)
 	tests = append(tests, test)
 	taxa := []string{"homo sapiens",

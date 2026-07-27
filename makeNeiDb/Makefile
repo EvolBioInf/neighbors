@@ -1,25 +1,23 @@
 version = $(shell bash ../scripts/getVersion.sh)
 date = $(shell bash ../scripts/getDate.sh)
 nw = $(shell which noweb)
-pro = makeNeiDb
-exe = cmd/$(pro)
+exe = makeNeiDb
 
 all : $(exe)
 
-tangle: $(pro).go $(pro)_test.go
-$(exe): $(pro).go
-	go build -ldflags "-X github.com/evolbioinf/neighbors/util.version=$(version) -X github.com/evolbioinf/neighbors/util.date=$(date)" $(pro).go
-	cd cmd && go build -o $(pro) main.go
-$(pro).go: $(pro).org
+tangle: $(exe).go $(exe)_test.go
+$(exe): $(exe).go
+	go build -ldflags "-X github.com/evolbioinf/neighbors/util.version=$(version) -X github.com/evolbioinf/neighbors/util.date=$(date)" $(exe).go
+$(exe).go: $(exe).org
 	if [ "$(nw)" != "" ]; then\
-		bash ../scripts/org2nw $(pro).org | notangle -R$(pro).go | gofmt > $(pro).go;\
+		bash ../scripts/org2nw $(exe).org | notangle -R$(exe).go | gofmt > $(exe).go;\
 	fi
-test: $(pro)_test.go $(exe)
+test: $(exe)_test.go $(exe)
 	rm -f test.db
 	@go test
-$(pro)_test.go: $(pro).org
+$(exe)_test.go: $(exe).org
 	if [ "$(nw)" != "" ]; then\
-		bash ../scripts/org2nw $(pro).org | notangle -R$(pro)_test.go | gofmt > $(pro)_test.go;\
+		bash ../scripts/org2nw $(exe).org | notangle -R$(exe)_test.go | gofmt > $(exe)_test.go;\
 	fi
 clean:
 	rm -f *.go $(exe)

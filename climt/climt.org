@@ -62,14 +62,14 @@
   logic of the run function.\bpr{climt}{pr:cli}
 #+end_src
 #+begin_src go <<climt.go>>=
-  package climt
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:cli}>>
   )
 
   //<<Functions, Pr. \ref{pr:cli}>>
-  func Run() {
+  func main() {
 	  //<<Run function, Pr. \ref{pr:cli}>>
   }
 #+end_src
@@ -407,7 +407,7 @@ The outline of our testing code for \ty{climt} has hooks for imports
 and the logic of the main function.
 #+end_src
 #+begin_src go <<climt_test.go>>=
-  package climt
+  package main
 
   import (
 	  "testing"
@@ -447,7 +447,7 @@ We import \ty{exec}.
 #+begin_src go <<Construct tests, Pr. \ref{pr:cli}>>=
   f := "test.nwk"
   s := "303"
-  p := "./cmd/climt"
+  p := "./climt"
   test := exec.Command(p, s , f)
   tests = append(tests, test)
   test = exec.Command(p, "-d", "2", s, f)

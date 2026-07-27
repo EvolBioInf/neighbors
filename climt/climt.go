@@ -1,4 +1,4 @@
-package climt
+package main
 
 import (
 	"flag"
@@ -88,7 +88,7 @@ func writeTree(v *nwk.Node, down int, delim string,
 	writeTree(v.Child, down, delim, level+1)
 	writeTree(v.Sib, down, delim, level)
 }
-func Run() {
+func main() {
 	util.SetName("climt")
 	u := "climt [option]... v [inputFile]..."
 	p := "Climb a phylogenetic tree starting at v."

@@ -41,13 +41,13 @@
   function.\bpr{taxi}{pr:tax}
 #+end_src
 #+begin_src go <<taxi.go>>=
-  package taxi
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:tax}>>
   )
 
-  func Run() {
+  func main() {
 	  //<<Run function, Pr. \ref{pr:tax}>>
   }
 #+end_src
@@ -279,7 +279,7 @@ wild cards.
   testing logic.
 #+end_src
 #+begin_src go <<taxi_test.go>>=
-  package taxi
+  package main
 
   import (
 	  "testing"
@@ -311,7 +311,7 @@ Our first query is 9606, the taxon-ID for human.
 #+end_export
 #+begin_src go <<Construct tests, Pr. \ref{pr:tax}>>=
   db := "../data/test.db"
-  p := "./cmd/taxi"
+  p := "./taxi"
   test := exec.Command(p, "-t", "9606", db)
   tests = append(tests, test)
 #+end_src

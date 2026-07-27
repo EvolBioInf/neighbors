@@ -1,4 +1,4 @@
-package makeNeiDb
+package main
 
 import (
 	"flag"
@@ -7,7 +7,7 @@ import (
 	"github.com/evolbioinf/neighbors/util"
 )
 
-func Run() {
+func main() {
 	util.SetName("makeNeiDb")
 	var optG = flag.String("g", "assembly_summary_genbank.txt",
 		"genbank assemblies")

@@ -1,4 +1,4 @@
-package mrca
+package main
 
 import (
 	"flag"
@@ -179,7 +179,7 @@ func sortKeys(m map[int]bool) []int {
 	sort.Ints(keys)
 	return keys
 }
-func Run() {
+func main() {
 	util.SetName("mrca")
 	u := "mrca [-v] regex [foo.nwk]..."
 	p := "Calculate the MRCA of nodes matching regex."

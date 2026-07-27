@@ -101,14 +101,14 @@ The outline of \ty{clusters} contains hooks for imports, types,
 functions, and the logic of the run function. \bpr{clusters}{pr:clu}
 #+end_export
 #+begin_src go <<clusters.go>>=
-  package clusters
+  package main
 
   import (
       //<<Imports, Pr. \ref{pr:clu}>>
   )
   //<<Types, Pr. \ref{pr:clu}>>
   //<<Functions, Pr. \ref{pr:clu}>>
-  func Run() {
+  func main() {
 	  //<<Run function, Pr. \ref{pr:clu}>>
   }
 #+end_src
@@ -678,7 +678,7 @@ We have finished \ty{clusters}, let's test it.
 Our testing code has hooks for imports and the testing logic.
 #+end_export
 #+begin_src go <<clusters_test.go>>=
-  package clusters
+  package main
 
   import (
 	  "testing"
@@ -721,7 +721,7 @@ size, \ty{-s}, print tree, \ty{-t}, and print terminal clusters only
 #+end_export
 #+begin_src go <<Construct tests, Pr. \ref{pr:clu}>>=
   f := "test.nwk"
-  p := "./cmd/clusters"
+  p := "./clusters"
   test := exec.Command(p, f)
   tests = append(tests, test)
   //<<Test \ty{-b}, Pr. \ref{pr:clu}>>

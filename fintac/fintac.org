@@ -87,14 +87,14 @@
   and the logic of the run function.  \bpr{fintac}{pr:fit}
 #+end_src
 #+begin_src go <<fintac.go>>=
-  package fintac
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:fit}>>
   )
   //<<Types, Pr. \ref{pr:fit}>>
   //<<Functions, Pr. \ref{pr:fit}>>
-  func Run() {
+  func main() {
 	  //<<Run function, Pr. \ref{pr:fit}>>
   }
 #+end_src
@@ -831,7 +831,7 @@ Our code for testing \ty{fintac} contains hooks for imports and the
 testing logic.
 #+end_src
 #+begin_src go <<fintac_test.go>>=
-  package fintac
+  package main
 
   import (
 	  "testing"
@@ -864,7 +864,7 @@ We import \ty{exec}.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:fit}>>=
   f := "./test.nwk"
-  p := "./cmd/fintac"
+  p := "./fintac"
   test := exec.Command(p, f)
   tests = append(tests, test)
 #+end_src

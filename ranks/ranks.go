@@ -1,4 +1,4 @@
-package ranks
+package main
 
 import (
 	"bufio"
@@ -69,7 +69,7 @@ func printEdges(v *Node) {
 		printEdges(v.Children[key])
 	}
 }
-func Run() {
+func main() {
 	genomes := []string{}
 	util.SetName("ranks")
 	u := "ranks [option]... <taxon-ID> <db>"

@@ -9,7 +9,7 @@ all:
 	done
 	for prog in $(progs); do \
 		make -C $$prog; \
-		cp $$prog/cmd/$$prog bin; \
+		cp $$prog/$$prog bin; \
 	done
 tangle:
 	for pack in $(packs); do \

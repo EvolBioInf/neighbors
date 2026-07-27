@@ -11,13 +11,13 @@
   run function.  \bpr{land}{pr:lan}
 #+end_src
 #+begin_src go <<land.go>>=
-  package land
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:lan}>>
   )
   //<<Functions, Pr. \ref{pr:lan}>>
-  func Run() {
+  func main() {
 	  //<<Main function, Pr. \ref{pr:lan}>>
   }
 #+end_src
@@ -204,7 +204,7 @@ in which case we set the label to the empty string.
   logic.
 #+end_src
 #+begin_src go <<land_test.go>>=
-  package land
+  package main
 
   import (
 	  "testing"
@@ -247,7 +247,7 @@ the leaf labels.
 #+end_export
 #+begin_src go <<Tests on plain trees, Pr. \ref{pr:lan}>>=
   f := "test1.nwk"
-  p := "./cmd/land"
+  p := "./land"
   test := exec.Command(p, f)
   tests = append(tests, test)
   test = exec.Command(p, "-p", "p", f)

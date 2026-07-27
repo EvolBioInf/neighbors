@@ -46,13 +46,13 @@
   run function.  \bpr{pickle}{pr:pic}
 #+end_src
 #+begin_src go <<pickle.go>>=
-  package pickle
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:pic}>>
   )
   //<<Functions, Pr. \ref{pr:pic}>>
-  func Run() {
+  func main() {
 	  //<<Run function, Pr. \ref{pr:pic}>>
   }
 #+end_src
@@ -398,7 +398,7 @@ leaves.
   testing logic.
 #+end_src
 #+begin_src go <<pickle_test.go>>=
-  package pickle
+  package main
 
   import (
 	  "testing"
@@ -428,7 +428,7 @@ leaves.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:pic}>>=
   f := "test.nwk"
-  p := "./cmd/pickle"
+  p := "./pickle"
   test := exec.Command(p, "7", f)
   tests = append(tests, test)
   test = exec.Command(p, "7,3", f)

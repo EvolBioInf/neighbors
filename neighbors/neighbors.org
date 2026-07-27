@@ -13,13 +13,13 @@
   \bpr{neighbors}{pr:neig}
 #+end_src
 #+begin_src go <<neighbors.go>>=
-  package neighbors
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:neig}>>
   )
   //<<Functions, Pr. \ref{pr:neig}>>
-  func Run() {
+  func main() {
 	  //<<Run function, Pr. \ref{pr:neig}>>
   }
 #+end_src
@@ -740,7 +740,7 @@ taxon-ID, name, and genomes.
   testing logic.
 #+end_src
 #+begin_src go <<neighbors_test.go>>=
-  package neighbors
+  package main
 
   import (
 	  "testing"
@@ -791,7 +791,7 @@ taxon-ID, name, and genomes.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:neig}>>=
   db := "../data/test.db"
-  p := "./cmd/neighbors"
+  p := "./neighbors"
   for i := 1; i <= 4; i++ {
 	  in := "tid" + strconv.Itoa(i) + ".txt"
 	  test := Test{t: exec.Command(p, db, in), r: i}

@@ -8,12 +8,12 @@
   the logic of the run function.  \bpr{makeNeiDb}{pr:db}
 #+end_src
 #+begin_src go <<makeNeiDb.go>>=
-  package makeNeiDb
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:db}>>
   )
-  func Run() {
+  func main() {
 	  //<<Run function, Pr. \ref{pr:db}>>
   }
 #+end_src
@@ -112,7 +112,7 @@ We import \ty{util}.
   testing logic.
 #+end_src
 #+begin_src go <<makeNeiDb_test.go>>=
-  package makeNeiDb
+  package main
 
   import (
 	  "testing"
@@ -143,7 +143,7 @@ We import \ty{util}.
   We construct a small database.
 #+end_src
 #+begin_src go <<Construct tests, Pr. \ref{pr:db}>>=
-  test := exec.Command("./cmd/makeNeiDb",
+  test := exec.Command("./makeNeiDb",
 	  "-a", "../data/namesTest.dmp",
 	  "-d", "test.db",
 	  "-o", "../data/nodesTest.dmp",

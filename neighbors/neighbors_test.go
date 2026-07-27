@@ -1,4 +1,4 @@
-package neighbors
+package main
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ type Test struct {
 func TestNeighbors(t *testing.T) {
 	var tests []Test
 	db := "../data/test.db"
-	p := "./cmd/neighbors"
+	p := "./neighbors"
 	for i := 1; i <= 4; i++ {
 		in := "tid" + strconv.Itoa(i) + ".txt"
 		test := Test{t: exec.Command(p, db, in), r: i}

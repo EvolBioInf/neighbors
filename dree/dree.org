@@ -110,13 +110,13 @@ The outline of \ty{dree} has hooks for imports and the logic of the
 run function.  \bpr{dree}{pr:dr}
 #+end_export
 #+begin_src go <<dree.go>>=
-  package dree
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:dr}>>
   )
 
-  func Run() {
+  func main() {
 	  //<<Run function, Pr. \ref{pr:dr}>>
   }
 #+end_src
@@ -584,7 +584,7 @@ them as the fifth column.
   testing logic.
 #+end_src
 #+begin_src go <<dree_test.go>>=
-  package dree
+  package main
 
   import (
 	  "testing"
@@ -632,7 +632,7 @@ them as the fifth column.
 #+begin_src go <<Construct tests, Pr. \ref{pr:dr}>>=
   n := "207598"
   d := "../data/test.db"
-  p := "./cmd/dree"
+  p := "./dree"
   //<<Test without options, Pr. \ref{pr:dr}>>
   //<<Test \ty{-n}, Pr. \ref{pr:dr}>>
   //<<Test \ty{-g}, Pr. \ref{pr:dr}>>

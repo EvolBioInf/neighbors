@@ -9,13 +9,13 @@
   \bpr{ants}{pr:ant}
 #+end_src
 #+begin_src go <<ants.go>>=
-  package ants
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:ant}>>
   )
 
-  func Run() {
+  func main() {
 	  //<<Run function, Pr. \ref{pr:ant}>>
   }
 #+end_src
@@ -201,7 +201,7 @@ We import \ty{util}.
   testing logic.
 #+end_src
 #+begin_src go <<ants_test.go>>=
-  package ants
+  package main
 
   import (
 	  "testing"
@@ -246,9 +246,9 @@ We import \ty{util}.
 #+begin_src go <<Construct tests, Pr. \ref{pr:ant}>>=
   tid := "9606"
   db := "../data/test.db"
-  test := Test{t: exec.Command("./cmd/ants", tid, db), r: 1}
+  test := Test{t: exec.Command("./ants", tid, db), r: 1}
   tests = append(tests, test)
-  test = Test{t: exec.Command("./cmd/ants", "-D", "test.db",
+  test = Test{t: exec.Command("./ants", "-D", "test.db",
 	  tid, db), r: 1}
   tests = append(tests, test)
 #+end_src

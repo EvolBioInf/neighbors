@@ -65,7 +65,7 @@ for imports, variables, types, functions, and the remaining logic of
 the run function.  \bpr{ranks}{pr:ran}
 #+end_export
 #+begin_src go <<ranks.go>>=
-  package ranks
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:ran}>>
@@ -73,7 +73,7 @@ the run function.  \bpr{ranks}{pr:ran}
   //<<Variables, Pr. \ref{pr:ran}>>
   //<<Types, Pr. \ref{pr:ran}>>
   //<<Functions, Pr. \ref{pr:ran}>>
-  func Run() {
+  func main() {
 	  genomes := []string{}
 	  //<<Run function, Pr. \ref{pr:ran}>>
   }
@@ -699,7 +699,7 @@ The outline of our testing program has hooks for imports and the
 testing logic.
 #+end_export
 #+begin_src go <<ranks_test.go>>=
-  package ranks
+  package main
 
   import (
 	  "testing"
@@ -739,7 +739,7 @@ To prepare the tests, we set three variables used in all tests, the
 program name, the root taxon, and the database.
 #+end_export
 #+begin_src go <<Prepare tests, Pr. \ref{pr:ran}>>=
-  pr := "./cmd/ranks"
+  pr := "./ranks"
   ta := "207598"
   db := "../data/test.db"
 #+end_src

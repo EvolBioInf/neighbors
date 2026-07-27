@@ -1,4 +1,4 @@
-package pickle
+package main
 
 import (
 	"flag"
@@ -123,7 +123,7 @@ func listLeaves(v *nwk.Node) {
 	listLeaves(v.Child)
 	listLeaves(v.Sib)
 }
-func Run() {
+func main() {
 	util.SetName("pickle")
 	u := "pickle [option]... <clade1,clade2...> [foo.nwk]..."
 	p := "Pick clades in Newick trees."

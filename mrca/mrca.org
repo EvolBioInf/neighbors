@@ -78,13 +78,13 @@ logic of the run function.
 \bpr{mrca}{pr:mrca}
 #+end_export
 #+begin_src go <<mrca.go>>=
-  package mrca
+  package main
 
   import (
 	  //<<Imports, Pr. \ref{pr:mrca}>>
   )
   //<<Functions, Pr. \ref{pr:mrca}>>
-  func Run() {
+  func main() {
 	  //<<Run function, Pr. \ref{pr:mrca}>>
   }
 #+end_src
@@ -607,7 +607,7 @@ Our code for testing \ty{mrca} has hooks for imports and the testing
 logic.
 #+end_export
 #+begin_src go <<mrca_test.go>>=
-  package mrca
+  package main
 
   import (
 	  //<<Testing imports, Pr. \ref{pr:mrca}>>
@@ -639,7 +639,7 @@ Figure~\ref{fig:mrca}. The first test has starting node $a$.
 #+end_export
 #+begin_src go <<Construct tests, Pr. \ref{pr:mrca}>>=
   f := "test.nwk"
-  p := "./cmd/mrca"
+  p := "./mrca"
   test := exec.Command(p, "a", f)
   tests = append(tests, test)
 #+end_src

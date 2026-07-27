@@ -1,4 +1,4 @@
-package dree
+package main
 
 import (
 	"bytes"
@@ -17,7 +17,7 @@ func TestDree(t *testing.T) {
 	var tests []Test
 	n := "207598"
 	d := "../data/test.db"
-	p := "./cmd/dree"
+	p := "./dree"
 	test := Test{t: exec.Command(p, n, d), r: 1}
 	tests = append(tests, test)
 	test = Test{t: exec.Command(p, "-D", "test.db",
