@@ -55,7 +55,7 @@ We import \ty{util}.
   "github.com/evolbioinf/clio"
 #+end_src
 #+begin_src latex
-  There's are three options, the version and remote execution and remote
+  There are three options, the version, remote execution, and remote
   execution with a specific database.
 #+end_src
 #+begin_src go <<Declare options, Pr. \ref{pr:ant}>>=
