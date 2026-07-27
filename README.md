@@ -48,16 +48,16 @@ repository and change into it.
 git clone https://github.com/evolbioinf/neighbors
 cd neighbors
 ```
-
 Then install the additional dependencies by running the script
 [`setup.sh`](scripts/setup.sh).
 
-`bash scripts/setup.sh`
-
+```
+bash scripts/setup.sh
+```
 Make the programs.
-
-`make`
-
+```
+make
+```
 The directory `bin` now contains the ten executables of the
 package. Put them somewhere in your `PATH`. Additional scripts are in
 `scripts`.
@@ -72,25 +72,29 @@ bash scripts/setupTutorial.sh
 ```
 
 ## Make the Database
-
 Get the database files and untar them.
-
 ```
 curl https://neighbors.evolbio.mpg.de/data/neidbData.tgz -o neidbData.tgz
 tar -xzvf neidbData.tgz
 ```
-
 Change into `neidbData` and untar the taxonomy data.
-
 ```
 cd neidbData
 tar -xzvf taxdump.tar.gz
 ```
-
 Run `makeNeiDb` to construct the database `neidb`.
-
 ```
 makeNeiDb -d neidb
+```
+
+## Make the Documentation
+Having run the basic setup, also setup the typesetting system.
+```
+bash scripts/setupDoc.sh
+```
+Generate the documentation in `doc/neighborsDoc.pdf`.
+```
+make doc
 ```
 
 ## Run Docker Container 
