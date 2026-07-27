@@ -84,7 +84,7 @@ func main() {
 	optG := flag.String("g", "", "read genome accessions "+
 		"from file")
 	optR := flag.Bool("r", false, "remote execution (implies db)")
-	optDD := flag.String("D", "", "name of remote database"+
+	optDD := flag.String("D", "", "name of remote database "+
 		"(implies remote execution)")
 	flag.Parse()
 	if *optV {

@@ -130,7 +130,7 @@ a remote database (\ty{-D}). The list option implies textual output.
   optG := flag.String("g", "", "read genome accessions " +
 	  "from file")
   optR := flag.Bool("r", false, "remote execution (implies db)")
-  optDD := flag.String("D", "", "name of remote database" +
+  optDD := flag.String("D", "", "name of remote database " +
 	  "(implies remote execution)")
 #+end_src
 #+begin_export latex

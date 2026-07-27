@@ -20,7 +20,7 @@ func main() {
 	clio.Usage(u, p, e)
 	var optV = flag.Bool("v", false, "version")
 	var optR = flag.Bool("r", false, "remote execution (implies db)")
-	var optDD = flag.String("D", "", "name of remote database"+
+	var optDD = flag.String("D", "", "name of remote database "+
 		"(implies remote execution)")
 	flag.Parse()
 	if *optV {

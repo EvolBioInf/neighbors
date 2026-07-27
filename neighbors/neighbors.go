@@ -195,7 +195,7 @@ func main() {
 	optLL := flag.String("L", "", util.LevelMsg())
 	optO := flag.Bool("o", false, "output only targets")
 	optR := flag.Bool("r", false, "remote execution (implies db)")
-	optDD := flag.String("D", "", "name of remote database"+
+	optDD := flag.String("D", "", "name of remote database "+
 		"(implies remote execution)")
 	flag.Parse()
 	if *optV {

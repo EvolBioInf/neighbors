@@ -211,9 +211,9 @@ func main() {
 	optHH := flag.String("H", "", "hierarchical matching "+
 		"for targets and neighbors "+
 		"using a neighbors database")
-	optR := flag.Bool("r", false, "remote execution"+
+	optR := flag.Bool("r", false, "remote execution "+
 		"(implies hierarchical matching)")
-	optDD := flag.String("D", "", "name of remote database"+
+	optDD := flag.String("D", "", "name of remote database "+
 		"(implies remote execution)")
 	flag.Parse()
 	if *optV {

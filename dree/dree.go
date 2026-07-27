@@ -32,7 +32,7 @@ func main() {
 	optRR := flag.Bool("R", false, "recursive genome counts in list "+
 		"(default raw counts)")
 	optR := flag.Bool("r", false, "remote execution (implies db)")
-	optDD := flag.String("D", "", "name of remote database"+
+	optDD := flag.String("D", "", "name of remote database "+
 		"(implies remote execution)")
 	flag.Parse()
 	if *optV {
