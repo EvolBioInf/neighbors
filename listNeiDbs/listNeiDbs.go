@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"github.com/evolbioinf/clio"
 	"github.com/evolbioinf/neighbors/util"
-	"strings"
+	"os"
+	"text/tabwriter"
 )
 
 func main() {
@@ -23,7 +24,12 @@ func main() {
 	a := make(map[string]string)
 	a["plain_data"] = "true"
 	rawRes := util.SendGetRequest("api/v2/databases", nil, nil, a)
-	var res []string
-	json.Unmarshal([]byte(rawRes), &res)
-	fmt.Println(strings.Join(res, ", "))
+	var databases []string
+	json.Unmarshal([]byte(rawRes), &databases)
+	w := tabwriter.NewWriter(os.Stdout, 2, 1, 2, ' ', 0)
+	fmt.Fprintf(w, "#Nr\tName\n")
+	for i, database := range databases {
+		fmt.Fprintf(w, "%d\t%s\n", i+1, database)
+	}
+	w.Flush()
 }

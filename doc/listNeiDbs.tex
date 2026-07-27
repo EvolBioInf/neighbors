@@ -88,30 +88,78 @@ We get the request's result as a json string. When printing it to
 \ty{stdout}, it should be a comma + space delimited string. We use the
 \ty{json} package to unmarshall the string and allow iteration.
 \nwenddocs{}\nwbegincode{24}\sublabel{NW0-2iu7sQ-2}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-2iu7sQ-2}}}\moddef{Get databases, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-2iu7sQ-1}}}\plusendmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-3D2NBK-1}}\nwprevnextdefs{NW0-2iu7sQ-1}{\relax}\nwenddeflinemarkup
-var res []string
-json.Unmarshal([]byte(rawRes), &res)
+var databases []string
+json.Unmarshal([]byte(rawRes), &databases)
 \nwused{\\{NW0-3D2NBK-1}}\nwendcode{}\nwbegindocs{25}\nwdocspar
 We import \ty{encoding/json}.
 \nwenddocs{}\nwbegincode{26}\sublabel{NW0-10JJKB-5}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-10JJKB-5}}}\moddef{Imports, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-10JJKB-1}}}\plusendmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-9Rnp3-1}}\nwprevnextdefs{NW0-10JJKB-4}{NW0-10JJKB-6}\nwenddeflinemarkup
 "encoding/json"
 \nwused{\\{NW0-9Rnp3-1}}\nwendcode{}\nwbegindocs{27}\nwdocspar
-Lastly we join the string slice and print the result.
+We print the databases in a table. This consists of two columns, the
+database number and its name. So we construct a \ty{tabwriter}, write
+the two column headers, and the two columns of the table proper.
 \nwenddocs{}\nwbegincode{28}\sublabel{NW0-sJUme-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-sJUme-1}}}\moddef{Print databases, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-sJUme-1}}}\endmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-3D2NBK-1}}\nwenddeflinemarkup
-fmt.Println(strings.Join(res, ", "))
+w := tabwriter.NewWriter(os.Stdout, 2, 1, 2, ' ', 0)
+fmt.Fprintf(w, "#Nr\\tName\\n")
+for i, database := range databases \{
+        fmt.Fprintf(w, "%d\\t%s\\n", i+1, database)
+\}
+w.Flush()
 \nwused{\\{NW0-3D2NBK-1}}\nwendcode{}\nwbegindocs{29}\nwdocspar
-We import \ty{strings} and \ty{fmt}.
+We import \ty{tabwriter}, \ty{os}, and \ty{fmt}.
 \nwenddocs{}\nwbegincode{30}\sublabel{NW0-10JJKB-6}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-10JJKB-6}}}\moddef{Imports, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-10JJKB-1}}}\plusendmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-9Rnp3-1}}\nwprevnextdefs{NW0-10JJKB-5}{\relax}\nwenddeflinemarkup
-"strings"
+"text/tabwriter"
+"os"
 "fmt"
-\nwused{\\{NW0-9Rnp3-1}}\nwendcode{}
+\nwused{\\{NW0-9Rnp3-1}}\nwendcode{}\nwbegindocs{31}\nwdocspar
+We have finished writing \ty{listNeiDbs}, time to test it.
+
+\section*{Testing}
+Our code for testing \ty{listNeiDbs} has hooks for imports and the
+testing logic.
+\nwenddocs{}\nwbegincode{32}\sublabel{NW0-4G0kEx-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-4G0kEx-1}}}\moddef{listNeiDbs\_test.go~{\nwtagstyle{}\subpageref{NW0-4G0kEx-1}}}\endmoddef\nwstartdeflinemarkup\nwenddeflinemarkup
+package main
+
+import (
+        "testing"
+        \LA{}Testing imports, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-3hVoM5-1}}\RA{}
+)
+
+func TestListNeiDbs(t *testing.T) \{
+        \LA{}Testing, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-OsaTZ-1}}\RA{}
+\}
+\nwnotused{listNeiDbs\_test.go}\nwendcode{}\nwbegindocs{33}\nwdocspar
+The program \ty{listNeiDbs} has no options to test, so we construct
+one test and run it to make sure that apart from the table header we
+get at least one database.
+\nwenddocs{}\nwbegincode{34}\sublabel{NW0-OsaTZ-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-OsaTZ-1}}}\moddef{Testing, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-OsaTZ-1}}}\endmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-4G0kEx-1}}\nwenddeflinemarkup
+test := exec.Command("./listNeiDbs")
+g, e := test.Output()
+if e != nil \{
+        t.Error(e)
+\}
+tab := bytes.Split(g, []byte\{'\\n'\})
+n := len(tab) - 1
+if n < 2 \{
+        t.Error("listNeiDbs: get no databases\\n")
+\}
+\nwused{\\{NW0-4G0kEx-1}}\nwendcode{}\nwbegindocs{35}\nwdocspar
+We import \ty{exec} and \ty{bytes}.
+\nwenddocs{}\nwbegincode{36}\sublabel{NW0-3hVoM5-1}\nwmargintag{{\nwtagstyle{}\subpageref{NW0-3hVoM5-1}}}\moddef{Testing imports, Pr. \ref{pr:lis}~{\nwtagstyle{}\subpageref{NW0-3hVoM5-1}}}\endmoddef\nwstartdeflinemarkup\nwusesondefline{\\{NW0-4G0kEx-1}}\nwenddeflinemarkup
+"os/exec"
+"bytes"
+\nwused{\\{NW0-4G0kEx-1}}\nwendcode{}
 
 \nwixlogsorted{c}{{Declare options, Pr. \ref{pr:lis}}{NW0-1fbE8j-1}{\nwixu{NW0-3D2NBK-1}\nwixd{NW0-1fbE8j-1}}}%
 \nwixlogsorted{c}{{Get databases, Pr. \ref{pr:lis}}{NW0-2iu7sQ-1}{\nwixu{NW0-3D2NBK-1}\nwixd{NW0-2iu7sQ-1}\nwixd{NW0-2iu7sQ-2}}}%
 \nwixlogsorted{c}{{Imports, Pr. \ref{pr:lis}}{NW0-10JJKB-1}{\nwixu{NW0-9Rnp3-1}\nwixd{NW0-10JJKB-1}\nwixd{NW0-10JJKB-2}\nwixd{NW0-10JJKB-3}\nwixd{NW0-10JJKB-4}\nwixd{NW0-10JJKB-5}\nwixd{NW0-10JJKB-6}}}%
 \nwixlogsorted{c}{{listNeiDbs.go}{NW0-9Rnp3-1}{\nwixd{NW0-9Rnp3-1}}}%
+\nwixlogsorted{c}{{listNeiDbs\_test.go}{NW0-4G0kEx-1}{\nwixd{NW0-4G0kEx-1}}}%
 \nwixlogsorted{c}{{Main function, Pr. \ref{pr:lis}}{NW0-3D2NBK-1}{\nwixu{NW0-9Rnp3-1}\nwixd{NW0-3D2NBK-1}}}%
 \nwixlogsorted{c}{{Parse options, Pr. \ref{pr:lis}}{NW0-4UfG5R-1}{\nwixu{NW0-3D2NBK-1}\nwixd{NW0-4UfG5R-1}}}%
 \nwixlogsorted{c}{{Print databases, Pr. \ref{pr:lis}}{NW0-sJUme-1}{\nwixu{NW0-3D2NBK-1}\nwixd{NW0-sJUme-1}}}%
 \nwixlogsorted{c}{{Respond to \ty{-v}, Pr. \ref{pr:lis}}{NW0-swedK-1}{\nwixu{NW0-4UfG5R-1}\nwixd{NW0-swedK-1}}}%
 \nwixlogsorted{c}{{Set usage, Pr. \ref{pr:lis}}{NW0-2rdd1Y-1}{\nwixu{NW0-3D2NBK-1}\nwixd{NW0-2rdd1Y-1}}}%
+\nwixlogsorted{c}{{Testing imports, Pr. \ref{pr:lis}}{NW0-3hVoM5-1}{\nwixu{NW0-4G0kEx-1}\nwixd{NW0-3hVoM5-1}}}%
+\nwixlogsorted{c}{{Testing, Pr. \ref{pr:lis}}{NW0-OsaTZ-1}{\nwixu{NW0-4G0kEx-1}\nwixd{NW0-OsaTZ-1}}}%
 

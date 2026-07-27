@@ -111,8 +111,8 @@ which contains the version.
   \ty{json} package to unmarshall the string and allow iteration.
 #+end_export
 #+begin_src go <<Get databases, Pr. \ref{pr:lis}>>=
-  var res []string
-  json.Unmarshal([]byte(rawRes), &res)
+  var databases []string
+  json.Unmarshal([]byte(rawRes), &databases)
 #+end_src
 #+begin_export latex
   We import \ty{encoding/json}.
@@ -121,15 +121,66 @@ which contains the version.
   "encoding/json"
 #+end_src
 #+begin_export latex
-  Lastly we join the string slice and print the result.
+We print the databases in a table. This consists of two columns, the
+database number and its name. So we construct a \ty{tabwriter}, write
+the two column headers, and the two columns of the table proper.
 #+end_export
 #+begin_src go <<Print databases, Pr. \ref{pr:lis}>>=
-  fmt.Println(strings.Join(res, ", "))
+  w := tabwriter.NewWriter(os.Stdout, 2, 1, 2, ' ', 0)
+  fmt.Fprintf(w, "#Nr\tName\n")
+  for i, database := range databases {
+  	fmt.Fprintf(w, "%d\t%s\n", i+1, database)
+  }
+  w.Flush()
 #+end_src
 #+begin_export latex
-  We import \ty{strings} and \ty{fmt}.
+We import \ty{tabwriter}, \ty{os}, and \ty{fmt}.
 #+end_export
 #+begin_src go <<Imports, Pr. \ref{pr:lis}>>=
-  "strings"
+  "text/tabwriter"
+  "os"
   "fmt"
+#+end_src
+#+begin_export latex
+We have finished writing \ty{listNeiDbs}, time to test it.
+
+\section*{Testing}
+Our code for testing \ty{listNeiDbs} has hooks for imports and the
+testing logic.
+#+end_export
+#+begin_src go <<listNeiDbs_test.go>>=
+  package main
+
+  import (
+  	"testing"
+  	//<<Testing imports, Pr. \ref{pr:lis}>>
+  )
+
+  func TestListNeiDbs(t *testing.T) {
+  	//<<Testing, Pr. \ref{pr:lis}>>
+  }
+#+end_src
+#+begin_export latex
+The program \ty{listNeiDbs} has no options to test, so we construct
+one test and run it to make sure that apart from the table header we
+get at least one database.
+#+end_export
+#+begin_src go <<Testing, Pr. \ref{pr:lis}>>=
+  test := exec.Command("./listNeiDbs")
+  g, e := test.Output()
+  if e != nil {
+  	t.Error(e)
+  }
+  tab := bytes.Split(g, []byte{'\n'})
+  n := len(tab) - 1
+  if n < 2 {
+  	t.Error("listNeiDbs: get no databases\n")
+  }
+#+end_src
+#+begin_export latex
+We import \ty{exec} and \ty{bytes}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:lis}>>=
+  "os/exec"
+  "bytes"
 #+end_src
