@@ -40,7 +40,7 @@ func TestUtil(t *testing.T) {
 		}
 	}
 	args := []string{"first", "1234", "-t", "-m", "xyz", "-f", "r.txt", "-r",
-		"-p", "1233", "&4982k", "-D", "smth", "fake1.db", "sdlfjk", "fake2.db"}
+		"-p", "1233", "&4982k", "-D", "smth", "empty1.db", "sdlfjk", "empty2.db"}
 	cArgs := slices.Clone(args)
 
 	res := SanitizeArguments(args, []Option{

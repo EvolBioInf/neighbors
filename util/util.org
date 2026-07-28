@@ -382,7 +382,7 @@ We import \ty{math}.
   !\ty{neighbors.evolbio.mpg.de} using these values and returns the result.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func SendPostRequest(address string, options, extraArgs []string, 
+  func SendPostRequest(address string, options, extraArgs []string,
 	  miscArgs map[string]string, files []*os.File, stdin *os.File) string {
 
 	  address = "https://neighbors.evolbio.mpg.de/" + address
@@ -419,7 +419,7 @@ We import \ty{math}.
 #+end_src
 #+begin_export latex
   When creating an entry with the multipart writer, we create a new form file.
-  We need to provide a key for the map of files and the name of the file 
+  We need to provide a key for the map of files and the name of the file
   itself. The multipart package takes care of creating the file headers and
   other meta data.
 #+end_export
@@ -717,12 +717,12 @@ error.
 #+end_src
 #+begin_src go <<Test \ty{SanitizeArguments}, Pa. \ref{pa:util}>>=
   args := []string{"first", "1234", "-t", "-m", "xyz", "-f", "r.txt", "-r",
-	  "-p", "1233", "&4982k", "-D", "smth", "fake1.db", "sdlfjk", "fake2.db"}
+	  "-p", "1233", "&4982k", "-D", "smth", "empty1.db", "sdlfjk", "empty2.db"}
   cArgs := slices.Clone(args)
 
   res := SanitizeArguments(args, []Option{
-	  {Name: "r", WithValue: false}, 
-	  {Name: "D", WithValue: true}, 
+	  {Name: "r", WithValue: false},
+	  {Name: "D", WithValue: true},
 	  {Name: "p", WithValue: true},
   })
   e := []string{"first", "1234", "-t", "-m", "xyz", "-f", "r.txt", "&4982k",
