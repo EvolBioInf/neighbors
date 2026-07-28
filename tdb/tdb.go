@@ -60,7 +60,7 @@ func (t *TaxonomyDB) AccessionsContext(
 ) ([]string, error) {
 	var err error
 	accessions := make([]string, 0)
-	rows, err := t.db.Query(accessionT, taxon)
+	rows, err := t.db.QueryContext(ctx, accessionT, taxon)
 	if err != nil {
 		m := "couldn't find genome accessions for taxon %d"
 		m = fmt.Sprintf(m, taxon)
@@ -88,7 +88,7 @@ func (t *TaxonomyDB) NameContext(
 ) (string, error) {
 	var err error
 	name := ""
-	rows, err := t.db.Query(nameT, taxon)
+	rows, err := t.db.QueryContext(ctx, nameT, taxon)
 	if err != nil {
 		return "", err
 	}
@@ -112,7 +112,7 @@ func (t *TaxonomyDB) CommonNameContext(
 ) (string, error) {
 	var err error
 	commonName := ""
-	rows, err := t.db.Query(commonNameT, taxon)
+	rows, err := t.db.QueryContext(ctx, commonNameT, taxon)
 	if err != nil {
 		return "", err
 	}
@@ -135,7 +135,7 @@ func (t *TaxonomyDB) RankContext(
 ) (string, error) {
 	var err error
 	rank := ""
-	rows, err := t.db.Query(rankT, taxon)
+	rows, err := t.db.QueryContext(ctx, rankT, taxon)
 	if err != nil {
 		m := "couldn't find the rank of taxon %d"
 		m = fmt.Sprintf(m, taxon)
@@ -162,7 +162,7 @@ func (t *TaxonomyDB) ParentContext(
 ) (int, error) {
 	var err error
 	parent := 0
-	rows, err := t.db.Query(parentT, c)
+	rows, err := t.db.QueryContext(ctx, parentT, c)
 	if err != nil {
 		m := "couldn't find the parent of taxon %d"
 		m = fmt.Sprintf(m, c)
@@ -187,7 +187,7 @@ func (t *TaxonomyDB) ChildrenContext(
 ) ([]int, error) {
 	var err error
 	children := make([]int, 0)
-	rows, err := t.db.Query(childrenT, p)
+	rows, err := t.db.QueryContext(ctx, childrenT, p)
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +248,7 @@ func (t *TaxonomyDB) TaxidsContext(
 ) ([]int, error) {
 	var err error
 	taxids := make([]int, 0)
-	rows, err := t.db.Query(taxidsT, name)
+	rows, err := t.db.QueryContext(ctx, taxidsT, name)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +296,7 @@ func (t *TaxonomyDB) CommonTaxidsContext(
 ) ([]int, error) {
 	var err error
 	commonTaxids := make([]int, 0)
-	rows, err := t.db.Query(commonTaxidsT, name, name, limit, offset)
+	rows, err := t.db.QueryContext(ctx, commonTaxidsT, name, name, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -373,7 +373,7 @@ func (t *TaxonomyDB) LevelContext(
 ) (string, error) {
 	var err error
 	level := ""
-	rows, err := t.db.Query(levelT, acc)
+	rows, err := t.db.QueryContext(ctx, levelT, acc)
 	if err != nil {
 		m := "couldn't find assembly level " +
 			"for genome %d"
@@ -444,7 +444,7 @@ func (d *TaxonomyDB) NumGenomesContext(
 	q := "select raw from genome_count " +
 		"where taxid=? and " +
 		"level like ?"
-	row, err := d.db.Query(q, taxid, level)
+	row, err := d.db.QueryContext(ctx, q, taxid, level)
 	if err != nil {
 		return 0, err
 	}
@@ -472,7 +472,7 @@ func (d *TaxonomyDB) NumGenomesRecContext(
 	q := "select recursive from genome_count " +
 		"where taxid=? and " +
 		"level like ?"
-	row, err := d.db.Query(q, taxid, level)
+	row, err := d.db.QueryContext(ctx, q, taxid, level)
 	if err != nil {
 		return 0, err
 	}
@@ -497,7 +497,7 @@ func (d *TaxonomyDB) IsLeafContext(
 	var err error
 	q := "select count(taxid) from taxon " +
 		"where parent=?"
-	row, err := d.db.Query(q, taxid)
+	row, err := d.db.QueryContext(ctx, q, taxid)
 	if err != nil {
 		return false, err
 	}
@@ -526,7 +526,7 @@ func (d *TaxonomyDB) ImagesContext(
 	q := "select image_id, url, attribution " +
 		"from image natural join tax2ima " +
 		"where taxid=?"
-	rows, err := d.db.Query(q, taxid)
+	rows, err := d.db.QueryContext(ctx, q, taxid)
 	if err != nil {
 		return images, err
 	}
@@ -554,7 +554,7 @@ func (t *TaxonomyDB) AccessionTaxidContext(
 ) (int, error) {
 	var err error
 	taxid := 0
-	rows, err := t.db.Query(taxidT, acc)
+	rows, err := t.db.QueryContext(ctx, taxidT, acc)
 	if err != nil {
 		m := "couldn't find the taxon of " +
 			"genome %s"

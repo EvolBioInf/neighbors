@@ -1137,7 +1137,7 @@ make sure that the input stream returned is eventually closed again
 and check the error returned by the database.
 #+end_export
 #+begin_src go <<Query for accessions, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(accessionT, taxon)
+  rows, err := t.db.QueryContext(ctx, accessionT, taxon)
   if err != nil {
 	  m := "couldn't find genome accessions for taxon %d"
 	  m = fmt.Sprintf(m, taxon)
@@ -1196,7 +1196,7 @@ and check the error returned by the database.
   results table once we're done with it.
 #+end_src
 #+begin_src go <<Execute name query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(nameT, taxon)
+  rows, err := t.db.QueryContext(ctx, nameT, taxon)
   if err != nil {
 	  return "", err
   }
@@ -1253,7 +1253,7 @@ and check the error returned by the database.
   close the results table once we're done with it.
 #+end_src
 #+begin_src go <<Execute common name query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(commonNameT, taxon)
+  rows, err := t.db.QueryContext(ctx, commonNameT, taxon)
   if err != nil {
 	  return "", err
   }
@@ -1308,7 +1308,7 @@ and check the error returned by the database.
   the results table once we're done with it.
 #+end_src
 #+begin_src go <<Execute rank query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(rankT, taxon)
+  rows, err := t.db.QueryContext(ctx, rankT, taxon)
   if err != nil {
 	  m := "couldn't find the rank of taxon %d"
 	  m = fmt.Sprintf(m, taxon)
@@ -1368,7 +1368,7 @@ and check the error returned by the database.
   eventually closed again.
 #+end_src
 #+begin_src go <<Execute parent query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(parentT, c)
+  rows, err := t.db.QueryContext(ctx, parentT, c)
   if err != nil {
 	  m := "couldn't find the parent of taxon %d"
 	  m = fmt.Sprintf(m, c)
@@ -1425,7 +1425,7 @@ and check the error returned by the database.
   and eventually close the results table again.
 #+end_src
 #+begin_src go <<Execute children query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(childrenT, p)
+  rows, err := t.db.QueryContext(ctx, childrenT, p)
   if err != nil {
 	  return nil, err
   }
@@ -1599,7 +1599,7 @@ infinite loop.
   make sure the result table is eventually closed again.
 #+end_src
 #+begin_src go <<Execute taxids query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(taxidsT, name)
+  rows, err := t.db.QueryContext(ctx, taxidsT, name)
   if err != nil {
 	  return nil, err
   }
@@ -1721,7 +1721,7 @@ and then store the corresponding taxon-IDs.
   make sure the result table is eventually closed again.
 #+end_src
 #+begin_src go <<Execute common taxids query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(commonTaxidsT, name, name, limit, offset)
+  rows, err := t.db.QueryContext(ctx, commonTaxidsT, name, name, limit, offset)
   if err != nil {
 	  return nil, err
   }
@@ -1924,7 +1924,7 @@ We call \ty{LevelContext} with the default context.
   stream we just opened is eventually closed again.
 #+end_src
 #+begin_src go <<Execute level query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(levelT, acc)
+  rows, err := t.db.QueryContext(ctx, levelT, acc)
   if err != nil {
 	  m := "couldn't find assembly level " +
 		  "for genome %d"
@@ -2076,7 +2076,7 @@ We execute the query, store the table row returned, and check the
 error.
 #+end_export
 #+begin_src go <<Execute numgen query, Pa. \ref{pa:tdb}>>=
-  row, err := d.db.Query(q, taxid, level)
+  row, err := d.db.QueryContext(ctx, q, taxid, level)
   if err != nil {
 	  return 0, err
   }
@@ -2140,7 +2140,7 @@ We execute the query for the recursive number of genomes and check the
 error.
 #+end_export
 #+begin_src go <<Execute recursive numgen query, Pa. \ref{pa:tdb}>>=
-  row, err := d.db.Query(q, taxid, level)
+  row, err := d.db.QueryContext(ctx, q, taxid, level)
   if err != nil {
 	  return 0, err
   }
@@ -2213,7 +2213,7 @@ taxon-ID.
 We execute the leaf query and bail if there was an error.
 #+end_export
 #+begin_src go <<Execute leaf query, Pa. \ref{pa:tdb}>>=
-  row, err := d.db.Query(q, taxid)
+  row, err := d.db.QueryContext(ctx, q, taxid)
   if err != nil {
 	  return false, err
   }
@@ -2270,7 +2270,7 @@ incoming taxid.
 We execute the image query and check the error returned.
 #+end_export
 #+begin_src go <<Execute image query, Pa. \ref{pa:tdb}>>=
-  rows, err := d.db.Query(q, taxid)
+  rows, err := d.db.QueryContext(ctx, q, taxid)
   if err != nil {
 	  return images, err
   }
@@ -2331,7 +2331,7 @@ an image.
   stream we just opened is eventually closed again.
 #+end_src
 #+begin_src go <<Execute taxid query, Pa. \ref{pa:tdb}>>=
-  rows, err := t.db.Query(taxidT, acc)
+  rows, err := t.db.QueryContext(ctx, taxidT, acc)
   if err != nil {
 	  m := "couldn't find the taxon of " +
 		  "genome %s"
