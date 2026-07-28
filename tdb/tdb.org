@@ -1098,7 +1098,7 @@ We import \ty{errors}.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
-    return t.AccessionsContext(context.Background(), taxon)
+	  return t.AccessionsContext(context.Background(), taxon)
   }
 #+end_src
 #+begin_src latex
@@ -1113,9 +1113,9 @@ We import \ty{errors}.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) AccessionsContext(
-    ctx context.Context,
-    taxon int,
-    ) ([]string, error) {
+	  ctx context.Context,
+	  taxon int,
+	  ) ([]string, error) {
 	  var err error
 	  accessions := make([]string, 0)
 	  //<<Query for accessions, Pa. \ref{pa:tdb}>>
@@ -1175,9 +1175,9 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) NameContext(
-    ctx context.Context,
-    taxon int,
-    ) (string, error) {
+	  ctx context.Context,
+	  taxon int,
+	  ) (string, error) {
 	  var err error
 	  name := ""
 	  //<<Execute name query, Pa. \ref{pa:tdb}>>
@@ -1231,9 +1231,9 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) CommonNameContext(
-    ctx context.Context,
-    taxon int,
-    ) (string, error) {
+	  ctx context.Context,
+	  taxon int,
+	  ) (string, error) {
 	  var err error
 	  commonName := ""
 	  //<<Execute common name query, Pa. \ref{pa:tdb}>>
@@ -1287,9 +1287,9 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) RankContext(
-    ctx context.Context,
-    taxon int,
-    ) (string, error) {
+	  ctx context.Context,
+	  taxon int,
+	  ) (string, error) {
 	  var err error
 	  rank := ""
 	  //<<Execute rank query, Pa. \ref{pa:tdb}>>
@@ -1346,9 +1346,9 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) ParentContext(
-    ctx context.Context,
-    c int,
-    ) (int, error) {
+	  ctx context.Context,
+	  c int,
+	  ) (int, error) {
 	  var err error
 	  parent := 0
 	  //<<Execute parent query, Pa. \ref{pa:tdb}>>
@@ -1396,7 +1396,7 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Children(p int) ([]int, error) {
-    return t.ChildrenContext(context.Background(), p)
+	  return t.ChildrenContext(context.Background(), p)
   }
 #+end_src
 #+begin_src latex
@@ -1404,9 +1404,9 @@ and check the error returned by the database.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) ChildrenContext(
-    ctx context.Context,
-    p int,
-    ) ([]int, error) {
+	  ctx context.Context,
+	  p int,
+	  ) ([]int, error) {
 	  var err error
 	  children := make([]int, 0)
 	  //<<Execute children query, Pa. \ref{pa:tdb}>>
@@ -1530,7 +1530,7 @@ infinite loop.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) SubtreeLevel(r, m int) ([]int, error) {
-    return t.SubtreeLevelContext(context.Background(), r, m)
+	  return t.SubtreeLevelContext(context.Background(), r, m)
   }
 #+end_src
 #+begin_src latex
@@ -1539,9 +1539,9 @@ infinite loop.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) SubtreeLevelContext(
-    ctx context.Context,
-    r, m int,
-    ) ([]int, error) {
+	  ctx context.Context,
+	  r, m int,
+	  ) ([]int, error) {
 	  var err error
 	  taxa := make([]int, 0)
 	  taxa, err = traverseSubtree(ctx, t, r, taxa, m, 0)
@@ -1565,7 +1565,7 @@ infinite loop.
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Taxids(name string,
 	  limit, offset int) ([]int, error) {
-    return t.TaxidsContext(context.Background(), name, limit, offset)
+	  return t.TaxidsContext(context.Background(), name, limit, offset)
   }
 #+end_src
 #+begin_src latex
@@ -1574,10 +1574,10 @@ infinite loop.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) TaxidsContext(
-    ctx context.Context,
-    name string,
+	  ctx context.Context,
+	  name string,
 	  limit, offset int,
-    ) ([]int, error) {
+	  ) ([]int, error) {
 	  var err error
 	  taxids := make([]int, 0)
 	  //<<Execute taxids query, Pa. \ref{pa:tdb}>>
@@ -1683,7 +1683,7 @@ and then store the corresponding taxon-IDs.
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) CommonTaxids(name string,
 	  limit, offset int) ([]int, error) {
-    return t.CommonTaxidsContext(context.Background(), name, limit, offset)
+	  return t.CommonTaxidsContext(context.Background(), name, limit, offset)
   }
 #+end_src
 #+begin_src latex
@@ -1692,10 +1692,10 @@ and then store the corresponding taxon-IDs.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) CommonTaxidsContext(
-    ctx context.Context,
-    name string,
+	  ctx context.Context,
+	  name string,
 	  limit, offset int,
-    ) ([]int, error) {
+	  ) ([]int, error) {
 	  var err error
 	  commonTaxids := make([]int, 0)
 	  //<<Execute common taxids query, Pa. \ref{pa:tdb}>>
@@ -1759,9 +1759,9 @@ and then store the corresponding taxon-IDs.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) MRCAContext(
-    ctx context.Context,
-    ids []int,
-    ) (int, error) {
+	  ctx context.Context,
+	  ids []int,
+	  ) (int, error) {
 	  var err error
 	  mrca := -1
 	  //<<Check IDs, Pa. \ref{pa:tdb}>>
@@ -1903,9 +1903,9 @@ We call \ty{LevelContext} with the default context.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) LevelContext(
-    ctx context.Context,
-    acc string,
-    ) (string, error) {
+	  ctx context.Context,
+	  acc string,
+	  ) (string, error) {
 	  var err error
 	  level := ""
 	  //<<Execute level query, Pa. \ref{pa:tdb}>>
@@ -2041,7 +2041,7 @@ We call \ty{NumGenomesContext} with the default context.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (d *TaxonomyDB) NumGenomes(taxid int, level string) (int, error) {
-    return d.NumGenomesContext(context.Background(), taxid, level)
+	  return d.NumGenomesContext(context.Background(), taxid, level)
   }
 #+end_src
 #+begin_export latex
@@ -2050,10 +2050,10 @@ extract the result.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (d *TaxonomyDB) NumGenomesContext(
-    ctx context.Context,
-    taxid int,
-    level string,
-    ) (int, error) {
+	  ctx context.Context,
+	  taxid int,
+	  level string,
+	  ) (int, error) {
 	  n := 0
 	  var err error
 	  //<<Construct numgen query, Pa. \ref{pa:tdb}>>
@@ -2114,10 +2114,10 @@ the query, and extract the result.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (d *TaxonomyDB) NumGenomesRecContext(
-    ctx context.Context,
-    taxid int,
+	  ctx context.Context,
+	  taxid int,
 	  level string,
-    ) (int, error) {
+	  ) (int, error) {
 	  n := 0
 	  var err error
 	  //<<Construct recursive numgen query, Pa. \ref{pa:tdb}>>
@@ -2177,7 +2177,7 @@ We call \ty{IsLeafContext} with the default context.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (d *TaxonomyDB) IsLeaf(taxid int) (bool, error) {
-    return d.IsLeafContext(context.Background(), taxid)
+	  return d.IsLeafContext(context.Background(), taxid)
   }
 #+end_src
 #+begin_export latex
@@ -2187,9 +2187,9 @@ otherwise.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (d *TaxonomyDB) IsLeafContext(
-    ctx context.Context,
-    taxid int,
-    ) (bool, error) {
+	  ctx context.Context,
+	  taxid int,
+	  ) (bool, error) {
 	  numChildren := 0
 	  var err error
 	  //<<Construct leaf query, Pa. \ref{pa:tdb}>>
@@ -2236,7 +2236,7 @@ We extract the number of children and bail if there was an error.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (d *TaxonomyDB) Images(taxid int) ([]Image, error) {
-    return d.ImagesContext(context.Background(), taxid)
+	  return d.ImagesContext(context.Background(), taxid)
   }
 #+end_src
 #+begin_export latex
@@ -2244,9 +2244,9 @@ We extract the number of children and bail if there was an error.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (d *TaxonomyDB) ImagesContext(
-    ctx context.Context,
-    taxid int,
-    ) ([]Image, error) {
+	  ctx context.Context,
+	  taxid int,
+	  ) ([]Image, error) {
 	  images := []Image{}
 	  var err error
 	  //<<Construct image query, Pa. \ref{pa:tdb}>>
@@ -2310,9 +2310,9 @@ an image.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) AccessionTaxidContext(
-    ctx context.Context,
-    acc string,
-    ) (int, error) {
+	  ctx context.Context,
+	  acc string,
+	  ) (int, error) {
 	  var err error
 	  taxid := 0
 	  //<<Execute taxid query, Pa. \ref{pa:tdb}>>
