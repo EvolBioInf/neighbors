@@ -3,6 +3,7 @@ package tdb
 
 import (
 	"bufio"
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -49,8 +50,14 @@ func (t *TaxonomyDB) Close() {
 	t.db.Close()
 }
 
-// The method Accessions takes as parameter a taxon-ID and returns a slice accessions of genome assemblies belonging to that taxon and an error.
+// The method Accessions takes as parameter a taxon-ID and returns a slice accessions of genome assemblies belonging to that taxon and an error. It wraps AccessionsContext which implements the just mentioned behavior.
 func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
+	return t.AccessionsContext(context.Background(), taxon)
+}
+func (t *TaxonomyDB) AccessionsContext(
+	ctx context.Context,
+	taxon int,
+) ([]string, error) {
 	var err error
 	accessions := make([]string, 0)
 	rows, err := t.db.Query(accessionT, taxon)
@@ -73,6 +80,12 @@ func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
 
 // The method Name takes as argument a taxon-ID and returns the  taxon's name and an error.
 func (t *TaxonomyDB) Name(taxon int) (string, error) {
+	return t.NameContext(context.Background(), taxon)
+}
+func (t *TaxonomyDB) NameContext(
+	ctx context.Context,
+	taxon int,
+) (string, error) {
 	var err error
 	name := ""
 	rows, err := t.db.Query(nameT, taxon)
@@ -91,6 +104,12 @@ func (t *TaxonomyDB) Name(taxon int) (string, error) {
 
 // The method CommonName takes as argument a taxon-ID and returns the  taxon's common name and an error.
 func (t *TaxonomyDB) CommonName(taxon int) (string, error) {
+	return t.CommonNameContext(context.Background(), taxon)
+}
+func (t *TaxonomyDB) CommonNameContext(
+	ctx context.Context,
+	taxon int,
+) (string, error) {
 	var err error
 	commonName := ""
 	rows, err := t.db.Query(commonNameT, taxon)
@@ -108,6 +127,12 @@ func (t *TaxonomyDB) CommonName(taxon int) (string, error) {
 
 // The method Rank takes as argument a taxon-ID and returns the taxon's rank and an error.
 func (t *TaxonomyDB) Rank(taxon int) (string, error) {
+	return t.RankContext(context.Background(), taxon)
+}
+func (t *TaxonomyDB) RankContext(
+	ctx context.Context,
+	taxon int,
+) (string, error) {
 	var err error
 	rank := ""
 	rows, err := t.db.Query(rankT, taxon)
@@ -129,6 +154,12 @@ func (t *TaxonomyDB) Rank(taxon int) (string, error) {
 
 // The method Parent takes as argument a taxon-ID and returns the  taxon-ID of its parent and an error.
 func (t *TaxonomyDB) Parent(c int) (int, error) {
+	return t.ParentContext(context.Background(), c)
+}
+func (t *TaxonomyDB) ParentContext(
+	ctx context.Context,
+	c int,
+) (int, error) {
 	var err error
 	parent := 0
 	rows, err := t.db.Query(parentT, c)
@@ -148,6 +179,12 @@ func (t *TaxonomyDB) Parent(c int) (int, error) {
 
 // The method Children takes as argument a taxon-ID and returns its  children and an error.
 func (t *TaxonomyDB) Children(p int) ([]int, error) {
+	return t.ChildrenContext(context.Background(), p)
+}
+func (t *TaxonomyDB) ChildrenContext(
+	ctx context.Context,
+	p int,
+) ([]int, error) {
 	var err error
 	children := make([]int, 0)
 	rows, err := t.db.Query(childrenT, p)
@@ -168,9 +205,12 @@ func (t *TaxonomyDB) Children(p int) ([]int, error) {
 
 // The method Subtree returns all taxa in a subtree, including its  root, and an error.
 func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
+	return t.SubtreeContext(context.Background(), r)
+}
+func (t *TaxonomyDB) SubtreeContext(ctx context.Context, r int) ([]int, error) {
 	var err error
 	taxa := make([]int, 0)
-	taxa, err = traverseSubtree(t, r, taxa, math.MaxInt, 0)
+	taxa, err = traverseSubtree(ctx, t, r, taxa, math.MaxInt, 0)
 	if err != nil {
 		m := "couldn't find subtree rooted on taxon %d"
 		m = fmt.Sprintf(m, r)
@@ -181,9 +221,15 @@ func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
 
 // The method SubtreeLevel returns all taxa in a subtree up to a  maximum level, including its root, and an error.
 func (t *TaxonomyDB) SubtreeLevel(r, m int) ([]int, error) {
+	return t.SubtreeLevelContext(context.Background(), r, m)
+}
+func (t *TaxonomyDB) SubtreeLevelContext(
+	ctx context.Context,
+	r, m int,
+) ([]int, error) {
 	var err error
 	taxa := make([]int, 0)
-	taxa, err = traverseSubtree(t, r, taxa, m, 0)
+	taxa, err = traverseSubtree(ctx, t, r, taxa, m, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -193,6 +239,13 @@ func (t *TaxonomyDB) SubtreeLevel(r, m int) ([]int, error) {
 // Taxids takes as arguments a taxon name, a limit on the number  of names returned, and an offset into the list of matching names. It  matches the taxon name, to the scientific names in the database,  orders the hits by their score, imposes the limit and offset, and  returns the corresponding taxon-IDs and an error. A negative limit  means no limit.
 func (t *TaxonomyDB) Taxids(name string,
 	limit, offset int) ([]int, error) {
+	return t.TaxidsContext(context.Background(), name, limit, offset)
+}
+func (t *TaxonomyDB) TaxidsContext(
+	ctx context.Context,
+	name string,
+	limit, offset int,
+) ([]int, error) {
 	var err error
 	taxids := make([]int, 0)
 	rows, err := t.db.Query(taxidsT, name)
@@ -234,6 +287,13 @@ func (t *TaxonomyDB) Taxids(name string,
 // CommonTaxids takes as arguments a taxon name, a limit on the  number of names returned, and an offset into the list of matching  names. It matches the taxon name to the scientific and common names,  orders the hits by their score, imposes the limit and offset, and  returns the corresponding taxon-IDs and an error. A negative limit  is no limit.
 func (t *TaxonomyDB) CommonTaxids(name string,
 	limit, offset int) ([]int, error) {
+	return t.CommonTaxidsContext(context.Background(), name, limit, offset)
+}
+func (t *TaxonomyDB) CommonTaxidsContext(
+	ctx context.Context,
+	name string,
+	limit, offset int,
+) ([]int, error) {
 	var err error
 	commonTaxids := make([]int, 0)
 	rows, err := t.db.Query(commonTaxidsT, name, name, limit, offset)
@@ -254,6 +314,12 @@ func (t *TaxonomyDB) CommonTaxids(name string,
 
 // The method MRCA takes as input a slice of taxon-IDs and returns their most recent common ancestor and an error.
 func (t *TaxonomyDB) MRCA(ids []int) (int, error) {
+	return t.MRCAContext(context.Background(), ids)
+}
+func (t *TaxonomyDB) MRCAContext(
+	ctx context.Context,
+	ids []int,
+) (int, error) {
 	var err error
 	mrca := -1
 	if len(ids) == 0 {
@@ -297,8 +363,14 @@ func (t *TaxonomyDB) MRCA(ids []int) (int, error) {
 	return mrca, err
 }
 
-// The method Level takes as argument a genome accession and  returns the assembly level and an eror.
+// The method Level takes as argument a genome accession and  returns the assembly level and an error.
 func (t *TaxonomyDB) Level(acc string) (string, error) {
+	return t.LevelContext(context.Background(), acc)
+}
+func (t *TaxonomyDB) LevelContext(
+	ctx context.Context,
+	acc string,
+) (string, error) {
 	var err error
 	level := ""
 	rows, err := t.db.Query(levelT, acc)
@@ -360,6 +432,13 @@ func (d *TaxonomyDB) NumTaxa() (int, error) {
 
 // The method NumGenomes takes as argument a taxon-ID and an assembly level and returns the raw number of genomes associated with this taxon assembled to that level and an error.  NB: This is not the number of genomes in the subtree rooted on that taxon, please use the method NumGenomesRecursive for that.
 func (d *TaxonomyDB) NumGenomes(taxid int, level string) (int, error) {
+	return d.NumGenomesContext(context.Background(), taxid, level)
+}
+func (d *TaxonomyDB) NumGenomesContext(
+	ctx context.Context,
+	taxid int,
+	level string,
+) (int, error) {
 	n := 0
 	var err error
 	q := "select raw from genome_count " +
@@ -381,6 +460,13 @@ func (d *TaxonomyDB) NumGenomes(taxid int, level string) (int, error) {
 // The method NumGenomesRec takes as argument a taxon-ID and an assembly level. It returns the number of genomes assembled to that level contained in the subtree rooted on the taxon-ID and an error.
 func (d *TaxonomyDB) NumGenomesRec(taxid int,
 	level string) (int, error) {
+	return d.NumGenomesRecContext(context.Background(), taxid, level)
+}
+func (d *TaxonomyDB) NumGenomesRecContext(
+	ctx context.Context,
+	taxid int,
+	level string,
+) (int, error) {
 	n := 0
 	var err error
 	q := "select recursive from genome_count " +
@@ -401,6 +487,12 @@ func (d *TaxonomyDB) NumGenomesRec(taxid int,
 
 // The method IsLeaf takes as argument a taxon-ID and returns true if the taxon has no children, i. e. is a leaf, false otherwise. It also returns an error.
 func (d *TaxonomyDB) IsLeaf(taxid int) (bool, error) {
+	return d.IsLeafContext(context.Background(), taxid)
+}
+func (d *TaxonomyDB) IsLeafContext(
+	ctx context.Context,
+	taxid int,
+) (bool, error) {
 	numChildren := 0
 	var err error
 	q := "select count(taxid) from taxon " +
@@ -423,6 +515,12 @@ func (d *TaxonomyDB) IsLeaf(taxid int) (bool, error) {
 
 // The method Images takes as argument a taxon-ID and returns all images associated with the taxon. It also returns an error.
 func (d *TaxonomyDB) Images(taxid int) ([]Image, error) {
+	return d.ImagesContext(context.Background(), taxid)
+}
+func (d *TaxonomyDB) ImagesContext(
+	ctx context.Context,
+	taxid int,
+) ([]Image, error) {
 	images := []Image{}
 	var err error
 	q := "select image_id, url, attribution " +
@@ -448,6 +546,12 @@ func (d *TaxonomyDB) Images(taxid int) ([]Image, error) {
 
 // The method AccessionTaxid takes as argument a genome accession and returns the corresponding taxon-ID and an error.
 func (t *TaxonomyDB) AccessionTaxid(acc string) (int, error) {
+	return t.AccessionTaxidContext(context.Background(), acc)
+}
+func (t *TaxonomyDB) AccessionTaxidContext(
+	ctx context.Context,
+	acc string,
+) (int, error) {
 	var err error
 	taxid := 0
 	rows, err := t.db.Query(taxidT, acc)
@@ -506,7 +610,7 @@ func NewTaxonomyDB(nof, naf, mef,
 	util.Check(err)
 	sqlStmt = `create table genome (
             taxid int,
-            size real, 
+            size real,
             accession text primary key,
             level text,
             foreign key(taxid) references taxon(taxid));
@@ -855,7 +959,7 @@ func OpenTaxonomyDBcheck(dbName string) (*TaxonomyDB, error) {
 	db := OpenTaxonomyDB(dbName)
 	return db, nil
 }
-func traverseSubtree(t *TaxonomyDB, v int, taxa []int,
+func traverseSubtree(ctx context.Context, t *TaxonomyDB, v int, taxa []int,
 	m, l int) ([]int, error) {
 	var err error
 	taxa = append(taxa, v)
@@ -867,7 +971,7 @@ func traverseSubtree(t *TaxonomyDB, v int, taxa []int,
 		}
 		for _, child := range children {
 			if child != v {
-				taxa, err = traverseSubtree(t, child, taxa, m, l)
+				taxa, err = traverseSubtree(ctx, t, child, taxa, m, l)
 				if err != nil {
 					return nil, err
 				}

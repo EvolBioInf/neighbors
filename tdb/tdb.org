@@ -169,7 +169,7 @@ and \ty{image} as the auxiliary table \ty{tax2ima}.
 #+begin_src go <<Construct table \ty{genome}, Pa. \ref{pa:tdb}>>=
   sqlStmt = `create table genome (
     taxid int,
-    size real, 
+    size real,
     accession text primary key,
     level text,
     foreign key(taxid) references taxon(taxid));
@@ -252,7 +252,7 @@ individually. \ty{taxid} and \ty{image\_id} are also foreign keys into
   //<<Load table \ty{image}, Pa. \ref{pa:tdb}>>
   //<<Load table \ty{tax2ima}, Pa. \ref{pa:tdb}>>
 #+end_src
-#+begin_src latex 
+#+begin_src latex
   To load \ty{taxon}, we simulate a join of \ty{nodes.dmp} and
   \ty{names.dmp} on taxon-ID. For this we create the type \ty{taxon}
   with the same six fields as the six attributes in
@@ -1091,13 +1091,31 @@ We import \ty{errors}.
   \section{\ty{Accessions}}
   !The method \ty{Accessions} takes as parameter a taxon-ID and returns
   !a slice accessions of genome assemblies belonging to that taxon and
-  !an error.
+  !an error. It wraps \ty{AccessionsContext} which implements the just
+  !mentioned behavior.
 
+  \ty{Accessions} is a wrapper for \ty{AccessionsContext}.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
+    return t.AccessionsContext(context.Background(), taxon)
+  }
+#+end_src
+#+begin_src latex
+  We import \ty{context}.
+#+end_src
+#+begin_src go <<Imports, Pa. \ref{pa:tdb}>>=
+  "context"
+#+end_src
+#+begin_src latex
   We query for accessions and then store them in the global string slice
   we return.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) Accessions(taxon int) ([]string, error) {
+  func (t *TaxonomyDB) AccessionsContext(
+    ctx context.Context,
+    taxon int,
+    ) ([]string, error) {
 	  var err error
 	  accessions := make([]string, 0)
 	  //<<Query for accessions, Pa. \ref{pa:tdb}>>
@@ -1108,7 +1126,7 @@ We import \ty{errors}.
 #+begin_src latex
   We begin querying by defining a template for querying accessions.
 #+end_src
-#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>= 
+#+begin_src go <<Query templates, Pa. \ref{pa:tdb}>>=
   var accessionT = "select accession " +
 	  "from genome " +
 	  "where taxid=?"
@@ -1145,10 +1163,21 @@ and check the error returned by the database.
   ! The method \ty{Name} takes as argument a taxon-ID and returns the
   ! taxon's name and an error.
 
-  We construct the query, execute it, and extract the name.
+  We call \ty{NameContext} with the default context.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Name(taxon int) (string, error) {
+	  return t.NameContext(context.Background(), taxon)
+  }
+#+end_src
+#+begin_src latex
+  We construct the query, execute it, and extract the name.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) NameContext(
+    ctx context.Context,
+    taxon int,
+    ) (string, error) {
 	  var err error
 	  name := ""
 	  //<<Execute name query, Pa. \ref{pa:tdb}>>
@@ -1190,10 +1219,21 @@ and check the error returned by the database.
   ! The method \ty{CommonName} takes as argument a taxon-ID and returns the
   ! taxon's common name and an error.
 
-  We construct the common name query, execute it, and extract the name.
+  We call \ty{CommonNameContext} with the default context.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) CommonName(taxon int) (string, error) {
+	  return t.CommonNameContext(context.Background(), taxon)
+  }
+#+end_src
+#+begin_src latex
+  We construct the common name query, execute it, and extract the name.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) CommonNameContext(
+    ctx context.Context,
+    taxon int,
+    ) (string, error) {
 	  var err error
 	  commonName := ""
 	  //<<Execute common name query, Pa. \ref{pa:tdb}>>
@@ -1235,10 +1275,21 @@ and check the error returned by the database.
   !The method \ty{Rank} takes as argument a taxon-ID and returns the
   !taxon's rank and an error.
 
-  We construct the query, execute it, and extract the rank.
+  We call \ty{RankContext} with the default context.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Rank(taxon int) (string, error) {
+	  return t.RankContext(context.Background(), taxon)
+  }
+#+end_src
+#+begin_src latex
+  We construct the query, execute it, and extract the rank.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) RankContext(
+    ctx context.Context,
+    taxon int,
+    ) (string, error) {
 	  var err error
 	  rank := ""
 	  //<<Execute rank query, Pa. \ref{pa:tdb}>>
@@ -1283,10 +1334,21 @@ and check the error returned by the database.
   ! The method \ty{Parent} takes as argument a taxon-ID and returns the
   ! taxon-ID of its parent and an error.
 
-  We construct the query, execute it, and extract the parent.
+  We call \ty{ParentContext} with the default context.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Parent(c int) (int, error) {
+	  return t.ParentContext(context.Background(), c)
+  }
+#+end_src
+#+begin_src latex
+  We construct the query, execute it, and extract the parent.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) ParentContext(
+    ctx context.Context,
+    c int,
+    ) (int, error) {
 	  var err error
 	  parent := 0
 	  //<<Execute parent query, Pa. \ref{pa:tdb}>>
@@ -1330,10 +1392,21 @@ and check the error returned by the database.
   ! The method \ty{Children} takes as argument a taxon-ID and returns its
   ! children and an error.
 
-  We define the children query, execute it, and extract the children.
+  We call \ty{ChildrenContext} with the default context.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Children(p int) ([]int, error) {
+    return t.ChildrenContext(context.Background(), p)
+  }
+#+end_src
+#+begin_src latex
+  We define the children query, execute it, and extract the children.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) ChildrenContext(
+    ctx context.Context,
+    p int,
+    ) ([]int, error) {
 	  var err error
 	  children := make([]int, 0)
 	  //<<Execute children query, Pa. \ref{pa:tdb}>>
@@ -1376,14 +1449,22 @@ and check the error returned by the database.
   ! The method \ty{Subtree} returns all taxa in a subtree, including its
   ! root, and an error.
 
+  We call \ty{SubtreeContext} with the default context.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
+	  return t.SubtreeContext(context.Background(), r)
+  }
+#+end_src
+#+begin_src latex
   It looks up the taxa in the subtree by calling the private function
   \ty{traverseSubtree}.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) Subtree(r int) ([]int, error) {
+  func (t *TaxonomyDB) SubtreeContext(ctx context.Context, r int) ([]int, error) {
 	  var err error
 	  taxa := make([]int, 0)
-	  taxa, err = traverseSubtree(t, r, taxa, math.MaxInt, 0)
+	  taxa, err = traverseSubtree(ctx, t, r, taxa, math.MaxInt, 0)
 	  if err != nil {
 		  m := "couldn't find subtree rooted on taxon %d"
 		  m = fmt.Sprintf(m, r)
@@ -1404,7 +1485,7 @@ We import \ty{math}.
   the maximum level, we get the node's children and iterate over them.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:tdb}>>=
-  func traverseSubtree(t *TaxonomyDB, v int, taxa []int,
+  func traverseSubtree(ctx context.Context, t *TaxonomyDB, v int, taxa []int,
 	  m, l int) ([]int, error) {
 	  var err error
 	  taxa = append(taxa, v)
@@ -1433,7 +1514,7 @@ infinite loop.
 #+begin_src go <<Iterate over children, Pa. \ref{pa:tdb}>>=
   for _, child := range children {
 	  if child != v {
-		  taxa, err = traverseSubtree(t, child, taxa, m, l)
+		  taxa, err = traverseSubtree(ctx, t, child, taxa, m, l)
 		  if err != nil {
 			  return nil, err
 		  }
@@ -1445,14 +1526,25 @@ infinite loop.
   ! The method \ty{SubtreeLevel} returns all taxa in a subtree up to a
   ! maximum level, including its root, and an error.
 
+  We call \ty{SubtreeLevelContext} with the default context.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) SubtreeLevel(r, m int) ([]int, error) {
+    return t.SubtreeLevelContext(context.Background(), r, m)
+  }
+#+end_src
+#+begin_src latex
   It looks up the taxa in the subtree by calling the private function
   \ty{traverseSubtree}.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) SubtreeLevel(r, m int) ([]int, error) {
+  func (t *TaxonomyDB) SubtreeLevelContext(
+    ctx context.Context,
+    r, m int,
+    ) ([]int, error) {
 	  var err error
 	  taxa := make([]int, 0)
-	  taxa, err = traverseSubtree(t, r, taxa, m, 0)
+	  taxa, err = traverseSubtree(ctx, t, r, taxa, m, 0)
 	  if err != nil {
 		  return nil, err
 	  }
@@ -1468,12 +1560,24 @@ infinite loop.
   ! returns the corresponding taxon-IDs and an error. A negative limit
   ! means no limit.
 
-  We declare and execute the query for taxon-IDs, extract the IDs, and
-  return them.
+  We call \ty{TaxidsContext} with the default context.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) Taxids(name string,
 	  limit, offset int) ([]int, error) {
+    return t.TaxidsContext(context.Background(), name, limit, offset)
+  }
+#+end_src
+#+begin_src latex
+  We declare and execute the query for taxon-IDs, extract the IDs, and
+  return them.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) TaxidsContext(
+    ctx context.Context,
+    name string,
+	  limit, offset int,
+    ) ([]int, error) {
 	  var err error
 	  taxids := make([]int, 0)
 	  //<<Execute taxids query, Pa. \ref{pa:tdb}>>
@@ -1574,12 +1678,24 @@ and then store the corresponding taxon-IDs.
   ! returns the corresponding taxon-IDs and an error. A negative limit
   ! is no limit.
 
-  We declare and execute the query for taxon-IDs from common and
-  scientific names, extract the IDs, and return them.
+  We call \ty{CommonTaxidsContext} with the default context.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) CommonTaxids(name string,
 	  limit, offset int) ([]int, error) {
+    return t.CommonTaxidsContext(context.Background(), name, limit, offset)
+  }
+#+end_src
+#+begin_src latex
+  We declare and execute the query for taxon-IDs from common and
+  scientific names, extract the IDs, and return them.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) CommonTaxidsContext(
+    ctx context.Context,
+    name string,
+	  limit, offset int,
+    ) ([]int, error) {
 	  var err error
 	  commonTaxids := make([]int, 0)
 	  //<<Execute common taxids query, Pa. \ref{pa:tdb}>>
@@ -1629,12 +1745,23 @@ and then store the corresponding taxon-IDs.
   !The method \ty{MRCA} takes as input a slice of taxon-IDs and returns
   !their most recent common ancestor and an error.
 
+  We call \ty{MRCAContext} with the default context.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) MRCA(ids []int) (int, error) {
+	  return t.MRCAContext(context.Background(), ids)
+  }
+#+end_src
+#+begin_src latex
   For example, in Figure~\ref{fig:tax}, the most recent common ancestor
   of taxa 4 and 7 is 3. We begin by checking the IDs supplied and then
   search for the MRCA. If we haven't found one, we return -1.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) MRCA(ids []int) (int, error) {
+  func (t *TaxonomyDB) MRCAContext(
+    ctx context.Context,
+    ids []int,
+    ) (int, error) {
 	  var err error
 	  mrca := -1
 	  //<<Check IDs, Pa. \ref{pa:tdb}>>
@@ -1761,13 +1888,24 @@ parents and reset the parent slice to empty.
 #+begin_src latex
   \section{\ty{Level}}
   ! The method \ty{Level} takes as argument a genome accession and
-  ! returns the assembly level and an eror.
+  ! returns the assembly level and an error.
 
+We call \ty{LevelContext} with the default context.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) Level(acc string) (string, error) {
+	  return t.LevelContext(context.Background(), acc)
+  }
+#+end_src
+#+begin_src latex
   We define the level query, execute it, and extract the level before
   we return it.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) Level(acc string) (string, error) {
+  func (t *TaxonomyDB) LevelContext(
+    ctx context.Context,
+    acc string,
+    ) (string, error) {
 	  var err error
 	  level := ""
 	  //<<Execute level query, Pa. \ref{pa:tdb}>>
@@ -1899,11 +2037,23 @@ We extract the number of taxa from the table row and check the error.
 !NB: This is not the number of genomes in the subtree rooted on that
 !taxon, please use the method NumGenomesRecursive for that.
 
-We construc the query for the number of genomes, execute it, and
-extract the result.
+We call \ty{NumGenomesContext} with the default context.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (d *TaxonomyDB) NumGenomes(taxid int, level string) (int, error) {
+    return d.NumGenomesContext(context.Background(), taxid, level)
+  }
+#+end_src
+#+begin_export latex
+We construct the query for the number of genomes, execute it, and
+extract the result.
+#+end_export
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (d *TaxonomyDB) NumGenomesContext(
+    ctx context.Context,
+    taxid int,
+    level string,
+    ) (int, error) {
 	  n := 0
 	  var err error
 	  //<<Construct numgen query, Pa. \ref{pa:tdb}>>
@@ -1949,12 +2099,25 @@ error.
 !assembly level. It returns the number of genomes assembled to that
 !level contained in the subtree rooted on the taxon-ID and an error.
 
-We construct the query for the recursive number of genomes, execute
-the query, and extract the result.
+We call \ty{NumGenomesRecContext} with the default context.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (d *TaxonomyDB) NumGenomesRec(taxid int,
 	  level string) (int, error) {
+	  return d.NumGenomesRecContext(context.Background(), taxid, level)
+  }
+#+end_src
+#+begin_export latex
+\section{\ty{NumGenomesRec}}
+We construct the query for the recursive number of genomes, execute
+the query, and extract the result.
+#+end_export
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (d *TaxonomyDB) NumGenomesRecContext(
+    ctx context.Context,
+    taxid int,
+	  level string,
+    ) (int, error) {
 	  n := 0
 	  var err error
 	  //<<Construct recursive numgen query, Pa. \ref{pa:tdb}>>
@@ -2010,12 +2173,23 @@ the query. And keep checking the error.
 !if the taxon has no children, i. e. is a leaf, false otherwise. It
 !also returns an error.
 
+We call \ty{IsLeafContext} with the default context.
+#+end_export
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (d *TaxonomyDB) IsLeaf(taxid int) (bool, error) {
+    return d.IsLeafContext(context.Background(), taxid)
+  }
+#+end_src
+#+begin_export latex
 We implement the method by counting the children associated with the
 incoming taxon-ID. If that number is zero, we return true, false
 otherwise.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (d *TaxonomyDB) IsLeaf(taxid int) (bool, error) {
+  func (d *TaxonomyDB) IsLeafContext(
+    ctx context.Context,
+    taxid int,
+    ) (bool, error) {
 	  numChildren := 0
 	  var err error
 	  //<<Construct leaf query, Pa. \ref{pa:tdb}>>
@@ -2062,6 +2236,17 @@ We extract the number of children and bail if there was an error.
 #+end_export
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (d *TaxonomyDB) Images(taxid int) ([]Image, error) {
+    return d.ImagesContext(context.Background(), taxid)
+  }
+#+end_src
+#+begin_export latex
+  We begin by defining a query, executing it and lastly getting the images.
+#+end_export
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (d *TaxonomyDB) ImagesContext(
+    ctx context.Context,
+    taxid int,
+    ) ([]Image, error) {
 	  images := []Image{}
 	  var err error
 	  //<<Construct image query, Pa. \ref{pa:tdb}>>
@@ -2112,11 +2297,22 @@ an image.
   !The method \ty{AccessionTaxid} takes as argument a genome accession
   !and returns the corresponding taxon-ID and an error.
 
+  We call \ty{AccessionTaxidContext} with the default context.
+#+end_src
+#+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
+  func (t *TaxonomyDB) AccessionTaxid(acc string) (int, error) {
+	  return t.AccessionTaxidContext(context.Background(), acc)
+  }
+#+end_src
+#+begin_src latex
   We define the query for the taxon-ID, execute it, and extract the
   taxon-ID before we return it.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
-  func (t *TaxonomyDB) AccessionTaxid(acc string) (int, error) {
+  func (t *TaxonomyDB) AccessionTaxidContext(
+    ctx context.Context,
+    acc string,
+    ) (int, error) {
 	  var err error
 	  taxid := 0
 	  //<<Execute taxid query, Pa. \ref{pa:tdb}>>
@@ -2380,7 +2576,7 @@ The \emph{Hominidae} subtree up to level 2 contains 12 nodes.
 #+end_src
 #+begin_src go <<Run tests of \ty{MRCA}, Pa. \ref{pa:tdb}>>=
   for i, target := range targets {
-	  get,_ := taxdb.MRCA(target)	  
+	  get,_ := taxdb.MRCA(target)
 	  want := res[i]
 	  if get != want {
 		  t.Errorf("get: %d\nwant: %d\n", get, want)
