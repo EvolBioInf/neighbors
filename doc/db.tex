@@ -1,0 +1,51 @@
+\begin{tabular}{cccc}
+  %% Fist row
+  &&\begin{tabular}{|l|}
+      \hline
+      \ty{genome\_count}\\\hline
+      \rnode{t13}{\ty{taxid} (pk)}\\
+      \ty{level} (pk)\\
+      \ty{raw}\\
+      \ty{recursive}\\\hline
+    \end{tabular}\\\\
+  %% Second row
+  \begin{tabular}{|l|}
+    \hline
+    \ty{image}\\\hline
+    \rnode{i21}{\ty{image\_id} (pk)}\\
+    \ty{url}\\
+    \ty{attribution}\\\hline
+  \end{tabular}
+  &
+  \begin{tabular}{|l|}
+    \hline
+    \ty{tax2ima}\\\hline
+    \rnode{t22}{\ty{taxid} (pk)}\\
+    \rnode{i22}{\ty{image\_id} (pk)}\\\hline
+  \end{tabular}
+  &
+  \begin{tabular}{|l|}
+    \hline
+    \ty{taxon}\\\hline
+    \rnode{t23}{\ty{taxid} (pk)}\\
+    \ty{parent}\\
+    \ty{rank}\\
+    \ty{name}\\
+    \ty{common\_name}\\
+    \ty{score}\\\hline
+  \end{tabular}
+  &
+  \begin{tabular}{|l|}
+    \hline
+    \ty{genome}\\\hline
+    \ty{accession} (pk)\\
+    \rnode{t24}{\ty{taxid}}\\
+    \ty{size}\\
+    \ty{level}\\\hline
+  \end{tabular}
+  \psset{nodesep=2pt,linecolor=lightgray}
+  \nccurve[angleA=0,angleB=0]{->}{t13}{t23}
+  \nccurve[angleA=180,angleB=0]{->}{i22}{i21}
+  \nccurve[angleA=0,angleB=180]{->}{t22}{t23}
+  \nccurve[angleA=180,angleB=-30]{->}{t24}{t23}
+\end{tabular}

@@ -8,7 +8,7 @@ version = $(shell git describe)
 all: $(SRC1) neighborsDoc.pdf 
 %.tex:	../*/%.org neighborsDoc.tex
 	bash ../scripts/org2nw $< | awk -f ../scripts/preWeave.awk | noweave -n -x | sed 's/_test/\\_test/g' > $@
-neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2) db.ps
+neighborsDoc.pdf: neighborsDoc.tex $(SRC1) $(SRC2) db.tex
 	echo $(date) | tr '_' ' ' > date.txt
 	echo $(version) | tr '-' ' ' | awk '{printf "%s", $$1; if ($$2) printf "-%s", $$2; printf "\n"}' > version.txt
 	latex neighborsDoc.tex
@@ -21,8 +21,5 @@ publish: neighborsDoc.pdf
 		cp neighborsDoc.pdf ~/WinHome/ownCloud/docs/; \
 	fi
 
-db.ps: db.dot
-	neato -T eps db.dot > db.ps
-
 clean:
-	rm -f neighborsDoc.pdf neighborsDoc.dvi neighborsDoc.aux $(SRC1) db.ps
+	rm -f neighborsDoc.pdf neighborsDoc.dvi neighborsDoc.aux $(SRC1)
