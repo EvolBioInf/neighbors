@@ -9,7 +9,7 @@
 
   \section*{Implementation}
   The outline of \ty{neighbors} contains hooks for imports, functions,
-  and the logic of the run function.
+  and the logic of the main function.
   \bpr{neighbors}{pr:neig}
 #+end_src
 #+begin_src go <<neighbors.go>>=
@@ -20,15 +20,15 @@
   )
   //<<Functions, Pr. \ref{pr:neig}>>
   func main() {
-	  //<<Run function, Pr. \ref{pr:neig}>>
+	  //<<Main function, Pr. \ref{pr:neig}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the run function we set the name of \ty{neighbors} and its
+  \epr In the main function we set the name of \ty{neighbors} and its
   usage, declare the options, parse the options, and respond to
   them. Then we open the database connection and parse the input files.
 #+end_src
-#+begin_src go <<Run function, Pr. \ref{pr:neig}>>=
+#+begin_src go <<Main function, Pr. \ref{pr:neig}>>=
   util.SetName("neighbors")
   //<<Set usage, Pr. \ref{pr:neig}>>
   //<<Declare options, Pr. \ref{pr:neig}>>

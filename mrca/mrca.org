@@ -74,7 +74,7 @@ nodes by their IDs. Node IDs are integers, which we also use as keys
 to a map that references the original nodes.
 
 Our outline of \ty{mrca} has hooks for imports, functions, and the
-logic of the run function.
+logic of the main function.
 \bpr{mrca}{pr:mrca}
 #+end_export
 #+begin_src go <<mrca.go>>=
@@ -85,16 +85,16 @@ logic of the run function.
   )
   //<<Functions, Pr. \ref{pr:mrca}>>
   func main() {
-	  //<<Run function, Pr. \ref{pr:mrca}>>
+	  //<<Main function, Pr. \ref{pr:mrca}>>
   }
 #+end_src
 #+begin_export latex
-\epr In the run function we set the name of \ty{mrca}, set its usage,
+\epr In the main function we set the name of \ty{mrca}, set its usage,
 declare its options, and parse them. Then we compile the regex
 specifying the node names and parse the input files containing the
 phylogenies.
 #+end_export
-#+begin_src go <<Run function, Pr. \ref{pr:mrca}>>=
+#+begin_src go <<Main function, Pr. \ref{pr:mrca}>>=
   util.SetName("mrca")
   //<<Set usage, Pr. \ref{pr:mrca}>>
   //<<Declare options, Pr. \ref{pr:mrca}>>

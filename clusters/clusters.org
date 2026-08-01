@@ -98,7 +98,7 @@ of nodes. Given the branch lengths referencing the nodes, we can build
 the desired slice of clusters.
 
 The outline of \ty{clusters} contains hooks for imports, types,
-functions, and the logic of the run function. \bpr{clusters}{pr:clu}
+functions, and the logic of the main function. \bpr{clusters}{pr:clu}
 #+end_export
 #+begin_src go <<clusters.go>>=
   package main
@@ -109,7 +109,7 @@ functions, and the logic of the run function. \bpr{clusters}{pr:clu}
   //<<Types, Pr. \ref{pr:clu}>>
   //<<Functions, Pr. \ref{pr:clu}>>
   func main() {
-	  //<<Run function, Pr. \ref{pr:clu}>>
+	  //<<Main function, Pr. \ref{pr:clu}>>
   }
 #+end_src
 #+begin_export latex
@@ -127,10 +127,10 @@ identifier.
   }
 #+end_src
 #+begin_export latex
-Inside \ty{Run}, we set the name of \ty{clusters} and its usage,
+Inside \ty{main}, we set the name of \ty{clusters} and its usage,
 declare and parse the options, and parse the input files.
 #+end_export
-#+begin_src go <<Run function, Pr. \ref{pr:clu}>>=
+#+begin_src go <<Main function, Pr. \ref{pr:clu}>>=
   util.SetName("clusters")
   //<<Set usage, Pr. \ref{pr:clu}>>
   //<<Declare options, Pr. \ref{pr:clu}>>

@@ -31,7 +31,7 @@
   It also lists mild and extreme outliers.
   \section*{Implementation}
   Our outline of \ty{outliers} contains hooks for imports, functions,
-  and the logic of the run function.
+  and the logic of the main function.
   \bpr{outlines}{pr:out}
 #+end_src
 #+begin_src go <<outliers.go>>=
@@ -43,14 +43,14 @@
 
   //<<Functions, Pr. \ref{pr:out}>>
   func main() {
-	  //<<Run function, Pr. \ref{pr:out}>>
+	  //<<Main function, Pr. \ref{pr:out}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the run function, we set the program name and its usage,
+  \epr In the main function, we set the program name and its usage,
   declare the options, parse the options, and parse the input files.
 #+end_src
-#+begin_src go <<Run function, Pr. \ref{pr:out}>>=
+#+begin_src go <<Main function, Pr. \ref{pr:out}>>=
   util.SetName("outliers")
   //<<Set usage, Pr. \ref{pr:out}>>
   //<<Declare options, Pr. \ref{pr:out}>>

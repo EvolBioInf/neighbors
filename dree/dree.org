@@ -107,7 +107,7 @@ genomes available drops to 58.
 
 \section*{Implementation}
 The outline of \ty{dree} has hooks for imports and the logic of the
-run function.  \bpr{dree}{pr:dr}
+main function.  \bpr{dree}{pr:dr}
 #+end_export
 #+begin_src go <<dree.go>>=
   package main
@@ -117,15 +117,15 @@ run function.  \bpr{dree}{pr:dr}
   )
 
   func main() {
-	  //<<Run function, Pr. \ref{pr:dr}>>
+	  //<<Main function, Pr. \ref{pr:dr}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the run function we set the name of \ty{dree} and its usage,
+  \epr In the main function we set the name of \ty{dree} and its usage,
   declare the options, and parse them. Then we get the subtree we're
   after, annotate it, and print it.
 #+end_src
-#+begin_src go <<Run function, Pr. \ref{pr:dr}>>=
+#+begin_src go <<Main function, Pr. \ref{pr:dr}>>=
   util.SetName("dree")
   //<<Set usage, Pr. \ref{pr:dr}>>
   //<<Declare options, Pr. \ref{pr:dr}>>

@@ -84,7 +84,7 @@
 
   \section*{Implementation}
   The outline of \ty{fintac} has hooks for imports, types, functions,
-  and the logic of the run function.  \bpr{fintac}{pr:fit}
+  and the logic of the main function.  \bpr{fintac}{pr:fit}
 #+end_src
 #+begin_src go <<fintac.go>>=
   package main
@@ -95,15 +95,15 @@
   //<<Types, Pr. \ref{pr:fit}>>
   //<<Functions, Pr. \ref{pr:fit}>>
   func main() {
-	  //<<Run function, Pr. \ref{pr:fit}>>
+	  //<<Main function, Pr. \ref{pr:fit}>>
   }
 #+end_src
 #+begin_src latex
-  \epr Inside the run function we set the name of \ty{fintac} and its
+  \epr Inside the main function we set the name of \ty{fintac} and its
   usage, declare its options, parse them, and respond to them. Then we
   parse the input files.
 #+end_src
-#+begin_src go <<Run function, Pr. \ref{pr:fit}>>=
+#+begin_src go <<Main function, Pr. \ref{pr:fit}>>=
   util.SetName("fintac")
   //<<Set usage, Pr. \ref{pr:fit}>>
   //<<Declare options, Pr. \ref{pr:fit}>>

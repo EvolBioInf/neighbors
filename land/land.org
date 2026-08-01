@@ -8,7 +8,7 @@
 
   \section*{Implementation}
   \ty{land} contains hooks for imports, functions, and the logic of the
-  run function.  \bpr{land}{pr:lan}
+  main function.  \bpr{land}{pr:lan}
 #+end_src
 #+begin_src go <<land.go>>=
   package main
@@ -22,7 +22,7 @@
   }
 #+end_src
 #+begin_src latex
-  \epr In the run function of \ty{land} we set the name of \ty{land}
+  \epr In the main function of \ty{land} we set the name of \ty{land}
   and its usage, declare the options, parse the options, and parse the
   input files.
 #+end_src

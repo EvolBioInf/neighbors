@@ -5,7 +5,7 @@
 
   \section*{Implementation}
   The program \ty{ants} contains hooks for imports and the logic of the
-  run function.
+  main function.
   \bpr{ants}{pr:ant}
 #+end_src
 #+begin_src go <<ants.go>>=
@@ -16,15 +16,15 @@
   )
 
   func main() {
-	  //<<Run function, Pr. \ref{pr:ant}>>
+	  //<<Main function, Pr. \ref{pr:ant}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the run function we set the program name and the usage,
+  \epr In the main function we set the program name and the usage,
   declare the options, parse the options, get the ancestors, and print
   them.
 #+end_src
-#+begin_src go <<Run function, Pr. \ref{pr:ant}>>=
+#+begin_src go <<Main function, Pr. \ref{pr:ant}>>=
   util.SetName("ants")
   //<<Set usage, Pr. \ref{pr:ant}>>
   //<<Declare options, Pr. \ref{pr:ant}>>

@@ -37,7 +37,7 @@
   and an offset into the results list.
 
   \section*{Implementation}
-  The program \ty{taxi} has hooks for imports and the logic of the run
+  The program \ty{taxi} has hooks for imports and the logic of the main
   function.\bpr{taxi}{pr:tax}
 #+end_src
 #+begin_src go <<taxi.go>>=
@@ -48,15 +48,15 @@
   )
 
   func main() {
-	  //<<Run function, Pr. \ref{pr:tax}>>
+	  //<<Main function, Pr. \ref{pr:tax}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the \ty{Run} function we set the name of \ty{taxi} and its
+  \epr In the \ty{main} function we set the name of \ty{taxi} and its
   usage, declare the options, parse the options, get the taxon-IDs, and
   print them.
 #+end_src
-#+begin_src go <<Run function, Pr. \ref{pr:tax}>>=
+#+begin_src go <<Main function, Pr. \ref{pr:tax}>>=
   util.SetName("taxi")
   //<<Set usage, Pr. \ref{pr:tax}>>
   //<<Declare options, Pr. \ref{pr:tax}>>

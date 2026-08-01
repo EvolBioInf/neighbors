@@ -59,7 +59,7 @@
 
   \section*{Implementation}
   The outline of \ty{climt} has hooks for imports, functions, and the
-  logic of the run function.\bpr{climt}{pr:cli}
+  logic of the main function.\bpr{climt}{pr:cli}
 #+end_src
 #+begin_src go <<climt.go>>=
   package main
@@ -70,15 +70,15 @@
 
   //<<Functions, Pr. \ref{pr:cli}>>
   func main() {
-	  //<<Run function, Pr. \ref{pr:cli}>>
+	  //<<Main function, Pr. \ref{pr:cli}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the run function we set the name of \ty{climt} and its usage,
+  \epr In the main function we set the name of \ty{climt} and its usage,
   declare the options, parse the options, get the name of the start
   node, and parse the input files.
 #+end_src
-#+begin_src go <<Run function, Pr. \ref{pr:cli}>>=
+#+begin_src go <<Main function, Pr. \ref{pr:cli}>>=
   util.SetName("climt")
   //<<Set usage, Pr. \ref{pr:cli}>>
   //<<Declare options, Pr. \ref{pr:cli}>>

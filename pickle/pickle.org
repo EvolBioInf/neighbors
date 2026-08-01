@@ -43,7 +43,7 @@
 
   \section*{Implementation}
   \ty{pickle} contains hooks for imports, functions, and the logic of the
-  run function.  \bpr{pickle}{pr:pic}
+  main function.  \bpr{pickle}{pr:pic}
 #+end_src
 #+begin_src go <<pickle.go>>=
   package main
@@ -53,15 +53,15 @@
   )
   //<<Functions, Pr. \ref{pr:pic}>>
   func main() {
-	  //<<Run function, Pr. \ref{pr:pic}>>
+	  //<<Main function, Pr. \ref{pr:pic}>>
   }
 #+end_src
 #+begin_src latex
-  \epr In the run function we set the name of \ty{pickle} and its
+  \epr In the main function we set the name of \ty{pickle} and its
   usage, declare the options, parse the options, and parse the input
   files.
 #+end_src
-#+begin_src go <<Run function, Pr. \ref{pr:pic}>>=
+#+begin_src go <<Main function, Pr. \ref{pr:pic}>>=
   util.SetName("pickle")
   //<<Set usage, Pr. \ref{pr:pic}>>
   //<<Declare options, Pr. \ref{pr:pic}>>

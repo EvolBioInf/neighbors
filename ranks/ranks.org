@@ -58,11 +58,11 @@ by \ty{ranks} (\ty{-g}).
 The central idea of \ty{ranks} is that we distribute a set of genomes
 on a tree of the taxonomic ranks they belong to. So we need a list of
 genomes and a data structure for constructing their ranks tree. The
-list of genomes is the first thing we declare in the \ty{Run}
+list of genomes is the first thing we declare in the main
 function of our outline of \ty{ranks}, while we deal with the nodes
 when we are ready to construct the tree. The outline also has hooks
 for imports, variables, types, functions, and the remaining logic of
-the run function.  \bpr{ranks}{pr:ran}
+the main function.  \bpr{ranks}{pr:ran}
 #+end_export
 #+begin_src go <<ranks.go>>=
   package main
@@ -75,16 +75,16 @@ the run function.  \bpr{ranks}{pr:ran}
   //<<Functions, Pr. \ref{pr:ran}>>
   func main() {
 	  genomes := []string{}
-	  //<<Run function, Pr. \ref{pr:ran}>>
+	  //<<Main function, Pr. \ref{pr:ran}>>
   }
 #+end_src
 #+begin_export latex
 \epr
-Inside the run function we set the name of \ty{ranks}, set its usage,
+Inside the main function we set the name of \ty{ranks}, set its usage,
 declare its option, parse the options, respond to them, calculate the
 ranks tree, and print it.
 #+end_export
-#+begin_src go <<Run function, Pr. \ref{pr:ran}>>=
+#+begin_src go <<Main function, Pr. \ref{pr:ran}>>=
   util.SetName("ranks")
   //<<Set usage, Pr. \ref{pr:ran}>>
   //<<Declare options, Pr. \ref{pr:ran}>>
