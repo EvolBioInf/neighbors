@@ -20,16 +20,20 @@
   \epa
   \section{\ty{PrintInfo}}
   !\ty{PrintInfo} prints program information and exits.
+
+  We replace the underscores contained in the injected date by blanks to
+  make the date look more ``natural''.
 #+end_src
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
   func PrintInfo(program string) {
-	  author := "EvolBioInf"
-	  email := "haubold|mourato@evolbio.mpg.de"
-	  license := "Gnu General Public License, " +
-		  "https://www.gnu.org/licenses/gpl.html"
-	  clio.PrintInfo(program, version, date,
-		  author, email, license)
-	  os.Exit(0)
+  	author := "EvolBioInf"
+  	email := "haubold|mourato@evolbio.mpg.de"
+  	license := "Gnu General Public License, " +
+  		"https://www.gnu.org/licenses/gpl.html"
+  	date = strings.ReplaceAll(date, "_", " ")
+  	clio.PrintInfo(program, version, date,
+  		author, email, license)
+  	os.Exit(0)
   }
 #+end_src
 #+begin_src latex

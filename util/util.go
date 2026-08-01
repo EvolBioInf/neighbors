@@ -48,6 +48,7 @@ func PrintInfo(program string) {
 	email := "haubold|mourato@evolbio.mpg.de"
 	license := "Gnu General Public License, " +
 		"https://www.gnu.org/licenses/gpl.html"
+	date = strings.ReplaceAll(date, "_", " ")
 	clio.PrintInfo(program, version, date,
 		author, email, license)
 	os.Exit(0)
