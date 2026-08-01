@@ -361,7 +361,8 @@ func (t *TaxonomyDB) MRCAContext(
 		}
 	}
 	if mrca == -1 {
-		err = errors.New("Couldn't find MRCA")
+		m := "Couldn't find the MRCA"
+		return 0, errors.New(m)
 	}
 	return mrca, err
 }

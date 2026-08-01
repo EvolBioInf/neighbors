@@ -1753,9 +1753,17 @@ and then store the corresponding taxon-IDs.
   }
 #+end_src
 #+begin_src latex
-  For example, in Figure~\ref{fig:tax}, the most recent common ancestor
-  of taxa 4 and 7 is 3. We begin by checking the IDs supplied and then
-  search for the MRCA. If we haven't found one, we return -1.
+  To design our search for the most recent common ancestor, MRCA, we
+  look at Figure~\ref{fig:tax}, where the MRCA of taxa 4 and 7 is 3. It
+  is important to note that the input taxa may be in an
+  ancestor/descendant relationship. For example, in Figure~\ref{fig:tax}
+  the MRCA of taxa 4, 7, and 5 is also 3. Such an ancestor/descendant
+  relationships may lead to the inclusion of the MRCA in the input. In
+  our example the MRCA of taxa 4, 7, 5, and 3 is again 3. In the trivial
+  case where only a single taxon was submitted, that is the MRCA.
+
+  We begin by checking the IDs supplied and then search for the MRCA. If
+  we haven't found one, we return -1.
 #+end_src
 #+begin_src go <<Methods, Pa. \ref{pa:tdb}>>=
   func (t *TaxonomyDB) MRCAContext(
@@ -1789,14 +1797,15 @@ We import \ty{errors}.
 #+end_src
 #+begin_src latex
   There is a rich history of MRCA queries in computer
-  science~\cite[ch. 3]{ohl13:bio}. However, instead of using the general
+  science~\cite[ch. 3]{ohl13:bio}. However, instead of using a general
   solution to the problem, we construct a simpler solution that involves
   tracing the line of descent for each input taxon.
 
   To be more precise, consider $n$ input taxa. For the first $n-1$ of
-  them we climb the tree to the root and increment a descendant counter
-  for each node. The we climb the last taxon and the first descendant
-  counter equal to the number of input taxa is the MRCA.
+  them we climb the tree to the root and increment a descendants counter
+  for each node. Then we climb from the last taxon toward the root; the
+  first descendants counter equal to the number of input taxa belongs to
+  the MRCA.
 
   So we construct a descendants counter and initialize it. Then we climb
   the tree for the first $n-1$ taxa, before we deal with the last taxon.
@@ -1808,7 +1817,7 @@ We import \ty{errors}.
   //<<Deal with last taxon, Pa. \ref{pa:tdb}>>
 #+end_src
 #+begin_export latex
-We initialize the descendants counts of each taxon to 1.
+We initialize the descendants counts of each input taxon to 1.
 #+end_export
 #+begin_src go <<Initialize descendats counts, Pa. \ref{pa:tdb}>>=
   for _, id := range ids {
@@ -1833,9 +1842,9 @@ descendants counts for every taxon we meet on the path to the root.
   }
 #+end_src
 #+begin_export latex
-We have reached the last taxon. It might be the MRCA. If not, we climb
-the tree one last time. If we didn't find the MRCA, we message this
-via a new error.
+We have reached the last taxon. It might already be the MRCA. If not,
+we climb the tree one last time. If we didn't find the MRCA, we throw
+an error.
 #+end_export
 #+begin_src go <<Deal with last taxon, Pa. \ref{pa:tdb}>>=
   v := ids[n-1]
@@ -1845,7 +1854,8 @@ via a new error.
   	//<<Climb tree for last taxon, Pa. \ref{pa:tdb}>>
   }
   if mrca == -1 {
-  	err = errors.New("Couldn't find MRCA")
+  	m := "Couldn't find the MRCA"
+  	return 0, errors.New(m)
   }
 #+end_src
 #+begin_export latex
