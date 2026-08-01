@@ -1791,98 +1791,79 @@ We import \ty{errors}.
   There is a rich history of MRCA queries in computer
   science~\cite[ch. 3]{ohl13:bio}. However, instead of using the general
   solution to the problem, we construct a simpler solution that involves
-  climbing to the common ancestor of a set of taxa. If these taxa are
-  closely related, the climb is short.
+  tracing the line of descent for each input taxon.
 
-  To be more precise, in each step of our climb, we increment a
-  descendant counter for each node. If one of these counters is equal to
-  the number of input taxa, the corresponding node is the
-  MRCA. Otherwise, we climb to the parents and repeat. So we construct a
-  variable to count descendants and variables for parents and
-  children. Then we iterate over the parents.
+  To be more precise, consider $n$ input taxa. For the first $n-1$ of
+  them we climb the tree to the root and increment a descendant counter
+  for each node. The we climb the last taxon and the first descendant
+  counter equal to the number of input taxa is the MRCA.
+
+  So we construct a descendants counter and initialize it. Then we climb
+  the tree for the first $n-1$ taxa, before we deal with the last taxon.
 #+end_src
 #+begin_src go <<Search for MRCA, Pa. \ref{pa:tdb}>>=
-  //<<Construct counter for descendants, Pa. \ref{pa:tdb}>>
-  //<<Construct variables for parents and children, Pa. \ref{pa:tdb}>>
-  //<<Iterate over parents, Pa. \ref{pa:tdb}>>
-#+end_src
-#+begin_src latex
-We store descendants in a map between a taxon-ID, which is an integer,
-and the number of its descendants, another integer. The initial number
-of descendants of the taxa supplied is one.
-#+end_src
-#+begin_src go <<Construct counter for descendants, Pa. \ref{pa:tdb}>>=
   desc := make(map[int]int)
+  //<<Initialize descendats counts, Pa. \ref{pa:tdb}>>
+  //<<Climb tree for first $n-1$ taxa, Pa. \ref{pa:tdb}>>
+  //<<Deal with last taxon, Pa. \ref{pa:tdb}>>
+#+end_src
+#+begin_export latex
+We initialize the descendants counts of each taxon to 1.
+#+end_export
+#+begin_src go <<Initialize descendats counts, Pa. \ref{pa:tdb}>>=
   for _, id := range ids {
-	  desc[id] = 1
-  }
-#+end_src
-#+begin_src latex
-  We store the parents and children as integer slices. The children
-  slice is initialized to the taxon-IDs supplied.
-#+end_src
-#+begin_src go <<Construct variables for parents and children, Pa. \ref{pa:tdb}>>=
-  parents := make([]int, 0)
-  children := make([]int, 0)
-  for _, id := range ids {
-	  children = append(children, id)
-  }
-#+end_src
-#+begin_src latex
-  As long as we haven't found the MRCA yet, we climb to the next set of
-  parents and replace the children by the parents.
-#+end_src
-#+begin_src go <<Iterate over parents, Pa. \ref{pa:tdb}>>=
-  for mrca == -1 {
-	  //<<Climb to parents, Pa. \ref{pa:tdb}>>
-	  //<<Replace parents by children, Pa. \ref{pa:tdb}>>
-  }
-#+end_src
-#+begin_src latex
-  We iterate over the children. For each child we look up the parent,
-  deal with the descendants, and climb to the parent by appending the
-  parent to the parents list.
-#+end_src
-#+begin_src go <<Climb to parents, Pa. \ref{pa:tdb}>>=
-  for _, child := range children {
-	  parent, err := t.Parent(child)
-	  if err != nil {
-		  return 0, err
-	  }
-	  //<<Deal with descendants, Pa. \ref{pa:tdb}>>
-	  parents = append(parents, parent)
+  	desc[id] = 1
   }
 #+end_src
 #+begin_export latex
-For a given child/parent pair, we increment the parents' descendants
-count by that of the child. The only exception to this behavior is
-when we have reached the root, in which case the child is equal to its
-parent. In that case we have to avoid idly incrementing the root's
-descendant count. Then we check whether the number of the parent's
-descendants is greater or equal to the number of taxa submitted. If
-yes, we've found the MRCA, store it, and break from the iteration over
-the children.
+We climb the tree for the first $n-1$ taxa and increment the
+descendants counts for every taxon we meet on the path to the root.
 #+end_export
-#+begin_src go <<Deal with descendants, Pa. \ref{pa:tdb}>>=
-  if parent != child {
-	  desc[parent] += desc[child]
-  }
-  if desc[parent] >= len(ids) {
-	  mrca = parent
-	  break
+#+begin_src go <<Climb tree for first $n-1$ taxa, Pa. \ref{pa:tdb}>>=
+  n := len(ids)
+  for _, v := range ids[:n-1] {
+  	p, e := t.Parent(v)
+  	util.Check(e)
+  	for p != v {
+  		desc[p]++
+  		v = p
+  		p, e = t.Parent(v)
+  		util.Check(e)
+  	}
   }
 #+end_src
-#+begin_src latex
-If the MRCA hasn't been found yet, we replace the children by the
-parents and reset the parent slice to empty.
-#+end_src
-#+begin_src go <<Replace parents by children, Pa. \ref{pa:tdb}>>=
+#+begin_export latex
+We have reached the last taxon. It might be the MRCA. If not, we climb
+the tree one last time. If we didn't find the MRCA, we message this
+via a new error.
+#+end_export
+#+begin_src go <<Deal with last taxon, Pa. \ref{pa:tdb}>>=
+  v := ids[n-1]
+  if desc[v] == n {
+  	mrca = v
+  } else {
+  	//<<Climb tree for last taxon, Pa. \ref{pa:tdb}>>
+  }
   if mrca == -1 {
-	  children = children[:0]
-	  for _, parent := range parents {
-		  children = append(children, parent)
-	  }
-	  parents = parents[:0]
+  	err = errors.New("Couldn't find MRCA")
+  }
+#+end_src
+#+begin_export latex
+We climb toward the root and for every parent ask, whether it is the
+MRCA. If so, we store it and break from the loop.
+#+end_export
+#+begin_src go <<Climb tree for last taxon, Pa. \ref{pa:tdb}>>=
+  p, e := t.Parent(v)
+  util.Check(e)
+  for p != v {
+  	desc[p]++
+  	if desc[p] == n {
+  		mrca = p
+  		break
+  	}
+  	v = p
+  	p, e = t.Parent(v)
+  	util.Check(e)
   }
 #+end_src
 #+begin_src latex

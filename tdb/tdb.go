@@ -332,33 +332,36 @@ func (t *TaxonomyDB) MRCAContext(
 	for _, id := range ids {
 		desc[id] = 1
 	}
-	parents := make([]int, 0)
-	children := make([]int, 0)
-	for _, id := range ids {
-		children = append(children, id)
+	n := len(ids)
+	for _, v := range ids[:n-1] {
+		p, e := t.Parent(v)
+		util.Check(e)
+		for p != v {
+			desc[p]++
+			v = p
+			p, e = t.Parent(v)
+			util.Check(e)
+		}
 	}
-	for mrca == -1 {
-		for _, child := range children {
-			parent, err := t.Parent(child)
-			if err != nil {
-				return 0, err
-			}
-			if parent != child {
-				desc[parent] += desc[child]
-			}
-			if desc[parent] >= len(ids) {
-				mrca = parent
+	v := ids[n-1]
+	if desc[v] == n {
+		mrca = v
+	} else {
+		p, e := t.Parent(v)
+		util.Check(e)
+		for p != v {
+			desc[p]++
+			if desc[p] == n {
+				mrca = p
 				break
 			}
-			parents = append(parents, parent)
+			v = p
+			p, e = t.Parent(v)
+			util.Check(e)
 		}
-		if mrca == -1 {
-			children = children[:0]
-			for _, parent := range parents {
-				children = append(children, parent)
-			}
-			parents = parents[:0]
-		}
+	}
+	if mrca == -1 {
+		err = errors.New("Couldn't find MRCA")
 	}
 	return mrca, err
 }
