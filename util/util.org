@@ -36,6 +36,12 @@
   	os.Exit(0)
   }
 #+end_src
+#+begin_export latex
+We import \ty{strings}.
+#+end_export
+#+begin_src go <<Imports, Pa. \ref{pa:util}>>=
+  "strings"
+#+end_src
 #+begin_src latex
   We declare the variables \ty{version} and \ty{date}, which ought to be
   injected at compile time.
@@ -318,11 +324,10 @@ We import \ty{math}.
   //<<Encode misc args, Pa. \ref{pa:util}>>
 #+end_src
 #+begin_export latex
-  This requires us to import \ty{net/url} and \ty{strings}.
+We import \ty{net/url}.
 #+end_export
 #+begin_src go <<Imports, Pa. \ref{pa:util}>>=
   "net/url"
-  "strings"
 #+end_src
 #+begin_export latex
   We iterate over the \ty{miscArgs} encoding both the keys and values.
