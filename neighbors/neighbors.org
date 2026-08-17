@@ -211,7 +211,7 @@ We import \ty{util}.
 #+begin_src go <<Send request, Pr. \ref{pr:neig}>>=
   var resp string
   if sendPost {
-	  resp = util.SendPostRequest(
+	  resp = util.SendQueryRequest(
 		  "api/v2/programs/neighbors",
 		  callArgs,
 		  filenames,

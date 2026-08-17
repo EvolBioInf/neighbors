@@ -165,8 +165,8 @@ func urlEncodeSlice(qb *strings.Builder, slc []string, paramName string) {
 	}
 }
 
-// The function SendPostRequest takes as argument a url path as a string, program options and extra arguments as a slice of strings, as well as files and stdin. It sends a post request to never at neighbors.evolbio.mpg.de using these values and returns the result.
-func SendPostRequest(address string, options, extraArgs []string,
+// The function SendQueryRequest takes as argument a url path as a string, program options and extra arguments as a slice of strings, as well as files and stdin. It sends a query request to never at neighbors.evolbio.mpg.de using these values and returns the result.
+func SendQueryRequest(address string, options, extraArgs []string,
 	miscArgs map[string]string, files []*os.File, stdin *os.File) string {
 
 	address = "https://neighbors.evolbio.mpg.de/" + address
@@ -198,7 +198,7 @@ func SendPostRequest(address string, options, extraArgs []string,
 		Check(err)
 	}
 	w.Close()
-	req, err := http.NewRequest(http.MethodPost, address+qb.String(), &b)
+	req, err := http.NewRequest("QUERY", address+qb.String(), &b)
 	Check(err)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	resp, err := http.DefaultClient.Do(req)

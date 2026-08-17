@@ -171,7 +171,7 @@ asked for the version, as printing the version terminates the program.
 		  {Name: "D", WithValue: true}}
 	  //<<Set miscellaneous arguments, Pr. \ref{pr:ran}>>
 	  if *optG != "" {
-		  resp = util.SendPostRequest(
+		  resp = util.SendQueryRequest(
 			  "api/v2/programs/ranks",
 			  util.SanitizeArguments(
 				  os.Args[1:],

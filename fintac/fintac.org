@@ -274,7 +274,7 @@ We parse the options.
   files were passed with the extra arguments.
 #+end_src
 #+begin_src go <<Send request, Pr. \ref{pr:fit}>>=
-  resp := util.SendPostRequest(
+  resp := util.SendQueryRequest(
 	  "api/v2/programs/fintac",
 	  callArgs,
 	  filenames,

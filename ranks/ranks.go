@@ -100,7 +100,7 @@ func main() {
 			misc["db"] = *optDD
 		}
 		if *optG != "" {
-			resp = util.SendPostRequest(
+			resp = util.SendQueryRequest(
 				"api/v2/programs/ranks",
 				util.SanitizeArguments(
 					os.Args[1:],

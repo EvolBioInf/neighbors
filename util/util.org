@@ -384,32 +384,32 @@ We import \ty{net/url}.
   "io"
 #+end_src
 #+begin_export latex
-\section{\ty{SendPostRequest}}
-  !The function \ty{SendPostRequest} takes as argument a url path as a string,
+\section{\ty{SendQueryRequest}}
+  !The function \ty{SendQueryRequest} takes as argument a url path as a string,
   !program options and extra arguments as a slice of strings, as well as files
-  !and stdin. It sends a post request to \ty{never} at
+  !and stdin. It sends a query request to \ty{never} at
   !\ty{neighbors.evolbio.mpg.de} using these values and returns the result.
 #+end_export
 #+begin_src go <<Functions, Pa. \ref{pa:util}>>=
-  func SendPostRequest(address string, options, extraArgs []string,
+  func SendQueryRequest(address string, options, extraArgs []string,
 	  miscArgs map[string]string, files []*os.File, stdin *os.File) string {
 
 	  address = "https://neighbors.evolbio.mpg.de/" + address
 	  //<<Encode query, Pa. \ref{pa:util}>>
-	  //<<Set \ty{post} form data, Pa. \ref{pa:util}>>
-	  //<<Create \ty{post} request, Pa. \ref{pa:util}>>
-	  //<<Write \ty{post} headers, Pa. \ref{pa:util}>>
+	  //<<Set \ty{query} form data, Pa. \ref{pa:util}>>
+	  //<<Create \ty{query} request, Pa. \ref{pa:util}>>
+	  //<<Write \ty{query} headers, Pa. \ref{pa:util}>>
 	  //<<Execute request, Pa. \ref{pa:util}>>
 	  //<<Parse response, Pa. \ref{pa:util}>>
   }
 #+end_src
 #+begin_export latex
-  For setting the post form data we use the \ty{multipart} package. First we
+  For setting the query form data we use the \ty{multipart} package. First we
   create a new multipart writer. Then we iterate over all the files. We create
   an entry using the writer for each file and copy its content. We close the
   multipart writer at the end.
 #+end_export
-#+begin_src go <<Set \ty{post} form data, Pa. \ref{pa:util}>>=
+#+begin_src go <<Set \ty{query} form data, Pa. \ref{pa:util}>>=
   var b bytes.Buffer
   w := multipart.NewWriter(&b)
   for i, file := range files {
@@ -462,17 +462,21 @@ We import \ty{net/url}.
   }
 #+end_src
 #+begin_export latex
-  We create \ty{post} request. Adding the query string is the same
-  as for the get request. The body
+  We create a \ty{query} request. The \ty{query} http method was recently to 
+  the official list of http methods. It closes the gap of safe, idempotent 
+  \ty{get} requests without a body and unsafe non-idempotent \ty{post} requests
+  with a request body. Adding the query string is the same as for the \ty{get}
+  request. Keep in mind that the query string is something totally different 
+  from the \ty{query} method.
 #+end_export
-#+begin_src go <<Create \ty{post} request, Pa. \ref{pa:util}>>=
-  req, err := http.NewRequest(http.MethodPost, address+qb.String(), &b)
+#+begin_src go <<Create \ty{query} request, Pa. \ref{pa:util}>>=
+  req, err := http.NewRequest("QUERY", address+qb.String(), &b)
   Check(err)
 #+end_src
 #+begin_export latex
   We use the writer to set the correct content type including boundaries.
 #+end_export
-#+begin_src go <<Write \ty{post} headers, Pa. \ref{pa:util}>>=
+#+begin_src go <<Write \ty{query} headers, Pa. \ref{pa:util}>>=
   req.Header.Set("Content-Type", w.FormDataContentType())
 #+end_src
 #+begin_export latex

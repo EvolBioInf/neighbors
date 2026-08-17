@@ -234,7 +234,7 @@ func main() {
 		}
 		var resp string
 		if sendPost {
-			resp = util.SendPostRequest(
+			resp = util.SendQueryRequest(
 				"api/v2/programs/neighbors",
 				callArgs,
 				filenames,
