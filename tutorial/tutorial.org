@@ -461,7 +461,7 @@ with prefix \ty{n}.
 #+begin_src latex
   The tree in \ty{lpn.nwk} is in the popular Newick format for
   phylogenies\footnote{\ty{https://phylipweb.github.io/phylip/newick\_doc.html}},
-  and you can be rendered it with any tree plotting program, for example
+  and it can be rendered with any tree plotting program, for example
   \ty{plotTree} from the biobox. At this point, the taxon names consist
   of prefix t or n followed by accession numbers. These are a bit
   tedious to read, so we reduce them to just the single-character prefix
