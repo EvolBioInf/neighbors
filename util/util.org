@@ -462,12 +462,12 @@ We import \ty{net/url}.
   }
 #+end_src
 #+begin_export latex
-  We create a \ty{query} request. The \ty{query} http method was recently to 
-  the official list of http methods. It closes the gap of safe, idempotent 
+  We create a \ty{query} request. The \ty{query} http method was recently added 
+  to the official list of http methods. It closes the gap of safe, idempotent 
   \ty{get} requests without a body and unsafe non-idempotent \ty{post} requests
   with a request body. Adding the query string is the same as for the \ty{get}
   request. Keep in mind that the query string is something totally different 
-  from the \ty{query} method.
+  from the http method type \ty{query}.
 #+end_export
 #+begin_src go <<Create \ty{query} request, Pa. \ref{pa:util}>>=
   req, err := http.NewRequest("QUERY", address+qb.String(), &b)
