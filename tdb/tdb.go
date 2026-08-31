@@ -969,7 +969,7 @@ func traverseSubtree(ctx context.Context, t *TaxonomyDB, v int, taxa []int,
 	taxa = append(taxa, v)
 	l++
 	if l <= m {
-		children, err := t.Children(v)
+		children, err := t.ChildrenContext(ctx, v)
 		if err != nil {
 			return nil, err
 		}

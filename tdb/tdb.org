@@ -1501,7 +1501,7 @@ We import \ty{math}.
 We the children of the current node and check the error.
 #+end_export
 #+begin_src go <<Get children, Pa. \ref{pa:tdb}>>=
-  children, err := t.Children(v)
+  children, err := t.ChildrenContext(ctx, v)
   if err != nil {
 	  return nil, err
   }
