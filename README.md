@@ -1,7 +1,8 @@
 # [`neighbors`](https://owncloud.gwdg.de/index.php/s/QC2FBA88HMHuiTB)
 ## Description
-Identify target and neighbor genomes for marker discovery. For an
-example application, see our
+Identify target and neighbor genomes for marker discovery from whole
+genome sequences. For an example application to over 100 bacterial
+strains, see our
 [publication](https://pubmed.ncbi.nlm.nih.gov/39132289/).
 ## Introduction
 Genetic markers are genomic regions that are common to a set of target
