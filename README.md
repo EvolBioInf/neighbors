@@ -2,7 +2,7 @@
 ## Description
 Identify target and neighbor genomes for marker discovery from whole
 genome sequences. For an example application to over 100 bacterial
-strains, see our
+strains see our
 [publication](https://pubmed.ncbi.nlm.nih.gov/39132289/).
 ## Introduction
 Genetic markers are genomic regions that are common to a set of target
