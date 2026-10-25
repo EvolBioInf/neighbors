@@ -41,13 +41,13 @@ where $s(v)$ returns the nodes in the subtree rooted on $v$, and
 $p(v)$ the parent of $v$. This set subtraction is implemented in the
 program \ty{neighbors}.
 
-The Neighbors package consists of the 14 programs listed in
+The Neighbors package consists of the 15 programs listed in
 Table~\ref{tab:pro}. Seven of these programs are based on the
-taxonomy, five on a phylogeny alone, one, \ty{fintac}, on a phylogeny
+taxonomy, six on a phylogeny alone, one, \ty{fintac}, on a phylogeny
 and the taxonomy, and one, \ty{outliers}, on numerical data.
 
 \begin{table}
-\caption{The 14 programs of Neighbors are based on the taxonomy
+\caption{The 15 programs of Neighbors are based on the taxonomy
 (\emph{tax.}), or a phylogeny (\emph{phy.}),
 or on numbers (\emph{num.}).}\label{tab:pro}
 \begin{center}
@@ -67,7 +67,8 @@ or on numbers (\emph{num.}).}\label{tab:pro}
 11 & \ty{outliers} & num. & find outliers\\
 12 & \ty{pickle} & phy. & pick clades\\
 13 & \ty{ranks} & tax. & distribute genomes among taxonomic ranks\\
-14 & \ty{taxi} & tax. & get taxon-ID for taxon name\\\hline
+14 & \ty{reno} & phy. & rename nodes in phylogeny\\
+15 & \ty{taxi} & tax. & get taxon-ID for taxon name\\\hline
 \end{tabular}
 \end{center}
 \end{table}

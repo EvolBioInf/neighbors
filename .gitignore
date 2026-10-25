@@ -51,6 +51,7 @@ doc/neighborsDoc.ps
 doc/outliers.tex
 doc/ranks.tex
 doc/pickle.tex
+doc/reno.tex
 doc/tax.tex
 doc/taxi.tex
 doc/tdb.tex
@@ -73,6 +74,7 @@ outliers/outliers
 pickle/pickle
 ranks/makeRes.sh
 ranks/ranks
+reno/reno
 taxi/extraTests.sh
 taxi/makeRes.sh
 taxi/taxi

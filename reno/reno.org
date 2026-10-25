@@ -1,0 +1,280 @@
+#+begin_export latex
+\section*{Introduction}
+Phylogenies usually have leaf labels, and sometimes also labeled inter
+internal nodes, like the example tree in Figure~\ref{fig:reno}A.
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{ccc}
+      \textbf{A} & \textbf{B} & \textbf{C}\\
+      \includegraphics{../reno/reno1} &
+      \raisebox{1.25cm}{
+      \begin{tabular}{ll}
+        \hline
+        Old & New\\\hline
+        a & A\\
+        b & B\\
+        c & C\\
+        d & D\\
+        e & E\\\hline
+      \end{tabular}
+      }
+      &
+      \includegraphics{../reno/reno2}
+  \end{tabular}
+  \end{center}
+  \caption{The program \ty{reno} relabels the nodes in phylogeny
+    \textbf{A} to generate phylogeny \textbf{C} using table
+    \textbf{B}.}\label{fig:reno}
+\end{figure}
+The purpose of the program \ty{reno} is to rename the nodes of a
+phylogeny in Newick format. This is done by reading a phylogeny
+(Figure~\ref{fig:reno}A) and a table of old and new names
+(Figure~\ref{fig:reno}B). The old names are replaced by the new and
+the phylogeny is printed again (Figure~\ref{fig:reno}C).
+\bpr{reno}{pr:reno}
+#+end_export
+#+begin_src go <<reno.go>>=
+  package main
+
+  import (
+	  //<<Imports, Pr. \ref{pr:reno}>>
+  )
+  //<<Functions, Pr. \ref{pr:reno}>>
+  func main() {
+	  //<<Main function, Pr. \ref{pr:reno}>>
+  }
+#+end_src
+#+begin_export latex
+\epr In the main function we set the name of \ty{reno}, set its usage,
+declare its options, and parse them. Then we read the node names and
+parse the tree files.
+#+end_export
+#+begin_src go <<Main function, Pr. \ref{pr:reno}>>=
+  util.SetName("reno")
+  //<<Set usage, Pr. \ref{pr:reno}>>
+  //<<Declare options, Pr. \ref{pr:reno}>>
+  //<<Parse options, Pr. \ref{pr:reno}>>
+  //<<Read node names, Pr. \ref{pr:reno}>>
+  //<<Parse tree files, Pr. \ref{pr:reno}>>
+#+end_src
+#+begin_export latex
+We import \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:reno}>>=
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_export latex
+In the usage we state the usage proper, explain the purpose of
+\ty{reno}, and show an example command. The usage reflects the fact
+that \ty{reno} expects the file of names as the first non-option
+argument.
+#+end_export
+#+begin_src go <<Set usage, Pr. \ref{pr:reno}>>=
+  u := "reno [-v] fon.txt [phy.nwk]..."
+  p := "Rename the nodes of phylogenies."
+  e := "reno simpleNames.txt largeTree.nwk"
+  clio.Usage(u, p, e)
+#+end_src
+#+begin_export latex
+We import \ty{clio}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:reno}>>=
+  "github.com/evolbioinf/clio"
+#+end_src
+#+begin_export latex
+We declare only one option, the obligatory version.
+#+end_export
+#+begin_src go <<Declare options, Pr. \ref{pr:reno}>>=
+  optV := flag.Bool("v", false, "version")
+#+end_src
+#+begin_export latex
+We import \ty{flag}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:reno}>>=
+  "flag"
+#+end_src
+#+begin_export latex
+We parse the options and print the version if the user asked for it.
+#+end_export
+#+begin_src go <<Parse options, Pr. \ref{pr:reno}>>=
+  flag.Parse()
+  if *optV {
+  	util.PrintInfo("reno")
+  }
+#+end_src
+#+begin_export latex
+To read the node names, we make a string map for storing the
+names. Then we open the file, store the node names, and close the file
+again.
+#+end_export
+#+begin_src go <<Read node names, Pr. \ref{pr:reno}>>=
+  names := make(map[string]string)
+  var fon *os.File
+  //<<Open file of node names, Pr. \ref{pr:reno}>>
+  //<<Store node names, Pr. \ref{pr:reno}>>
+  fon.Close()
+#+end_src
+#+begin_export latex
+We import \ty{os}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:reno}>>=
+  "os"
+#+end_src
+#+begin_export latex
+The first of the remaining arguments is the file of node names. If
+that doesn't exist, we exit with a friendly message. Otherwise we open
+it and check the error returned.
+#+end_export
+#+begin_src go <<Open file of node names, Pr. \ref{pr:reno}>>=
+  files := flag.Args()
+  if len(files) == 0 {
+  	log.Fatal("please provide a file of node names")
+  }
+  fon, err := os.Open(files[0])
+  util.Check(err)
+#+end_src
+#+begin_export latex
+We import \ty{log} and \ty{util}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:reno}>>=
+  "log"
+  "github.com/evolbioinf/neighbors/util"
+#+end_src
+#+begin_export latex
+We parse the file of node names and skip lines preceded by a
+hashtag. If a line doesn't contain two tokes, something is probably
+wrong, and we exit with a friendly message.
+#+end_export
+#+begin_src go <<Store node names, Pr. \ref{pr:reno}>>=
+  sc := bufio.NewScanner(fon)
+  for sc.Scan() {
+  	t := sc.Text()
+  	if t[0] != '#' {
+  		fields := strings.Fields(t)
+  		if len(fields) != 2 {
+  			log.Fatalf("%q seems mal-formed\n", t)
+  		}
+  		names[fields[0]] = fields[1]
+  	}
+  }
+#+end_src
+#+begin_export latex
+We import \ty{bufio} and \ty{strings}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:reno}>>=
+  "bufio"
+  "strings"
+#+end_src
+#+begin_export latex
+The remaining arguments on the command line are interpreted as input
+files. They are submitted to the function \ty{parse}, which takes as
+argument the node names we just stored.
+#+end_export
+#+begin_src go <<Parse tree files, Pr. \ref{pr:reno}>>=
+  clio.ParseFiles(files[1:], parse, names)
+#+end_src
+#+begin_export latex
+Inside \ty{parse}, we retrieve the node names, and iterate over the
+trees in the file. To each tree we apply the function \ty{rename}
+before printing it.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:reno}>>=
+  func parse(r io.Reader, args ...interface{}) {
+  	names := args[0].(map[string]string)
+  	sc := nwk.NewScanner(r)
+  	for sc.Scan() {
+  		tree := sc.Tree()
+  		rename(tree, names)
+  		fmt.Println(tree)
+  	}
+  }
+#+end_src
+#+begin_export latex
+We import \ty{io}, \ty{nwk}, and \ty{fmt}.
+#+end_export
+#+begin_src go <<Imports, Pr. \ref{pr:reno}>>=
+  "io"
+  "github.com/evolbioinf/nwk"
+  "fmt"
+#+end_src
+#+begin_export latex
+The function \ty{rename} recursively traverses the tree and wherever
+it finds an old label replaces it with the new one.
+#+end_export
+#+begin_src go <<Functions, Pr. \ref{pr:reno}>>=
+  func rename(v *nwk.Node, names map[string]string) {
+  	if v == nil {
+  		return
+  	}
+  	newLabel := names[v.Label]
+  	if newLabel != "" {
+  		v.Label = newLabel
+  	}
+  	rename(v.Child, names)
+  	rename(v.Sib, names)
+  }
+#+end_src
+#+begin_export latex
+The program \ty{reno} is finished, we move on to testing it.
+
+\section*{Testing}
+Our outline for testing \ty{reno} has hooks for imports and the
+testing logic.
+#+end_export
+#+begin_src go <<reno_test.go>>=
+  package main
+
+  import (
+  	"testing"
+  	//<<Testing imports, Pr. \ref{pr:reno}>>
+  )
+
+  func TestReno(t *testing.T) {
+  	//<<Testing, Pr. \ref{pr:reno}>>
+  }
+#+end_src
+#+begin_export latex
+We construct a single test and run it.
+#+end_export
+#+begin_src go <<Testing, Pr. \ref{pr:reno}>>=
+  //<<Construct test, Pr. \ref{pr:reno}>>
+  //<<Run test, Pr. \ref{pr:reno}>>
+#+end_src
+#+begin_export latex
+We run a single test using the names in \ty{names.txt} and the
+phylogeny in \ty{reno1.nwk}.
+#+end_export
+#+begin_src go <<Construct test, Pr. \ref{pr:reno}>>=
+  test := exec.Command("./reno", "names.txt", "reno1.nwk")
+#+end_src
+#+begin_export latex
+We import \ty{exec}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:reno}>>=
+  "os/exec"
+#+end_src
+#+begin_export latex
+We Run the test and compare the output we get the output we want,
+which is contained in \ty{reno2.nwk}.
+#+end_export
+#+begin_src go <<Run test, Pr. \ref{pr:reno}>>=
+  get, err := test.Output()
+  if err != nil {
+  	t.Error(err)
+  }
+  want, err := os.ReadFile("reno2.nwk")
+  if err != nil {
+  	t.Error(err)
+  }
+  if !bytes.Equal(get, want) {
+  	t.Errorf("get:\n%s\nwant:\n%s\n", get, want)
+  }
+#+end_src
+#+begin_export latex
+We import \ty{os} and \ty{bytes}.
+#+end_export
+#+begin_src go <<Testing imports, Pr. \ref{pr:reno}>>=
+  "os"
+  "bytes"
+#+end_src
+
