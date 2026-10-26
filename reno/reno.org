@@ -23,14 +23,18 @@ internal nodes, like the example tree in Figure~\ref{fig:reno}A.
   \end{tabular}
   \end{center}
   \caption{The program \ty{reno} relabels the nodes in phylogeny
-    \textbf{A} to generate phylogeny \textbf{C} using table
-    \textbf{B}.}\label{fig:reno}
+    \textbf{A} according to table \textbf{B} to generate phylogeny
+    \textbf{C}.}\label{fig:reno}
 \end{figure}
 The purpose of the program \ty{reno} is to rename the nodes of a
-phylogeny in Newick format. This is done by reading a phylogeny
+phylogeny. This is done by reading a phylogeny
 (Figure~\ref{fig:reno}A) and a table of old and new names
 (Figure~\ref{fig:reno}B). The old names are replaced by the new and
-the phylogeny is printed again (Figure~\ref{fig:reno}C).
+the phylogeny is printed again (Figure~\ref{fig:reno}C). The input and
+output phylogenies are both in Newick format.
+
+Our outline of \ty{reno} contains hooks for imports, functions, and
+the logic of the main function.
 \bpr{reno}{pr:reno}
 #+end_export
 #+begin_src go <<reno.go>>=
@@ -47,7 +51,7 @@ the phylogeny is printed again (Figure~\ref{fig:reno}C).
 #+begin_export latex
 \epr In the main function we set the name of \ty{reno}, set its usage,
 declare its options, and parse them. Then we read the node names and
-parse the tree files.
+parse one or more tree files.
 #+end_export
 #+begin_src go <<Main function, Pr. \ref{pr:reno}>>=
   util.SetName("reno")
@@ -94,7 +98,8 @@ We import \ty{flag}.
   "flag"
 #+end_src
 #+begin_export latex
-We parse the options and print the version if the user asked for it.
+We parse the options and print the program information, which contains
+the version, if the user asked for it.
 #+end_export
 #+begin_src go <<Parse options, Pr. \ref{pr:reno}>>=
   flag.Parse()
@@ -103,8 +108,8 @@ We parse the options and print the version if the user asked for it.
   }
 #+end_src
 #+begin_export latex
-To read the node names, we make a string map for storing the
-names. Then we open the file, store the node names, and close the file
+To read the node names, we make a string map for storing them. Then we
+open the file of names, store the node names, and close the file
 again.
 #+end_export
 #+begin_src go <<Read node names, Pr. \ref{pr:reno}>>=
@@ -142,7 +147,7 @@ We import \ty{log} and \ty{util}.
 #+end_src
 #+begin_export latex
 We parse the file of node names and skip lines preceded by a
-hashtag. If a line doesn't contain two tokes, something is probably
+hashtag. If a line doesn't contain two tokens, something is probably
 wrong, and we exit with a friendly message.
 #+end_export
 #+begin_src go <<Store node names, Pr. \ref{pr:reno}>>=
@@ -199,7 +204,7 @@ We import \ty{io}, \ty{nwk}, and \ty{fmt}.
 #+end_src
 #+begin_export latex
 The function \ty{rename} recursively traverses the tree and wherever
-it finds an old label replaces it with the new one.
+it finds a matching old label, replaces it with the new one.
 #+end_export
 #+begin_src go <<Functions, Pr. \ref{pr:reno}>>=
   func rename(v *nwk.Node, names map[string]string) {
@@ -241,8 +246,8 @@ We construct a single test and run it.
   //<<Run test, Pr. \ref{pr:reno}>>
 #+end_src
 #+begin_export latex
-We run a single test using the names in \ty{names.txt} and the
-phylogeny in \ty{reno1.nwk}.
+In the test, we use the names in \ty{names.txt} and the phylogeny in
+\ty{reno1.nwk}.
 #+end_export
 #+begin_src go <<Construct test, Pr. \ref{pr:reno}>>=
   test := exec.Command("./reno", "names.txt", "reno1.nwk")
@@ -255,7 +260,8 @@ We import \ty{exec}.
 #+end_src
 #+begin_export latex
 We Run the test and compare the output we get the output we want,
-which is contained in \ty{reno2.nwk}.
+which is contained in \ty{reno2.nwk}. If we can't get what we want, we
+throw a testing error.
 #+end_export
 #+begin_src go <<Run test, Pr. \ref{pr:reno}>>=
   get, err := test.Output()
