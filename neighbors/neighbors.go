@@ -235,7 +235,7 @@ func main() {
 		var resp string
 		if sendPost {
 			resp = util.SendQueryRequest(
-				"api/v2/programs/neighbors",
+				"api/v2/program/neighbors",
 				callArgs,
 				filenames,
 				misc,
@@ -244,7 +244,7 @@ func main() {
 			)
 		} else {
 			resp = util.SendGetRequest(
-				"api/v2/programs/neighbors",
+				"api/v2/program/neighbors",
 				callArgs,
 				[]string{},
 				misc,

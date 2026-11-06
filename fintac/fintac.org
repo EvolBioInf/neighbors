@@ -268,14 +268,14 @@ We parse the options.
 #+begin_src latex
   We send the request using \ty{util.SengPostRequest}. The
   function needs an url path which is
-  \ty{api/v2/programs/fintac},
+  \ty{api/v2/program/fintac},
   as well as the query parameters and files we extracted
   above. Passing \ty{stdin} lets the server use it, if no
   files were passed with the extra arguments.
 #+end_src
 #+begin_src go <<Send request, Pr. \ref{pr:fit}>>=
   resp := util.SendQueryRequest(
-	  "api/v2/programs/fintac",
+	  "api/v2/program/fintac",
 	  callArgs,
 	  filenames,
 	  misc,

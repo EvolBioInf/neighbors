@@ -98,7 +98,7 @@ We import \ty{util}.
 #+begin_src latex
   The remote db option enables remote execution of \ty{ants}. This uses the
   database specified via \ty{optR}. For this we need to call
-  \ty{SendGetRequest}. We use the path: \ty{api/v2/programs/ants}.
+  \ty{SendGetRequest}. We use the path: \ty{api/v2/program/ants}.
 #+end_src
 #+begin_src go <<Act on remote switch, Pr. \ref{pr:tax}>>=
   if *optR || *optDD != "" {
@@ -107,7 +107,7 @@ We import \ty{util}.
 		  {Name: "r", WithValue: false},
 		  {Name: "D", WithValue: true}}
 	  resp := util.SendGetRequest(
-		  "api/v2/programs/ants",
+		  "api/v2/program/ants",
 		  util.SanitizeArguments(os.Args[1:], options),
 		  []string{},
 		  misc,

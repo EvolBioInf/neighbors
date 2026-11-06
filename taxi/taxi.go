@@ -37,7 +37,7 @@ func main() {
 			misc["db"] = *optDD
 		}
 		resp := util.SendGetRequest(
-			"api/v2/programs/taxi",
+			"api/v2/program/taxi",
 			util.SanitizeArguments(
 				os.Args[1:],
 				[]util.Option{

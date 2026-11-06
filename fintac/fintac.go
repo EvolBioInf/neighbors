@@ -245,7 +245,7 @@ func main() {
 			misc["db"] = *optDD
 		}
 		resp := util.SendQueryRequest(
-			"api/v2/programs/fintac",
+			"api/v2/program/fintac",
 			callArgs,
 			filenames,
 			misc,

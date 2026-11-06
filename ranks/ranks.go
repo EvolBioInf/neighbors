@@ -101,7 +101,7 @@ func main() {
 		}
 		if *optG != "" {
 			resp = util.SendQueryRequest(
-				"api/v2/programs/ranks",
+				"api/v2/program/ranks",
 				util.SanitizeArguments(
 					os.Args[1:],
 					options),
@@ -112,7 +112,7 @@ func main() {
 			)
 		} else {
 			resp = util.SendGetRequest(
-				"api/v2/programs/ranks",
+				"api/v2/program/ranks",
 				util.SanitizeArguments(
 					os.Args[1:],
 					options),

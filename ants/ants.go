@@ -36,7 +36,7 @@ func main() {
 			{Name: "r", WithValue: false},
 			{Name: "D", WithValue: true}}
 		resp := util.SendGetRequest(
-			"api/v2/programs/ants",
+			"api/v2/program/ants",
 			util.SanitizeArguments(os.Args[1:], options),
 			[]string{},
 			misc,

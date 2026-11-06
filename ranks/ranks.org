@@ -172,7 +172,7 @@ asked for the version, as printing the version terminates the program.
 	  //<<Set miscellaneous arguments, Pr. \ref{pr:ran}>>
 	  if *optG != "" {
 		  resp = util.SendQueryRequest(
-			  "api/v2/programs/ranks",
+			  "api/v2/program/ranks",
 			  util.SanitizeArguments(
 				  os.Args[1:],
 				  options),
@@ -183,7 +183,7 @@ asked for the version, as printing the version terminates the program.
 		  )
 	  } else {
 		  resp = util.SendGetRequest(
-			  "api/v2/programs/ranks",
+			  "api/v2/program/ranks",
 			  util.SanitizeArguments(
 				  os.Args[1:],
 				  options),

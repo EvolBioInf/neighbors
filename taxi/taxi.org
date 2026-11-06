@@ -139,7 +139,7 @@ which contains the version.
   The remote switch is an option to execute \ty{taxi} on a server instead of
   locally. The user may specify a remote database as well. For this we need to
   call \ty{SendGetRequest} and provide the call arguments. The request url path
-  is \ty{api/v2/programs/taxi}. We remove the options \ty{-r} and \ty{-D} in
+  is \ty{api/v2/program/taxi}. We remove the options \ty{-r} and \ty{-D} in
   sanitization.
 #+end_src
 #+begin_src go <<Respond to \ty{-r}, Pr. \ref{pr:tax}>>=
@@ -149,7 +149,7 @@ which contains the version.
 		  misc["db"] = *optDD
 	  }
 	  resp := util.SendGetRequest(
-		  "api/v2/programs/taxi",
+		  "api/v2/program/taxi",
 		  util.SanitizeArguments(
 			  os.Args[1:],
 			  []util.Option{
