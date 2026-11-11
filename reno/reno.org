@@ -1,6 +1,6 @@
 #+begin_export latex
 \section*{Introduction}
-Phylogenies usually have leaf labels, and sometimes also labeled inter
+Phylogenies usually have leaf labels, and sometimes also labeled
 internal nodes, like the example tree in Figure~\ref{fig:reno}A.
 \begin{figure}
   \begin{center}
